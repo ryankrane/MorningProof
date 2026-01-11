@@ -407,6 +407,25 @@ struct MorningProofSettings: Codable {
     var longestStreak: Int
     var lastPerfectMorningDate: Date?
 
+    // Notifications
+    var notificationsEnabled: Bool
+    var morningReminderTime: Int  // Minutes from midnight (e.g., 420 = 7:00 AM)
+    var countdownWarnings: [Int]  // Minutes before cutoff (e.g., [15, 5, 1])
+
+    // App Locking (UI ready, functionality later)
+    var appLockingEnabled: Bool
+    var lockedApps: [String]  // App bundle IDs (for future use)
+    var lockGracePeriod: Int  // Minutes after cutoff before locking
+
+    // Accountability
+    var strictModeEnabled: Bool  // Prevents editing past completions
+    var allowStreakRecovery: Bool
+
+    // Goals
+    var weeklyPerfectMorningsGoal: Int  // Out of 7 days
+    var customSleepGoal: Double
+    var customStepGoal: Int
+
     init() {
         self.userName = ""
         self.morningCutoffMinutes = 540  // 9:00 AM
@@ -415,6 +434,25 @@ struct MorningProofSettings: Codable {
         self.currentStreak = 0
         self.longestStreak = 0
         self.lastPerfectMorningDate = nil
+
+        // Notifications
+        self.notificationsEnabled = true
+        self.morningReminderTime = 420  // 7:00 AM
+        self.countdownWarnings = [15, 5, 1]
+
+        // App Locking
+        self.appLockingEnabled = false
+        self.lockedApps = []
+        self.lockGracePeriod = 5
+
+        // Accountability
+        self.strictModeEnabled = false
+        self.allowStreakRecovery = true
+
+        // Goals
+        self.weeklyPerfectMorningsGoal = 5
+        self.customSleepGoal = 7.0
+        self.customStepGoal = 500
     }
 
     // Computed helper for hour (for HealthKit API compatibility)

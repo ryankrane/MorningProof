@@ -94,7 +94,7 @@ struct OnboardingView: View {
                     .foregroundColor(MPColors.textPrimary)
             }
 
-            TextField("Your name", text: $userName)
+            TextField("", text: $userName, prompt: Text("Your name").foregroundColor(MPColors.textSecondary))
                 .font(.title3)
                 .foregroundColor(MPColors.textPrimary)
                 .multilineTextAlignment(.center)
