@@ -127,11 +127,29 @@ struct OnboardingFlowView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
+                // Top bar with skip button
+                HStack {
+                    Spacer()
+
+                    // Skip button for testing
+                    Button {
+                        completeOnboarding()
+                    } label: {
+                        Text("Skip")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textTertiary)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                    }
+                }
+                .padding(.horizontal, MPSpacing.lg)
+                .padding(.top, MPSpacing.sm)
+
                 // Progress bar
                 if currentStep > 0 && currentStep < totalSteps - 1 {
                     OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
                         .padding(.horizontal, MPSpacing.xl)
-                        .padding(.top, MPSpacing.lg)
+                        .padding(.top, MPSpacing.sm)
                 }
 
                 // Content
