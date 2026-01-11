@@ -24,9 +24,6 @@ struct MorningProofSettingsView: View {
     @State private var appLockingEnabled = false
     @State private var lockGracePeriod: Int = 5
 
-    // Accountability settings
-    @State private var strictModeEnabled = false
-    @State private var allowStreakRecovery = true
 
     // Goals settings
     @State private var weeklyPerfectMorningsGoal: Int = 5
@@ -41,9 +38,6 @@ struct MorningProofSettingsView: View {
 
                 ScrollView {
                     VStack(spacing: MPSpacing.xxl) {
-                        // Subscription Section
-                        subscriptionSection
-
                         // Profile Section
                         settingsSection(title: "Profile") {
                             VStack(alignment: .leading, spacing: MPSpacing.md) {
@@ -151,9 +145,6 @@ struct MorningProofSettingsView: View {
                         // App Locking Section
                         appLockingSection
 
-                        // Accountability Section
-                        accountabilitySection
-
                         // Goals Section
                         goalsSection
 
@@ -215,94 +206,6 @@ struct MorningProofSettingsView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView(subscriptionManager: subscriptionManager)
-            }
-        }
-    }
-
-    // MARK: - Subscription Section
-
-    var subscriptionSection: some View {
-        VStack(spacing: MPSpacing.md) {
-            if subscriptionManager.isPremium {
-                // Premium status
-                HStack {
-                    ZStack {
-                        Circle()
-                            .fill(MPColors.accentGradient)
-                            .frame(width: 44, height: 44)
-
-                        Image(systemName: "crown.fill")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(.white)
-                    }
-
-                    VStack(alignment: .leading, spacing: 2) {
-                        HStack(spacing: MPSpacing.sm) {
-                            Text("Premium")
-                                .font(MPFont.labelLarge())
-                                .foregroundColor(MPColors.textPrimary)
-
-                            if subscriptionManager.isInTrial {
-                                Text("\(subscriptionManager.trialDaysRemaining) days left")
-                                    .font(MPFont.bodySmall())
-                                    .fontWeight(.medium)
-                                    .foregroundColor(MPColors.accent)
-                                    .padding(.horizontal, MPSpacing.sm)
-                                    .padding(.vertical, 3)
-                                    .background(MPColors.accentLight)
-                                    .cornerRadius(MPRadius.sm)
-                            }
-                        }
-
-                        Text(subscriptionManager.isInTrial ? "Free trial active" : "All features unlocked")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-                }
-                .padding(MPSpacing.lg)
-                .background(MPColors.surface)
-                .cornerRadius(MPRadius.lg)
-                .mpShadow(.small)
-            } else {
-                // Upgrade prompt
-                Button {
-                    showPaywall = true
-                } label: {
-                    HStack {
-                        ZStack {
-                            Circle()
-                                .fill(MPColors.surfaceSecondary)
-                                .frame(width: 44, height: 44)
-
-                            Image(systemName: "crown")
-                                .font(.system(size: MPIconSize.sm))
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Upgrade to Premium")
-                                .font(MPFont.labelLarge())
-                                .foregroundColor(MPColors.textPrimary)
-
-                            Text("Unlimited habits, AI verifications & more")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .padding(MPSpacing.lg)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.lg)
-                    .mpShadow(.small)
-                }
-                .buttonStyle(PlainButtonStyle())
             }
         }
     }
@@ -370,10 +273,6 @@ struct MorningProofSettingsView: View {
         appLockingEnabled = manager.settings.appLockingEnabled
         lockGracePeriod = manager.settings.lockGracePeriod
 
-        // Accountability
-        strictModeEnabled = manager.settings.strictModeEnabled
-        allowStreakRecovery = manager.settings.allowStreakRecovery
-
         // Goals
         weeklyPerfectMorningsGoal = manager.settings.weeklyPerfectMorningsGoal
         customSleepGoal = manager.settings.customSleepGoal
@@ -397,10 +296,6 @@ struct MorningProofSettingsView: View {
         // App Locking
         manager.settings.appLockingEnabled = appLockingEnabled
         manager.settings.lockGracePeriod = lockGracePeriod
-
-        // Accountability
-        manager.settings.strictModeEnabled = strictModeEnabled
-        manager.settings.allowStreakRecovery = allowStreakRecovery
 
         // Goals
         manager.settings.weeklyPerfectMorningsGoal = weeklyPerfectMorningsGoal
@@ -592,50 +487,6 @@ struct MorningProofSettingsView: View {
         }
         .sheet(isPresented: $showAppLockingSheet) {
             AppLockingSettingsView()
-        }
-    }
-
-    // MARK: - Accountability Section
-
-    var accountabilitySection: some View {
-        settingsSection(title: "Accountability") {
-            VStack(spacing: MPSpacing.lg) {
-                // Strict mode
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Strict Mode")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Prevent editing past completions")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Toggle("", isOn: $strictModeEnabled)
-                        .tint(MPColors.primary)
-                }
-
-                Divider()
-
-                // Streak recovery
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Allow Streak Recovery")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Option to recover lost streaks")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Toggle("", isOn: $allowStreakRecovery)
-                        .tint(MPColors.primary)
-                }
-            }
         }
     }
 

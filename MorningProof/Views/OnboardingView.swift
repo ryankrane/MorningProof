@@ -4,7 +4,7 @@ struct OnboardingView: View {
     @ObservedObject var manager: MorningProofManager
     @State private var currentPage = 0
     @State private var userName = ""
-    @State private var selectedHabits: Set<HabitType> = [.madeBed, .morningSteps, .sleepDuration, .drankWater]
+    @State private var selectedHabits: Set<HabitType> = [.madeBed, .sleepDuration, .coldShower, .noSnooze]
     @State private var cutoffMinutes = 540  // 9:00 AM
     @State private var isRequestingHealth = false
     @State private var healthAuthorized = false

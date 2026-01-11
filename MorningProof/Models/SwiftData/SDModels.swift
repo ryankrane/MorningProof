@@ -60,8 +60,8 @@ final class SDSettings {
         self.appLockingEnabled = false
         self.lockedApps = []
         self.lockGracePeriod = 5
-        self.strictModeEnabled = false
-        self.allowStreakRecovery = true
+        self.strictModeEnabled = true
+        self.allowStreakRecovery = false
         self.weeklyPerfectMorningsGoal = 5
     }
 }

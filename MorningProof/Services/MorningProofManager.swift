@@ -162,19 +162,6 @@ class MorningProofManager: ObservableObject {
         }
     }
 
-    func completeJournaling(text: String) {
-        guard text.count >= HabitType.journaling.minimumTextLength else { return }
-        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .journaling }) else { return }
-
-        todayLog.completions[index].isCompleted = true
-        todayLog.completions[index].completedAt = Date()
-        todayLog.completions[index].score = 100
-        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(textEntry: text)
-
-        recalculateScore()
-        saveCurrentState()
-    }
-
     func completeTextEntry(habitType: HabitType, text: String) {
         guard text.count >= habitType.minimumTextLength else { return }
         guard let index = todayLog.completions.firstIndex(where: { $0.habitType == habitType }) else { return }
@@ -523,9 +510,9 @@ struct MorningProofSettings: Codable {
         self.lockedApps = []
         self.lockGracePeriod = 5
 
-        // Accountability
-        self.strictModeEnabled = false
-        self.allowStreakRecovery = true
+        // Accountability - strict mode always on (no editing past completions)
+        self.strictModeEnabled = true
+        self.allowStreakRecovery = false
 
         // Goals
         self.weeklyPerfectMorningsGoal = 5

@@ -48,10 +48,8 @@ struct MainTabView: View {
 struct DashboardContentView: View {
     @ObservedObject var manager: MorningProofManager
     @State private var showBedCamera = false
-    @State private var showJournalEntry = false
     @State private var showSleepInput = false
-    @State private var showGratitude = false
-    @State private var showDailyGoals = false
+    @State private var showHabitEditor = false
 
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
@@ -101,17 +99,11 @@ struct DashboardContentView: View {
             .sheet(isPresented: $showBedCamera) {
                 BedCameraView(manager: manager)
             }
-            .sheet(isPresented: $showJournalEntry) {
-                JournalEntryView(manager: manager)
-            }
             .sheet(isPresented: $showSleepInput) {
                 SleepInputSheet(manager: manager)
             }
-            .sheet(isPresented: $showGratitude) {
-                TextEntryView(manager: manager, habitType: .gratitude)
-            }
-            .sheet(isPresented: $showDailyGoals) {
-                TextEntryView(manager: manager, habitType: .dailyGoals)
+            .sheet(isPresented: $showHabitEditor) {
+                HabitEditorSheet(manager: manager)
             }
             .task {
                 await manager.syncHealthData()
@@ -175,11 +167,23 @@ struct DashboardContentView: View {
 
     var habitsSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
-            // Section header for visual separation from streak card
-            Text("Today's Habits")
-                .font(MPFont.headingSmall())
-                .foregroundColor(MPColors.textPrimary)
-                .padding(.leading, MPSpacing.xs)
+            // Section header with edit button
+            HStack {
+                Text("Today's Habits")
+                    .font(MPFont.headingSmall())
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Button {
+                    showHabitEditor = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(MPColors.primary)
+                }
+            }
+            .padding(.leading, MPSpacing.xs)
 
             // All habits in a single unified list
             ForEach(manager.enabledHabits) { config in
@@ -316,18 +320,6 @@ struct DashboardContentView: View {
                         .cornerRadius(MPRadius.sm)
                 }
 
-            case .journaling:
-                Button {
-                    showJournalEntry = true
-                } label: {
-                    Image(systemName: "pencil")
-                        .font(.body)
-                        .foregroundColor(.white)
-                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                        .background(MPColors.primary)
-                        .cornerRadius(MPRadius.sm)
-                }
-
             case .sleepDuration:
                 if completion?.verificationData?.sleepHours == nil {
                     Button {
@@ -349,30 +341,6 @@ struct DashboardContentView: View {
             case .morningSteps, .morningWorkout:
                 let score = completion?.score ?? 0
                 CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
-
-            case .gratitude:
-                Button {
-                    showGratitude = true
-                } label: {
-                    Image(systemName: "heart.fill")
-                        .font(.body)
-                        .foregroundColor(.white)
-                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                        .background(Color(red: 0.85, green: 0.5, blue: 0.5))
-                        .cornerRadius(MPRadius.sm)
-                }
-
-            case .dailyGoals:
-                Button {
-                    showDailyGoals = true
-                } label: {
-                    Image(systemName: "target")
-                        .font(.body)
-                        .foregroundColor(.white)
-                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                        .background(Color(red: 0.4, green: 0.6, blue: 0.8))
-                        .cornerRadius(MPRadius.sm)
-                }
 
             default:
                 if config.habitType.requiresHoldToConfirm {
@@ -728,6 +696,82 @@ struct SettingsTabView: View {
                 .navigationTitle("Settings")
                 .navigationBarTitleDisplayMode(.large)
         }
+    }
+}
+
+// MARK: - Habit Editor Sheet
+struct HabitEditorSheet: View {
+    @ObservedObject var manager: MorningProofManager
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            ZStack {
+                MPColors.background
+                    .ignoresSafeArea()
+
+                ScrollView {
+                    VStack(spacing: MPSpacing.md) {
+                        ForEach(HabitType.allCases) { habitType in
+                            habitToggleRow(habitType)
+                        }
+                    }
+                    .padding(MPSpacing.xl)
+                }
+            }
+            .navigationTitle("Edit Habits")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                    .fontWeight(.semibold)
+                    .foregroundColor(MPColors.primary)
+                }
+            }
+        }
+    }
+
+    func habitToggleRow(_ habitType: HabitType) -> some View {
+        let config = manager.habitConfigs.first { $0.habitType == habitType }
+        let isEnabled = config?.isEnabled ?? false
+
+        return Button {
+            manager.updateHabitConfig(habitType, isEnabled: !isEnabled)
+        } label: {
+            HStack(spacing: MPSpacing.lg) {
+                ZStack {
+                    Circle()
+                        .fill(isEnabled ? MPColors.successLight : MPColors.surfaceSecondary)
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: habitType.icon)
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(isEnabled ? MPColors.success : MPColors.textTertiary)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(habitType.displayName)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text(habitType.tier.description)
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+                Spacer()
+
+                Image(systemName: isEnabled ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundColor(isEnabled ? MPColors.success : MPColors.border)
+            }
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+        }
+        .buttonStyle(.plain)
     }
 }
 

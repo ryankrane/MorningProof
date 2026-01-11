@@ -4,8 +4,8 @@ struct DashboardView: View {
     @ObservedObject var manager: MorningProofManager
     @State private var showSettings = false
     @State private var showBedCamera = false
-    @State private var showJournalEntry = false
     @State private var showSleepInput = false
+    @State private var showHabitEditor = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
 
     // Side menu state
@@ -97,9 +97,6 @@ struct DashboardView: View {
         .sheet(isPresented: $showBedCamera) {
             BedCameraView(manager: manager)
         }
-        .sheet(isPresented: $showJournalEntry) {
-            JournalEntryView(manager: manager)
-        }
         .sheet(isPresented: $showSleepInput) {
             SleepInputSheet(manager: manager)
         }
@@ -115,6 +112,9 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showStatistics) {
             StatisticsView(manager: manager)
+        }
+        .sheet(isPresented: $showHabitEditor) {
+            HabitEditorSheet(manager: manager)
         }
         .task {
             await manager.syncHealthData()
@@ -213,11 +213,23 @@ struct DashboardView: View {
 
     var habitsSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
-            // Section header for visual separation from streak card
-            Text("Today's Habits")
-                .font(MPFont.headingSmall())
-                .foregroundColor(MPColors.textPrimary)
-                .padding(.leading, MPSpacing.xs)
+            // Section header with edit button
+            HStack {
+                Text("Today's Habits")
+                    .font(MPFont.headingSmall())
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Button {
+                    showHabitEditor = true
+                } label: {
+                    Image(systemName: "plus.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundColor(MPColors.primary)
+                }
+            }
+            .padding(.leading, MPSpacing.xs)
 
             // All habits in a single unified list
             ForEach(manager.enabledHabits) { config in
@@ -359,18 +371,6 @@ struct DashboardView: View {
                     showBedCamera = true
                 } label: {
                     Image(systemName: "camera.fill")
-                        .font(.body)
-                        .foregroundColor(.white)
-                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                        .background(MPColors.primary)
-                        .cornerRadius(MPRadius.sm)
-                }
-
-            case .journaling:
-                Button {
-                    showJournalEntry = true
-                } label: {
-                    Image(systemName: "pencil")
                         .font(.body)
                         .foregroundColor(.white)
                         .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
