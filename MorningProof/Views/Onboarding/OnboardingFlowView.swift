@@ -267,61 +267,72 @@ struct WelcomeStep: View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Animated sunrise icon
-            ZStack {
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                MPColors.accentLight.opacity(0.6),
-                                MPColors.accent.opacity(0.2),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 100
-                        )
-                    )
-                    .frame(width: 200, height: 200)
-                    .scaleEffect(animateIcon ? 1.1 : 1.0)
-
-                Image(systemName: "sunrise.fill")
-                    .font(.system(size: 80))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [MPColors.accent, MPColors.accentGold],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .offset(y: animateIcon ? -5 : 5)
-            }
-            .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateIcon)
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            VStack(spacing: MPSpacing.lg) {
+            // App branding
+            VStack(spacing: MPSpacing.xl) {
                 Text("Morning Proof")
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .font(.system(size: 36, weight: .bold, design: .default))
                     .foregroundColor(MPColors.textPrimary)
+                    .tracking(-0.5)
                     .opacity(animateText ? 1 : 0)
                     .offset(y: animateText ? 0 : 20)
 
-                Text("Transform your mornings.\nTransform your life.")
-                    .font(MPFont.bodyLarge())
+                // Soft gradient orb
+                ZStack {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    MPColors.accentLight.opacity(0.8),
+                                    MPColors.accent.opacity(0.4),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 80
+                            )
+                        )
+                        .frame(width: 160, height: 160)
+                        .scaleEffect(animateIcon ? 1.05 : 1.0)
+
+                    Image(systemName: "sunrise.fill")
+                        .font(.system(size: 50))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [MPColors.accent, MPColors.accentGold],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .offset(y: animateIcon ? -3 : 3)
+                }
+                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateIcon)
+            }
+
+            Spacer().frame(height: 60)
+
+            // Purpose statement
+            VStack(spacing: MPSpacing.md) {
+                Text("Build your morning routine")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+                    .opacity(animateText ? 1 : 0)
+
+                Text("Prove your habits with AI verification.\nTrack streaks, stay accountable, win your mornings.")
+                    .font(MPFont.bodyMedium())
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(4)
                     .opacity(animateText ? 1 : 0)
-                    .offset(y: animateText ? 0 : 20)
             }
+            .padding(.horizontal, MPSpacing.xxxl)
 
             Spacer()
 
-            MPButton(title: "Let's Begin", style: .primary, icon: "arrow.right") {
+            // Get Started button
+            MPButton(title: "Get Started", style: .primary, icon: "arrow.right") {
                 onContinue()
             }
-            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.horizontal, MPSpacing.xl)
             .padding(.bottom, 50)
         }
         .onAppear {

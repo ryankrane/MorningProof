@@ -54,10 +54,8 @@ struct MorningProofApp: App {
             Group {
                 if manager.hasCompletedOnboarding {
                     MainTabView(manager: manager)
-                } else if authManager.isAuthenticated {
-                    OnboardingFlowView(manager: manager)
                 } else {
-                    WelcomeView(manager: manager)
+                    OnboardingFlowView(manager: manager)
                 }
             }
             .environmentObject(themeManager)
