@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import WidgetKit
 
 @MainActor
 class MorningProofManager: ObservableObject {
@@ -174,6 +175,19 @@ class MorningProofManager: ObservableObject {
         saveCurrentState()
     }
 
+    func completeTextEntry(habitType: HabitType, text: String) {
+        guard text.count >= habitType.minimumTextLength else { return }
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == habitType }) else { return }
+
+        todayLog.completions[index].isCompleted = true
+        todayLog.completions[index].completedAt = Date()
+        todayLog.completions[index].score = 100
+        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(textEntry: text)
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
     func updateManualSleep(hours: Double) {
         guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .sleepDuration }) else { return }
 
@@ -256,6 +270,68 @@ class MorningProofManager: ObservableObject {
         storageService.saveMorningProofSettings(settings)
         storageService.saveHabitConfigs(habitConfigs)
         storageService.saveDailyLog(todayLog)
+
+        // Update widgets
+        updateWidgetData()
+        WidgetCenter.shared.reloadAllTimelines()
+
+        // Update Live Activity
+        Task {
+            await updateLiveActivity()
+        }
+    }
+
+    private func updateWidgetData() {
+        let habitStatuses = enabledHabits.map { config -> SharedDataManager.HabitStatus in
+            let completion = todayLog.completions.first { $0.habitType == config.habitType }
+            return SharedDataManager.HabitStatus(
+                name: config.habitType.displayName,
+                icon: config.habitType.icon,
+                isCompleted: completion?.isCompleted ?? false
+            )
+        }
+
+        SharedDataManager.saveWidgetData(
+            currentStreak: currentStreak,
+            longestStreak: longestStreak,
+            completedHabits: completedCount,
+            totalHabits: totalEnabled,
+            cutoffMinutes: settings.morningCutoffMinutes,
+            lastPerfectMorning: lastPerfectMorningDate,
+            habitStatuses: habitStatuses
+        )
+    }
+
+    private func updateLiveActivity() async {
+        let lastCompleted = todayLog.completions
+            .filter { $0.isCompleted }
+            .sorted { ($0.completedAt ?? .distantPast) > ($1.completedAt ?? .distantPast) }
+            .first
+
+        let lastHabitName = lastCompleted.flatMap { completion in
+            habitConfigs.first { $0.habitType == completion.habitType }?.habitType.displayName
+        }
+
+        await LiveActivityManager.shared.updateActivity(
+            completedHabits: completedCount,
+            totalHabits: totalEnabled,
+            lastCompletedHabit: lastHabitName,
+            currentStreak: currentStreak
+        )
+    }
+
+    /// Starts the morning routine Live Activity
+    func startMorningActivity() {
+        LiveActivityManager.shared.startActivity(
+            cutoffTime: getCutoffTime(),
+            totalHabits: totalEnabled,
+            currentStreak: currentStreak
+        )
+    }
+
+    /// Ends the morning routine Live Activity
+    func endMorningActivity() async {
+        await LiveActivityManager.shared.endActivity()
     }
 
     func resetAllData() {
@@ -406,6 +482,7 @@ struct MorningProofSettings: Codable {
     var currentStreak: Int
     var longestStreak: Int
     var lastPerfectMorningDate: Date?
+    var totalPerfectMornings: Int
 
     // Notifications
     var notificationsEnabled: Bool
@@ -434,6 +511,7 @@ struct MorningProofSettings: Codable {
         self.currentStreak = 0
         self.longestStreak = 0
         self.lastPerfectMorningDate = nil
+        self.totalPerfectMornings = 0
 
         // Notifications
         self.notificationsEnabled = true

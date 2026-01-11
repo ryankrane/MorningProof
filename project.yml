@@ -2,8 +2,13 @@ name: MorningProof
 options:
   bundleIdPrefix: com.rk
   deploymentTarget:
-    iOS: "16.0"
+    iOS: "17.0"
   xcodeVersion: "15.0"
+
+packages:
+  Firebase:
+    url: https://github.com/firebase/firebase-ios-sdk
+    from: "11.0.0"
 
 settings:
   base:
@@ -20,6 +25,13 @@ targets:
       - path: MorningProof
         excludes:
           - "**/.DS_Store"
+    dependencies:
+      - package: Firebase
+        product: FirebaseCrashlytics
+      - package: Firebase
+        product: FirebaseAnalytics
+      - target: MorningProofWidget
+        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rk.bedmate
@@ -27,10 +39,19 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         DEVELOPMENT_TEAM: P9ZXADV42A
         CODE_SIGN_STYLE: Automatic
+        DEBUG_INFORMATION_FORMAT: dwarf-with-dsym
     entitlements:
       path: MorningProof/Resources/MorningProof.entitlements
       properties:
         com.apple.developer.healthkit: true
+        # Note: iCloud and App Groups require a paid developer account
+        # Uncomment these when you have proper provisioning:
+        # com.apple.developer.icloud-container-identifiers:
+        #   - iCloud.com.rk.bedmate
+        # com.apple.developer.icloud-services:
+        #   - CloudKit
+        # com.apple.security.application-groups:
+        #   - group.com.rk.bedmate
     info:
       path: MorningProof/Resources/Info.plist
       properties:
@@ -42,6 +63,7 @@ targets:
         CFBundlePackageType: APPL
         CFBundleExecutable: $(EXECUTABLE_NAME)
         LSRequiresIPhoneOS: true
+        NSSupportsLiveActivities: true
         UILaunchScreen:
           UIColorName: ""
           UIImageName: ""
@@ -53,6 +75,33 @@ targets:
         NSHealthUpdateUsageDescription: "Morning Proof may save your morning routine data to Health."
         UIBackgroundModes:
           - processing
+
+  MorningProofWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: MorningProofWidget
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rk.bedmate.widget
+        INFOPLIST_FILE: MorningProofWidget/Info.plist
+        DEVELOPMENT_TEAM: P9ZXADV42A
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+    entitlements:
+      path: MorningProofWidget/MorningProofWidget.entitlements
+      properties: {}
+        # Note: App Groups require a paid developer account
+        # com.apple.security.application-groups:
+        #   - group.com.rk.bedmate
+    info:
+      path: MorningProofWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Morning Proof Widget
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   MorningProofTests:
     type: bundle.unit-test

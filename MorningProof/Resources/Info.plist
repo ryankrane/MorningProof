@@ -30,6 +30,8 @@
 	<string>Morning Proof may save your morning routine data to Health.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Morning Proof needs photo library access to select bed photos for verification.</string>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>processing</string>

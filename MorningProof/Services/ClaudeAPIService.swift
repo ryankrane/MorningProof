@@ -10,8 +10,16 @@ actor ClaudeAPIService {
     }
 
     func verifyBed(image: UIImage) async throws -> VerificationResult {
+        await MainActor.run {
+            CrashReportingService.shared.logAPICall("claude/verify-bed")
+        }
+
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            throw APIError.imageConversionFailed
+            let error = APIError.imageConversionFailed
+            await MainActor.run {
+                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-bed")
+            }
+            throw error
         }
 
         let base64Image = imageData.base64EncodedString()
@@ -70,7 +78,11 @@ actor ClaudeAPIService {
 
         guard httpResponse.statusCode == 200 else {
             let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            throw APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
+            let error = APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
+            await MainActor.run {
+                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-bed", statusCode: httpResponse.statusCode)
+            }
+            throw error
         }
 
         // Parse Claude's response

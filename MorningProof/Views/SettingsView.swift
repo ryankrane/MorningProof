@@ -11,37 +11,35 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.98, green: 0.96, blue: 0.93)
+                MPColors.background
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 20) {
+                    VStack(spacing: MPSpacing.xl) {
                         // Name section
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: MPSpacing.md) {
                             Text("Your Name")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                                .font(MPFont.labelMedium())
+                                .foregroundColor(MPColors.textSecondary)
 
                             TextField("Enter your name", text: $userName)
-                                .padding(16)
-                                .background(Color.white)
-                                .cornerRadius(12)
-                                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+                                .padding(MPSpacing.lg)
+                                .background(MPColors.surface)
+                                .cornerRadius(MPRadius.md)
+                                .mpShadow(.small)
                         }
 
                         // Deadline section
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: MPSpacing.md) {
                             Text("Daily Deadline")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
-                                .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                                .font(MPFont.labelMedium())
+                                .foregroundColor(MPColors.textSecondary)
 
                             Text("Make your bed before this time each day")
-                                .font(.caption)
-                                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                                .font(MPFont.bodySmall())
+                                .foregroundColor(MPColors.textTertiary)
 
-                            HStack(spacing: 12) {
+                            HStack(spacing: MPSpacing.md) {
                                 // Hour picker
                                 Picker("Hour", selection: $selectedHour) {
                                     ForEach(5..<13) { hour in
@@ -51,12 +49,12 @@ struct SettingsView: View {
                                 .pickerStyle(.wheel)
                                 .frame(width: 80, height: 120)
                                 .clipped()
-                                .background(Color.white)
-                                .cornerRadius(12)
+                                .background(MPColors.surface)
+                                .cornerRadius(MPRadius.md)
 
                                 Text(":")
                                     .font(.title)
-                                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                                    .foregroundColor(MPColors.textPrimary)
 
                                 // Minute picker
                                 Picker("Minute", selection: $selectedMinute) {
@@ -67,32 +65,32 @@ struct SettingsView: View {
                                 .pickerStyle(.wheel)
                                 .frame(width: 80, height: 120)
                                 .clipped()
-                                .background(Color.white)
-                                .cornerRadius(12)
+                                .background(MPColors.surface)
+                                .cornerRadius(MPRadius.md)
 
                                 Text("AM")
-                                    .font(.headline)
-                                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                                    .font(MPFont.labelLarge())
+                                    .foregroundColor(MPColors.textSecondary)
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color.white)
-                            .cornerRadius(16)
-                            .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
+                            .padding(.vertical, MPSpacing.lg)
+                            .background(MPColors.surface)
+                            .cornerRadius(MPRadius.lg)
+                            .mpShadow(.medium)
                         }
 
                         // Current deadline display
                         HStack {
                             Image(systemName: "clock.fill")
-                                .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                                .foregroundColor(MPColors.primary)
                             Text("Deadline set to \(selectedHour):\(String(format: "%02d", selectedMinute)) AM")
-                                .font(.subheadline)
-                                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                                .font(MPFont.bodyMedium())
+                                .foregroundColor(MPColors.textPrimary)
                             Spacer()
                         }
-                        .padding(16)
-                        .background(Color(red: 1.0, green: 0.98, blue: 0.95))
-                        .cornerRadius(12)
+                        .padding(MPSpacing.lg)
+                        .background(MPColors.surfaceHighlight)
+                        .cornerRadius(MPRadius.md)
 
                         Spacer(minLength: 40)
 
@@ -104,22 +102,22 @@ struct SettingsView: View {
                                 Image(systemName: "trash")
                                 Text("Reset All Data")
                             }
-                            .font(.subheadline)
-                            .foregroundColor(.red.opacity(0.8))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.error)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 14)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+                            .padding(.vertical, MPSpacing.md)
+                            .background(MPColors.surface)
+                            .cornerRadius(MPRadius.md)
+                            .mpShadow(.small)
                         }
 
                         Text("Version 1.0")
-                            .font(.caption)
-                            .foregroundColor(Color(red: 0.7, green: 0.65, blue: 0.6))
-                            .padding(.top, 20)
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.textMuted)
+                            .padding(.top, MPSpacing.xl)
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 20)
+                    .padding(.horizontal, MPSpacing.xl)
+                    .padding(.top, MPSpacing.xl)
                     .padding(.bottom, 40)
                 }
             }
@@ -132,14 +130,14 @@ struct SettingsView: View {
                         dismiss()
                     }
                     .fontWeight(.semibold)
-                    .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                    .foregroundColor(MPColors.primary)
                 }
 
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .foregroundColor(MPColors.textTertiary)
                 }
             }
             .onAppear {

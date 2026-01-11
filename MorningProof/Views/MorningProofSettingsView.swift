@@ -4,6 +4,7 @@ struct MorningProofSettingsView: View {
     @ObservedObject var manager: MorningProofManager
     @StateObject private var subscriptionManager = SubscriptionManager.shared
     @StateObject private var notificationManager = NotificationManager.shared
+    @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
 
     @State private var userName: String = ""
@@ -56,6 +57,53 @@ struct MorningProofSettingsView: View {
                                     .padding(MPSpacing.lg)
                                     .background(MPColors.background)
                                     .cornerRadius(MPRadius.sm)
+                            }
+                        }
+
+                        // Appearance Section
+                        settingsSection(title: "Appearance") {
+                            VStack(spacing: MPSpacing.lg) {
+                                HStack {
+                                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                                        Text("Theme")
+                                            .font(MPFont.labelMedium())
+                                            .foregroundColor(MPColors.textPrimary)
+                                        Text("Choose your preferred appearance")
+                                            .font(MPFont.bodySmall())
+                                            .foregroundColor(MPColors.textTertiary)
+                                    }
+
+                                    Spacer()
+                                }
+
+                                HStack(spacing: MPSpacing.md) {
+                                    ForEach(AppThemeMode.allCases, id: \.rawValue) { mode in
+                                        Button {
+                                            themeManager.themeMode = mode
+                                        } label: {
+                                            VStack(spacing: MPSpacing.sm) {
+                                                ZStack {
+                                                    RoundedRectangle(cornerRadius: MPRadius.md)
+                                                        .fill(themeManager.themeMode == mode ? MPColors.primary : MPColors.surfaceSecondary)
+                                                        .frame(width: 56, height: 56)
+
+                                                    Image(systemName: mode.icon)
+                                                        .font(.system(size: MPIconSize.lg))
+                                                        .foregroundColor(themeManager.themeMode == mode ? .white : MPColors.textTertiary)
+                                                }
+
+                                                Text(mode.displayName)
+                                                    .font(MPFont.labelSmall())
+                                                    .foregroundColor(themeManager.themeMode == mode ? MPColors.primary : MPColors.textSecondary)
+                                            }
+                                        }
+                                        .buttonStyle(PlainButtonStyle())
+
+                                        if mode != AppThemeMode.allCases.last {
+                                            Spacer()
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -675,4 +723,5 @@ struct MorningProofSettingsView: View {
 
 #Preview {
     MorningProofSettingsView(manager: MorningProofManager.shared)
+        .environmentObject(ThemeManager.shared)
 }

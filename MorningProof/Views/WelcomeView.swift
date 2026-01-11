@@ -13,7 +13,7 @@ struct WelcomeView: View {
     var body: some View {
         ZStack {
             // Background
-            Color.white
+            MPColors.surface
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
@@ -32,8 +32,8 @@ struct WelcomeView: View {
                             .fill(
                                 RadialGradient(
                                     colors: [
-                                        Color(red: 0.95, green: 0.85, blue: 0.7).opacity(0.8),
-                                        Color(red: 0.9, green: 0.75, blue: 0.5).opacity(0.4),
+                                        MPColors.accentLight.opacity(0.8),
+                                        MPColors.accent.opacity(0.4),
                                         Color.clear
                                     ],
                                     center: .center,
@@ -76,7 +76,7 @@ struct WelcomeView: View {
 
                 // Auth buttons
                 VStack(spacing: MPSpacing.md) {
-                    // Sign in with Apple (custom button - requires paid developer account)
+                    // Sign in with Apple (requires paid developer team to be selected)
                     Button {
                         showAppleSetupAlert = true
                     } label: {
@@ -107,7 +107,7 @@ struct WelcomeView: View {
                         }
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
-                        .background(Color.white)
+                        .background(MPColors.surface)
                         .cornerRadius(MPRadius.lg)
                         .overlay(
                             RoundedRectangle(cornerRadius: MPRadius.lg)
@@ -147,7 +147,7 @@ struct WelcomeView: View {
         .alert("Apple Sign In", isPresented: $showAppleSetupAlert) {
             Button("OK", role: .cancel) { }
         } message: {
-            Text("Sign in with Apple requires an Apple Developer Program membership ($99/year). Tap 'Get Started' to continue without sign in.")
+            Text("Your Apple Developer Program enrollment may still be processing. Once approved, select your paid team in Xcode under Signing & Capabilities.")
         }
         .alert("Google Sign In", isPresented: $showGoogleSetupAlert) {
             Button("OK", role: .cancel) { }

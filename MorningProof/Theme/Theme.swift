@@ -12,43 +12,43 @@ enum MPSpacing {
     static let xxxl: CGFloat = 32   // Major section gaps
 }
 
-// MARK: - Color Palette
+// MARK: - Color Palette (Adaptive Light/Dark)
 
 enum MPColors {
     // Backgrounds
-    static let background = Color(red: 0.98, green: 0.96, blue: 0.93)
-    static let surface = Color.white
-    static let surfaceSecondary = Color(red: 0.95, green: 0.93, blue: 0.9)
-    static let surfaceHighlight = Color(red: 1.0, green: 0.97, blue: 0.92)
+    static let background = Color("Background")
+    static let surface = Color("Surface")
+    static let surfaceSecondary = Color("SurfaceSecondary")
+    static let surfaceHighlight = Color("SurfaceHighlight")
 
     // Text
-    static let textPrimary = Color(red: 0.35, green: 0.28, blue: 0.22)
-    static let textSecondary = Color(red: 0.5, green: 0.45, blue: 0.4)
-    static let textTertiary = Color(red: 0.6, green: 0.5, blue: 0.4)
-    static let textMuted = Color(red: 0.7, green: 0.65, blue: 0.6)
+    static let textPrimary = Color("TextPrimary")
+    static let textSecondary = Color("TextSecondary")
+    static let textTertiary = Color("TextTertiary")
+    static let textMuted = Color("TextMuted")
 
     // Brand
-    static let primary = Color(red: 0.55, green: 0.45, blue: 0.35)
-    static let primaryLight = Color(red: 0.75, green: 0.65, blue: 0.55)
-    static let primaryDark = Color(red: 0.45, green: 0.35, blue: 0.28)
+    static let primary = Color("Primary")
+    static let primaryLight = Color("PrimaryLight")
+    static let primaryDark = Color("PrimaryDark")
 
     // Accent
-    static let accent = Color(red: 0.9, green: 0.6, blue: 0.35)
-    static let accentLight = Color(red: 0.95, green: 0.9, blue: 0.85)
-    static let accentGold = Color(red: 0.85, green: 0.65, blue: 0.2)
+    static let accent = Color("Accent")
+    static let accentLight = Color("AccentLight")
+    static let accentGold = Color("AccentGold")
 
     // Semantic
-    static let success = Color(red: 0.55, green: 0.75, blue: 0.55)
-    static let successLight = Color(red: 0.9, green: 0.97, blue: 0.9)
-    static let error = Color(red: 0.85, green: 0.55, blue: 0.5)
-    static let errorLight = Color(red: 0.98, green: 0.93, blue: 0.92)
-    static let warning = Color(red: 0.95, green: 0.75, blue: 0.4)
-    static let warningLight = Color(red: 0.99, green: 0.95, blue: 0.88)
+    static let success = Color("Success")
+    static let successLight = Color("SuccessLight")
+    static let error = Color("Error")
+    static let errorLight = Color("ErrorLight")
+    static let warning = Color("Warning")
+    static let warningLight = Color("WarningLight")
 
     // UI Elements
-    static let border = Color(red: 0.8, green: 0.75, blue: 0.7)
-    static let divider = Color(red: 0.92, green: 0.9, blue: 0.87)
-    static let progressBg = Color(red: 0.92, green: 0.9, blue: 0.87)
+    static let border = Color("Border")
+    static let divider = Color("Divider")
+    static let progressBg = Color("ProgressBg")
 
     // Gradients
     static let primaryGradient = LinearGradient(
@@ -125,9 +125,9 @@ enum MPShadow {
 
     var opacity: Double {
         switch self {
-        case .small: return 0.04
-        case .medium: return 0.05
-        case .large: return 0.06
+        case .small: return 0.08
+        case .medium: return 0.10
+        case .large: return 0.12
         }
     }
 
