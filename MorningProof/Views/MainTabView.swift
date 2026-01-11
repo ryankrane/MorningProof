@@ -28,12 +28,6 @@ struct MainTabView: View {
                 }
                 .tag(Tab.home)
 
-            CalendarTabView(manager: manager)
-                .tabItem {
-                    Label(Tab.calendar.rawValue, systemImage: Tab.calendar.icon)
-                }
-                .tag(Tab.calendar)
-
             StatsTabView(manager: manager)
                 .tabItem {
                     Label(Tab.stats.rawValue, systemImage: Tab.stats.icon)
