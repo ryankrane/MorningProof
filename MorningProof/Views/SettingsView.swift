@@ -96,7 +96,8 @@ struct SettingsView: View {
 
                         // Reset data button
                         Button {
-                            viewModel.resetStreak()
+                            MorningProofManager.shared.resetAllData()
+                            dismiss()
                         } label: {
                             HStack {
                                 Image(systemName: "trash")
