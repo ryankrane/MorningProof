@@ -1,0 +1,462 @@
+import SwiftUI
+
+struct DashboardView: View {
+    @ObservedObject var manager: MorningProofManager
+    @State private var showSettings = false
+    @State private var showBedCamera = false
+    @State private var showJournalEntry = false
+    @State private var holdProgress: [HabitType: CGFloat] = [:]
+
+    var body: some View {
+        ZStack {
+            // Background
+            Color(red: 0.98, green: 0.96, blue: 0.93)
+                .ignoresSafeArea()
+
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 20) {
+                    // Header
+                    headerSection
+
+                    // Morning Score Card
+                    scoreCard
+
+                    // Countdown
+                    if !manager.isPastCutoff {
+                        countdownBanner
+                    }
+
+                    // Habits List
+                    habitsSection
+
+                    Spacer(minLength: 30)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 10)
+            }
+            .refreshable {
+                await manager.syncHealthData()
+            }
+        }
+        .sheet(isPresented: $showSettings) {
+            MorningProofSettingsView(manager: manager)
+        }
+        .sheet(isPresented: $showBedCamera) {
+            BedCameraView(manager: manager)
+        }
+        .sheet(isPresented: $showJournalEntry) {
+            JournalEntryView(manager: manager)
+        }
+        .task {
+            await manager.syncHealthData()
+        }
+    }
+
+    // MARK: - Header
+
+    var headerSection: some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(greeting)
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+                Text(dateString)
+                    .font(.subheadline)
+                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+            }
+
+            Spacer()
+
+            Button {
+                showSettings = true
+            } label: {
+                Image(systemName: "gearshape.fill")
+                    .font(.body)
+                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .frame(width: 36, height: 36)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+            }
+        }
+        .padding(.top, 8)
+    }
+
+    var greeting: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        let name = manager.settings.userName.isEmpty ? "" : ", \(manager.settings.userName)"
+
+        switch hour {
+        case 5..<12:
+            return "Good morning\(name)"
+        case 12..<17:
+            return "Good afternoon\(name)"
+        case 17..<21:
+            return "Good evening\(name)"
+        default:
+            return "Hello\(name)"
+        }
+    }
+
+    var dateString: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "EEEE, MMMM d"
+        return formatter.string(from: Date())
+    }
+
+    // MARK: - Score Card
+
+    var scoreCard: some View {
+        VStack(spacing: 16) {
+            // Score ring
+            ZStack {
+                Circle()
+                    .stroke(Color(red: 0.92, green: 0.9, blue: 0.87), lineWidth: 12)
+                    .frame(width: 120, height: 120)
+
+                Circle()
+                    .trim(from: 0, to: CGFloat(manager.todayLog.morningScore) / 100)
+                    .stroke(scoreColor, style: StrokeStyle(lineWidth: 12, lineCap: .round))
+                    .frame(width: 120, height: 120)
+                    .rotationEffect(.degrees(-90))
+                    .animation(.easeOut(duration: 0.5), value: manager.todayLog.morningScore)
+
+                VStack(spacing: 2) {
+                    Text("\(manager.todayLog.morningScore)")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+                    Text("Morning Score")
+                        .font(.caption2)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                }
+            }
+
+            // Progress text
+            HStack(spacing: 4) {
+                Image(systemName: "checkmark.circle.fill")
+                    .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+
+                Text("\(manager.completedCount)/\(manager.totalEnabled) habits completed")
+                    .font(.subheadline)
+                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 24)
+        .background(Color.white)
+        .cornerRadius(20)
+        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 5)
+    }
+
+    var scoreColor: Color {
+        let score = manager.todayLog.morningScore
+        switch score {
+        case 80...100: return Color(red: 0.4, green: 0.75, blue: 0.45)
+        case 60..<80: return Color(red: 0.55, green: 0.75, blue: 0.55)
+        case 40..<60: return Color(red: 0.9, green: 0.75, blue: 0.3)
+        case 20..<40: return Color(red: 0.9, green: 0.6, blue: 0.35)
+        default: return Color(red: 0.85, green: 0.5, blue: 0.45)
+        }
+    }
+
+    // MARK: - Countdown Banner
+
+    var countdownBanner: some View {
+        HStack {
+            Image(systemName: "clock.fill")
+                .foregroundColor(Color(red: 0.9, green: 0.6, blue: 0.35))
+
+            Text(countdownText)
+                .font(.subheadline)
+                .fontWeight(.medium)
+                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+            Spacer()
+        }
+        .padding(14)
+        .background(Color(red: 1.0, green: 0.97, blue: 0.92))
+        .cornerRadius(12)
+    }
+
+    var countdownText: String {
+        let interval = manager.timeUntilCutoff
+        let hours = Int(interval) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m until \(manager.settings.morningCutoffHour):00 AM cutoff"
+        } else {
+            return "\(minutes)m until \(manager.settings.morningCutoffHour):00 AM cutoff"
+        }
+    }
+
+    // MARK: - Habits Section
+
+    var habitsSection: some View {
+        VStack(spacing: 12) {
+            // Group by tier
+            ForEach(HabitVerificationTier.allCases, id: \.rawValue) { tier in
+                let habitsInTier = manager.enabledHabits.filter { $0.habitType.tier == tier }
+
+                if !habitsInTier.isEmpty {
+                    VStack(alignment: .leading, spacing: 10) {
+                        Text(tier.description)
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .padding(.leading, 4)
+
+                        ForEach(habitsInTier) { config in
+                            habitRow(for: config)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func habitRow(for config: HabitConfig) -> some View {
+        let completion = manager.getCompletion(for: config.habitType)
+        let isCompleted = completion?.isCompleted ?? false
+
+        return HStack(spacing: 14) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(isCompleted ?
+                          Color(red: 0.9, green: 0.97, blue: 0.9) :
+                            Color(red: 0.95, green: 0.93, blue: 0.9))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: config.habitType.icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(isCompleted ?
+                                     Color(red: 0.4, green: 0.7, blue: 0.45) :
+                                        Color(red: 0.6, green: 0.55, blue: 0.5))
+            }
+
+            // Info
+            VStack(alignment: .leading, spacing: 4) {
+                Text(config.habitType.displayName)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+                // Status text
+                statusText(for: config, completion: completion)
+            }
+
+            Spacer()
+
+            // Action / Status
+            actionButton(for: config, completion: completion, isCompleted: isCompleted)
+        }
+        .padding(14)
+        .background(Color.white)
+        .cornerRadius(14)
+        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    @ViewBuilder
+    func statusText(for config: HabitConfig, completion: HabitCompletion?) -> some View {
+        if let completion = completion {
+            switch config.habitType {
+            case .morningSteps:
+                let steps = completion.verificationData?.stepCount ?? 0
+                Text("\(steps)/\(config.goal) steps")
+                    .font(.caption)
+                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+
+            case .sleepDuration:
+                if let hours = completion.verificationData?.sleepHours {
+                    Text(String(format: "%.1f/\(config.goal)h sleep", hours))
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                } else {
+                    Text("Tap to enter sleep")
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                }
+
+            case .madeBed:
+                if completion.isCompleted, let score = completion.verificationData?.aiScore {
+                    Text("Score: \(score)/10")
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                } else {
+                    Text("Take a photo to verify")
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                }
+
+            default:
+                if completion.isCompleted {
+                    Text("Completed")
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                } else if config.habitType.requiresHoldToConfirm {
+                    Text("Hold to confirm")
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                } else {
+                    Text("Tap to complete")
+                        .font(.caption)
+                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    func actionButton(for config: HabitConfig, completion: HabitCompletion?, isCompleted: Bool) -> some View {
+        if isCompleted {
+            Image(systemName: "checkmark.circle.fill")
+                .font(.title2)
+                .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+        } else {
+            switch config.habitType {
+            case .madeBed:
+                Button {
+                    showBedCamera = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.body)
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color(red: 0.55, green: 0.45, blue: 0.35))
+                        .cornerRadius(10)
+                }
+
+            case .journaling:
+                Button {
+                    showJournalEntry = true
+                } label: {
+                    Image(systemName: "pencil")
+                        .font(.body)
+                        .foregroundColor(.white)
+                        .frame(width: 36, height: 36)
+                        .background(Color(red: 0.55, green: 0.45, blue: 0.35))
+                        .cornerRadius(10)
+                }
+
+            case .sleepDuration:
+                if completion?.verificationData?.sleepHours == nil {
+                    Button {
+                        // Show manual sleep entry
+                    } label: {
+                        Text("Enter")
+                            .font(.caption)
+                            .fontWeight(.medium)
+                            .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(Color(red: 0.95, green: 0.93, blue: 0.9))
+                            .cornerRadius(8)
+                    }
+                } else {
+                    // Show progress
+                    let score = completion?.score ?? 0
+                    CircularProgressView(progress: CGFloat(score) / 100, size: 36)
+                }
+
+            case .morningSteps:
+                // Show progress
+                let score = completion?.score ?? 0
+                CircularProgressView(progress: CGFloat(score) / 100, size: 36)
+
+            default:
+                if config.habitType.requiresHoldToConfirm {
+                    HoldToConfirmButton(habitType: config.habitType) {
+                        manager.completeHabit(config.habitType)
+                    }
+                } else {
+                    Button {
+                        manager.completeHabit(config.habitType)
+                    } label: {
+                        Circle()
+                            .stroke(Color(red: 0.8, green: 0.75, blue: 0.7), lineWidth: 2)
+                            .frame(width: 28, height: 28)
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Supporting Views
+
+struct CircularProgressView: View {
+    let progress: CGFloat
+    let size: CGFloat
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color(red: 0.92, green: 0.9, blue: 0.87), lineWidth: 3)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(Color(red: 0.55, green: 0.75, blue: 0.55), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .rotationEffect(.degrees(-90))
+
+            Text("\(Int(progress * 100))%")
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+struct HoldToConfirmButton: View {
+    let habitType: HabitType
+    let onComplete: () -> Void
+
+    @State private var progress: CGFloat = 0
+    @State private var isHolding = false
+
+    var body: some View {
+        ZStack {
+            Circle()
+                .stroke(Color(red: 0.8, green: 0.75, blue: 0.7), lineWidth: 2)
+                .frame(width: 36, height: 36)
+
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(Color(red: 0.55, green: 0.45, blue: 0.35), style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .frame(width: 36, height: 36)
+                .rotationEffect(.degrees(-90))
+        }
+        .gesture(
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if !isHolding {
+                        isHolding = true
+                        withAnimation(.linear(duration: 2.0)) {
+                            progress = 1.0
+                        }
+
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                            if isHolding {
+                                onComplete()
+                            }
+                        }
+                    }
+                }
+                .onEnded { _ in
+                    isHolding = false
+                    if progress < 1.0 {
+                        withAnimation(.easeOut(duration: 0.2)) {
+                            progress = 0
+                        }
+                    }
+                }
+        )
+    }
+}
+
+#Preview {
+    DashboardView(manager: MorningProofManager.shared)
+}

@@ -1,0 +1,71 @@
+name: MorningProof
+options:
+  bundleIdPrefix: com.rk
+  deploymentTarget:
+    iOS: "16.0"
+  xcodeVersion: "15.0"
+
+settings:
+  base:
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
+
+targets:
+  MorningProof:
+    type: application
+    platform: iOS
+    sources:
+      - path: MorningProof
+        excludes:
+          - "**/.DS_Store"
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof
+        INFOPLIST_FILE: MorningProof/Resources/Info.plist
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        DEVELOPMENT_TEAM: P9ZXADV42A
+        CODE_SIGN_STYLE: Automatic
+    entitlements:
+      path: MorningProof/Resources/MorningProof.entitlements
+      properties:
+        com.apple.developer.healthkit: true
+    info:
+      path: MorningProof/Resources/Info.plist
+      properties:
+        CFBundleName: Morning Proof
+        CFBundleDisplayName: Morning Proof
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundlePackageType: APPL
+        CFBundleExecutable: $(EXECUTABLE_NAME)
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: ""
+          UIImageName: ""
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+        NSCameraUsageDescription: "Morning Proof needs camera access to take photos of your made bed for verification."
+        NSPhotoLibraryUsageDescription: "Morning Proof needs photo library access to select bed photos for verification."
+        NSHealthShareUsageDescription: "Morning Proof uses your health data to automatically track morning movement and sleep quality."
+        NSHealthUpdateUsageDescription: "Morning Proof may save your morning routine data to Health."
+        UIBackgroundModes:
+          - processing
+
+  MorningProofTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - path: MorningProofTests
+    dependencies:
+      - target: MorningProof
+
+  MorningProofUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources:
+      - path: MorningProofUITests
+    dependencies:
+      - target: MorningProof
