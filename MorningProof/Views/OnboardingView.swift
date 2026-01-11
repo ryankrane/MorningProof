@@ -8,6 +8,7 @@ struct OnboardingView: View {
     @State private var cutoffMinutes = 540  // 9:00 AM
     @State private var isRequestingHealth = false
     @State private var healthAuthorized = false
+    @FocusState private var isNameFieldFocused: Bool
 
     private let healthKit = HealthKitManager.shared
 
@@ -103,6 +104,7 @@ struct OnboardingView: View {
                 .cornerRadius(MPRadius.lg)
                 .mpShadow(.small)
                 .padding(.horizontal, 40)
+                .focused($isNameFieldFocused)
 
             // Time settings
             VStack(spacing: MPSpacing.lg) {
@@ -136,6 +138,7 @@ struct OnboardingView: View {
             Spacer()
 
             MPButton(title: "Continue", style: .primary) {
+                isNameFieldFocused = false
                 withAnimation { currentPage = 2 }
             }
             .padding(.bottom, 50)

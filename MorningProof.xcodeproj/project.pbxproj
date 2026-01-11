@@ -54,6 +54,8 @@
 		FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD129FC6CB536710C7F464C /* UserSettings.swift */; };
 		B21CAFD487B253CE7C9E112F /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2A933674145CFCC1D64D9B23 /* NotificationManager.swift */; };
 		B51614E52F4847FB8A89319A /* AppLockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C94BC63927E6F54057274C0 /* AppLockingSettingsView.swift */; };
+		55376354EDBDE3E593C21A3C /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C9E0648FCF898EDF680E9F49 /* WelcomeView.swift */; };
+		9F61BABDB8F2C137BCD1E2A6 /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 89B3AE0C3DB83675EF871F67 /* AuthenticationManager.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -126,6 +128,8 @@
 		FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
 		2A933674145CFCC1D64D9B23 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		3C94BC63927E6F54057274C0 /* AppLockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockingSettingsView.swift; sourceTree = "<group>"; };
+		C9E0648FCF898EDF680E9F49 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
+		89B3AE0C3DB83675EF871F67 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXGroup section */
@@ -179,6 +183,7 @@
 				F6CB434AF33E074D379634A1 /* StorageService.swift */,
 				F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */,
 				2A933674145CFCC1D64D9B23 /* NotificationManager.swift */,
+				89B3AE0C3DB83675EF871F67 /* AuthenticationManager.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -202,6 +207,7 @@
 			children = (
 				3671DB51C5213888E586A8D3 /* AchievementsView.swift */,
 				3C94BC63927E6F54057274C0 /* AppLockingSettingsView.swift */,
+				C9E0648FCF898EDF680E9F49 /* WelcomeView.swift */,
 				0057056402FE468C2C62746B /* AnalyzingView.swift */,
 				617CF4D8D07A725BD2CBF808 /* BedCameraView.swift */,
 				0485A8D6D68343FC3E59BE20 /* CameraView.swift */,
@@ -438,6 +444,8 @@
 				FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */,
 				B21CAFD487B253CE7C9E112F /* NotificationManager.swift in Sources */,
 				B51614E52F4847FB8A89319A /* AppLockingSettingsView.swift in Sources */,
+				55376354EDBDE3E593C21A3C /* WelcomeView.swift in Sources */,
+				9F61BABDB8F2C137BCD1E2A6 /* AuthenticationManager.swift in Sources */,
 				21922DF10EA344BDB9335FBA /* VerificationResult.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
