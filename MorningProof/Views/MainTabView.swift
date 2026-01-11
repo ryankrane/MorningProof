@@ -180,22 +180,16 @@ struct DashboardContentView: View {
     // MARK: - Habits Section
 
     var habitsSection: some View {
-        VStack(spacing: MPSpacing.md) {
-            ForEach(HabitVerificationTier.allCases, id: \.rawValue) { tier in
-                let habitsInTier = manager.enabledHabits.filter { $0.habitType.tier == tier }
+        VStack(alignment: .leading, spacing: MPSpacing.md) {
+            // Section header for visual separation from streak card
+            Text("Today's Habits")
+                .font(MPFont.headingSmall())
+                .foregroundColor(MPColors.textPrimary)
+                .padding(.leading, MPSpacing.xs)
 
-                if !habitsInTier.isEmpty {
-                    VStack(alignment: .leading, spacing: MPSpacing.sm) {
-                        Text(tier.description)
-                            .font(MPFont.labelSmall())
-                            .foregroundColor(MPColors.textTertiary)
-                            .padding(.leading, MPSpacing.xs)
-
-                        ForEach(habitsInTier) { config in
-                            habitRow(for: config)
-                        }
-                    }
-                }
+            // All habits in a single unified list
+            ForEach(manager.enabledHabits) { config in
+                habitRow(for: config)
             }
         }
     }
