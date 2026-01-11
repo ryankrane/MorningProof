@@ -11,6 +11,7 @@ class BedVerificationViewModel: ObservableObject {
     @Published var errorMessage: String?
     @Published var newAchievement: Achievement?
     @Published var showConfetti: Bool = false
+    @Published var pendingAchievements: [Achievement] = [] // Queue for multiple unlocks
 
     private let storageService = StorageService()
     private let apiService = ClaudeAPIService()
@@ -49,10 +50,14 @@ class BedVerificationViewModel: ObservableObject {
                 if result.isMade {
                     streakData = storageService.recordCompletion()
 
-                    // Check for new achievements
-                    if let unlocked = achievements.checkAndUnlock(currentStreak: streakData.currentStreak) {
+                    // Check for new achievements using comprehensive stats
+                    let stats = streakData.toAchievementStats()
+                    let unlockedAchievements = achievements.checkAndUnlockAll(stats: stats)
+                    if !unlockedAchievements.isEmpty {
                         storageService.saveAchievements(achievements)
-                        newAchievement = unlocked
+                        // Queue all unlocked achievements, show first one
+                        pendingAchievements = Array(unlockedAchievements.dropFirst())
+                        newAchievement = unlockedAchievements.first
                         showConfetti = true
                     }
                 }
@@ -71,8 +76,14 @@ class BedVerificationViewModel: ObservableObject {
     }
 
     func dismissAchievement() {
-        newAchievement = nil
-        showConfetti = false
+        // Check if there are more achievements in the queue
+        if !pendingAchievements.isEmpty {
+            newAchievement = pendingAchievements.removeFirst()
+            // Keep confetti going for next achievement
+        } else {
+            newAchievement = nil
+            showConfetti = false
+        }
     }
 
     func updateDeadline(hour: Int, minute: Int) {
