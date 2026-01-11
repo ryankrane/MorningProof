@@ -137,7 +137,7 @@ struct WelcomeView: View {
             }
         }
         .fullScreenCover(isPresented: $showOnboarding) {
-            OnboardingView(manager: manager)
+            OnboardingFlowView(manager: manager)
         }
         .alert("Sign In", isPresented: $showAuthError) {
             Button("OK", role: .cancel) { }

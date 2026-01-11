@@ -14,6 +14,7 @@
 		0D4E5B97C46B640D392EB520 /* Config.example in Resources */ = {isa = PBXBuildFile; fileRef = 395EC9D9A1933D5A7967F8DB /* Config.example */; };
 		118CF1DB9752772F23765E2A /* SwiftDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC6EAB062D1F811A41D2EF8 /* SwiftDataService.swift */; };
 		142A070DE67428B4847BAEF1 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7C2841126F9197EED1AA57 /* ResultView.swift */; };
+		14FC0ED912DFDF42657ACCEF /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */; };
 		1B6B655E576FBB7B40C3F2FF /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */; };
 		1E513B3AF9042CDD59D744EC /* JournalEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */; };
 		1E8811D345916DD25650A347 /* Habit.swift in Sources */ = {isa = PBXBuildFile; fileRef = 331D095D20B8493DF02B55AA /* Habit.swift */; };
@@ -180,6 +181,7 @@
 		DD60A520941A2DB8D2588F53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DE890A687A08557248003945 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		DF851795EA491C844DB4CB0F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
 		EAD687A88A1B0CF71F2FE22E /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		ECA15CD82E35AFFFCE2A958F /* MPButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPButton.swift; sourceTree = "<group>"; };
 		F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofSettingsView.swift; sourceTree = "<group>"; };
@@ -202,6 +204,14 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		1843E6E113FAED24331F6AD4 /* Onboarding */ = {
+			isa = PBXGroup;
+			children = (
+				E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */,
+			);
+			path = Onboarding;
+			sourceTree = "<group>";
+		};
 		3AD3A9ECCDA8B361926C387D /* Models */ = {
 			isa = PBXGroup;
 			children = (
@@ -304,6 +314,7 @@
 				181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */,
 				99ADA9C532210DD45EDA8B43 /* WelcomeView.swift */,
 				79087C5AF015EEBADE5D05B4 /* Components */,
+				1843E6E113FAED24331F6AD4 /* Onboarding */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -569,6 +580,7 @@
 				EE04C57AB9C08DC671F8C253 /* MorningProofManager.swift in Sources */,
 				9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */,
 				FE0AF8A5837165E0CC89F30F /* NotificationManager.swift in Sources */,
+				14FC0ED912DFDF42657ACCEF /* OnboardingFlowView.swift in Sources */,
 				3796BBBB023F2FDBDF2C4D09 /* OnboardingView.swift in Sources */,
 				49797C886BDE9E1940FB196E /* PaywallView.swift in Sources */,
 				142A070DE67428B4847BAEF1 /* ResultView.swift in Sources */,
