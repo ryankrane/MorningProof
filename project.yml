@@ -22,7 +22,7 @@ targets:
           - "**/.DS_Store"
     settings:
       base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof
+        PRODUCT_BUNDLE_IDENTIFIER: com.rk.bedmate
         INFOPLIST_FILE: MorningProof/Resources/Info.plist
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         DEVELOPMENT_TEAM: P9ZXADV42A

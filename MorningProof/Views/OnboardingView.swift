@@ -100,6 +100,7 @@ struct OnboardingView: View {
 
             TextField("Your name", text: $userName)
                 .font(.title3)
+                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
                 .multilineTextAlignment(.center)
                 .padding(16)
                 .background(Color.white)
