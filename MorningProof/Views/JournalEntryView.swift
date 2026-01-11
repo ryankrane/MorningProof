@@ -72,7 +72,7 @@ struct JournalEntryView: View {
 
                     // Save button
                     Button {
-                        manager.completeJournaling(text: journalText)
+                        manager.completeTextEntry(habitType: .meditation, text: journalText)
                         dismiss()
                     } label: {
                         Text("Save Entry")

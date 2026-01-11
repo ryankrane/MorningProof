@@ -13,12 +13,7 @@ struct TextEntryView: View {
     }
 
     private var title: String {
-        switch habitType {
-        case .journaling: return "Morning Journal"
-        case .gratitude: return "Gratitude"
-        case .dailyGoals: return "Daily Goals"
-        default: return habitType.displayName
-        }
+        habitType.displayName
     }
 
     private var icon: String {
@@ -26,21 +21,11 @@ struct TextEntryView: View {
     }
 
     private var accentColor: Color {
-        switch habitType {
-        case .journaling: return Color(red: 0.55, green: 0.45, blue: 0.35)
-        case .gratitude: return Color(red: 0.85, green: 0.5, blue: 0.5)
-        case .dailyGoals: return Color(red: 0.4, green: 0.6, blue: 0.8)
-        default: return MPColors.primary
-        }
+        MPColors.primary
     }
 
     private var bgColor: Color {
-        switch habitType {
-        case .journaling: return Color(red: 0.98, green: 0.96, blue: 0.93)
-        case .gratitude: return Color(red: 0.99, green: 0.95, blue: 0.95)
-        case .dailyGoals: return Color(red: 0.95, green: 0.97, blue: 0.99)
-        default: return MPColors.background
-        }
+        MPColors.background
     }
 
     var body: some View {
@@ -53,9 +38,9 @@ struct TextEntryView: View {
                     // Prompt card
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            Image(systemName: promptIcon)
+                            Image(systemName: icon)
                                 .foregroundColor(accentColor)
-                            Text(promptTitle)
+                            Text(title)
                                 .font(.subheadline)
                                 .fontWeight(.medium)
                                 .foregroundColor(.secondary)
@@ -76,7 +61,7 @@ struct TextEntryView: View {
                     VStack(alignment: .leading, spacing: 8) {
                         TextEditor(text: $entryText)
                             .focused($isFocused)
-                            .frame(minHeight: habitType == .dailyGoals ? 150 : 200)
+                            .frame(minHeight: 150)
                             .padding(12)
                             .background(Color.white)
                             .cornerRadius(14)
@@ -100,19 +85,6 @@ struct TextEntryView: View {
                         .padding(.horizontal, 4)
                     }
                     .padding(.horizontal, 20)
-
-                    // Tips for specific habits
-                    if habitType == .gratitude {
-                        tipCard(
-                            icon: "lightbulb.fill",
-                            text: "Try listing 3 specific things you're grateful for today"
-                        )
-                    } else if habitType == .dailyGoals {
-                        tipCard(
-                            icon: "star.fill",
-                            text: "Focus on your top 3 priorities - what would make today a success?"
-                        )
-                    }
 
                     Spacer()
 
@@ -158,54 +130,11 @@ struct TextEntryView: View {
         }
     }
 
-    private var promptIcon: String {
-        switch habitType {
-        case .journaling: return "lightbulb.fill"
-        case .gratitude: return "heart.fill"
-        case .dailyGoals: return "target"
-        default: return "pencil"
-        }
-    }
-
-    private var promptTitle: String {
-        switch habitType {
-        case .journaling: return "Morning Prompt"
-        case .gratitude: return "Gratitude Practice"
-        case .dailyGoals: return "Set Your Intentions"
-        default: return "Entry"
-        }
-    }
-
-    @ViewBuilder
-    private func tipCard(icon: String, text: String) -> some View {
-        HStack(spacing: 12) {
-            Image(systemName: icon)
-                .foregroundColor(accentColor.opacity(0.8))
-            Text(text)
-                .font(.caption)
-                .foregroundColor(.secondary)
-        }
-        .padding(12)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color.white.opacity(0.7))
-        .cornerRadius(10)
-        .padding(.horizontal, 20)
-    }
-
     private func completeEntry() {
-        switch habitType {
-        case .journaling:
-            manager.completeJournaling(text: entryText)
-        case .gratitude:
-            manager.completeTextEntry(habitType: .gratitude, text: entryText)
-        case .dailyGoals:
-            manager.completeTextEntry(habitType: .dailyGoals, text: entryText)
-        default:
-            break
-        }
+        manager.completeTextEntry(habitType: habitType, text: entryText)
     }
 }
 
 #Preview {
-    TextEntryView(manager: MorningProofManager.shared, habitType: .gratitude)
+    TextEntryView(manager: MorningProofManager.shared, habitType: .meditation)
 }
