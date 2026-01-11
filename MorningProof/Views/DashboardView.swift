@@ -5,7 +5,16 @@ struct DashboardView: View {
     @State private var showSettings = false
     @State private var showBedCamera = false
     @State private var showJournalEntry = false
+    @State private var showSleepInput = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
+
+    // Side menu state
+    @State private var showSideMenu = false
+    @State private var selectedMenuItem: SideMenuItem?
+    @State private var showHistory = false
+    @State private var showCalendar = false
+    @State private var showAchievements = false
+    @State private var showStatistics = false
 
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
@@ -53,6 +62,34 @@ struct DashboardView: View {
             if showPerfectMorningCelebration {
                 FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
             }
+
+            // Side menu overlay
+            SideMenuView(
+                manager: manager,
+                isShowing: $showSideMenu,
+                selectedItem: $selectedMenuItem,
+                onDismiss: { showSideMenu = false },
+                onSelectSettings: { showSettings = true }
+            )
+        }
+        .onChange(of: selectedMenuItem) { item in
+            guard let item = item else { return }
+            switch item {
+            case .history:
+                showHistory = true
+            case .calendar:
+                showCalendar = true
+            case .achievements:
+                showAchievements = true
+            case .statistics:
+                showStatistics = true
+            default:
+                break
+            }
+            // Reset selection after handling
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                selectedMenuItem = nil
+            }
         }
         .sheet(isPresented: $showSettings) {
             MorningProofSettingsView(manager: manager)
@@ -62,6 +99,22 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showJournalEntry) {
             JournalEntryView(manager: manager)
+        }
+        .sheet(isPresented: $showSleepInput) {
+            SleepInputSheet(manager: manager)
+        }
+        .sheet(isPresented: $showHistory) {
+            HistoryView(manager: manager)
+        }
+        .sheet(isPresented: $showCalendar) {
+            CalendarView(manager: manager)
+        }
+        .sheet(isPresented: $showAchievements) {
+            AchievementsView()
+                .environmentObject(BedVerificationViewModel())
+        }
+        .sheet(isPresented: $showStatistics) {
+            StatisticsView(manager: manager)
         }
         .task {
             await manager.syncHealthData()
@@ -95,8 +148,10 @@ struct DashboardView: View {
 
             Spacer()
 
-            MPIconButton(icon: "gearshape.fill", size: MPIconSize.md) {
-                showSettings = true
+            MPIconButton(icon: "line.3.horizontal", size: MPIconSize.md) {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    showSideMenu = true
+                }
             }
         }
         .padding(.top, MPSpacing.sm)
@@ -148,9 +203,9 @@ struct DashboardView: View {
         let minutes = (Int(interval) % 3600) / 60
 
         if hours > 0 {
-            return "\(hours)h \(minutes)m until \(manager.settings.morningCutoffHour):00 AM cutoff"
+            return "\(hours)h \(minutes)m until \(manager.settings.cutoffTimeFormatted) cutoff"
         } else {
-            return "\(minutes)m until \(manager.settings.morningCutoffHour):00 AM cutoff"
+            return "\(minutes)m until \(manager.settings.cutoffTimeFormatted) cutoff"
         }
     }
 
@@ -333,7 +388,7 @@ struct DashboardView: View {
             case .sleepDuration:
                 if completion?.verificationData?.sleepHours == nil {
                     Button {
-                        // Show manual sleep entry
+                        showSleepInput = true
                     } label: {
                         Text("Enter")
                             .font(MPFont.labelSmall())

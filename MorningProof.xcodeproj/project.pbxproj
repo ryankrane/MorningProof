@@ -36,6 +36,11 @@
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
 		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
+		EE2AD577C4BA0DC1617EEFD2 /* SleepInputSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6844A5FB55A687EDD277CB3E /* SleepInputSheet.swift */; };
+		BFD59DF2894ECB03EAA9C6C8 /* SideMenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF3B4C79536912575F340C79 /* SideMenuView.swift */; };
+		FEEB12B8812654BB916411C0 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C34B5C962A6E0EE659CBCFE /* HistoryView.swift */; };
+		5E018617BD8C8D9D89237BB4 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E455CCA195F877AFD5C43545 /* CalendarView.swift */; };
+		062E6393D9DDF64917DCBF8E /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D05ACF82104931926E274900 /* StatisticsView.swift */; };
 		D3C793EA612FDC1D7559179C /* BedVerificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */; };
 		E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */; };
 		E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */; };
@@ -71,6 +76,9 @@
 		01A28620D171F48C0B935B7C /* Achievement.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Achievement.swift; sourceTree = "<group>"; };
 		0485A8D6D68343FC3E59BE20 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		057E690E946F7B40FDCCDA21 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		2C34B5C962A6E0EE659CBCFE /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		E455CCA195F877AFD5C43545 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
+		D05ACF82104931926E274900 /* StatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsView.swift; sourceTree = "<group>"; };
 		0981D9827F6FBBF7C421AF40 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		0BB7F1EA34F60AFB06FE555E /* BedMadeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedMadeUITests.swift; sourceTree = "<group>"; };
 		0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
@@ -82,6 +90,8 @@
 		3671DB51C5213888E586A8D3 /* AchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
 		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
 		3C15180C19687B347FEEB70A /* StreakHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeroCard.swift; sourceTree = "<group>"; };
+		6844A5FB55A687EDD277CB3E /* SleepInputSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepInputSheet.swift; sourceTree = "<group>"; };
+		DF3B4C79536912575F340C79 /* SideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideMenuView.swift; sourceTree = "<group>"; };
 		409E65E8F18D6482BECDE992 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
 		42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakRecoveryView.swift; sourceTree = "<group>"; };
 		45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
@@ -145,6 +155,8 @@
 				4721A0F6D815690A22663A52 /* MiniConfettiView.swift */,
 				ECA15CD82E35AFFFCE2A958F /* MPButton.swift */,
 				269A2CFCAE1171B58D22D159 /* MPCard.swift */,
+				6844A5FB55A687EDD277CB3E /* SleepInputSheet.swift */,
+				DF3B4C79536912575F340C79 /* SideMenuView.swift */,
 				603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */,
 				3C15180C19687B347FEEB70A /* StreakHeroCard.swift */,
 			);
@@ -188,6 +200,9 @@
 				617CF4D8D07A725BD2CBF808 /* BedCameraView.swift */,
 				0485A8D6D68343FC3E59BE20 /* CameraView.swift */,
 				CC2AC488A4583BA62DC0C80A /* DashboardView.swift */,
+				2C34B5C962A6E0EE659CBCFE /* HistoryView.swift */,
+				E455CCA195F877AFD5C43545 /* CalendarView.swift */,
+				D05ACF82104931926E274900 /* StatisticsView.swift */,
 				0981D9827F6FBBF7C421AF40 /* HomeView.swift */,
 				5E13CCA5BD11D73F26A5DCFD /* ImagePicker.swift */,
 				12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */,
@@ -409,6 +424,11 @@
 				E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */,
 				E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */,
 				ED80EC39FD2965B333865034 /* Theme.swift in Sources */,
+				EE2AD577C4BA0DC1617EEFD2 /* SleepInputSheet.swift in Sources */,
+				BFD59DF2894ECB03EAA9C6C8 /* SideMenuView.swift in Sources */,
+				FEEB12B8812654BB916411C0 /* HistoryView.swift in Sources */,
+				5E018617BD8C8D9D89237BB4 /* CalendarView.swift in Sources */,
+				062E6393D9DDF64917DCBF8E /* StatisticsView.swift in Sources */,
 				FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */,
 				21922DF10EA344BDB9335FBA /* VerificationResult.swift in Sources */,
 			);

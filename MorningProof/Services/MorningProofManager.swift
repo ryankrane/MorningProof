@@ -87,7 +87,7 @@ class MorningProofManager: ObservableObject {
     private func updateAutoTrackedHabits() async {
         // Update morning steps
         if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningSteps }) {
-            let steps = await healthKit.fetchStepsBeforeCutoff(cutoffHour: settings.morningCutoffHour)
+            let steps = await healthKit.fetchStepsBeforeCutoff(cutoffMinutes: settings.morningCutoffMinutes)
             let stepGoal = habitConfigs.first { $0.habitType == .morningSteps }?.goal ?? 500
 
             todayLog.completions[index].verificationData = HabitCompletion.VerificationData(stepCount: steps)
@@ -213,8 +213,8 @@ class MorningProofManager: ObservableObject {
     private func getCutoffTime() -> Date {
         let calendar = Calendar.current
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
-        components.hour = settings.morningCutoffHour
-        components.minute = 0
+        components.hour = settings.morningCutoffMinutes / 60
+        components.minute = settings.morningCutoffMinutes % 60
         return calendar.date(from: components) ?? Date()
     }
 
@@ -291,6 +291,10 @@ class MorningProofManager: ObservableObject {
 
     func getCompletion(for habitType: HabitType) -> HabitCompletion? {
         todayLog.completions.first { $0.habitType == habitType }
+    }
+
+    func getDailyLog(for date: Date) -> DailyLog? {
+        storageService.loadDailyLog(for: date)
     }
 
     // MARK: - Streak Tracking
@@ -394,9 +398,7 @@ class MorningProofManager: ObservableObject {
 
 struct MorningProofSettings: Codable {
     var userName: String
-    var wakeTimeHour: Int
-    var wakeTimeMinute: Int
-    var morningCutoffHour: Int
+    var morningCutoffMinutes: Int  // Minutes from midnight (e.g., 540 = 9:00 AM)
     var stepGoal: Int
     var sleepGoalHours: Int
 
@@ -407,13 +409,36 @@ struct MorningProofSettings: Codable {
 
     init() {
         self.userName = ""
-        self.wakeTimeHour = 7
-        self.wakeTimeMinute = 0
-        self.morningCutoffHour = 9
+        self.morningCutoffMinutes = 540  // 9:00 AM
         self.stepGoal = 500
         self.sleepGoalHours = 7
         self.currentStreak = 0
         self.longestStreak = 0
         self.lastPerfectMorningDate = nil
     }
+
+    // Computed helper for hour (for HealthKit API compatibility)
+    var morningCutoffHour: Int {
+        morningCutoffMinutes / 60
+    }
+
+    // Formatted display string
+    var cutoffTimeFormatted: String {
+        let hour = morningCutoffMinutes / 60
+        let minute = morningCutoffMinutes % 60
+        let period = hour >= 12 ? "PM" : "AM"
+        let displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour)
+        return String(format: "%d:%02d %@", displayHour, minute, period)
+    }
+
+    // Generate all cutoff time options (5:00 AM to 1:00 PM in 15-min intervals)
+    static let cutoffTimeOptions: [(minutes: Int, label: String)] = {
+        stride(from: 300, through: 780, by: 15).map { mins in
+            let hour = mins / 60
+            let minute = mins % 60
+            let period = hour >= 12 ? "PM" : "AM"
+            let displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour)
+            return (mins, String(format: "%d:%02d %@", displayHour, minute, period))
+        }
+    }()
 }

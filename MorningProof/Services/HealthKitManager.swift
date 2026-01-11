@@ -102,7 +102,7 @@ class HealthKitManager: ObservableObject {
         }
     }
 
-    func fetchStepsBeforeCutoff(cutoffHour: Int) async -> Int {
+    func fetchStepsBeforeCutoff(cutoffMinutes: Int) async -> Int {
         guard let stepType = HKQuantityType.quantityType(forIdentifier: .stepCount) else { return 0 }
 
         let calendar = Calendar.current
@@ -110,8 +110,8 @@ class HealthKitManager: ObservableObject {
         let startOfDay = calendar.startOfDay(for: now)
 
         var cutoffComponents = calendar.dateComponents([.year, .month, .day], from: now)
-        cutoffComponents.hour = cutoffHour
-        cutoffComponents.minute = 0
+        cutoffComponents.hour = cutoffMinutes / 60
+        cutoffComponents.minute = cutoffMinutes % 60
 
         guard let cutoffTime = calendar.date(from: cutoffComponents) else { return 0 }
 
@@ -238,14 +238,14 @@ class HealthKitManager: ObservableObject {
 
     // MARK: - Morning Workout Check
 
-    func checkMorningWorkout(cutoffHour: Int) async -> Bool {
+    func checkMorningWorkout(cutoffMinutes: Int) async -> Bool {
         let calendar = Calendar.current
         let now = Date()
         let startOfDay = calendar.startOfDay(for: now)
 
         var cutoffComponents = calendar.dateComponents([.year, .month, .day], from: now)
-        cutoffComponents.hour = cutoffHour
-        cutoffComponents.minute = 0
+        cutoffComponents.hour = cutoffMinutes / 60
+        cutoffComponents.minute = cutoffMinutes % 60
 
         guard let cutoffTime = calendar.date(from: cutoffComponents) else { return false }
 

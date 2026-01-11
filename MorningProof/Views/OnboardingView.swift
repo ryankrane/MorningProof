@@ -5,8 +5,7 @@ struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var userName = ""
     @State private var selectedHabits: Set<HabitType> = [.madeBed, .morningSteps, .sleepDuration, .drankWater]
-    @State private var wakeTimeHour = 7
-    @State private var cutoffHour = 9
+    @State private var cutoffMinutes = 540  // 9:00 AM
     @State private var isRequestingHealth = false
     @State private var healthAuthorized = false
 
@@ -106,40 +105,29 @@ struct OnboardingView: View {
                 .padding(.horizontal, 40)
 
             // Time settings
-            VStack(spacing: MPSpacing.xl) {
+            VStack(spacing: MPSpacing.lg) {
                 HStack {
-                    Text("Wake time")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textSecondary)
-
-                    Spacer()
-
-                    Picker("Wake time", selection: $wakeTimeHour) {
-                        ForEach(4..<11) { hour in
-                            Text("\(hour):00 AM").tag(hour)
-                        }
+                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                        Text("Morning Cutoff")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
+                        Text("Deadline to complete habits")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
                     }
-                    .pickerStyle(.menu)
-                    .tint(MPColors.primary)
-                }
-
-                HStack {
-                    Text("Morning cutoff")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textSecondary)
 
                     Spacer()
 
-                    Picker("Cutoff", selection: $cutoffHour) {
-                        ForEach(7..<13) { hour in
-                            Text("\(hour):00 AM").tag(hour)
+                    Picker("Cutoff", selection: $cutoffMinutes) {
+                        ForEach(MorningProofSettings.cutoffTimeOptions, id: \.minutes) { option in
+                            Text(option.label).tag(option.minutes)
                         }
                     }
                     .pickerStyle(.menu)
                     .tint(MPColors.primary)
                 }
             }
-            .padding(MPSpacing.xl)
+            .padding(MPSpacing.lg)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
             .mpShadow(.small)
@@ -343,8 +331,7 @@ struct OnboardingView: View {
     func completeOnboarding() {
         // Save settings
         manager.settings.userName = userName
-        manager.settings.wakeTimeHour = wakeTimeHour
-        manager.settings.morningCutoffHour = cutoffHour
+        manager.settings.morningCutoffMinutes = cutoffMinutes
 
         // Update habit configs
         for habitType in HabitType.allCases {

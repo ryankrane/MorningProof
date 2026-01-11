@@ -43,6 +43,7 @@ enum MPColors {
     static let error = Color(red: 0.85, green: 0.55, blue: 0.5)
     static let errorLight = Color(red: 0.98, green: 0.93, blue: 0.92)
     static let warning = Color(red: 0.95, green: 0.75, blue: 0.4)
+    static let warningLight = Color(red: 0.99, green: 0.95, blue: 0.88)
 
     // UI Elements
     static let border = Color(red: 0.8, green: 0.75, blue: 0.7)

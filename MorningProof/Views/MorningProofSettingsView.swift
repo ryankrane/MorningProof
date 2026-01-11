@@ -6,9 +6,7 @@ struct MorningProofSettingsView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var userName: String = ""
-    @State private var wakeTimeHour: Int = 7
-    @State private var wakeTimeMinute: Int = 0
-    @State private var cutoffHour: Int = 9
+    @State private var cutoffMinutes: Int = 540  // 9:00 AM
     @State private var showResetConfirmation = false
     @State private var showPaywall = false
 
@@ -32,6 +30,7 @@ struct MorningProofSettingsView: View {
 
                                 TextField("Enter your name", text: $userName)
                                     .textFieldStyle(.plain)
+                                    .foregroundColor(MPColors.textPrimary)
                                     .padding(MPSpacing.lg)
                                     .background(MPColors.background)
                                     .cornerRadius(MPRadius.sm)
@@ -40,44 +39,25 @@ struct MorningProofSettingsView: View {
 
                         // Time Settings
                         settingsSection(title: "Schedule") {
-                            VStack(spacing: MPSpacing.lg) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                                        Text("Wake Time")
-                                            .font(MPFont.labelMedium())
-                                            .foregroundColor(MPColors.textPrimary)
-                                        Text("When you plan to wake up")
-                                            .font(MPFont.bodySmall())
-                                            .foregroundColor(MPColors.textTertiary)
-                                    }
-
-                                    Spacer()
-
-                                    timePicker(hour: $wakeTimeHour, minute: $wakeTimeMinute)
+                            HStack {
+                                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                                    Text("Morning Cutoff")
+                                        .font(MPFont.labelMedium())
+                                        .foregroundColor(MPColors.textPrimary)
+                                    Text("Deadline to complete habits")
+                                        .font(MPFont.bodySmall())
+                                        .foregroundColor(MPColors.textTertiary)
                                 }
 
-                                Divider()
+                                Spacer()
 
-                                HStack {
-                                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                                        Text("Morning Cutoff")
-                                            .font(MPFont.labelMedium())
-                                            .foregroundColor(MPColors.textPrimary)
-                                        Text("Deadline to complete habits")
-                                            .font(MPFont.bodySmall())
-                                            .foregroundColor(MPColors.textTertiary)
+                                Picker("Cutoff", selection: $cutoffMinutes) {
+                                    ForEach(MorningProofSettings.cutoffTimeOptions, id: \.minutes) { option in
+                                        Text(option.label).tag(option.minutes)
                                     }
-
-                                    Spacer()
-
-                                    Picker("Cutoff", selection: $cutoffHour) {
-                                        ForEach(6..<13) { hour in
-                                            Text("\(hour):00 AM").tag(hour)
-                                        }
-                                    }
-                                    .pickerStyle(.menu)
-                                    .tint(MPColors.primary)
                                 }
+                                .pickerStyle(.menu)
+                                .tint(MPColors.primary)
                             }
                         }
 
@@ -263,34 +243,6 @@ struct MorningProofSettingsView: View {
         }
     }
 
-    func timePicker(hour: Binding<Int>, minute: Binding<Int>) -> some View {
-        HStack(spacing: MPSpacing.xs) {
-            Picker("Hour", selection: hour) {
-                ForEach(4..<12) { h in
-                    Text("\(h)").tag(h)
-                }
-            }
-            .pickerStyle(.menu)
-            .frame(width: 50)
-
-            Text(":")
-                .foregroundColor(MPColors.textSecondary)
-
-            Picker("Minute", selection: minute) {
-                ForEach([0, 15, 30, 45], id: \.self) { m in
-                    Text(String(format: "%02d", m)).tag(m)
-                }
-            }
-            .pickerStyle(.menu)
-            .frame(width: 50)
-
-            Text("AM")
-                .font(MPFont.bodySmall())
-                .foregroundColor(MPColors.textTertiary)
-        }
-        .tint(MPColors.primary)
-    }
-
     func habitToggleRow(config: HabitConfig) -> some View {
         HStack(spacing: MPSpacing.lg) {
             Image(systemName: config.habitType.icon)
@@ -323,16 +275,12 @@ struct MorningProofSettingsView: View {
 
     func loadSettings() {
         userName = manager.settings.userName
-        wakeTimeHour = manager.settings.wakeTimeHour
-        wakeTimeMinute = manager.settings.wakeTimeMinute
-        cutoffHour = manager.settings.morningCutoffHour
+        cutoffMinutes = manager.settings.morningCutoffMinutes
     }
 
     func saveSettings() {
         manager.settings.userName = userName
-        manager.settings.wakeTimeHour = wakeTimeHour
-        manager.settings.wakeTimeMinute = wakeTimeMinute
-        manager.settings.morningCutoffHour = cutoffHour
+        manager.settings.morningCutoffMinutes = cutoffMinutes
         manager.saveCurrentState()
     }
 }
