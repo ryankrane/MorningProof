@@ -7,36 +7,36 @@ struct AchievementsView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.98, green: 0.96, blue: 0.93)
+                MPColors.background
                     .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 16) {
+                    VStack(spacing: MPSpacing.lg) {
                         // Header stats
-                        HStack(spacing: 20) {
+                        HStack(spacing: MPSpacing.xl) {
                             VStack {
                                 Text("\(viewModel.achievements.unlockedCount)")
-                                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                                    .font(MPFont.displaySmall())
+                                    .foregroundColor(MPColors.textPrimary)
                                 Text("Unlocked")
-                                    .font(.caption)
-                                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.textTertiary)
                             }
 
                             VStack {
                                 Text("\(Achievement.allAchievements.count - viewModel.achievements.unlockedCount)")
-                                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                                    .foregroundColor(Color(red: 0.7, green: 0.65, blue: 0.6))
+                                    .font(MPFont.displaySmall())
+                                    .foregroundColor(MPColors.textMuted)
                                 Text("Locked")
-                                    .font(.caption)
-                                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.textTertiary)
                             }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 24)
-                        .background(Color.white)
-                        .cornerRadius(20)
-                        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 5)
+                        .padding(.vertical, MPSpacing.xxl)
+                        .background(MPColors.surface)
+                        .cornerRadius(MPRadius.xl)
+                        .mpShadow(.medium)
 
                         // Achievements list
                         ForEach(Achievement.allAchievements) { achievement in
@@ -48,9 +48,9 @@ struct AchievementsView: View {
                             )
                         }
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                    .padding(.bottom, 30)
+                    .padding(.horizontal, MPSpacing.xl)
+                    .padding(.top, MPSpacing.sm)
+                    .padding(.bottom, MPSpacing.xxxl)
                 }
             }
             .navigationTitle("Achievements")
@@ -60,7 +60,7 @@ struct AchievementsView: View {
                     Button("Done") {
                         dismiss()
                     }
-                    .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                    .foregroundColor(MPColors.primary)
                 }
             }
         }
@@ -74,59 +74,52 @@ struct AchievementRow: View {
     let currentStreak: Int
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: MPSpacing.lg) {
             // Icon
             ZStack {
                 Circle()
-                    .fill(isUnlocked ?
-                          Color(red: 1.0, green: 0.95, blue: 0.85) :
-                            Color(red: 0.95, green: 0.93, blue: 0.9))
+                    .fill(isUnlocked ? MPColors.accentLight : MPColors.surfaceSecondary)
                     .frame(width: 56, height: 56)
 
                 Image(systemName: achievement.icon)
-                    .font(.system(size: 24))
-                    .foregroundColor(isUnlocked ?
-                                     Color(red: 0.85, green: 0.65, blue: 0.2) :
-                                        Color(red: 0.75, green: 0.7, blue: 0.65))
+                    .font(.system(size: MPIconSize.lg))
+                    .foregroundColor(isUnlocked ? MPColors.accentGold : MPColors.textMuted)
             }
 
             // Info
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: MPSpacing.xs) {
                 Text(achievement.title)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-                    .foregroundColor(isUnlocked ?
-                                     Color(red: 0.35, green: 0.28, blue: 0.22) :
-                                        Color(red: 0.6, green: 0.55, blue: 0.5))
+                    .font(MPFont.labelMedium())
+                    .foregroundColor(isUnlocked ? MPColors.textPrimary : MPColors.textTertiary)
 
                 Text(achievement.description)
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
 
                 if isUnlocked, let date = unlockedDate {
                     Text("Unlocked \(date.formatted(date: .abbreviated, time: .omitted))")
-                        .font(.caption2)
-                        .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.success)
                 } else if !isUnlocked {
                     // Progress indicator
                     let progress = min(Double(currentStreak) / Double(achievement.requirement), 1.0)
-                    HStack(spacing: 6) {
+                    HStack(spacing: MPSpacing.sm) {
                         GeometryReader { geo in
                             ZStack(alignment: .leading) {
                                 RoundedRectangle(cornerRadius: 3)
-                                    .fill(Color(red: 0.92, green: 0.9, blue: 0.87))
+                                    .fill(MPColors.progressBg)
                                     .frame(height: 6)
 
                                 RoundedRectangle(cornerRadius: 3)
-                                    .fill(Color(red: 0.75, green: 0.7, blue: 0.65))
+                                    .fill(MPColors.textMuted)
                                     .frame(width: geo.size.width * progress, height: 6)
                             }
                         }
                         .frame(width: 60, height: 6)
 
                         Text("\(currentStreak)/\(achievement.requirement)")
-                            .font(.caption2)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 }
             }
@@ -137,13 +130,13 @@ struct AchievementRow: View {
             if isUnlocked {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.title2)
-                    .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                    .foregroundColor(MPColors.success)
             }
         }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
+        .padding(MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
         .opacity(isUnlocked ? 1.0 : 0.7)
     }
 }

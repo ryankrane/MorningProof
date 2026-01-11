@@ -14,21 +14,19 @@ struct OnboardingView: View {
 
     var body: some View {
         ZStack {
-            Color(red: 0.98, green: 0.96, blue: 0.93)
+            MPColors.background
                 .ignoresSafeArea()
 
             VStack {
                 // Progress dots
-                HStack(spacing: 8) {
+                HStack(spacing: MPSpacing.sm) {
                     ForEach(0..<4) { index in
                         Circle()
-                            .fill(index <= currentPage ?
-                                Color(red: 0.55, green: 0.45, blue: 0.35) :
-                                Color(red: 0.85, green: 0.82, blue: 0.78))
+                            .fill(index <= currentPage ? MPColors.primary : MPColors.border)
                             .frame(width: 8, height: 8)
                     }
                 }
-                .padding(.top, 20)
+                .padding(.top, MPSpacing.xl)
 
                 TabView(selection: $currentPage) {
                     welcomePage.tag(0)
@@ -45,75 +43,74 @@ struct OnboardingView: View {
     // MARK: - Welcome Page
 
     var welcomePage: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: MPSpacing.xxxl) {
             Spacer()
 
             ZStack {
                 Circle()
-                    .fill(Color.white)
+                    .fill(MPColors.surface)
                     .frame(width: 160, height: 160)
-                    .shadow(color: Color.black.opacity(0.05), radius: 20, x: 0, y: 10)
+                    .mpShadow(.large)
 
                 Image(systemName: "sunrise.fill")
                     .font(.system(size: 70))
-                    .foregroundColor(Color(red: 0.9, green: 0.7, blue: 0.4))
+                    .foregroundColor(MPColors.accent)
             }
 
-            VStack(spacing: 12) {
+            VStack(spacing: MPSpacing.md) {
                 Text("Morning Proof")
                     .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text("Build unshakeable morning habits\nwith proof-based accountability")
-                    .font(.body)
-                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                    .font(MPFont.bodyLarge())
+                    .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
             Spacer()
 
-            nextButton(title: "Get Started") {
+            MPButton(title: "Get Started", style: .primary) {
                 withAnimation { currentPage = 1 }
             }
             .padding(.bottom, 50)
         }
-        .padding(.horizontal, 30)
+        .padding(.horizontal, MPSpacing.xxxl)
     }
 
     // MARK: - Name Page
 
     var namePage: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: MPSpacing.xxxl) {
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: MPSpacing.lg) {
                 Image(systemName: "person.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(Color(red: 0.75, green: 0.65, blue: 0.55))
+                    .font(.system(size: MPIconSize.hero))
+                    .foregroundColor(MPColors.primaryLight)
 
                 Text("What should we call you?")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingSmall())
+                    .foregroundColor(MPColors.textPrimary)
             }
 
             TextField("Your name", text: $userName)
                 .font(.title3)
-                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                .foregroundColor(MPColors.textPrimary)
                 .multilineTextAlignment(.center)
-                .padding(16)
-                .background(Color.white)
-                .cornerRadius(14)
-                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+                .padding(MPSpacing.lg)
+                .background(MPColors.surface)
+                .cornerRadius(MPRadius.lg)
+                .mpShadow(.small)
                 .padding(.horizontal, 40)
 
             // Time settings
-            VStack(spacing: 20) {
+            VStack(spacing: MPSpacing.xl) {
                 HStack {
                     Text("Wake time")
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textSecondary)
 
                     Spacer()
 
@@ -123,13 +120,13 @@ struct OnboardingView: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .tint(Color(red: 0.55, green: 0.45, blue: 0.35))
+                    .tint(MPColors.primary)
                 }
 
                 HStack {
                     Text("Morning cutoff")
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textSecondary)
 
                     Spacer()
 
@@ -139,56 +136,53 @@ struct OnboardingView: View {
                         }
                     }
                     .pickerStyle(.menu)
-                    .tint(Color(red: 0.55, green: 0.45, blue: 0.35))
+                    .tint(MPColors.primary)
                 }
             }
-            .padding(20)
-            .background(Color.white)
-            .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-            .padding(.horizontal, 30)
+            .padding(MPSpacing.xl)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.small)
+            .padding(.horizontal, MPSpacing.xxxl)
 
             Spacer()
 
-            nextButton(title: "Continue") {
+            MPButton(title: "Continue", style: .primary) {
                 withAnimation { currentPage = 2 }
             }
             .padding(.bottom, 50)
         }
-        .padding(.horizontal, 30)
+        .padding(.horizontal, MPSpacing.xxxl)
     }
 
     // MARK: - Habits Page
 
     var habitsPage: some View {
-        VStack(spacing: 24) {
-            VStack(spacing: 8) {
+        VStack(spacing: MPSpacing.xxl) {
+            VStack(spacing: MPSpacing.sm) {
                 Text("Choose Your Habits")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingSmall())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text("Select at least 3 morning habits to track")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textSecondary)
             }
-            .padding(.top, 30)
+            .padding(.top, MPSpacing.xxxl)
 
             ScrollView {
-                VStack(spacing: 12) {
+                VStack(spacing: MPSpacing.md) {
                     ForEach(HabitType.allCases) { habitType in
                         habitSelectionRow(habitType)
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, MPSpacing.xl)
             }
 
-            nextButton(title: "Continue") {
+            MPButton(title: "Continue", style: .primary, isDisabled: selectedHabits.count < 3) {
                 withAnimation { currentPage = 3 }
             }
-            .disabled(selectedHabits.count < 3)
-            .opacity(selectedHabits.count < 3 ? 0.5 : 1)
-            .padding(.horizontal, 30)
+            .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
     }
@@ -203,90 +197,82 @@ struct OnboardingView: View {
                 selectedHabits.insert(habitType)
             }
         } label: {
-            HStack(spacing: 14) {
+            HStack(spacing: MPSpacing.lg) {
                 ZStack {
                     Circle()
-                        .fill(isSelected ?
-                            Color(red: 0.9, green: 0.97, blue: 0.9) :
-                            Color(red: 0.95, green: 0.93, blue: 0.9))
+                        .fill(isSelected ? MPColors.successLight : MPColors.surfaceSecondary)
                         .frame(width: 44, height: 44)
 
                     Image(systemName: habitType.icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(isSelected ?
-                            Color(red: 0.4, green: 0.7, blue: 0.45) :
-                            Color(red: 0.6, green: 0.55, blue: 0.5))
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(isSelected ? MPColors.success : MPColors.textTertiary)
                 }
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(habitType.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
 
                     Text(habitType.tier.description)
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 }
 
                 Spacer()
 
                 Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
                     .font(.title2)
-                    .foregroundColor(isSelected ?
-                        Color(red: 0.55, green: 0.75, blue: 0.55) :
-                        Color(red: 0.8, green: 0.75, blue: 0.7))
+                    .foregroundColor(isSelected ? MPColors.success : MPColors.border)
             }
-            .padding(14)
-            .background(Color.white)
-            .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.small)
         }
     }
 
     // MARK: - Permissions Page
 
     var permissionsPage: some View {
-        VStack(spacing: 30) {
+        VStack(spacing: MPSpacing.xxxl) {
             Spacer()
 
-            VStack(spacing: 16) {
+            VStack(spacing: MPSpacing.lg) {
                 ZStack {
                     Circle()
-                        .fill(Color.white)
+                        .fill(MPColors.surface)
                         .frame(width: 120, height: 120)
-                        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 8)
+                        .mpShadow(.medium)
 
                     Image(systemName: "heart.circle.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(Color(red: 0.9, green: 0.5, blue: 0.5))
+                        .font(.system(size: MPIconSize.hero))
+                        .foregroundColor(MPColors.error)
                 }
 
                 Text("Connect Health Data")
-                    .font(.title2)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingSmall())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text("Morning Proof uses Apple Health to\nautomatically track your steps and sleep")
-                    .font(.body)
-                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                    .font(MPFont.bodyLarge())
+                    .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
             // Permission items
-            VStack(spacing: 16) {
+            VStack(spacing: MPSpacing.lg) {
                 permissionRow(icon: "figure.walk", title: "Step Count", description: "Track morning walks")
                 permissionRow(icon: "moon.zzz.fill", title: "Sleep Analysis", description: "Monitor sleep duration")
             }
-            .padding(20)
-            .background(Color.white)
-            .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 4)
-            .padding(.horizontal, 30)
+            .padding(MPSpacing.xl)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.medium)
+            .padding(.horizontal, MPSpacing.xxxl)
 
             Spacer()
 
-            VStack(spacing: 12) {
+            VStack(spacing: MPSpacing.md) {
                 Button {
                     requestHealthPermissions()
                 } label: {
@@ -299,14 +285,12 @@ struct OnboardingView: View {
                             Text(healthAuthorized ? "Connected!" : "Connect Health")
                         }
                     }
-                    .font(.headline)
+                    .font(MPFont.labelLarge())
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(healthAuthorized ?
-                        Color(red: 0.55, green: 0.75, blue: 0.55) :
-                        Color(red: 0.9, green: 0.5, blue: 0.5))
-                    .cornerRadius(14)
+                    .frame(height: MPButtonHeight.lg)
+                    .background(healthAuthorized ? MPColors.success : MPColors.error)
+                    .cornerRadius(MPRadius.lg)
                 }
                 .disabled(isRequestingHealth || healthAuthorized)
 
@@ -314,48 +298,33 @@ struct OnboardingView: View {
                     completeOnboarding()
                 } label: {
                     Text(healthAuthorized ? "Continue" : "Skip for Now")
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.primary)
                 }
             }
-            .padding(.horizontal, 30)
+            .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
     }
 
     func permissionRow(icon: String, title: String, description: String) -> some View {
-        HStack(spacing: 14) {
+        HStack(spacing: MPSpacing.lg) {
             Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                .font(.system(size: MPIconSize.lg))
+                .foregroundColor(MPColors.primary)
                 .frame(width: 30)
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.labelMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text(description)
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
             }
 
             Spacer()
-        }
-    }
-
-    // MARK: - Actions
-
-    func nextButton(title: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            Text(title)
-                .font(.headline)
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                .cornerRadius(14)
         }
     }
 

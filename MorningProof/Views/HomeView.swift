@@ -11,11 +11,11 @@ struct HomeView: View {
     var body: some View {
         ZStack {
             // Background
-            Color(red: 0.98, green: 0.96, blue: 0.93)
+            MPColors.background
                 .ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: MPSpacing.xl) {
                     // Header
                     headerSection
 
@@ -38,10 +38,10 @@ struct HomeView: View {
                         cameraButton
                     }
 
-                    Spacer(minLength: 30)
+                    Spacer(minLength: MPSpacing.xxxl)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, MPSpacing.md)
             }
 
             // Confetti overlay
@@ -73,34 +73,25 @@ struct HomeView: View {
 
     var headerSection: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: MPSpacing.xs) {
                 Text(greetingWithName)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
                 if !viewModel.streakData.hasCompletedToday {
                     Text(deadlineText)
-                        .font(.subheadline)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textTertiary)
                 }
             }
 
             Spacer()
 
-            Button {
+            MPIconButton(icon: "gearshape.fill", size: MPIconSize.md) {
                 showSettings = true
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.body)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
         }
-        .padding(.top, 8)
+        .padding(.top, MPSpacing.sm)
     }
 
     var greetingWithName: String {
@@ -128,53 +119,53 @@ struct HomeView: View {
     // MARK: - Streak Card
 
     var streakCard: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: MPSpacing.lg) {
             if viewModel.streakData.hasCompletedToday {
                 Image(systemName: "checkmark.circle.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                    .font(.system(size: MPIconSize.hero))
+                    .foregroundColor(MPColors.success)
 
                 Text("Done for today!")
-                    .font(.headline)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.labelLarge())
+                    .foregroundColor(MPColors.textPrimary)
             } else {
                 Image(systemName: "bed.double.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(Color(red: 0.75, green: 0.65, blue: 0.55))
+                    .font(.system(size: MPIconSize.hero))
+                    .foregroundColor(MPColors.primaryLight)
 
                 Text("Make your bed")
-                    .font(.headline)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.labelLarge())
+                    .foregroundColor(MPColors.textPrimary)
             }
 
             // Streak number with flame
-            HStack(spacing: 8) {
+            HStack(spacing: MPSpacing.sm) {
                 Image(systemName: streakIcon)
-                    .font(.system(size: 28))
+                    .font(.system(size: MPIconSize.xl))
                     .foregroundColor(streakColor)
 
                 Text("\(viewModel.streakData.currentStreak)")
-                    .font(.system(size: 44, weight: .bold, design: .rounded))
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.displayMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text("days")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                    .padding(.top, 12)
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textTertiary)
+                    .padding(.top, MPSpacing.md)
             }
 
             // Stats row
-            HStack(spacing: 24) {
+            HStack(spacing: MPSpacing.xxl) {
                 StatPill(value: viewModel.streakData.longestStreak, label: "Best")
                 StatPill(value: viewModel.streakData.totalCompletions, label: "Total")
                 StatPill(value: viewModel.achievements.unlockedCount, label: "Awards")
             }
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 5)
+        .padding(.vertical, MPSpacing.xxl)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.xl)
+        .mpShadow(.large)
     }
 
     var streakIcon: String {
@@ -190,11 +181,11 @@ struct HomeView: View {
 
     var streakColor: Color {
         switch viewModel.streakData.currentStreak {
-        case 0: return Color(red: 0.7, green: 0.65, blue: 0.6)
-        case 1...6: return Color(red: 0.95, green: 0.6, blue: 0.3)
+        case 0: return MPColors.textMuted
+        case 1...6: return MPColors.accent
         case 7...13: return Color(red: 0.95, green: 0.5, blue: 0.2)
-        case 14...29: return Color(red: 0.95, green: 0.75, blue: 0.2)
-        case 30...89: return Color(red: 0.85, green: 0.65, blue: 0.2)
+        case 14...29: return MPColors.warning
+        case 30...89: return MPColors.accentGold
         default: return Color(red: 0.9, green: 0.7, blue: 0.1)
         }
     }
@@ -202,74 +193,60 @@ struct HomeView: View {
     // MARK: - Next Achievement Card
 
     func nextAchievementCard(_ achievement: Achievement) -> some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text("Next Achievement")
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
-                Spacer()
-                Text("\(viewModel.streakData.currentStreak)/\(achievement.requirement) days")
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-            }
-
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(Color(red: 0.95, green: 0.93, blue: 0.9))
-                        .frame(width: 44, height: 44)
-                    Image(systemName: achievement.icon)
-                        .font(.system(size: 20))
-                        .foregroundColor(Color(red: 0.7, green: 0.6, blue: 0.5))
+        MPCard(padding: MPSpacing.lg) {
+            VStack(spacing: MPSpacing.md) {
+                HStack {
+                    Text("Next Achievement")
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textSecondary)
+                    Spacer()
+                    Text("\(viewModel.streakData.currentStreak)/\(achievement.requirement) days")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 }
 
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(achievement.title)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                HStack(spacing: MPSpacing.md) {
+                    MPIconBadge(icon: achievement.icon, size: .medium, style: .neutral)
 
-                    // Progress bar
-                    GeometryReader { geo in
-                        ZStack(alignment: .leading) {
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(red: 0.92, green: 0.9, blue: 0.87))
-                                .frame(height: 8)
+                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                        Text(achievement.title)
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
 
-                            RoundedRectangle(cornerRadius: 4)
-                                .fill(Color(red: 0.55, green: 0.45, blue: 0.35))
-                                .frame(width: geo.size.width * viewModel.progressToNextAchievement, height: 8)
+                        // Progress bar
+                        GeometryReader { geo in
+                            ZStack(alignment: .leading) {
+                                RoundedRectangle(cornerRadius: MPRadius.xs)
+                                    .fill(MPColors.progressBg)
+                                    .frame(height: 8)
+
+                                RoundedRectangle(cornerRadius: MPRadius.xs)
+                                    .fill(MPColors.primary)
+                                    .frame(width: geo.size.width * viewModel.progressToNextAchievement, height: 8)
+                            }
                         }
+                        .frame(height: 8)
                     }
-                    .frame(height: 8)
                 }
             }
         }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
     }
 
     // MARK: - Calendar Card
 
     var calendarCard: some View {
-        VStack(spacing: 12) {
-            HStack {
-                Text(monthYearString)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
-                Spacer()
-            }
+        MPCard(padding: MPSpacing.lg) {
+            VStack(spacing: MPSpacing.md) {
+                HStack {
+                    Text(monthYearString)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+                    Spacer()
+                }
 
-            CalendarGridView(streakData: viewModel.streakData)
+                CalendarGridView(streakData: viewModel.streakData)
+            }
         }
-        .padding(16)
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
     }
 
     var monthYearString: String {
@@ -281,48 +258,31 @@ struct HomeView: View {
     // MARK: - Achievements Button
 
     var achievementsButton: some View {
-        Button {
-            showAchievements = true
-        } label: {
+        MPInteractiveCard(padding: MPSpacing.lg, action: { showAchievements = true }) {
             HStack {
                 Image(systemName: "trophy.fill")
-                    .foregroundColor(Color(red: 0.85, green: 0.65, blue: 0.2))
+                    .foregroundColor(MPColors.accentGold)
                 Text("View All Achievements")
-                    .fontWeight(.medium)
+                    .font(MPFont.labelMedium())
                 Spacer()
                 Text("\(viewModel.achievements.unlockedCount)/\(Achievement.allAchievements.count)")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textTertiary)
                 Image(systemName: "chevron.right")
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
             }
-            .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
-            .padding(16)
-            .background(Color.white)
-            .cornerRadius(16)
-            .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
+            .foregroundColor(MPColors.textPrimary)
         }
     }
 
     // MARK: - Camera Button
 
     var cameraButton: some View {
-        Button {
+        MPButton(title: "Verify Bed", style: .primary, icon: "camera.fill") {
             viewModel.openCamera()
-        } label: {
-            HStack(spacing: 10) {
-                Image(systemName: "camera.fill")
-                Text("Verify Bed")
-            }
-            .font(.headline)
-            .foregroundColor(.white)
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 18)
-            .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-            .cornerRadius(16)
         }
-        .padding(.top, 8)
+        .padding(.top, MPSpacing.sm)
     }
 
     // MARK: - Achievement Popup
@@ -335,48 +295,39 @@ struct HomeView: View {
                     viewModel.dismissAchievement()
                 }
 
-            VStack(spacing: 20) {
+            VStack(spacing: MPSpacing.xl) {
                 ZStack {
                     Circle()
-                        .fill(Color(red: 1.0, green: 0.95, blue: 0.85))
+                        .fill(MPColors.accentLight)
                         .frame(width: 100, height: 100)
 
                     Image(systemName: achievement.icon)
-                        .font(.system(size: 44))
-                        .foregroundColor(Color(red: 0.85, green: 0.65, blue: 0.2))
+                        .font(.system(size: MPIconSize.xxl))
+                        .foregroundColor(MPColors.accentGold)
                 }
 
                 Text("Achievement Unlocked!")
-                    .font(.headline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.labelLarge())
+                    .foregroundColor(MPColors.textTertiary)
 
                 Text(achievement.title)
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingLarge())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text(achievement.description)
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
 
-                Button {
+                MPButton(title: "Awesome!", style: .primary, size: .medium) {
                     viewModel.dismissAchievement()
-                } label: {
-                    Text("Awesome!")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 14)
-                        .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                        .cornerRadius(12)
                 }
             }
-            .padding(24)
-            .background(Color.white)
-            .cornerRadius(24)
+            .padding(MPSpacing.xxl)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.xl)
             .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
-            .padding(.horizontal, 40)
+            .padding(.horizontal, MPSpacing.xxxl + MPSpacing.sm)
         }
     }
 }
@@ -388,13 +339,13 @@ struct StatPill: View {
     let label: String
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: MPSpacing.xs) {
             Text("\(value)")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                .foregroundColor(MPColors.textPrimary)
             Text(label)
-                .font(.caption2)
-                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                .font(MPFont.labelTiny())
+                .foregroundColor(MPColors.textTertiary)
         }
     }
 }
@@ -410,20 +361,19 @@ struct CalendarGridView: View {
         let firstWeekday = calendar.component(.weekday, from: startOfMonth)
         let offset = firstWeekday - 1
 
-        VStack(spacing: 8) {
+        VStack(spacing: MPSpacing.sm) {
             // Weekday headers
             HStack(spacing: 0) {
                 ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
                     Text(day)
-                        .font(.caption2)
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.textTertiary)
                         .frame(maxWidth: .infinity)
                 }
             }
 
             // Days grid
-            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 8) {
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: MPSpacing.xs), count: 7), spacing: MPSpacing.sm) {
                 // Empty cells for offset
                 ForEach(0..<offset, id: \.self) { _ in
                     Text("")
@@ -440,21 +390,21 @@ struct CalendarGridView: View {
                     ZStack {
                         if isCompleted {
                             Circle()
-                                .fill(Color(red: 0.55, green: 0.75, blue: 0.55))
+                                .fill(MPColors.success)
                                 .frame(width: 28, height: 28)
                         } else if isToday {
                             Circle()
-                                .stroke(Color(red: 0.55, green: 0.45, blue: 0.35), lineWidth: 2)
+                                .stroke(MPColors.primary, lineWidth: 2)
                                 .frame(width: 28, height: 28)
                         }
 
                         Text("\(day)")
-                            .font(.caption)
+                            .font(MPFont.bodySmall())
                             .fontWeight(isToday ? .bold : .regular)
                             .foregroundColor(
                                 isCompleted ? .white :
-                                    isFuture ? Color(red: 0.8, green: 0.75, blue: 0.7) :
-                                    Color(red: 0.35, green: 0.28, blue: 0.22)
+                                    isFuture ? MPColors.textMuted :
+                                    MPColors.textPrimary
                             )
                     }
                     .frame(height: 28)
@@ -488,11 +438,11 @@ struct ConfettiView: View {
 
     func createParticles(in size: CGSize) {
         let colors: [Color] = [
-            Color(red: 0.95, green: 0.6, blue: 0.3),
-            Color(red: 0.55, green: 0.75, blue: 0.55),
-            Color(red: 0.85, green: 0.65, blue: 0.2),
-            Color(red: 0.55, green: 0.45, blue: 0.35),
-            Color(red: 0.9, green: 0.5, blue: 0.5)
+            MPColors.accent,
+            MPColors.success,
+            MPColors.accentGold,
+            MPColors.primary,
+            MPColors.error
         ]
 
         for i in 0..<50 {

@@ -28,38 +28,38 @@ struct StreakHeroCard: View {
     }
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: MPSpacing.lg) {
             // Streak display
-            HStack(spacing: 12) {
+            HStack(spacing: MPSpacing.md) {
                 // Flame icon with animation
                 Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
-                    .font(.system(size: 36))
+                    .font(.system(size: MPIconSize.xl))
                     .foregroundStyle(flameGradient)
                     .scaleEffect(flameScale)
-                    .shadow(color: Color.orange.opacity(0.5), radius: flameScale > 1 ? 10 : 0)
+                    .shadow(color: MPColors.accent.opacity(0.5), radius: flameScale > 1 ? 10 : 0)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    HStack(alignment: .firstTextBaseline, spacing: 4) {
+                    HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
                         Text("\(currentStreak)")
-                            .font(.system(size: 42, weight: .bold, design: .rounded))
-                            .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                            .font(MPFont.displayMedium())
+                            .foregroundColor(MPColors.textPrimary)
                             .scaleEffect(streakNumberScale)
 
                         Text("day streak")
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textTertiary)
                     }
 
                     // Progress to next milestone
                     if currentStreak > 0 {
-                        HStack(spacing: 6) {
+                        HStack(spacing: MPSpacing.sm) {
                             ProgressView(value: progressToNextMilestone)
-                                .tint(Color.orange)
+                                .tint(MPColors.accent)
                                 .frame(width: 100)
 
                             Text("\(nextMilestone) days")
-                                .font(.caption2)
-                                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                                .font(MPFont.labelTiny())
+                                .foregroundColor(MPColors.textTertiary)
                         }
                     }
                 }
@@ -70,33 +70,32 @@ struct StreakHeroCard: View {
             // Perfect Morning status or progress
             HStack {
                 if isPerfectMorning {
-                    HStack(spacing: 6) {
+                    HStack(spacing: MPSpacing.sm) {
                         Image(systemName: "sparkles")
-                            .foregroundColor(Color(red: 0.85, green: 0.65, blue: 0.2))
+                            .foregroundColor(MPColors.accentGold)
                         Text("Perfect Morning!")
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(Color(red: 0.85, green: 0.65, blue: 0.2))
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.accentGold)
                     }
                     .scaleEffect(showPerfectBadge ? 1.0 : 0.8)
                     .opacity(showPerfectBadge ? 1.0 : 0)
                 } else {
-                    HStack(spacing: 6) {
+                    HStack(spacing: MPSpacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                            .foregroundColor(MPColors.success)
                         Text("\(completedToday)/\(totalHabits) habits completed")
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textSecondary)
                     }
                 }
 
                 Spacer()
             }
         }
-        .padding(20)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.06), radius: 15, x: 0, y: 5)
+        .padding(MPSpacing.xl)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.xl)
+        .mpShadow(.large)
         .onAppear {
             // Animate streak number scaling in
             withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.1)) {
@@ -128,8 +127,8 @@ struct StreakHeroCard: View {
     var flameGradient: LinearGradient {
         LinearGradient(
             colors: currentStreak > 0
-                ? [Color.orange, Color.red]
-                : [Color.gray.opacity(0.5), Color.gray.opacity(0.3)],
+                ? [MPColors.accent, MPColors.error]
+                : [MPColors.textMuted, MPColors.textMuted.opacity(0.5)],
             startPoint: .bottom,
             endPoint: .top
         )
@@ -137,11 +136,11 @@ struct StreakHeroCard: View {
 }
 
 #Preview {
-    VStack(spacing: 20) {
+    VStack(spacing: MPSpacing.xl) {
         StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false)
         StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true)
         StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false)
     }
     .padding()
-    .background(Color(red: 0.98, green: 0.96, blue: 0.93))
+    .background(MPColors.background)
 }

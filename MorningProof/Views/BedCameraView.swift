@@ -31,7 +31,7 @@ struct BedCameraView: View {
     var body: some View {
         NavigationStack {
             ZStack {
-                Color(red: 0.98, green: 0.96, blue: 0.93)
+                MPColors.background
                     .ignoresSafeArea()
 
                 if isAnalyzing {
@@ -49,7 +49,7 @@ struct BedCameraView: View {
                     Button("Cancel") {
                         dismiss()
                     }
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .foregroundColor(MPColors.textTertiary)
                 }
             }
         }
@@ -62,7 +62,7 @@ struct BedCameraView: View {
     }
 
     var captureView: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: MPSpacing.xxl) {
             Spacer()
 
             if let image = selectedImage {
@@ -70,86 +70,58 @@ struct BedCameraView: View {
                     .resizable()
                     .scaledToFit()
                     .frame(maxHeight: 350)
-                    .cornerRadius(20)
-                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
-                    .padding(.horizontal, 24)
+                    .cornerRadius(MPRadius.xl)
+                    .mpShadow(.medium)
+                    .padding(.horizontal, MPSpacing.xxl)
 
-                HStack(spacing: 12) {
-                    Button {
+                HStack(spacing: MPSpacing.md) {
+                    MPButton(title: "Retake", style: .secondary) {
                         selectedImage = nil
-                    } label: {
-                        Text("Retake")
-                            .font(.headline)
-                            .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color.white)
-                            .cornerRadius(14)
-                            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                     }
 
-                    Button {
+                    MPButton(title: "Verify", style: .primary) {
                         Task {
                             await verifyBed(image: image)
                         }
-                    } label: {
-                        Text("Verify")
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .cornerRadius(14)
                     }
                 }
-                .padding(.horizontal, 24)
+                .padding(.horizontal, MPSpacing.xxl)
             } else {
-                VStack(spacing: 20) {
-                    VStack(spacing: 20) {
+                VStack(spacing: MPSpacing.xl) {
+                    VStack(spacing: MPSpacing.xl) {
                         Image(systemName: "camera.viewfinder")
                             .font(.system(size: 80))
-                            .foregroundColor(Color(red: 0.8, green: 0.75, blue: 0.7))
+                            .foregroundColor(MPColors.border)
 
                         Text("Take a photo of your made bed")
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textTertiary)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
-                    .background(Color.white)
-                    .cornerRadius(24)
-                    .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 5)
-                    .padding(.horizontal, 24)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.xl)
+                    .mpShadow(.medium)
+                    .padding(.horizontal, MPSpacing.xxl)
 
-                    VStack(spacing: 12) {
-                        Button {
+                    VStack(spacing: MPSpacing.md) {
+                        MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
                             showingCamera = true
-                        } label: {
-                            HStack(spacing: 10) {
-                                Image(systemName: "camera.fill")
-                                Text("Open Camera")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 18)
-                            .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .cornerRadius(16)
                         }
 
                         Button {
                             showingImagePicker = true
                         } label: {
-                            HStack(spacing: 10) {
+                            HStack(spacing: MPSpacing.sm) {
                                 Image(systemName: "photo.on.rectangle")
                                 Text("Choose from Library")
                             }
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.primary)
                         }
-                        .padding(.top, 4)
+                        .padding(.top, MPSpacing.xs)
                     }
-                    .padding(.horizontal, 24)
+                    .padding(.horizontal, MPSpacing.xxl)
                 }
             }
 
@@ -158,7 +130,7 @@ struct BedCameraView: View {
     }
 
     var analyzingView: some View {
-        VStack(spacing: 32) {
+        VStack(spacing: MPSpacing.xxxl) {
             Spacer()
 
             ZStack {
@@ -166,10 +138,7 @@ struct BedCameraView: View {
                 Circle()
                     .stroke(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.9, green: 0.6, blue: 0.35).opacity(0.6),
-                                Color(red: 0.85, green: 0.65, blue: 0.2).opacity(0.3)
-                            ],
+                            colors: [MPColors.accent.opacity(0.6), MPColors.accentGold.opacity(0.3)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -184,10 +153,7 @@ struct BedCameraView: View {
                     .trim(from: 0, to: 0.25)
                     .stroke(
                         LinearGradient(
-                            colors: [
-                                Color(red: 0.9, green: 0.6, blue: 0.35),
-                                Color(red: 0.9, green: 0.6, blue: 0.35).opacity(0)
-                            ],
+                            colors: [MPColors.accent, MPColors.accent.opacity(0)],
                             startPoint: .leading,
                             endPoint: .trailing
                         ),
@@ -198,48 +164,38 @@ struct BedCameraView: View {
 
                 // White background circle
                 Circle()
-                    .fill(Color.white)
+                    .fill(MPColors.surface)
                     .frame(width: 130, height: 130)
-                    .shadow(color: Color(red: 0.9, green: 0.6, blue: 0.35).opacity(0.3), radius: 20, x: 0, y: 5)
+                    .shadow(color: MPColors.accent.opacity(0.3), radius: 20, x: 0, y: 5)
 
                 // Bed icon with pulse
                 Image(systemName: "bed.double.fill")
-                    .font(.system(size: 45))
-                    .foregroundColor(Color(red: 0.75, green: 0.65, blue: 0.55))
+                    .font(.system(size: MPIconSize.xxl))
+                    .foregroundColor(MPColors.primaryLight)
                     .scaleEffect(bedIconScale)
             }
 
-            VStack(spacing: 12) {
+            VStack(spacing: MPSpacing.md) {
                 Text("Analyzing\(String(repeating: ".", count: dotCount))")
-                    .font(.title3)
-                    .fontWeight(.semibold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingSmall())
+                    .foregroundColor(MPColors.textPrimary)
                     .frame(width: 150, alignment: .leading)
 
                 Text("AI is checking if it's made")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textTertiary)
             }
 
             // Progress bar
-            VStack(spacing: 8) {
+            VStack(spacing: MPSpacing.sm) {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color(red: 0.92, green: 0.9, blue: 0.87))
+                        RoundedRectangle(cornerRadius: MPRadius.xs)
+                            .fill(MPColors.progressBg)
                             .frame(height: 8)
 
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.9, green: 0.6, blue: 0.35),
-                                        Color(red: 0.85, green: 0.65, blue: 0.2)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
+                        RoundedRectangle(cornerRadius: MPRadius.xs)
+                            .fill(MPColors.accentGradient)
                             .frame(width: geometry.size.width * analysisProgress, height: 8)
                     }
                 }
@@ -247,9 +203,8 @@ struct BedCameraView: View {
                 .frame(maxWidth: 200)
 
                 Text("\(Int(analysisProgress * 100))%")
-                    .font(.caption)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.labelSmall())
+                    .foregroundColor(MPColors.textTertiary)
             }
 
             Spacer()
@@ -305,133 +260,111 @@ struct BedCameraView: View {
 
     func resultView(_ result: VerificationResult) -> some View {
         ZStack {
-            VStack(spacing: 24) {
+            VStack(spacing: MPSpacing.xxl) {
                 Spacer()
 
                 if result.isMade {
                     // Success - with sequenced animations
                     ZStack {
                         Circle()
-                            .fill(Color(red: 0.9, green: 0.97, blue: 0.9))
+                            .fill(MPColors.successLight)
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "checkmark.circle.fill")
                             .font(.system(size: 70))
-                            .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                            .foregroundColor(MPColors.success)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
                     .opacity(showCheckmark ? 1.0 : 0)
 
                     Text("Bed Verified!")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                        .font(MPFont.headingMedium())
+                        .foregroundColor(MPColors.textPrimary)
                         .offset(y: showTitle ? 0 : 20)
                         .opacity(showTitle ? 1.0 : 0)
 
                     // Score with animated counter
-                    VStack(spacing: 8) {
+                    VStack(spacing: MPSpacing.sm) {
                         Text("Score")
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textTertiary)
 
                         HStack(alignment: .firstTextBaseline, spacing: 2) {
                             Text("\(animatedScore)")
-                                .font(.system(size: 48, weight: .bold, design: .rounded))
+                                .font(MPFont.displayMedium())
                                 .foregroundColor(scoreColor(result.score))
                                 .contentTransition(.numericText())
                             Text("/10")
                                 .font(.title3)
-                                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                                .foregroundColor(MPColors.textTertiary)
                         }
                     }
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    .background(Color.white)
-                    .cornerRadius(16)
-                    .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 3)
+                    .padding(.vertical, MPSpacing.xl)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .mpShadow(.medium)
                     .padding(.horizontal, 40)
                     .scaleEffect(showScore ? 1.0 : 0.8)
                     .opacity(showScore ? 1.0 : 0)
 
                     Text(result.feedback)
-                        .font(.body)
-                        .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                        .font(MPFont.bodyLarge())
+                        .foregroundColor(MPColors.textSecondary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, MPSpacing.xxxl)
                         .offset(y: showFeedback ? 0 : 15)
                         .opacity(showFeedback ? 1.0 : 0)
                 } else {
                     // Failure
                     ZStack {
                         Circle()
-                            .fill(Color(red: 0.98, green: 0.93, blue: 0.92))
+                            .fill(MPColors.errorLight)
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "xmark.circle.fill")
                             .font(.system(size: 70))
-                            .foregroundColor(Color(red: 0.85, green: 0.55, blue: 0.5))
+                            .foregroundColor(MPColors.error)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
                     .opacity(showCheckmark ? 1.0 : 0)
 
                     Text("Not Quite...")
-                        .font(.title2)
-                        .fontWeight(.bold)
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                        .font(MPFont.headingMedium())
+                        .foregroundColor(MPColors.textPrimary)
                         .offset(y: showTitle ? 0 : 20)
                         .opacity(showTitle ? 1.0 : 0)
 
                     Text(result.feedback)
-                        .font(.body)
-                        .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                        .font(MPFont.bodyLarge())
+                        .foregroundColor(MPColors.textSecondary)
                         .multilineTextAlignment(.center)
-                        .padding(.horizontal, 32)
+                        .padding(.horizontal, MPSpacing.xxxl)
                         .offset(y: showFeedback ? 0 : 15)
                         .opacity(showFeedback ? 1.0 : 0)
                 }
 
                 Spacer()
 
-                VStack(spacing: 12) {
+                VStack(spacing: MPSpacing.md) {
                     if !result.isMade {
-                        Button {
+                        MPButton(title: "Try Again", style: .primary, icon: "camera.fill") {
                             resetResultAnimations()
                             self.result = nil
                             selectedImage = nil
-                        } label: {
-                            HStack {
-                                Image(systemName: "camera.fill")
-                                Text("Try Again")
-                            }
-                            .font(.headline)
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .cornerRadius(14)
                         }
                         .offset(y: showButton ? 0 : 30)
                         .opacity(showButton ? 1.0 : 0)
                     }
 
-                    Button {
+                    MPButton(title: result.isMade ? "Done" : "Cancel", style: .secondary) {
                         dismiss()
-                    } label: {
-                        Text(result.isMade ? "Done" : "Cancel")
-                            .font(.headline)
-                            .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
-                            .background(Color.white)
-                            .cornerRadius(14)
-                            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                     }
                     .offset(y: showButton ? 0 : 30)
                     .opacity(showButton ? 1.0 : 0)
                 }
-                .padding(.horizontal, 24)
-                .padding(.bottom, 30)
+                .padding(.horizontal, MPSpacing.xxl)
+                .padding(.bottom, MPSpacing.xxxl)
             }
 
             // Confetti overlay for success
@@ -520,10 +453,10 @@ struct BedCameraView: View {
 
     func scoreColor(_ score: Int) -> Color {
         switch score {
-        case 9...10: return Color(red: 0.4, green: 0.7, blue: 0.4)
-        case 7...8: return Color(red: 0.5, green: 0.7, blue: 0.5)
-        case 5...6: return Color(red: 0.8, green: 0.7, blue: 0.4)
-        default: return Color(red: 0.85, green: 0.6, blue: 0.4)
+        case 9...10: return MPColors.success
+        case 7...8: return MPColors.success
+        case 5...6: return MPColors.warning
+        default: return MPColors.accent
         }
     }
 

@@ -16,11 +16,11 @@ struct DashboardView: View {
     var body: some View {
         ZStack {
             // Background
-            Color(red: 0.98, green: 0.96, blue: 0.93)
+            MPColors.background
                 .ignoresSafeArea()
 
             ScrollView(showsIndicators: false) {
-                VStack(spacing: 20) {
+                VStack(spacing: MPSpacing.xl) {
                     // Header
                     headerSection
 
@@ -40,10 +40,10 @@ struct DashboardView: View {
                     // Habits List
                     habitsSection
 
-                    Spacer(minLength: 30)
+                    Spacer(minLength: MPSpacing.xxxl)
                 }
-                .padding(.horizontal, 20)
-                .padding(.top, 10)
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, MPSpacing.sm)
             }
             .refreshable {
                 await manager.syncHealthData()
@@ -83,32 +83,23 @@ struct DashboardView: View {
 
     var headerSection: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: MPSpacing.xs) {
                 Text(greeting)
-                    .font(.title2)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text(dateString)
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textTertiary)
             }
 
             Spacer()
 
-            Button {
+            MPIconButton(icon: "gearshape.fill", size: MPIconSize.md) {
                 showSettings = true
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.body)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
             }
         }
-        .padding(.top, 8)
+        .padding(.top, MPSpacing.sm)
     }
 
     var greeting: String {
@@ -138,18 +129,17 @@ struct DashboardView: View {
     var countdownBanner: some View {
         HStack {
             Image(systemName: "clock.fill")
-                .foregroundColor(Color(red: 0.9, green: 0.6, blue: 0.35))
+                .foregroundColor(MPColors.accent)
 
             Text(countdownText)
-                .font(.subheadline)
-                .fontWeight(.medium)
-                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                .font(MPFont.labelMedium())
+                .foregroundColor(MPColors.textPrimary)
 
             Spacer()
         }
-        .padding(14)
-        .background(Color(red: 1.0, green: 0.97, blue: 0.92))
-        .cornerRadius(12)
+        .padding(MPSpacing.lg)
+        .background(MPColors.surfaceHighlight)
+        .cornerRadius(MPRadius.md)
     }
 
     var countdownText: String {
@@ -167,18 +157,17 @@ struct DashboardView: View {
     // MARK: - Habits Section
 
     var habitsSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: MPSpacing.md) {
             // Group by tier
             ForEach(HabitVerificationTier.allCases, id: \.rawValue) { tier in
                 let habitsInTier = manager.enabledHabits.filter { $0.habitType.tier == tier }
 
                 if !habitsInTier.isEmpty {
-                    VStack(alignment: .leading, spacing: 10) {
+                    VStack(alignment: .leading, spacing: MPSpacing.sm) {
                         Text(tier.description)
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                            .padding(.leading, 4)
+                            .font(MPFont.labelSmall())
+                            .foregroundColor(MPColors.textTertiary)
+                            .padding(.leading, MPSpacing.xs)
 
                         ForEach(habitsInTier) { config in
                             habitRow(for: config)
@@ -195,28 +184,23 @@ struct DashboardView: View {
         let justCompleted = recentlyCompletedHabits.contains(config.habitType)
 
         return ZStack {
-            HStack(spacing: 14) {
+            HStack(spacing: MPSpacing.lg) {
                 // Icon
                 ZStack {
                     Circle()
-                        .fill(isCompleted ?
-                              Color(red: 0.9, green: 0.97, blue: 0.9) :
-                                Color(red: 0.95, green: 0.93, blue: 0.9))
+                        .fill(isCompleted ? MPColors.successLight : MPColors.surfaceSecondary)
                         .frame(width: 44, height: 44)
 
                     Image(systemName: config.habitType.icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(isCompleted ?
-                                         Color(red: 0.4, green: 0.7, blue: 0.45) :
-                                            Color(red: 0.6, green: 0.55, blue: 0.5))
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textTertiary)
                 }
 
                 // Info
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
                     Text(config.habitType.displayName)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
 
                     // Status text
                     statusText(for: config, completion: completion)
@@ -227,10 +211,10 @@ struct DashboardView: View {
                 // Action / Status
                 actionButton(for: config, completion: completion, isCompleted: isCompleted)
             }
-            .padding(14)
-            .background(Color.white)
-            .cornerRadius(14)
-            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.small)
             .scaleEffect(justCompleted ? 1.03 : 1.0)
             .animation(.spring(response: 0.3, dampingFraction: 0.6), value: justCompleted)
 
@@ -273,44 +257,44 @@ struct DashboardView: View {
             case .morningSteps:
                 let steps = completion.verificationData?.stepCount ?? 0
                 Text("\(steps)/\(config.goal) steps")
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
 
             case .sleepDuration:
                 if let hours = completion.verificationData?.sleepHours {
                     Text(String(format: "%.1f/\(config.goal)h sleep", hours))
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 } else {
                     Text("Tap to enter sleep")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 }
 
             case .madeBed:
                 if completion.isCompleted, let score = completion.verificationData?.aiScore {
                     Text("Score: \(score)/10")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 } else {
                     Text("Take a photo to verify")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 }
 
             default:
                 if completion.isCompleted {
                     Text("Completed")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
                 } else if config.habitType.requiresHoldToConfirm {
                     Text("Hold to confirm")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 } else {
                     Text("Tap to complete")
-                        .font(.caption)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
                 }
             }
         }
@@ -329,9 +313,9 @@ struct DashboardView: View {
                     Image(systemName: "camera.fill")
                         .font(.body)
                         .foregroundColor(.white)
-                        .frame(width: 36, height: 36)
-                        .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                        .cornerRadius(10)
+                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                        .background(MPColors.primary)
+                        .cornerRadius(MPRadius.sm)
                 }
 
             case .journaling:
@@ -341,9 +325,9 @@ struct DashboardView: View {
                     Image(systemName: "pencil")
                         .font(.body)
                         .foregroundColor(.white)
-                        .frame(width: 36, height: 36)
-                        .background(Color(red: 0.55, green: 0.45, blue: 0.35))
-                        .cornerRadius(10)
+                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                        .background(MPColors.primary)
+                        .cornerRadius(MPRadius.sm)
                 }
 
             case .sleepDuration:
@@ -352,24 +336,23 @@ struct DashboardView: View {
                         // Show manual sleep entry
                     } label: {
                         Text("Enter")
-                            .font(.caption)
-                            .fontWeight(.medium)
-                            .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 8)
-                            .background(Color(red: 0.95, green: 0.93, blue: 0.9))
-                            .cornerRadius(8)
+                            .font(MPFont.labelSmall())
+                            .foregroundColor(MPColors.primary)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.surfaceSecondary)
+                            .cornerRadius(MPRadius.sm)
                     }
                 } else {
                     // Show progress
                     let score = completion?.score ?? 0
-                    CircularProgressView(progress: CGFloat(score) / 100, size: 36)
+                    CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
                 }
 
             case .morningSteps:
                 // Show progress
                 let score = completion?.score ?? 0
-                CircularProgressView(progress: CGFloat(score) / 100, size: 36)
+                CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
 
             default:
                 if config.habitType.requiresHoldToConfirm {
@@ -381,7 +364,7 @@ struct DashboardView: View {
                         completeHabitWithCelebration(config.habitType)
                     } label: {
                         Circle()
-                            .stroke(Color(red: 0.8, green: 0.75, blue: 0.7), lineWidth: 2)
+                            .stroke(MPColors.border, lineWidth: 2)
                             .frame(width: 28, height: 28)
                     }
                 }
@@ -399,16 +382,16 @@ struct CircularProgressView: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color(red: 0.92, green: 0.9, blue: 0.87), lineWidth: 3)
+                .stroke(MPColors.progressBg, lineWidth: 3)
 
             Circle()
                 .trim(from: 0, to: progress)
-                .stroke(Color(red: 0.55, green: 0.75, blue: 0.55), style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                .stroke(MPColors.success, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 .rotationEffect(.degrees(-90))
 
             Text("\(Int(progress * 100))%")
                 .font(.system(size: 9, weight: .medium))
-                .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
+                .foregroundColor(MPColors.textSecondary)
         }
         .frame(width: size, height: size)
     }
@@ -424,13 +407,13 @@ struct HoldToConfirmButton: View {
     var body: some View {
         ZStack {
             Circle()
-                .stroke(Color(red: 0.8, green: 0.75, blue: 0.7), lineWidth: 2)
-                .frame(width: 36, height: 36)
+                .stroke(MPColors.border, lineWidth: 2)
+                .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
 
             Circle()
                 .trim(from: 0, to: progress)
-                .stroke(Color(red: 0.55, green: 0.45, blue: 0.35), style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                .frame(width: 36, height: 36)
+                .stroke(MPColors.primary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
                 .rotationEffect(.degrees(-90))
         }
         .gesture(

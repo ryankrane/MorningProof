@@ -28,14 +28,18 @@
 		7BD498619EFA0FB8AF85197A /* MorningProofApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */; };
 		7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */; };
 		8D47A4A0AA31EE1DE7B1FE8B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F3BC6C90412C82E51911D42 /* SettingsView.swift */; };
+		8F393BE460FE423B9988B32F /* MPSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */; };
 		9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */; };
 		9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */; };
 		9E95E247966FD99813068489 /* BedMadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE49ACF8BBAF19284CCC85C /* BedMadeTests.swift */; };
+		A693DB546892E62EC3680F62 /* MPCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269A2CFCAE1171B58D22D159 /* MPCard.swift */; };
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
+		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
 		D3C793EA612FDC1D7559179C /* BedVerificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */; };
 		E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */; };
 		E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */; };
+		ED80EC39FD2965B333865034 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD685B51A8DBDF220310D798 /* Theme.swift */; };
 		EE04C57AB9C08DC671F8C253 /* MorningProofManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */; };
 		EF2D7DA739854F610782EAEE /* BedCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 617CF4D8D07A725BD2CBF808 /* BedCameraView.swift */; };
 		EF6FDEC703A4DB6CB397A6EA /* MiniConfettiView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4721A0F6D815690A22663A52 /* MiniConfettiView.swift */; };
@@ -73,6 +77,7 @@
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		3671DB51C5213888E586A8D3 /* AchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
 		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
@@ -85,6 +90,7 @@
 		4C7C2841126F9197EED1AA57 /* ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultView.swift; sourceTree = "<group>"; };
 		5CD129FC6CB536710C7F464C /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		5E13CCA5BD11D73F26A5DCFD /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPSectionHeader.swift; sourceTree = "<group>"; };
 		617CF4D8D07A725BD2CBF808 /* BedCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedCameraView.swift; sourceTree = "<group>"; };
 		6468129FC9D767B07BAAB760 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6F3BC6C90412C82E51911D42 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
@@ -93,6 +99,7 @@
 		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofApp.swift; sourceTree = "<group>"; };
 		B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofManager.swift; sourceTree = "<group>"; };
+		BD685B51A8DBDF220310D798 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
 		CAE49ACF8BBAF19284CCC85C /* BedMadeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedMadeTests.swift; sourceTree = "<group>"; };
 		CBAB7E9F4A2111F22E9C1132 /* VerificationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationResult.swift; sourceTree = "<group>"; };
 		CC2AC488A4583BA62DC0C80A /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -100,6 +107,7 @@
 		D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedVerificationViewModel.swift; sourceTree = "<group>"; };
 		DD60A520941A2DB8D2588F53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DF851795EA491C844DB4CB0F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		ECA15CD82E35AFFFCE2A958F /* MPButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPButton.swift; sourceTree = "<group>"; };
 		F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofSettingsView.swift; sourceTree = "<group>"; };
 		F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		F6CB434AF33E074D379634A1 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
@@ -135,6 +143,9 @@
 			children = (
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
 				4721A0F6D815690A22663A52 /* MiniConfettiView.swift */,
+				ECA15CD82E35AFFFCE2A958F /* MPButton.swift */,
+				269A2CFCAE1171B58D22D159 /* MPCard.swift */,
+				603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */,
 				3C15180C19687B347FEEB70A /* StreakHeroCard.swift */,
 			);
 			path = Components;
@@ -162,6 +173,7 @@
 				3AD3A9ECCDA8B361926C387D /* Models */,
 				C74E8EC23D91E0CAB0E9B871 /* Resources */,
 				7C89DEB5756E008480FDD629 /* Services */,
+				BD1CC9ACDA0B278C3DE3C6AD /* Theme */,
 				97B3868C918279F50DBB96A1 /* ViewModels */,
 				87BBE4B9F80664016795B976 /* Views */,
 			);
@@ -212,6 +224,14 @@
 				CAE49ACF8BBAF19284CCC85C /* BedMadeTests.swift */,
 			);
 			path = MorningProofTests;
+			sourceTree = "<group>";
+		};
+		BD1CC9ACDA0B278C3DE3C6AD /* Theme */ = {
+			isa = PBXGroup;
+			children = (
+				BD685B51A8DBDF220310D798 /* Theme.swift */,
+			);
+			path = Theme;
 			sourceTree = "<group>";
 		};
 		C74E8EC23D91E0CAB0E9B871 /* Resources */ = {
@@ -372,6 +392,9 @@
 				07413D8B7ACA9D63E8F4F7E3 /* HomeView.swift in Sources */,
 				F69774C99B74F6A32D563AE4 /* ImagePicker.swift in Sources */,
 				1E513B3AF9042CDD59D744EC /* JournalEntryView.swift in Sources */,
+				AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */,
+				A693DB546892E62EC3680F62 /* MPCard.swift in Sources */,
+				8F393BE460FE423B9988B32F /* MPSectionHeader.swift in Sources */,
 				EF6FDEC703A4DB6CB397A6EA /* MiniConfettiView.swift in Sources */,
 				7BD498619EFA0FB8AF85197A /* MorningProofApp.swift in Sources */,
 				EE04C57AB9C08DC671F8C253 /* MorningProofManager.swift in Sources */,
@@ -385,6 +408,7 @@
 				B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */,
 				E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */,
 				E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */,
+				ED80EC39FD2965B333865034 /* Theme.swift in Sources */,
 				FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */,
 				21922DF10EA344BDB9335FBA /* VerificationResult.swift in Sources */,
 			);

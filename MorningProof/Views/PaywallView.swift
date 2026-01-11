@@ -20,17 +20,14 @@ struct PaywallView: View {
             ZStack {
                 // Background gradient
                 LinearGradient(
-                    colors: [
-                        Color(red: 0.98, green: 0.96, blue: 0.93),
-                        Color(red: 0.95, green: 0.92, blue: 0.88)
-                    ],
+                    colors: [MPColors.background, MPColors.surfaceSecondary],
                     startPoint: .top,
                     endPoint: .bottom
                 )
                 .ignoresSafeArea()
 
                 ScrollView(showsIndicators: false) {
-                    VStack(spacing: 24) {
+                    VStack(spacing: MPSpacing.xxl) {
                         // Header
                         headerSection
 
@@ -46,9 +43,9 @@ struct PaywallView: View {
                         // Terms
                         termsSection
                     }
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
-                    .padding(.bottom, 30)
+                    .padding(.horizontal, MPSpacing.xl)
+                    .padding(.top, MPSpacing.sm)
+                    .padding(.bottom, MPSpacing.xxxl)
                 }
             }
             .navigationBarTitleDisplayMode(.inline)
@@ -59,7 +56,7 @@ struct PaywallView: View {
                     } label: {
                         Image(systemName: "xmark.circle.fill")
                             .font(.title3)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 }
             }
@@ -74,41 +71,31 @@ struct PaywallView: View {
     // MARK: - Header
 
     var headerSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: MPSpacing.lg) {
             // Premium badge
             ZStack {
                 Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 0.9, green: 0.6, blue: 0.35),
-                                Color(red: 0.85, green: 0.65, blue: 0.2)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
+                    .fill(MPColors.accentGradient)
                     .frame(width: 80, height: 80)
-                    .shadow(color: Color(red: 0.9, green: 0.6, blue: 0.35).opacity(0.4), radius: 15, x: 0, y: 5)
+                    .shadow(color: MPColors.accent.opacity(0.4), radius: 15, x: 0, y: 5)
 
                 Image(systemName: "crown.fill")
-                    .font(.system(size: 36))
+                    .font(.system(size: MPIconSize.xl))
                     .foregroundColor(.white)
             }
 
-            VStack(spacing: 8) {
+            VStack(spacing: MPSpacing.sm) {
                 Text("Unlock Premium")
-                    .font(.title)
-                    .fontWeight(.bold)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                    .font(MPFont.headingLarge())
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text("Build better mornings with full access")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textTertiary)
                     .multilineTextAlignment(.center)
             }
         }
-        .padding(.top, 20)
+        .padding(.top, MPSpacing.xl)
     }
 
     // MARK: - Features
@@ -116,22 +103,22 @@ struct PaywallView: View {
     var featuresSection: some View {
         VStack(spacing: 0) {
             FeatureRow(icon: "infinity", title: "Unlimited Habits", description: "Track as many morning habits as you want", isPremium: true)
-            Divider().padding(.horizontal, 16)
+            Divider().padding(.horizontal, MPSpacing.lg)
             FeatureRow(icon: "camera.viewfinder", title: "Unlimited AI Verifications", description: "Verify your bed every day with AI", isPremium: true)
-            Divider().padding(.horizontal, 16)
+            Divider().padding(.horizontal, MPSpacing.lg)
             FeatureRow(icon: "flame.fill", title: "Streak Recovery", description: "1 free recovery per month + buy more", isPremium: true)
-            Divider().padding(.horizontal, 16)
+            Divider().padding(.horizontal, MPSpacing.lg)
             FeatureRow(icon: "chart.bar.fill", title: "Insights & Analytics", description: "Coming soon", isPremium: true, comingSoon: true)
         }
-        .background(Color.white)
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 3)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.medium)
     }
 
     // MARK: - Plan Selection
 
     var planSelectionSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: MPSpacing.md) {
             // Yearly plan (recommended)
             PlanCard(
                 isSelected: selectedPlan == .yearly,
@@ -159,7 +146,7 @@ struct PaywallView: View {
     // MARK: - Subscribe Button
 
     var subscribeButton: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: MPSpacing.sm) {
             Button {
                 Task {
                     await subscribe()
@@ -174,50 +161,41 @@ struct PaywallView: View {
                             .fontWeight(.semibold)
                     }
                 }
-                .font(.headline)
+                .font(MPFont.labelLarge())
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 18)
-                .background(
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.55, green: 0.45, blue: 0.35),
-                            Color(red: 0.45, green: 0.35, blue: 0.28)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .cornerRadius(16)
-                .shadow(color: Color(red: 0.55, green: 0.45, blue: 0.35).opacity(0.3), radius: 10, x: 0, y: 5)
+                .frame(height: MPButtonHeight.lg)
+                .background(MPColors.primaryGradient)
+                .cornerRadius(MPRadius.lg)
+                .shadow(color: MPColors.primary.opacity(0.3), radius: 10, x: 0, y: 5)
             }
             .disabled(isPurchasing)
 
             Text("Then \(selectedPlan == .yearly ? subscriptionManager.yearlyPrice : subscriptionManager.monthlyPrice)\(selectedPlan == .yearly ? "/year" : "/month")")
-                .font(.caption)
-                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textTertiary)
         }
     }
 
     // MARK: - Terms
 
     var termsSection: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: MPSpacing.md) {
             Button {
                 Task {
                     await subscriptionManager.restorePurchases()
                 }
             } label: {
                 Text("Restore Purchases")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.55, green: 0.45, blue: 0.35))
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.primary)
             }
 
             Text("Cancel anytime. Subscription auto-renews unless cancelled at least 24 hours before the end of the current period.")
-                .font(.caption2)
-                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                .font(MPFont.labelTiny())
+                .foregroundColor(MPColors.textTertiary)
                 .multilineTextAlignment(.center)
-                .padding(.horizontal, 20)
+                .padding(.horizontal, MPSpacing.xl)
         }
     }
 
@@ -256,55 +234,45 @@ struct FeatureRow: View {
     var comingSoon: Bool = false
 
     var body: some View {
-        HStack(spacing: 14) {
+        HStack(spacing: MPSpacing.lg) {
             ZStack {
                 Circle()
-                    .fill(
-                        isPremium
-                            ? Color(red: 0.95, green: 0.9, blue: 0.85)
-                            : Color(red: 0.92, green: 0.9, blue: 0.87)
-                    )
+                    .fill(isPremium ? MPColors.accentLight : MPColors.progressBg)
                     .frame(width: 40, height: 40)
 
                 Image(systemName: icon)
-                    .font(.system(size: 16))
-                    .foregroundColor(
-                        isPremium
-                            ? Color(red: 0.9, green: 0.6, blue: 0.35)
-                            : Color(red: 0.6, green: 0.5, blue: 0.4)
-                    )
+                    .font(.system(size: MPIconSize.sm))
+                    .foregroundColor(isPremium ? MPColors.accent : MPColors.textTertiary)
             }
 
             VStack(alignment: .leading, spacing: 2) {
-                HStack(spacing: 6) {
+                HStack(spacing: MPSpacing.sm) {
                     Text(title)
-                        .font(.subheadline)
-                        .fontWeight(.medium)
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
 
                     if comingSoon {
                         Text("Soon")
-                            .font(.caption2)
-                            .fontWeight(.medium)
-                            .foregroundColor(Color(red: 0.9, green: 0.6, blue: 0.35))
-                            .padding(.horizontal, 6)
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.accent)
+                            .padding(.horizontal, MPSpacing.sm)
                             .padding(.vertical, 2)
-                            .background(Color(red: 0.95, green: 0.9, blue: 0.85))
-                            .cornerRadius(4)
+                            .background(MPColors.accentLight)
+                            .cornerRadius(MPRadius.xs)
                     }
                 }
 
                 Text(description)
-                    .font(.caption)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
             }
 
             Spacer()
 
             Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+                .foregroundColor(MPColors.success)
         }
-        .padding(16)
+        .padding(MPSpacing.lg)
     }
 }
 
@@ -319,33 +287,32 @@ struct PlanCard: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                    HStack(spacing: MPSpacing.sm) {
                         Text(title)
-                            .font(.headline)
-                            .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                            .font(MPFont.labelLarge())
+                            .foregroundColor(MPColors.textPrimary)
 
                         if let badge = badge {
                             Text(badge)
-                                .font(.caption)
+                                .font(MPFont.bodySmall())
                                 .fontWeight(.semibold)
                                 .foregroundColor(.white)
-                                .padding(.horizontal, 8)
+                                .padding(.horizontal, MPSpacing.sm)
                                 .padding(.vertical, 3)
-                                .background(Color(red: 0.55, green: 0.75, blue: 0.55))
-                                .cornerRadius(6)
+                                .background(MPColors.success)
+                                .cornerRadius(MPRadius.sm)
                         }
                     }
 
                     HStack(alignment: .firstTextBaseline, spacing: 2) {
                         Text(price)
-                            .font(.title2)
-                            .fontWeight(.bold)
-                            .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+                            .font(MPFont.headingMedium())
+                            .foregroundColor(MPColors.textPrimary)
 
                         Text(period)
-                            .font(.subheadline)
-                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 }
 
@@ -353,34 +320,24 @@ struct PlanCard: View {
 
                 ZStack {
                     Circle()
-                        .stroke(
-                            isSelected
-                                ? Color(red: 0.55, green: 0.45, blue: 0.35)
-                                : Color(red: 0.8, green: 0.75, blue: 0.7),
-                            lineWidth: 2
-                        )
+                        .stroke(isSelected ? MPColors.primary : MPColors.border, lineWidth: 2)
                         .frame(width: 24, height: 24)
 
                     if isSelected {
                         Circle()
-                            .fill(Color(red: 0.55, green: 0.45, blue: 0.35))
+                            .fill(MPColors.primary)
                             .frame(width: 14, height: 14)
                     }
                 }
             }
-            .padding(16)
-            .background(Color.white)
-            .cornerRadius(14)
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
             .overlay(
-                RoundedRectangle(cornerRadius: 14)
-                    .stroke(
-                        isSelected
-                            ? Color(red: 0.55, green: 0.45, blue: 0.35)
-                            : Color.clear,
-                        lineWidth: 2
-                    )
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .stroke(isSelected ? MPColors.primary : Color.clear, lineWidth: 2)
             )
-            .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+            .mpShadow(.small)
         }
         .buttonStyle(PlainButtonStyle())
     }
