@@ -34,9 +34,8 @@ class HealthKitManager: ObservableObject {
         if let sleepType = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis) {
             types.insert(sleepType)
         }
-        if let workoutType = HKObjectType.workoutType() as? HKObjectType {
-            types.insert(workoutType)
-        }
+        let workoutType = HKObjectType.workoutType()
+        types.insert(workoutType)
         return types
     }()
 

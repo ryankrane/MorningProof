@@ -7,6 +7,12 @@ struct DashboardView: View {
     @State private var showJournalEntry = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
 
+    // Celebration state
+    @State private var recentlyCompletedHabits: Set<HabitType> = []
+    @State private var showConfettiForHabit: HabitType? = nil
+    @State private var showPerfectMorningCelebration = false
+    @State private var previousCompletedCount = 0
+
     var body: some View {
         ZStack {
             // Background
@@ -18,8 +24,13 @@ struct DashboardView: View {
                     // Header
                     headerSection
 
-                    // Morning Score Card
-                    scoreCard
+                    // Streak Hero Card
+                    StreakHeroCard(
+                        currentStreak: manager.currentStreak,
+                        completedToday: manager.completedCount,
+                        totalHabits: manager.totalEnabled,
+                        isPerfectMorning: manager.isPerfectMorning
+                    )
 
                     // Countdown
                     if !manager.isPastCutoff {
@@ -37,6 +48,11 @@ struct DashboardView: View {
             .refreshable {
                 await manager.syncHealthData()
             }
+
+            // Perfect Morning celebration overlay
+            if showPerfectMorningCelebration {
+                FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
+            }
         }
         .sheet(isPresented: $showSettings) {
             MorningProofSettingsView(manager: manager)
@@ -49,7 +65,18 @@ struct DashboardView: View {
         }
         .task {
             await manager.syncHealthData()
+            previousCompletedCount = manager.completedCount
         }
+        .onChange(of: manager.isPerfectMorning) { newValue in
+            if newValue && !showPerfectMorningCelebration {
+                triggerPerfectMorningCelebration()
+            }
+        }
+    }
+
+    private func triggerPerfectMorningCelebration() {
+        showPerfectMorningCelebration = true
+        HapticManager.shared.perfectMorning()
     }
 
     // MARK: - Header
@@ -104,62 +131,6 @@ struct DashboardView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMMM d"
         return formatter.string(from: Date())
-    }
-
-    // MARK: - Score Card
-
-    var scoreCard: some View {
-        VStack(spacing: 16) {
-            // Score ring
-            ZStack {
-                Circle()
-                    .stroke(Color(red: 0.92, green: 0.9, blue: 0.87), lineWidth: 12)
-                    .frame(width: 120, height: 120)
-
-                Circle()
-                    .trim(from: 0, to: CGFloat(manager.todayLog.morningScore) / 100)
-                    .stroke(scoreColor, style: StrokeStyle(lineWidth: 12, lineCap: .round))
-                    .frame(width: 120, height: 120)
-                    .rotationEffect(.degrees(-90))
-                    .animation(.easeOut(duration: 0.5), value: manager.todayLog.morningScore)
-
-                VStack(spacing: 2) {
-                    Text("\(manager.todayLog.morningScore)")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
-
-                    Text("Morning Score")
-                        .font(.caption2)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                }
-            }
-
-            // Progress text
-            HStack(spacing: 4) {
-                Image(systemName: "checkmark.circle.fill")
-                    .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
-
-                Text("\(manager.completedCount)/\(manager.totalEnabled) habits completed")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.5, green: 0.45, blue: 0.4))
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 24)
-        .background(Color.white)
-        .cornerRadius(20)
-        .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 5)
-    }
-
-    var scoreColor: Color {
-        let score = manager.todayLog.morningScore
-        switch score {
-        case 80...100: return Color(red: 0.4, green: 0.75, blue: 0.45)
-        case 60..<80: return Color(red: 0.55, green: 0.75, blue: 0.55)
-        case 40..<60: return Color(red: 0.9, green: 0.75, blue: 0.3)
-        case 20..<40: return Color(red: 0.9, green: 0.6, blue: 0.35)
-        default: return Color(red: 0.85, green: 0.5, blue: 0.45)
-        }
     }
 
     // MARK: - Countdown Banner
@@ -221,43 +192,78 @@ struct DashboardView: View {
     func habitRow(for config: HabitConfig) -> some View {
         let completion = manager.getCompletion(for: config.habitType)
         let isCompleted = completion?.isCompleted ?? false
+        let justCompleted = recentlyCompletedHabits.contains(config.habitType)
 
-        return HStack(spacing: 14) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(isCompleted ?
-                          Color(red: 0.9, green: 0.97, blue: 0.9) :
-                            Color(red: 0.95, green: 0.93, blue: 0.9))
-                    .frame(width: 44, height: 44)
+        return ZStack {
+            HStack(spacing: 14) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(isCompleted ?
+                              Color(red: 0.9, green: 0.97, blue: 0.9) :
+                                Color(red: 0.95, green: 0.93, blue: 0.9))
+                        .frame(width: 44, height: 44)
 
-                Image(systemName: config.habitType.icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(isCompleted ?
-                                     Color(red: 0.4, green: 0.7, blue: 0.45) :
-                                        Color(red: 0.6, green: 0.55, blue: 0.5))
+                    Image(systemName: config.habitType.icon)
+                        .font(.system(size: 18))
+                        .foregroundColor(isCompleted ?
+                                         Color(red: 0.4, green: 0.7, blue: 0.45) :
+                                            Color(red: 0.6, green: 0.55, blue: 0.5))
+                }
+
+                // Info
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(config.habitType.displayName)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+                    // Status text
+                    statusText(for: config, completion: completion)
+                }
+
+                Spacer()
+
+                // Action / Status
+                actionButton(for: config, completion: completion, isCompleted: isCompleted)
             }
+            .padding(14)
+            .background(Color.white)
+            .cornerRadius(14)
+            .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            .scaleEffect(justCompleted ? 1.03 : 1.0)
+            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: justCompleted)
 
-            // Info
-            VStack(alignment: .leading, spacing: 4) {
-                Text(config.habitType.displayName)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-                    .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
-
-                // Status text
-                statusText(for: config, completion: completion)
+            // Mini confetti overlay
+            if showConfettiForHabit == config.habitType {
+                MiniConfettiView()
+                    .allowsHitTesting(false)
             }
-
-            Spacer()
-
-            // Action / Status
-            actionButton(for: config, completion: completion, isCompleted: isCompleted)
         }
-        .padding(14)
-        .background(Color.white)
-        .cornerRadius(14)
-        .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+    }
+
+    private func completeHabitWithCelebration(_ habitType: HabitType) {
+        // Add to recently completed
+        recentlyCompletedHabits.insert(habitType)
+
+        // Show confetti
+        showConfettiForHabit = habitType
+
+        // Haptic feedback
+        HapticManager.shared.habitCompleted()
+
+        // Complete the habit
+        manager.completeHabit(habitType)
+
+        // Clear confetti after animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            showConfettiForHabit = nil
+        }
+
+        // Remove from recently completed after animation settles
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            recentlyCompletedHabits.remove(habitType)
+        }
     }
 
     @ViewBuilder
@@ -313,9 +319,7 @@ struct DashboardView: View {
     @ViewBuilder
     func actionButton(for config: HabitConfig, completion: HabitCompletion?, isCompleted: Bool) -> some View {
         if isCompleted {
-            Image(systemName: "checkmark.circle.fill")
-                .font(.title2)
-                .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
+            CheckmarkCircle(isCompleted: true, size: 28)
         } else {
             switch config.habitType {
             case .madeBed:
@@ -370,11 +374,11 @@ struct DashboardView: View {
             default:
                 if config.habitType.requiresHoldToConfirm {
                     HoldToConfirmButton(habitType: config.habitType) {
-                        manager.completeHabit(config.habitType)
+                        completeHabitWithCelebration(config.habitType)
                     }
                 } else {
                     Button {
-                        manager.completeHabit(config.habitType)
+                        completeHabitWithCelebration(config.habitType)
                     } label: {
                         Circle()
                             .stroke(Color(red: 0.8, green: 0.75, blue: 0.7), lineWidth: 2)
@@ -434,6 +438,8 @@ struct HoldToConfirmButton: View {
                 .onChanged { _ in
                     if !isHolding {
                         isHolding = true
+                        HapticManager.shared.lightTap()
+
                         withAnimation(.linear(duration: 2.0)) {
                             progress = 1.0
                         }
@@ -451,6 +457,7 @@ struct HoldToConfirmButton: View {
                         withAnimation(.easeOut(duration: 0.2)) {
                             progress = 0
                         }
+                        HapticManager.shared.lightTap()
                     }
                 }
         )

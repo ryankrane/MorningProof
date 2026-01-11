@@ -12,6 +12,9 @@ class MorningProofManager: ObservableObject {
     @Published var settings: MorningProofSettings
     @Published var isLoading = false
     @Published var hasCompletedOnboarding = false
+    @Published var currentStreak: Int = 0
+    @Published var longestStreak: Int = 0
+    @Published var lastPerfectMorningDate: Date?
 
     // MARK: - Dependencies
 
@@ -50,6 +53,10 @@ class MorningProofManager: ObservableObject {
         }
 
         hasCompletedOnboarding = storageService.hasCompletedOnboarding()
+
+        // Load streak data
+        loadStreakData()
+        checkAndUpdateStreakOnLoad()
     }
 
     func createDailyLog(for date: Date) -> DailyLog {
@@ -198,6 +205,9 @@ class MorningProofManager: ObservableObject {
             guard completion.isCompleted, let completedAt = completion.completedAt else { return false }
             return completedAt <= cutoffTime
         }
+
+        // Update streak when all habits completed
+        updateStreak()
     }
 
     private func getCutoffTime() -> Date {
@@ -282,6 +292,102 @@ class MorningProofManager: ObservableObject {
     func getCompletion(for habitType: HabitType) -> HabitCompletion? {
         todayLog.completions.first { $0.habitType == habitType }
     }
+
+    // MARK: - Streak Tracking
+
+    var isPerfectMorning: Bool {
+        guard !isPastCutoff || todayLog.allCompletedBeforeCutoff else { return false }
+        return completedCount == totalEnabled && totalEnabled > 0
+    }
+
+    func updateStreak() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Check if we had a perfect morning today
+        if isPerfectMorning {
+            if lastPerfectMorningDate == nil {
+                // First perfect morning ever
+                currentStreak = 1
+            } else if let lastDate = lastPerfectMorningDate {
+                let lastDay = calendar.startOfDay(for: lastDate)
+
+                if lastDay == today {
+                    // Already counted today
+                    return
+                } else if calendar.isDate(lastDay, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+                    // Yesterday was perfect, increment streak
+                    currentStreak += 1
+                } else {
+                    // Streak broken, start new
+                    currentStreak = 1
+                }
+            }
+
+            lastPerfectMorningDate = today
+            longestStreak = max(longestStreak, currentStreak)
+            saveStreakData()
+        }
+    }
+
+    func checkAndUpdateStreakOnLoad() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        guard let lastDate = lastPerfectMorningDate else { return }
+        let lastDay = calendar.startOfDay(for: lastDate)
+
+        // If last perfect morning was more than 1 day ago, reset streak
+        if let daysDiff = calendar.dateComponents([.day], from: lastDay, to: today).day, daysDiff > 1 {
+            currentStreak = 0
+            saveStreakData()
+        }
+    }
+
+    /// Recovers the user's streak after they purchase streak recovery
+    func recoverStreak() {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+
+        // Restore the streak by pretending yesterday was a perfect morning
+        lastPerfectMorningDate = yesterday
+        currentStreak = max(1, settings.currentStreak)
+
+        saveStreakData()
+    }
+
+    /// Check if streak was broken and needs recovery
+    var streakNeedsRecovery: Bool {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        guard let lastDate = lastPerfectMorningDate else { return false }
+        let lastDay = calendar.startOfDay(for: lastDate)
+
+        if let daysDiff = calendar.dateComponents([.day], from: lastDay, to: today).day {
+            return daysDiff > 1 && settings.currentStreak > 0
+        }
+        return false
+    }
+
+    /// The streak that would be recovered
+    var recoverableStreak: Int {
+        return settings.currentStreak
+    }
+
+    private func saveStreakData() {
+        settings.currentStreak = currentStreak
+        settings.longestStreak = longestStreak
+        settings.lastPerfectMorningDate = lastPerfectMorningDate
+        saveCurrentState()
+    }
+
+    private func loadStreakData() {
+        currentStreak = settings.currentStreak
+        longestStreak = settings.longestStreak
+        lastPerfectMorningDate = settings.lastPerfectMorningDate
+    }
 }
 
 // MARK: - Morning Proof Settings
@@ -294,6 +400,11 @@ struct MorningProofSettings: Codable {
     var stepGoal: Int
     var sleepGoalHours: Int
 
+    // Streak tracking
+    var currentStreak: Int
+    var longestStreak: Int
+    var lastPerfectMorningDate: Date?
+
     init() {
         self.userName = ""
         self.wakeTimeHour = 7
@@ -301,5 +412,8 @@ struct MorningProofSettings: Codable {
         self.morningCutoffHour = 9
         self.stepGoal = 500
         self.sleepGoalHours = 7
+        self.currentStreak = 0
+        self.longestStreak = 0
+        self.lastPerfectMorningDate = nil
     }
 }

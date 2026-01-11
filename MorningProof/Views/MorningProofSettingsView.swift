@@ -2,6 +2,7 @@ import SwiftUI
 
 struct MorningProofSettingsView: View {
     @ObservedObject var manager: MorningProofManager
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
     @Environment(\.dismiss) var dismiss
 
     @State private var userName: String = ""
@@ -9,6 +10,7 @@ struct MorningProofSettingsView: View {
     @State private var wakeTimeMinute: Int = 0
     @State private var cutoffHour: Int = 9
     @State private var showResetConfirmation = false
+    @State private var showPaywall = false
 
     var body: some View {
         NavigationStack {
@@ -18,6 +20,9 @@ struct MorningProofSettingsView: View {
 
                 ScrollView {
                     VStack(spacing: 24) {
+                        // Subscription Section
+                        subscriptionSection
+
                         // Profile Section
                         settingsSection(title: "Profile") {
                             VStack(alignment: .leading, spacing: 12) {
@@ -148,6 +153,106 @@ struct MorningProofSettingsView: View {
                 }
             } message: {
                 Text("This will delete all your habits, streaks, and settings. This cannot be undone.")
+            }
+            .sheet(isPresented: $showPaywall) {
+                PaywallView(subscriptionManager: subscriptionManager)
+            }
+        }
+    }
+
+    // MARK: - Subscription Section
+
+    var subscriptionSection: some View {
+        VStack(spacing: 12) {
+            if subscriptionManager.isPremium {
+                // Premium status
+                HStack {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.9, green: 0.6, blue: 0.35),
+                                        Color(red: 0.85, green: 0.65, blue: 0.2)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(.white)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Text("Premium")
+                                .font(.headline)
+                                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+                            if subscriptionManager.isInTrial {
+                                Text("\(subscriptionManager.trialDaysRemaining) days left")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                                    .foregroundColor(Color(red: 0.9, green: 0.6, blue: 0.35))
+                                    .padding(.horizontal, 8)
+                                    .padding(.vertical, 3)
+                                    .background(Color(red: 0.95, green: 0.9, blue: 0.85))
+                                    .cornerRadius(6)
+                            }
+                        }
+
+                        Text(subscriptionManager.isInTrial ? "Free trial active" : "All features unlocked")
+                            .font(.caption)
+                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    }
+
+                    Spacer()
+                }
+                .padding(16)
+                .background(Color.white)
+                .cornerRadius(14)
+                .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+            } else {
+                // Upgrade prompt
+                Button {
+                    showPaywall = true
+                } label: {
+                    HStack {
+                        ZStack {
+                            Circle()
+                                .fill(Color(red: 0.95, green: 0.93, blue: 0.9))
+                                .frame(width: 44, height: 44)
+
+                            Image(systemName: "crown")
+                                .font(.system(size: 18))
+                                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Upgrade to Premium")
+                                .font(.headline)
+                                .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
+
+                            Text("Unlimited habits, AI verifications & more")
+                                .font(.caption)
+                                .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                    }
+                    .padding(16)
+                    .background(Color.white)
+                    .cornerRadius(14)
+                    .shadow(color: Color.black.opacity(0.04), radius: 8, x: 0, y: 2)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }
