@@ -602,17 +602,21 @@ struct StatsTabView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: MPSpacing.xl) {
-                    // Quick stats cards
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                        StatCard(title: "Current Streak", value: "\(manager.currentStreak)", icon: "flame.fill", color: .orange)
-                        StatCard(title: "Best Streak", value: "\(manager.longestStreak)", icon: "trophy.fill", color: .yellow)
-                        StatCard(title: "Today", value: "\(manager.completedCount)/\(manager.totalEnabled)", icon: "checkmark.circle.fill", color: .green)
-                        StatCard(title: "Perfect Days", value: "\(manager.settings.totalPerfectMornings)", icon: "star.fill", color: .purple)
-                    }
+                    // Hero: Streak + Week visualization
+                    ProgressHeroCard(manager: manager)
 
-                    // Achievements button
+                    // Records: Best Streak + Perfect Days
+                    RecordsCard(
+                        bestStreak: manager.longestStreak,
+                        perfectDays: manager.settings.totalPerfectMornings
+                    )
+
+                    // Habit Breakdown (last 30 days)
+                    HabitBreakdownCard(manager: manager)
+
+                    // Achievements Link
                     Button {
                         showAchievements = true
                     } label: {
@@ -621,6 +625,7 @@ struct StatsTabView: View {
                                 .foregroundColor(.yellow)
                             Text("View Achievements")
                                 .font(MPFont.labelMedium())
+                                .foregroundColor(MPColors.textPrimary)
                             Spacer()
                             Image(systemName: "chevron.right")
                                 .foregroundColor(MPColors.textTertiary)
@@ -630,11 +635,10 @@ struct StatsTabView: View {
                         .cornerRadius(MPRadius.lg)
                     }
                     .buttonStyle(.plain)
-
-                    // Statistics view embedded
-                    StatisticsView(manager: manager)
                 }
-                .padding(MPSpacing.xl)
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, MPSpacing.lg)
+                .padding(.bottom, MPSpacing.xxxl)
             }
             .background(MPColors.background)
             .navigationTitle("Progress")
@@ -644,41 +648,6 @@ struct StatsTabView: View {
                     .environmentObject(BedVerificationViewModel())
             }
         }
-    }
-}
-
-struct StatCard: View {
-    let title: String
-    let value: String
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        VStack(spacing: MPSpacing.sm) {
-            HStack {
-                Image(systemName: icon)
-                    .foregroundColor(color)
-                Spacer()
-            }
-
-            HStack {
-                Text(value)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                Spacer()
-            }
-
-            HStack {
-                Text(title)
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-                Spacer()
-            }
-        }
-        .padding(MPSpacing.lg)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.lg)
-        .mpShadow(.small)
     }
 }
 
