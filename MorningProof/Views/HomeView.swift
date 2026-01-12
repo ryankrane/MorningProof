@@ -44,16 +44,19 @@ struct HomeView: View {
                 .padding(.top, MPSpacing.md)
             }
 
-            // Confetti overlay
-            if viewModel.showConfetti {
-                ConfettiView()
+            // Tier-colored confetti overlay
+            if viewModel.showConfetti, let achievement = viewModel.newAchievement {
+                TierConfettiView(tier: achievement.tier)
                     .ignoresSafeArea()
                     .allowsHitTesting(false)
             }
 
-            // Achievement popup
+            // Achievement unlock celebration popup
             if let achievement = viewModel.newAchievement {
-                achievementPopup(achievement)
+                AchievementUnlockCelebrationView(
+                    achievement: achievement,
+                    onDismiss: { viewModel.dismissAchievement() }
+                )
             }
         }
         .onReceive(timer) { _ in
@@ -285,51 +288,6 @@ struct HomeView: View {
         .padding(.top, MPSpacing.sm)
     }
 
-    // MARK: - Achievement Popup
-
-    func achievementPopup(_ achievement: Achievement) -> some View {
-        ZStack {
-            Color.black.opacity(0.4)
-                .ignoresSafeArea()
-                .onTapGesture {
-                    viewModel.dismissAchievement()
-                }
-
-            VStack(spacing: MPSpacing.xl) {
-                ZStack {
-                    Circle()
-                        .fill(MPColors.accentLight)
-                        .frame(width: 100, height: 100)
-
-                    Image(systemName: achievement.icon)
-                        .font(.system(size: MPIconSize.xxl))
-                        .foregroundColor(MPColors.accentGold)
-                }
-
-                Text("Achievement Unlocked!")
-                    .font(MPFont.labelLarge())
-                    .foregroundColor(MPColors.textTertiary)
-
-                Text(achievement.title)
-                    .font(MPFont.headingLarge())
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text(achievement.description)
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-
-                MPButton(title: "Awesome!", style: .primary, size: .medium) {
-                    viewModel.dismissAchievement()
-                }
-            }
-            .padding(MPSpacing.xxl)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.xl)
-            .shadow(color: Color.black.opacity(0.2), radius: 20, x: 0, y: 10)
-            .padding(.horizontal, MPSpacing.xxxl + MPSpacing.sm)
-        }
-    }
 }
 
 // MARK: - Supporting Views
@@ -416,73 +374,6 @@ struct CalendarGridView: View {
             }
         })
     }
-}
-
-// MARK: - Confetti View
-
-struct ConfettiView: View {
-    @State private var particles: [ConfettiParticle] = []
-
-    var body: some View {
-        GeometryReader { geo in
-            ZStack {
-                ForEach(particles) { particle in
-                    Circle()
-                        .fill(particle.color)
-                        .frame(width: particle.size, height: particle.size)
-                        .position(particle.position)
-                        .opacity(particle.opacity)
-                }
-            }
-            .onAppear {
-                createParticles(in: geo.size)
-            }
-        }
-    }
-
-    func createParticles(in size: CGSize) {
-        let colors: [Color] = [
-            MPColors.accent,
-            MPColors.success,
-            MPColors.accentGold,
-            MPColors.primary,
-            MPColors.error
-        ]
-
-        for i in 0..<50 {
-            let particle = ConfettiParticle(
-                id: i,
-                position: CGPoint(x: CGFloat.random(in: 0...size.width), y: -20),
-                color: colors.randomElement() ?? MPColors.accent,
-                size: CGFloat.random(in: 6...12),
-                opacity: 1.0
-            )
-            particles.append(particle)
-        }
-
-        // Animate particles
-        for i in 0..<particles.count {
-            let delay = Double.random(in: 0...0.5)
-            let duration = Double.random(in: 2...3)
-
-            withAnimation(.easeOut(duration: duration).delay(delay)) {
-                particles[i].position.y = size.height + 50
-                particles[i].position.x += CGFloat.random(in: -100...100)
-            }
-
-            withAnimation(.easeIn(duration: 0.5).delay(delay + duration - 0.5)) {
-                particles[i].opacity = 0
-            }
-        }
-    }
-}
-
-struct ConfettiParticle: Identifiable {
-    let id: Int
-    var position: CGPoint
-    let color: Color
-    let size: CGFloat
-    var opacity: Double
 }
 
 #Preview {
