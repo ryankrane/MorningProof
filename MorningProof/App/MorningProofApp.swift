@@ -15,10 +15,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct MorningProofApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-    @StateObject private var manager = MorningProofManager.shared
-    @StateObject private var notificationManager = NotificationManager.shared
-    @StateObject private var authManager = AuthenticationManager.shared
-    @StateObject private var themeManager = ThemeManager.shared
+    @ObservedObject private var manager = MorningProofManager.shared
+    @ObservedObject private var notificationManager = NotificationManager.shared
+    @ObservedObject private var authManager = AuthenticationManager.shared
+    @ObservedObject private var themeManager = ThemeManager.shared
 
     let modelContainer: ModelContainer
 
