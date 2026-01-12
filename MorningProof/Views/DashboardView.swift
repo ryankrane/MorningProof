@@ -23,6 +23,10 @@ struct DashboardView: View {
     @State private var previousCompletedCount = 0
     @State private var previouslyCompletedHabits: Set<HabitType> = []
 
+    // Enhanced animation state
+    @State private var habitRowFlash: [HabitType: Bool] = [:]
+    @State private var habitRowGlow: [HabitType: CGFloat] = [:]
+
     var body: some View {
         ZStack {
             // Background
@@ -61,7 +65,12 @@ struct DashboardView: View {
 
             // Perfect Morning celebration overlay
             if showPerfectMorningCelebration {
-                FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
+                AllHabitsCompleteCelebrationView(
+                    isShowing: $showPerfectMorningCelebration,
+                    streakCount: manager.currentStreak,
+                    habitsCompleted: manager.completedCount,
+                    totalHabits: manager.totalEnabled
+                )
             }
 
             // Side menu overlay
@@ -136,7 +145,7 @@ struct DashboardView: View {
 
     private func triggerPerfectMorningCelebration() {
         showPerfectMorningCelebration = true
-        HapticManager.shared.perfectMorning()
+        HapticManager.shared.allHabitsCompleteCelebration()
     }
 
     /// Checks for habits that were just auto-completed by HealthKit sync and triggers confetti
@@ -158,17 +167,29 @@ struct DashboardView: View {
 
     /// Triggers celebration for an auto-completed habit
     private func celebrateAutoCompletedHabit(_ habitType: HabitType) {
-        // Add to recently completed
+        // Add to recently completed for scale animation
         recentlyCompletedHabits.insert(habitType)
+
+        // Trigger flash effect
+        habitRowFlash[habitType] = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            habitRowFlash[habitType] = false
+        }
+
+        // Trigger glow effect
+        habitRowGlow[habitType] = 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            habitRowGlow[habitType] = 0
+        }
 
         // Show confetti
         showConfettiForHabit = habitType
 
-        // Haptic feedback
-        HapticManager.shared.habitCompleted()
+        // Enhanced haptic feedback
+        HapticManager.shared.habitCompletedEnhanced()
 
         // Clear confetti after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             showConfettiForHabit = nil
         }
 
@@ -288,6 +309,8 @@ struct DashboardView: View {
         let completion = manager.getCompletion(for: config.habitType)
         let isCompleted = completion?.isCompleted ?? false
         let justCompleted = recentlyCompletedHabits.contains(config.habitType)
+        let isFlashing = habitRowFlash[config.habitType] ?? false
+        let glowIntensity = habitRowGlow[config.habitType] ?? 0
 
         return ZStack {
             HStack(spacing: MPSpacing.lg) {
@@ -320,9 +343,19 @@ struct DashboardView: View {
             .padding(MPSpacing.lg)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
+            // Flash overlay for completion celebration
+            .overlay(
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
+            )
             .mpShadow(.small)
-            .scaleEffect(justCompleted ? 1.03 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: justCompleted)
+            // Enhanced glow shadow when completing
+            .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+            // Enhanced scale effect (1.05 instead of 1.03)
+            .scaleEffect(justCompleted ? 1.05 : 1.0)
+            .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+            .animation(.easeOut(duration: 0.15), value: isFlashing)
+            .animation(.easeOut(duration: 0.3), value: glowIntensity)
 
             // Mini confetti overlay
             if showConfettiForHabit == config.habitType {
@@ -333,20 +366,32 @@ struct DashboardView: View {
     }
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
-        // Add to recently completed
+        // Add to recently completed for scale animation
         recentlyCompletedHabits.insert(habitType)
+
+        // Trigger flash effect
+        habitRowFlash[habitType] = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            habitRowFlash[habitType] = false
+        }
+
+        // Trigger glow effect
+        habitRowGlow[habitType] = 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            habitRowGlow[habitType] = 0
+        }
 
         // Show confetti
         showConfettiForHabit = habitType
 
-        // Haptic feedback
-        HapticManager.shared.habitCompleted()
+        // Enhanced haptic feedback
+        HapticManager.shared.habitCompletedEnhanced()
 
         // Complete the habit
         manager.completeHabit(habitType)
 
-        // Clear confetti after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        // Clear confetti after animation (longer for enhanced confetti)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             showConfettiForHabit = nil
         }
 

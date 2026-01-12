@@ -1,5 +1,13 @@
 import SwiftUI
 
+// Shape types for confetti variety
+enum ConfettiShapeType: CaseIterable {
+    case rectangle
+    case circle
+    case star
+    case diamond
+}
+
 struct MiniConfettiParticle: Identifiable {
     let id = UUID()
     var x: CGFloat
@@ -11,6 +19,7 @@ struct MiniConfettiParticle: Identifiable {
     var velocityX: CGFloat
     var velocityY: CGFloat
     var rotationSpeed: Double
+    var shapeType: ConfettiShapeType
 }
 
 struct MiniConfettiView: View {
@@ -20,23 +29,26 @@ struct MiniConfettiView: View {
     @State private var particles: [MiniConfettiParticle] = []
     @State private var isAnimating = false
 
-    init(particleCount: Int = 15, colors: [Color]? = nil) {
+    // Default colors - celebration palette
+    private static let defaultColors: [Color] = [
+        Color(red: 0.9, green: 0.6, blue: 0.35),   // Orange
+        Color(red: 0.55, green: 0.75, blue: 0.55), // Green
+        Color(red: 0.85, green: 0.65, blue: 0.2),  // Gold
+        Color(red: 0.7, green: 0.5, blue: 0.4),    // Brown
+        Color(red: 0.95, green: 0.8, blue: 0.6)    // Cream
+    ]
+
+    init(particleCount: Int = 25, colors: [Color]? = nil) {
         self.particleCount = particleCount
-        self.colors = colors ?? [
-            Color(red: 0.9, green: 0.6, blue: 0.35),   // Orange
-            Color(red: 0.55, green: 0.75, blue: 0.55), // Green
-            Color(red: 0.85, green: 0.65, blue: 0.2),  // Gold
-            Color(red: 0.7, green: 0.5, blue: 0.4),    // Brown
-            Color(red: 0.95, green: 0.8, blue: 0.6)    // Cream
-        ]
+        self.colors = colors ?? Self.defaultColors
     }
 
     var body: some View {
         GeometryReader { geometry in
             ZStack {
                 ForEach(particles) { particle in
-                    ConfettiPiece(color: particle.color)
-                        .frame(width: 8, height: 8)
+                    ConfettiPieceView(shapeType: particle.shapeType, color: particle.color)
+                        .frame(width: CGFloat.random(in: 5...12), height: CGFloat.random(in: 5...12))
                         .scaleEffect(particle.scale)
                         .rotationEffect(.degrees(particle.rotation))
                         .position(x: particle.x, y: particle.y)
@@ -57,35 +69,99 @@ struct MiniConfettiView: View {
 
         particles = (0..<particleCount).map { _ in
             let angle = Double.random(in: 0...(2 * .pi))
-            let speed = CGFloat.random(in: 80...150)
+            let speed = CGFloat.random(in: 100...200) // Increased velocity
 
             return MiniConfettiParticle(
                 x: centerX,
                 y: centerY,
                 rotation: Double.random(in: 0...360),
-                scale: CGFloat.random(in: 0.6...1.2),
+                scale: CGFloat.random(in: 0.6...1.4),
                 opacity: 1.0,
                 color: colors.randomElement() ?? .orange,
                 velocityX: cos(angle) * speed,
-                velocityY: sin(angle) * speed - 50, // Bias upward
-                rotationSpeed: Double.random(in: -360...360)
+                velocityY: sin(angle) * speed - 60, // Stronger upward bias
+                rotationSpeed: Double.random(in: -400...400),
+                shapeType: ConfettiShapeType.allCases.randomElement() ?? .rectangle
             )
         }
     }
 
     private func animateParticles() {
-        withAnimation(.easeOut(duration: 0.8)) {
+        withAnimation(.easeOut(duration: 1.0)) { // Longer duration
             for i in particles.indices {
-                particles[i].x += particles[i].velocityX * 0.8
-                particles[i].y += particles[i].velocityY * 0.8 + 40 // Add gravity
+                particles[i].x += particles[i].velocityX * 0.9
+                particles[i].y += particles[i].velocityY * 0.9 + 50 // Add gravity
                 particles[i].rotation += particles[i].rotationSpeed
-                particles[i].scale *= 0.5
+                particles[i].scale *= 0.4
                 particles[i].opacity = 0
             }
         }
     }
 }
 
+// Individual confetti piece with shape variety
+struct ConfettiPieceView: View {
+    let shapeType: ConfettiShapeType
+    let color: Color
+
+    var body: some View {
+        switch shapeType {
+        case .rectangle:
+            RoundedRectangle(cornerRadius: 1)
+                .fill(color)
+        case .circle:
+            Circle()
+                .fill(color)
+        case .star:
+            StarShape()
+                .fill(color)
+        case .diamond:
+            DiamondShape()
+                .fill(color)
+        }
+    }
+}
+
+// Star shape for confetti
+struct StarShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        let radius = min(rect.width, rect.height) / 2
+        let innerRadius = radius * 0.4
+        var path = Path()
+
+        for i in 0..<10 {
+            let angle = Double(i) * .pi / 5 - .pi / 2
+            let r = i % 2 == 0 ? radius : innerRadius
+            let point = CGPoint(
+                x: center.x + CGFloat(cos(angle)) * r,
+                y: center.y + CGFloat(sin(angle)) * r
+            )
+            if i == 0 {
+                path.move(to: point)
+            } else {
+                path.addLine(to: point)
+            }
+        }
+        path.closeSubpath()
+        return path
+    }
+}
+
+// Diamond shape for confetti
+struct DiamondShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.midY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.midY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+// Legacy support
 struct ConfettiPiece: View {
     let color: Color
 
@@ -95,7 +171,7 @@ struct ConfettiPiece: View {
     }
 }
 
-// Full screen confetti for Perfect Morning
+// Full screen confetti for Perfect Morning (legacy - will be replaced by AllHabitsCompleteCelebrationView)
 struct FullScreenConfettiView: View {
     @Binding var isShowing: Bool
 
@@ -115,8 +191,7 @@ struct FullScreenConfettiView: View {
         GeometryReader { geometry in
             ZStack {
                 ForEach(particles) { particle in
-                    ConfettiShape(type: Int.random(in: 0...2))
-                        .fill(particle.color)
+                    ConfettiPieceView(shapeType: particle.shapeType, color: particle.color)
                         .frame(width: 10, height: 10)
                         .scaleEffect(particle.scale)
                         .rotationEffect(.degrees(particle.rotation))
@@ -144,7 +219,8 @@ struct FullScreenConfettiView: View {
                 color: colors.randomElement() ?? .orange,
                 velocityX: CGFloat.random(in: -50...50),
                 velocityY: CGFloat.random(in: 200...400),
-                rotationSpeed: Double.random(in: -180...180)
+                rotationSpeed: Double.random(in: -180...180),
+                shapeType: ConfettiShapeType.allCases.randomElement() ?? .rectangle
             )
         }
     }
@@ -171,28 +247,6 @@ struct FullScreenConfettiView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
             isShowing = false
         }
-    }
-}
-
-struct ConfettiShape: Shape {
-    let type: Int
-
-    func path(in rect: CGRect) -> Path {
-        var path = Path()
-
-        switch type {
-        case 0: // Rectangle
-            path.addRect(rect)
-        case 1: // Circle
-            path.addEllipse(in: rect)
-        default: // Triangle
-            path.move(to: CGPoint(x: rect.midX, y: rect.minY))
-            path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
-            path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-            path.closeSubpath()
-        }
-
-        return path
     }
 }
 

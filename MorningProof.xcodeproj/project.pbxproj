@@ -57,6 +57,7 @@
 		ABBF0DBE58648518E50AD7F1 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE890A687A08557248003945 /* MainTabView.swift */; };
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
 		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
+		B2F6537A94E5A4BCD71305C5 /* AllHabitsCompleteCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243AA6D1EAF7B85D8939124C /* AllHabitsCompleteCelebrationView.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
 		C3852E731ABDE35227F81FA6 /* MorningRoutineLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */; };
 		CD10621B534AEC0D3BFBBBB2 /* DataServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */; };
@@ -128,6 +129,7 @@
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
+		243AA6D1EAF7B85D8939124C /* AllHabitsCompleteCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllHabitsCompleteCelebrationView.swift; sourceTree = "<group>"; };
 		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		3671DB51C5213888E586A8D3 /* AchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
@@ -240,6 +242,7 @@
 		79087C5AF015EEBADE5D05B4 /* Components */ = {
 			isa = PBXGroup;
 			children = (
+				243AA6D1EAF7B85D8939124C /* AllHabitsCompleteCelebrationView.swift */,
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
 				4721A0F6D815690A22663A52 /* MiniConfettiView.swift */,
 				ECA15CD82E35AFFFCE2A958F /* MPButton.swift */,
@@ -548,6 +551,7 @@
 			files = (
 				F9057F0A326F15BFE632754F /* Achievement.swift in Sources */,
 				FBC53C28FE3C647ABD28D688 /* AchievementsView.swift in Sources */,
+				B2F6537A94E5A4BCD71305C5 /* AllHabitsCompleteCelebrationView.swift in Sources */,
 				AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */,
 				9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */,
 				8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */,

@@ -62,7 +62,7 @@ class HapticManager {
         }
     }
 
-    // Custom pattern for habit completion
+    // Custom pattern for habit completion (basic)
     func habitCompleted() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
@@ -73,7 +73,68 @@ class HapticManager {
         }
     }
 
-    // Custom pattern for perfect morning
+    // Enhanced pattern for habit completion - triple-tap satisfaction
+    func habitCompletedEnhanced() {
+        let rigid = UIImpactFeedbackGenerator(style: .rigid)
+        let medium = UIImpactFeedbackGenerator(style: .medium)
+
+        // Phase 1: Initial "pop" - rigid for that satisfying snap
+        rigid.impactOccurred(intensity: 1.0)
+
+        // Phase 2: Quick follow-up for depth
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            medium.impactOccurred(intensity: 0.7)
+        }
+
+        // Phase 3: Success confirmation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+            let notification = UINotificationFeedbackGenerator()
+            notification.notificationOccurred(.success)
+        }
+    }
+
+    // Dramatic celebration for all habits complete
+    func allHabitsCompleteCelebration() {
+        let heavy = UIImpactFeedbackGenerator(style: .heavy)
+        let rigid = UIImpactFeedbackGenerator(style: .rigid)
+        let medium = UIImpactFeedbackGenerator(style: .medium)
+
+        // Initial dramatic impact
+        heavy.impactOccurred(intensity: 1.0)
+
+        // Rising sequence (like drumroll)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            medium.impactOccurred(intensity: 0.5)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            medium.impactOccurred(intensity: 0.6)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            medium.impactOccurred(intensity: 0.7)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.32) {
+            rigid.impactOccurred(intensity: 0.9)
+        }
+
+        // Climactic success
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            heavy.impactOccurred(intensity: 1.0)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+            let notification = UINotificationFeedbackGenerator()
+            notification.notificationOccurred(.success)
+        }
+
+        // Trailing celebration taps
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            medium.impactOccurred(intensity: 0.4)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            medium.impactOccurred(intensity: 0.3)
+        }
+    }
+
+    // Custom pattern for perfect morning (legacy)
     func perfectMorning() {
         let heavy = UIImpactFeedbackGenerator(style: .heavy)
         let medium = UIImpactFeedbackGenerator(style: .medium)
