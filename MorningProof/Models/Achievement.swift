@@ -478,6 +478,14 @@ struct UserAchievements: Codable {
         Achievement.streakAchievements.first { !isUnlocked($0.id) }
     }
 
+    var nextAchievement: Achievement? {
+        // Return the next unlocked achievement with the lowest requirement
+        Achievement.allAchievements
+            .filter { !isUnlocked($0.id) && $0.tier != .hidden }
+            .sorted { $0.requirement < $1.requirement }
+            .first
+    }
+
     var unlockedCount: Int {
         unlockedAchievements.count
     }

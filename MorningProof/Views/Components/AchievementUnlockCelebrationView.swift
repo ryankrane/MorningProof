@@ -131,7 +131,7 @@ struct AchievementUnlockCelebrationView: View {
             .padding(.horizontal, MPSpacing.xl)
             .frame(maxWidth: 320)
             .background(MPColors.surface)
-            .cornerRadius(MPRadius.xxl)
+            .cornerRadius(MPRadius.xl)
             .shadow(color: achievement.tier.color.opacity(0.3), radius: 30, x: 0, y: 15)
         }
         .onAppear {
@@ -284,10 +284,9 @@ struct TierConfettiView: View {
         GeometryReader { geo in
             ZStack {
                 ForEach(particles) { particle in
-                    confettiShape(for: particle)
-                        .fill(particle.color)
+                    confettiView(for: particle)
                         .frame(width: particle.size, height: particle.size * 0.6)
-                        .rotationEffect(.degrees(particle.rotation))
+                        .rotationEffect(Angle.degrees(particle.rotation))
                         .position(particle.position)
                         .opacity(particle.opacity)
                 }
@@ -300,11 +299,11 @@ struct TierConfettiView: View {
     }
 
     @ViewBuilder
-    private func confettiShape(for particle: TierConfettiParticle) -> some Shape {
+    private func confettiView(for particle: TierConfettiParticle) -> some View {
         switch particle.shapeType {
-        case 0: RoundedRectangle(cornerRadius: 1)
-        case 1: Circle()
-        default: DiamondShape()
+        case 0: RoundedRectangle(cornerRadius: 1).fill(particle.color)
+        case 1: Circle().fill(particle.color)
+        default: DiamondShape().fill(particle.color)
         }
     }
 
