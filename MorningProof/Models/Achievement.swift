@@ -1,56 +1,97 @@
 import Foundation
+import SwiftUI
+
+// MARK: - Achievement Tier
+enum AchievementTier: String, Codable, CaseIterable {
+    case bronze
+    case silver
+    case gold
+    case hidden
+
+    var displayName: String {
+        switch self {
+        case .bronze: return "Bronze"
+        case .silver: return "Silver"
+        case .gold: return "Gold"
+        case .hidden: return "Secret"
+        }
+    }
+
+    var color: Color {
+        switch self {
+        case .bronze: return Color(red: 0.80, green: 0.50, blue: 0.20)
+        case .silver: return Color(red: 0.75, green: 0.75, blue: 0.80)
+        case .gold: return Color(red: 1.0, green: 0.84, blue: 0.0)
+        case .hidden: return Color(red: 0.5, green: 0.4, blue: 0.7)
+        }
+    }
+
+    var glowColor: Color {
+        color.opacity(0.6)
+    }
+
+    var sortOrder: Int {
+        switch self {
+        case .gold: return 0
+        case .silver: return 1
+        case .bronze: return 2
+        case .hidden: return 3
+        }
+    }
+}
 
 // MARK: - Achievement Category
 enum AchievementCategory: String, Codable, CaseIterable {
-    case streak = "Streak Milestones"
-    case cumulative = "Total Completions"
-    case timing = "Early Bird"
-    case comeback = "Resilience"
-    case special = "Special"
+    case streak = "Streaks"
+    case lifetime = "Lifetime"
+    case earlyRiser = "Early Riser"
+    case resilience = "Resilience"
+    case hidden = "Secret"
 
     var icon: String {
         switch self {
         case .streak: return "flame.fill"
-        case .cumulative: return "chart.bar.fill"
-        case .timing: return "sunrise.fill"
-        case .comeback: return "arrow.counterclockwise"
-        case .special: return "sparkles"
+        case .lifetime: return "chart.bar.fill"
+        case .earlyRiser: return "sunrise.fill"
+        case .resilience: return "arrow.uturn.up.circle.fill"
+        case .hidden: return "sparkles"
         }
     }
 
     var sortOrder: Int {
         switch self {
         case .streak: return 0
-        case .cumulative: return 1
-        case .timing: return 2
-        case .comeback: return 3
-        case .special: return 4
+        case .lifetime: return 1
+        case .earlyRiser: return 2
+        case .resilience: return 3
+        case .hidden: return 4
         }
     }
 }
 
-// MARK: - Achievement Type (determines how to check unlock)
+// MARK: - Achievement Type
 enum AchievementType: String, Codable {
     case streak              // Based on current consecutive streak
     case totalCompletions    // Based on total completions ever
     case earlyCompletion     // Based on completing before a certain hour
     case comeback            // Based on bouncing back after streak loss
-    case perfectWeek         // 7 consecutive days all habits done
-    case weekendWarrior      // Complete on weekends
-    case mondayMotivation    // Complete on Mondays
-    case special             // Special conditions (holidays, etc.)
+    case rebuildStreak       // Rebuild to X days after losing a streak
+    case perfectMonth        // Complete every day of a calendar month
+    case anniversary         // Complete on app install anniversary
+    case newYear             // Complete on January 1st
 }
 
 // MARK: - Achievement Model
-struct Achievement: Identifiable, Codable {
+struct Achievement: Identifiable, Codable, Hashable {
     let id: String
     let title: String
     let description: String
     let icon: String
     let category: AchievementCategory
     let type: AchievementType
+    let tier: AchievementTier
     let requirement: Int
-    let secondaryRequirement: Int? // For time-based (hour) or other secondary conditions
+    let secondaryRequirement: Int?
     let isHidden: Bool
     var unlockedDate: Date?
 
@@ -61,6 +102,7 @@ struct Achievement: Identifiable, Codable {
         icon: String,
         category: AchievementCategory,
         type: AchievementType,
+        tier: AchievementTier,
         requirement: Int,
         secondaryRequirement: Int? = nil,
         isHidden: Bool = false
@@ -71,6 +113,7 @@ struct Achievement: Identifiable, Codable {
         self.icon = icon
         self.category = category
         self.type = type
+        self.tier = tier
         self.requirement = requirement
         self.secondaryRequirement = secondaryRequirement
         self.isHidden = isHidden
@@ -80,345 +123,216 @@ struct Achievement: Identifiable, Codable {
         unlockedDate != nil
     }
 
-    // MARK: - All Achievements
+    func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
+
+    static func == (lhs: Achievement, rhs: Achievement) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    // MARK: - All Achievements (18 Total)
     static let allAchievements: [Achievement] = {
         var achievements: [Achievement] = []
         achievements.append(contentsOf: streakAchievements)
-        achievements.append(contentsOf: cumulativeAchievements)
-        achievements.append(contentsOf: timingAchievements)
-        achievements.append(contentsOf: comebackAchievements)
-        achievements.append(contentsOf: specialAchievements)
+        achievements.append(contentsOf: lifetimeAchievements)
+        achievements.append(contentsOf: earlyRiserAchievements)
+        achievements.append(contentsOf: resilienceAchievements)
+        achievements.append(contentsOf: hiddenAchievements)
         return achievements
     }()
 
-    // MARK: - Streak Achievements (consecutive days)
+    // MARK: - Streak Achievements (5)
     static let streakAchievements: [Achievement] = [
         Achievement(
-            id: "first_bed",
-            title: "First Step",
-            description: "Made your bed for the first time",
-            icon: "bed.double.fill",
-            category: .streak,
-            type: .streak,
-            requirement: 1
-        ),
-        Achievement(
-            id: "three_days",
-            title: "Getting Started",
-            description: "3 day streak",
+            id: "streak_7",
+            title: "One Week",
+            description: "Maintain a 7-day streak",
             icon: "flame",
             category: .streak,
             type: .streak,
-            requirement: 3
-        ),
-        Achievement(
-            id: "one_week",
-            title: "One Week Wonder",
-            description: "7 day streak",
-            icon: "flame.fill",
-            category: .streak,
-            type: .streak,
+            tier: .bronze,
             requirement: 7
         ),
         Achievement(
-            id: "two_weeks",
-            title: "Habit Forming",
-            description: "14 day streak",
-            icon: "star.fill",
+            id: "streak_21",
+            title: "Habit Formed",
+            description: "21 days - science says it's a habit now",
+            icon: "flame.fill",
             category: .streak,
             type: .streak,
-            requirement: 14
-        ),
-        Achievement(
-            id: "three_weeks",
-            title: "Committed",
-            description: "21 day streak - it's a habit now!",
-            icon: "star.circle.fill",
-            category: .streak,
-            type: .streak,
+            tier: .silver,
             requirement: 21
         ),
         Achievement(
-            id: "one_month",
+            id: "streak_30",
             title: "Monthly Master",
-            description: "30 day streak",
+            description: "A full month of dedication",
             icon: "crown",
             category: .streak,
             type: .streak,
+            tier: .silver,
             requirement: 30
         ),
         Achievement(
-            id: "sixty_days",
-            title: "Unstoppable",
-            description: "60 day streak",
-            icon: "crown.fill",
-            category: .streak,
-            type: .streak,
-            requirement: 60
-        ),
-        Achievement(
-            id: "ninety_days",
-            title: "Quarter Champion",
-            description: "90 day streak",
+            id: "streak_90",
+            title: "Quarterly Champion",
+            description: "90 days of unbroken commitment",
             icon: "trophy",
             category: .streak,
             type: .streak,
+            tier: .gold,
             requirement: 90
         ),
         Achievement(
-            id: "half_year",
-            title: "Half Year Hero",
-            description: "180 day streak",
-            icon: "trophy.fill",
-            category: .streak,
-            type: .streak,
-            requirement: 180
-        ),
-        Achievement(
-            id: "one_year",
+            id: "streak_365",
             title: "Legendary",
-            description: "365 day streak - You're a legend!",
+            description: "One full year. You're a legend.",
             icon: "medal.fill",
             category: .streak,
             type: .streak,
+            tier: .gold,
             requirement: 365
         ),
     ]
 
-    // MARK: - Cumulative Achievements (total completions, not consecutive)
-    static let cumulativeAchievements: [Achievement] = [
-        Achievement(
-            id: "total_10",
-            title: "Getting Consistent",
-            description: "10 total completions",
-            icon: "10.circle.fill",
-            category: .cumulative,
-            type: .totalCompletions,
-            requirement: 10
-        ),
-        Achievement(
-            id: "total_25",
-            title: "Quarter Century",
-            description: "25 total completions",
-            icon: "25.circle.fill",
-            category: .cumulative,
-            type: .totalCompletions,
-            requirement: 25
-        ),
+    // MARK: - Lifetime Achievements (4)
+    static let lifetimeAchievements: [Achievement] = [
         Achievement(
             id: "total_50",
             title: "Fifty Strong",
             description: "50 total completions",
             icon: "50.circle.fill",
-            category: .cumulative,
+            category: .lifetime,
             type: .totalCompletions,
+            tier: .bronze,
             requirement: 50
         ),
         Achievement(
             id: "total_100",
             title: "Century Club",
             description: "100 total completions",
-            icon: "100.circle.fill",
-            category: .cumulative,
+            icon: "100.circle",
+            category: .lifetime,
             type: .totalCompletions,
+            tier: .silver,
             requirement: 100
         ),
         Achievement(
-            id: "total_250",
-            title: "Dedicated",
-            description: "250 total completions",
-            icon: "chart.line.uptrend.xyaxis",
-            category: .cumulative,
+            id: "total_365",
+            title: "Full Year",
+            description: "365 completions - a year's worth of mornings",
+            icon: "calendar.badge.checkmark",
+            category: .lifetime,
             type: .totalCompletions,
-            requirement: 250
-        ),
-        Achievement(
-            id: "total_500",
-            title: "500 Strong",
-            description: "500 total completions",
-            icon: "star.leadinghalf.filled",
-            category: .cumulative,
-            type: .totalCompletions,
-            requirement: 500
+            tier: .gold,
+            requirement: 365
         ),
         Achievement(
             id: "total_1000",
             title: "Thousand Days",
-            description: "1000 total completions - incredible!",
+            description: "1000 completions. Incredible dedication.",
             icon: "diamond.fill",
-            category: .cumulative,
+            category: .lifetime,
             type: .totalCompletions,
+            tier: .gold,
             requirement: 1000
         ),
     ]
 
-    // MARK: - Timing Achievements (early completions)
-    static let timingAchievements: [Achievement] = [
+    // MARK: - Early Riser Achievements (3)
+    static let earlyRiserAchievements: [Achievement] = [
         Achievement(
-            id: "early_bird_1",
+            id: "early_7",
             title: "Early Bird",
-            description: "Complete before 7 AM",
-            icon: "sunrise",
-            category: .timing,
-            type: .earlyCompletion,
-            requirement: 1,
-            secondaryRequirement: 7 // Before 7 AM
-        ),
-        Achievement(
-            id: "early_bird_7",
-            title: "Dawn Patrol",
             description: "Complete before 7 AM, 7 times",
-            icon: "sunrise.fill",
-            category: .timing,
+            icon: "sunrise",
+            category: .earlyRiser,
             type: .earlyCompletion,
+            tier: .bronze,
             requirement: 7,
             secondaryRequirement: 7
         ),
         Achievement(
-            id: "early_bird_30",
-            title: "Rise and Shine",
+            id: "early_30",
+            title: "Dawn Patrol",
             description: "Complete before 7 AM, 30 times",
-            icon: "sun.max.fill",
-            category: .timing,
+            icon: "sunrise.fill",
+            category: .earlyRiser,
             type: .earlyCompletion,
+            tier: .silver,
             requirement: 30,
             secondaryRequirement: 7
         ),
         Achievement(
-            id: "super_early_1",
-            title: "Before Dawn",
-            description: "Complete before 6 AM",
-            icon: "moon.stars",
-            category: .timing,
+            id: "early_100",
+            title: "Rise Master",
+            description: "100 early morning completions",
+            icon: "sun.max.fill",
+            category: .earlyRiser,
             type: .earlyCompletion,
-            requirement: 1,
-            secondaryRequirement: 6 // Before 6 AM
-        ),
-        Achievement(
-            id: "super_early_10",
-            title: "Night Owl Reformed",
-            description: "Complete before 6 AM, 10 times",
-            icon: "moon.stars.fill",
-            category: .timing,
-            type: .earlyCompletion,
-            requirement: 10,
-            secondaryRequirement: 6
+            tier: .gold,
+            requirement: 100,
+            secondaryRequirement: 7
         ),
     ]
 
-    // MARK: - Comeback Achievements (resilience after streak breaks)
-    static let comebackAchievements: [Achievement] = [
+    // MARK: - Resilience Achievements (3)
+    static let resilienceAchievements: [Achievement] = [
         Achievement(
-            id: "bounce_back",
+            id: "comeback_1",
             title: "Bounce Back",
-            description: "Complete a day after losing a 7+ day streak",
+            description: "Return the day after losing a 7+ day streak",
             icon: "arrow.uturn.up",
-            category: .comeback,
+            category: .resilience,
             type: .comeback,
-            requirement: 7 // Lost streak was at least 7
-        ),
-        Achievement(
-            id: "phoenix_rising",
-            title: "Phoenix Rising",
-            description: "Rebuild to a 14-day streak after losing one",
-            icon: "flame.circle.fill",
-            category: .comeback,
-            type: .comeback,
-            requirement: 14
-        ),
-        Achievement(
-            id: "never_give_up",
-            title: "Never Give Up",
-            description: "Comeback 3 times after losing streaks",
-            icon: "heart.circle.fill",
-            category: .comeback,
-            type: .comeback,
-            requirement: 3
-        ),
-        Achievement(
-            id: "resilient",
-            title: "Resilient",
-            description: "Comeback 5 times after losing streaks",
-            icon: "shield.fill",
-            category: .comeback,
-            type: .comeback,
-            requirement: 5
-        ),
-        Achievement(
-            id: "unbreakable_spirit",
-            title: "Unbreakable Spirit",
-            description: "Comeback 10 times - nothing stops you!",
-            icon: "bolt.shield.fill",
-            category: .comeback,
-            type: .comeback,
-            requirement: 10
-        ),
-    ]
-
-    // MARK: - Special Achievements
-    static let specialAchievements: [Achievement] = [
-        Achievement(
-            id: "perfect_week",
-            title: "Perfect Week",
-            description: "Complete every day for 7 days straight",
-            icon: "checkmark.seal.fill",
-            category: .special,
-            type: .perfectWeek,
+            tier: .silver,
             requirement: 7
         ),
         Achievement(
-            id: "weekend_warrior_1",
-            title: "Weekend Warrior",
-            description: "Complete on both Saturday and Sunday",
-            icon: "calendar.badge.checkmark",
-            category: .special,
-            type: .weekendWarrior,
-            requirement: 1 // 1 complete weekend
+            id: "comeback_rebuild",
+            title: "Phoenix",
+            description: "Rebuild to a 30-day streak after losing one",
+            icon: "flame.circle.fill",
+            category: .resilience,
+            type: .rebuildStreak,
+            tier: .gold,
+            requirement: 30
         ),
+    ]
+
+    // MARK: - Hidden/Secret Achievements (3)
+    static let hiddenAchievements: [Achievement] = [
         Achievement(
-            id: "weekend_warrior_4",
-            title: "Weekend Champion",
-            description: "Complete 4 full weekends",
-            icon: "calendar.badge.checkmark",
-            category: .special,
-            type: .weekendWarrior,
-            requirement: 4
-        ),
-        Achievement(
-            id: "monday_motivation_5",
-            title: "Monday Motivation",
-            description: "Complete on 5 Mondays",
-            icon: "1.circle.fill",
-            category: .special,
-            type: .mondayMotivation,
-            requirement: 5
-        ),
-        Achievement(
-            id: "monday_motivation_10",
-            title: "Monday Master",
-            description: "Complete on 10 Mondays",
-            icon: "1.square.fill",
-            category: .special,
-            type: .mondayMotivation,
-            requirement: 10
-        ),
-        Achievement(
-            id: "speed_demon",
-            title: "Speed Demon",
-            description: "Complete within 5 minutes of waking",
-            icon: "hare.fill",
-            category: .special,
-            type: .special,
+            id: "new_year",
+            title: "Fresh Start",
+            description: "Complete on January 1st",
+            icon: "party.popper.fill",
+            category: .hidden,
+            type: .newYear,
+            tier: .hidden,
             requirement: 1,
             isHidden: true
         ),
         Achievement(
-            id: "new_year",
-            title: "New Year, New You",
-            description: "Complete on January 1st",
-            icon: "party.popper.fill",
-            category: .special,
-            type: .special,
+            id: "perfect_month",
+            title: "Flawless",
+            description: "Complete every single day of a calendar month",
+            icon: "checkmark.seal.fill",
+            category: .hidden,
+            type: .perfectMonth,
+            tier: .hidden,
+            requirement: 1,
+            isHidden: true
+        ),
+        Achievement(
+            id: "anniversary",
+            title: "Anniversary",
+            description: "Complete on your MorningProof anniversary",
+            icon: "gift.fill",
+            category: .hidden,
+            type: .anniversary,
+            tier: .hidden,
             requirement: 1,
             isHidden: true
         ),
@@ -429,35 +343,51 @@ struct Achievement: Identifiable, Codable {
         Dictionary(grouping: allAchievements, by: { $0.category })
     }
 
+    static func achievementsByTier() -> [AchievementTier: [Achievement]] {
+        Dictionary(grouping: allAchievements, by: { $0.tier })
+    }
+
     static func visibleAchievements(unlockedIds: Set<String>) -> [Achievement] {
         allAchievements.filter { !$0.isHidden || unlockedIds.contains($0.id) }
     }
+
+    static var totalCount: Int {
+        allAchievements.count
+    }
+
+    static var hiddenCount: Int {
+        allAchievements.filter { $0.isHidden }.count
+    }
 }
 
-// MARK: - Achievement Stats (tracked data for unlock checking)
+// MARK: - Achievement Stats
 struct AchievementStats: Codable {
     var currentStreak: Int = 0
     var longestStreak: Int = 0
     var totalCompletions: Int = 0
-    var earlyCompletions: [Int: Int] = [:] // hour -> count (completions before that hour)
+    var earlyCompletions: [Int: Int] = [:]  // hour -> count
     var comebackCount: Int = 0
     var lastLostStreak: Int = 0
-    var completedWeekends: Int = 0
-    var mondayCompletions: Int = 0
+    var hasRebuiltAfterLoss: Bool = false
+    var perfectMonthsCompleted: Int = 0
     var completedOnNewYear: Bool = false
+    var installDate: Date?
+    var completedOnAnniversary: Bool = false
 
     init() {}
 
     init(
-        currentStreak: Int,
-        longestStreak: Int,
-        totalCompletions: Int,
-        earlyCompletions: [Int: Int],
-        comebackCount: Int,
-        lastLostStreak: Int,
-        completedWeekends: Int,
-        mondayCompletions: Int,
-        completedOnNewYear: Bool
+        currentStreak: Int = 0,
+        longestStreak: Int = 0,
+        totalCompletions: Int = 0,
+        earlyCompletions: [Int: Int] = [:],
+        comebackCount: Int = 0,
+        lastLostStreak: Int = 0,
+        hasRebuiltAfterLoss: Bool = false,
+        perfectMonthsCompleted: Int = 0,
+        completedOnNewYear: Bool = false,
+        installDate: Date? = nil,
+        completedOnAnniversary: Bool = false
     ) {
         self.currentStreak = currentStreak
         self.longestStreak = longestStreak
@@ -465,29 +395,28 @@ struct AchievementStats: Codable {
         self.earlyCompletions = earlyCompletions
         self.comebackCount = comebackCount
         self.lastLostStreak = lastLostStreak
-        self.completedWeekends = completedWeekends
-        self.mondayCompletions = mondayCompletions
+        self.hasRebuiltAfterLoss = hasRebuiltAfterLoss
+        self.perfectMonthsCompleted = perfectMonthsCompleted
         self.completedOnNewYear = completedOnNewYear
+        self.installDate = installDate
+        self.completedOnAnniversary = completedOnAnniversary
     }
 }
 
 // MARK: - User Achievements
 struct UserAchievements: Codable {
-    var unlockedAchievements: [String: Date] // achievement id -> unlock date
+    var unlockedAchievements: [String: Date]
 
     init() {
         self.unlockedAchievements = [:]
     }
 
-    // Legacy method for backward compatibility
     mutating func checkAndUnlock(currentStreak: Int) -> Achievement? {
-        let stats = AchievementStats()
-        var mutableStats = stats
-        mutableStats.currentStreak = currentStreak
-        return checkAndUnlockAll(stats: mutableStats).first
+        var stats = AchievementStats()
+        stats.currentStreak = currentStreak
+        return checkAndUnlockAll(stats: stats).first
     }
 
-    // New comprehensive check method
     mutating func checkAndUnlockAll(stats: AchievementStats) -> [Achievement] {
         var newlyUnlocked: [Achievement] = []
 
@@ -515,35 +444,21 @@ struct UserAchievements: Codable {
             return count >= achievement.requirement
 
         case .comeback:
-            switch achievement.id {
-            case "bounce_back":
-                // Just came back after losing a 7+ day streak
-                return stats.lastLostStreak >= 7 && stats.currentStreak >= 1
-            case "phoenix_rising":
-                // Rebuilt to 14 days after losing a streak
-                return stats.comebackCount >= 1 && stats.currentStreak >= 14
-            case "never_give_up", "resilient", "unbreakable_spirit":
-                return stats.comebackCount >= achievement.requirement
-            default:
-                return false
-            }
+            // Bounce back: returned after losing a 7+ day streak
+            return stats.lastLostStreak >= achievement.requirement && stats.currentStreak >= 1
 
-        case .perfectWeek:
-            return stats.currentStreak >= 7
+        case .rebuildStreak:
+            // Phoenix: rebuilt to 30 days after previously losing a streak
+            return stats.hasRebuiltAfterLoss && stats.currentStreak >= achievement.requirement
 
-        case .weekendWarrior:
-            return stats.completedWeekends >= achievement.requirement
+        case .perfectMonth:
+            return stats.perfectMonthsCompleted >= achievement.requirement
 
-        case .mondayMotivation:
-            return stats.mondayCompletions >= achievement.requirement
+        case .newYear:
+            return stats.completedOnNewYear
 
-        case .special:
-            switch achievement.id {
-            case "new_year":
-                return stats.completedOnNewYear
-            default:
-                return false
-            }
+        case .anniversary:
+            return stats.completedOnAnniversary
         }
     }
 
@@ -559,13 +474,16 @@ struct UserAchievements: Codable {
         Set(unlockedAchievements.keys)
     }
 
-    var nextAchievement: Achievement? {
-        // Prioritize streak achievements for the "next" display
+    var nextStreakAchievement: Achievement? {
         Achievement.streakAchievements.first { !isUnlocked($0.id) }
     }
 
     var unlockedCount: Int {
         unlockedAchievements.count
+    }
+
+    var hiddenUnlockedCount: Int {
+        Achievement.hiddenAchievements.filter { isUnlocked($0.id) }.count
     }
 
     func unlockedCountByCategory() -> [AchievementCategory: Int] {
@@ -575,5 +493,33 @@ struct UserAchievements: Codable {
             counts[category] = achievements.filter { isUnlocked($0.id) }.count
         }
         return counts
+    }
+
+    func unlockedCountByTier() -> [AchievementTier: Int] {
+        var counts: [AchievementTier: Int] = [:]
+        for tier in AchievementTier.allCases {
+            let achievements = Achievement.allAchievements.filter { $0.tier == tier }
+            counts[tier] = achievements.filter { isUnlocked($0.id) }.count
+        }
+        return counts
+    }
+
+    func progress(for achievement: Achievement, stats: AchievementStats) -> Double {
+        switch achievement.type {
+        case .streak:
+            return min(1.0, Double(stats.currentStreak) / Double(achievement.requirement))
+        case .totalCompletions:
+            return min(1.0, Double(stats.totalCompletions) / Double(achievement.requirement))
+        case .earlyCompletion:
+            guard let hour = achievement.secondaryRequirement else { return 0 }
+            let count = stats.earlyCompletions[hour] ?? 0
+            return min(1.0, Double(count) / Double(achievement.requirement))
+        case .comeback, .rebuildStreak:
+            return isUnlocked(achievement.id) ? 1.0 : 0.0
+        case .perfectMonth:
+            return min(1.0, Double(stats.perfectMonthsCompleted) / Double(achievement.requirement))
+        case .newYear, .anniversary:
+            return isUnlocked(achievement.id) ? 1.0 : 0.0
+        }
     }
 }
