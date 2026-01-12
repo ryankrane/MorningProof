@@ -362,17 +362,25 @@ class MorningProofManager: ObservableObject {
 
     // MARK: - Streak Tracking
 
+    /// Returns true if all enabled habits are completed today (regardless of cutoff time)
+    /// This is used for basic streak tracking
+    var hasCompletedAllHabitsToday: Bool {
+        return completedCount == totalEnabled && totalEnabled > 0
+    }
+
+    /// Returns true if all habits were completed BEFORE the cutoff time
+    /// Used for bonus features and extra celebrations
     var isPerfectMorning: Bool {
         guard !isPastCutoff || todayLog.allCompletedBeforeCutoff else { return false }
-        return completedCount == totalEnabled && totalEnabled > 0
+        return hasCompletedAllHabitsToday
     }
 
     func updateStreak() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
-        // Check if we had a perfect morning today
-        if isPerfectMorning {
+        // Check if all habits are completed today (streak counts regardless of cutoff)
+        if hasCompletedAllHabitsToday {
             if lastPerfectMorningDate == nil {
                 // First perfect morning ever
                 currentStreak = 1

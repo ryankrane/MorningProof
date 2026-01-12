@@ -9,9 +9,44 @@ struct StreakHeroCard: View {
     @State private var flameScale: CGFloat = 1.0
     @State private var streakNumberScale: CGFloat = 0.8
     @State private var showPerfectBadge = false
+    @State private var glowPulse: CGFloat = 0.0
 
     // Milestone targets
     private let milestones = [7, 14, 21, 30, 60, 90, 180, 365]
+
+    // MARK: - Glow Properties based on streak
+
+    /// Glow radius increases with streak
+    var glowRadius: CGFloat {
+        guard currentStreak > 0 else { return 0 }
+        switch currentStreak {
+        case 1...6: return 8
+        case 7...13: return 12
+        case 14...29: return 16
+        default: return 20
+        }
+    }
+
+    /// Glow opacity increases with streak
+    var glowOpacity: CGFloat {
+        guard currentStreak > 0 else { return 0 }
+        switch currentStreak {
+        case 1...6: return 0.4
+        case 7...13: return 0.5
+        case 14...29: return 0.6
+        default: return 0.7
+        }
+    }
+
+    /// Glow color shifts from orange to gold as streak increases
+    var glowColor: Color {
+        guard currentStreak > 0 else { return .clear }
+        switch currentStreak {
+        case 1...6: return MPColors.accent // Orange
+        case 7...29: return Color(red: 1.0, green: 0.7, blue: 0.2) // Orange-gold
+        default: return MPColors.accentGold // Pure gold
+        }
+    }
 
     var nextMilestone: Int {
         milestones.first { $0 > currentStreak } ?? 365
@@ -31,12 +66,14 @@ struct StreakHeroCard: View {
         VStack(spacing: MPSpacing.lg) {
             // Streak display
             HStack(spacing: MPSpacing.md) {
-                // Flame icon with animation
+                // Flame icon with dynamic glow animation
                 Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
                     .font(.system(size: MPIconSize.xl))
                     .foregroundStyle(flameGradient)
                     .scaleEffect(flameScale)
-                    .shadow(color: MPColors.accent.opacity(0.5), radius: flameScale > 1 ? 10 : 0)
+                    // Always-on glow when streak > 0, with pulsing effect
+                    .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2), radius: glowRadius + glowPulse * 4)
+                    .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
@@ -102,9 +139,16 @@ struct StreakHeroCard: View {
                 streakNumberScale = 1.0
             }
 
-            // Animate flame pulsing
+            // Animate flame pulsing (scale)
             withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
                 flameScale = 1.1
+            }
+
+            // Animate glow pulsing (separate from scale for layered effect)
+            if currentStreak > 0 {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    glowPulse = 1.0
+                }
             }
 
             // Animate perfect badge if applicable

@@ -21,6 +21,7 @@ struct DashboardView: View {
     @State private var showConfettiForHabit: HabitType? = nil
     @State private var showPerfectMorningCelebration = false
     @State private var previousCompletedCount = 0
+    @State private var previouslyCompletedHabits: Set<HabitType> = []
 
     var body: some View {
         ZStack {
@@ -117,8 +118,14 @@ struct DashboardView: View {
             HabitEditorSheet(manager: manager)
         }
         .task {
-            await manager.syncHealthData()
+            // Track which habits were completed before sync
+            previouslyCompletedHabits = Set(manager.todayLog.completions.filter { $0.isCompleted }.map { $0.habitType })
             previousCompletedCount = manager.completedCount
+
+            await manager.syncHealthData()
+
+            // Check for newly auto-completed habits after sync
+            checkForNewlyCompletedHabits()
         }
         .onChange(of: manager.isPerfectMorning) { newValue in
             if newValue && !showPerfectMorningCelebration {
@@ -130,6 +137,45 @@ struct DashboardView: View {
     private func triggerPerfectMorningCelebration() {
         showPerfectMorningCelebration = true
         HapticManager.shared.perfectMorning()
+    }
+
+    /// Checks for habits that were just auto-completed by HealthKit sync and triggers confetti
+    private func checkForNewlyCompletedHabits() {
+        let currentlyCompleted = Set(manager.todayLog.completions.filter { $0.isCompleted }.map { $0.habitType })
+        let newlyCompleted = currentlyCompleted.subtracting(previouslyCompletedHabits)
+
+        // Trigger confetti for each newly completed auto-tracked habit
+        for habitType in newlyCompleted {
+            // Only celebrate auto-tracked habits here (steps and sleep)
+            if habitType == .morningSteps || habitType == .sleepDuration {
+                celebrateAutoCompletedHabit(habitType)
+            }
+        }
+
+        // Update tracking
+        previouslyCompletedHabits = currentlyCompleted
+    }
+
+    /// Triggers celebration for an auto-completed habit
+    private func celebrateAutoCompletedHabit(_ habitType: HabitType) {
+        // Add to recently completed
+        recentlyCompletedHabits.insert(habitType)
+
+        // Show confetti
+        showConfettiForHabit = habitType
+
+        // Haptic feedback
+        HapticManager.shared.habitCompleted()
+
+        // Clear confetti after animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            showConfettiForHabit = nil
+        }
+
+        // Remove from recently completed after animation settles
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            recentlyCompletedHabits.remove(habitType)
+        }
     }
 
     // MARK: - Header

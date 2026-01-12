@@ -6,6 +6,7 @@ struct SleepInputSheet: View {
 
     // Slider value in hours (4.0 to 12.0, step 0.25 = 15 min)
     @State private var sleepHours: Double = 8.0
+    @State private var showConfetti = false
 
     private let minHours: Double = 4.0
     private let maxHours: Double = 12.0
@@ -99,11 +100,26 @@ struct SleepInputSheet: View {
                     // Save button
                     MPButton(title: "Save", style: .primary) {
                         manager.updateManualSleep(hours: sleepHours)
-                        HapticManager.shared.success()
-                        dismiss()
+                        HapticManager.shared.habitCompleted()
+
+                        // Show confetti if goal is met
+                        if sleepHours >= sleepGoal {
+                            showConfetti = true
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                dismiss()
+                            }
+                        } else {
+                            dismiss()
+                        }
                     }
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.bottom, MPSpacing.xxxl)
+
+                    // Confetti overlay
+                    if showConfetti {
+                        MiniConfettiView()
+                            .allowsHitTesting(false)
+                    }
                 }
             }
             .navigationTitle("Log Sleep")
