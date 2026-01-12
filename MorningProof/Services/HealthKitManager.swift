@@ -55,7 +55,7 @@ class HealthKitManager: ObservableObject {
             await syncMorningData()
             return true
         } catch {
-            print("HealthKit authorization failed: \(error)")
+            MPLogger.error("HealthKit authorization failed", error: error, category: MPLogger.healthKit)
             authorizationDenied = true
             return false
         }
@@ -98,7 +98,7 @@ class HealthKitManager: ObservableObject {
 
             self.todaySteps = steps
         } catch {
-            print("Failed to fetch steps: \(error)")
+            MPLogger.error("Failed to fetch steps", error: error, category: MPLogger.healthKit)
         }
     }
 
@@ -141,7 +141,7 @@ class HealthKitManager: ObservableObject {
 
             return steps
         } catch {
-            print("Failed to fetch steps before cutoff: \(error)")
+            MPLogger.error("Failed to fetch steps before cutoff", error: error, category: MPLogger.healthKit)
             return 0
         }
     }
@@ -155,7 +155,7 @@ class HealthKitManager: ObservableObject {
         let now = Date()
 
         // Look for sleep in the last 24 hours
-        let yesterday = calendar.date(byAdding: .hour, value: -24, to: now)!
+        guard let yesterday = calendar.date(byAdding: .hour, value: -24, to: now) else { return }
 
         let predicate = HKQuery.predicateForSamples(withStart: yesterday, end: now, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
@@ -199,10 +199,19 @@ class HealthKitManager: ObservableObject {
             for sample in sleepSamples {
                 totalSeconds += sample.endDate.timeIntervalSince(sample.startDate)
 
-                if earliestStart == nil || sample.startDate < earliestStart! {
+                if let existing = earliestStart {
+                    if sample.startDate < existing {
+                        earliestStart = sample.startDate
+                    }
+                } else {
                     earliestStart = sample.startDate
                 }
-                if latestEnd == nil || sample.endDate > latestEnd! {
+
+                if let existing = latestEnd {
+                    if sample.endDate > existing {
+                        latestEnd = sample.endDate
+                    }
+                } else {
                     latestEnd = sample.endDate
                 }
             }
@@ -231,7 +240,7 @@ class HealthKitManager: ObservableObject {
             )
 
         } catch {
-            print("Failed to fetch sleep data: \(error)")
+            MPLogger.error("Failed to fetch sleep data", error: error, category: MPLogger.healthKit)
             self.lastNightSleep = nil
         }
     }
@@ -273,7 +282,7 @@ class HealthKitManager: ObservableObject {
 
             return hasWorkout
         } catch {
-            print("Failed to check morning workout: \(error)")
+            MPLogger.error("Failed to check morning workout", error: error, category: MPLogger.healthKit)
             return false
         }
     }

@@ -356,12 +356,15 @@ struct CalendarGridView: View {
     var body: some View {
         let calendar = Calendar.current
         let today = Date()
-        let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: today))!
-        let daysInMonth = calendar.range(of: .day, in: .month, for: today)!.count
+        guard let startOfMonth = calendar.date(from: calendar.dateComponents([.year, .month], from: today)),
+              let daysRange = calendar.range(of: .day, in: .month, for: today) else {
+            return AnyView(EmptyView())
+        }
+        let daysInMonth = daysRange.count
         let firstWeekday = calendar.component(.weekday, from: startOfMonth)
         let offset = firstWeekday - 1
 
-        VStack(spacing: MPSpacing.sm) {
+        return AnyView(VStack(spacing: MPSpacing.sm) {
             // Weekday headers
             HStack(spacing: 0) {
                 ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
@@ -382,35 +385,36 @@ struct CalendarGridView: View {
 
                 // Day cells
                 ForEach(1...daysInMonth, id: \.self) { day in
-                    let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth)!
-                    let isToday = calendar.isDateInToday(date)
-                    let isCompleted = streakData.wasCompletedOn(date: date)
-                    let isFuture = date > today
+                    if let date = calendar.date(byAdding: .day, value: day - 1, to: startOfMonth) {
+                        let isToday = calendar.isDateInToday(date)
+                        let isCompleted = streakData.wasCompletedOn(date: date)
+                        let isFuture = date > today
 
-                    ZStack {
-                        if isCompleted {
-                            Circle()
-                                .fill(MPColors.success)
-                                .frame(width: 28, height: 28)
-                        } else if isToday {
-                            Circle()
-                                .stroke(MPColors.primary, lineWidth: 2)
-                                .frame(width: 28, height: 28)
+                        ZStack {
+                            if isCompleted {
+                                Circle()
+                                    .fill(MPColors.success)
+                                    .frame(width: 28, height: 28)
+                            } else if isToday {
+                                Circle()
+                                    .stroke(MPColors.primary, lineWidth: 2)
+                                    .frame(width: 28, height: 28)
+                            }
+
+                            Text("\(day)")
+                                .font(MPFont.bodySmall())
+                                .fontWeight(isToday ? .bold : .regular)
+                                .foregroundColor(
+                                    isCompleted ? .white :
+                                        isFuture ? MPColors.textMuted :
+                                        MPColors.textPrimary
+                                )
                         }
-
-                        Text("\(day)")
-                            .font(MPFont.bodySmall())
-                            .fontWeight(isToday ? .bold : .regular)
-                            .foregroundColor(
-                                isCompleted ? .white :
-                                    isFuture ? MPColors.textMuted :
-                                    MPColors.textPrimary
-                            )
+                        .frame(height: 28)
                     }
-                    .frame(height: 28)
                 }
             }
-        }
+        })
     }
 }
 
@@ -449,7 +453,7 @@ struct ConfettiView: View {
             let particle = ConfettiParticle(
                 id: i,
                 position: CGPoint(x: CGFloat.random(in: 0...size.width), y: -20),
-                color: colors.randomElement()!,
+                color: colors.randomElement() ?? MPColors.accent,
                 size: CGFloat.random(in: 6...12),
                 opacity: 1.0
             )

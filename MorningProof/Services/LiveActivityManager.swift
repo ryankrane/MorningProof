@@ -25,7 +25,7 @@ class LiveActivityManager: ObservableObject {
     ) {
         // Don't start if activities aren't supported
         guard ActivityAuthorizationInfo().areActivitiesEnabled else {
-            print("[LiveActivity] Activities not enabled")
+            MPLogger.debug("Live Activities not enabled", category: MPLogger.liveActivity)
             return
         }
 
@@ -57,10 +57,10 @@ class LiveActivityManager: ObservableObject {
 
             currentActivity = activity
             isActivityActive = true
-            print("[LiveActivity] Started activity: \(activity.id)")
+            MPLogger.debug("Started activity: \(activity.id)", category: MPLogger.liveActivity)
 
         } catch {
-            print("[LiveActivity] Failed to start activity: \(error)")
+            MPLogger.error("Failed to start activity", error: error, category: MPLogger.liveActivity)
         }
     }
 
@@ -72,7 +72,7 @@ class LiveActivityManager: ObservableObject {
         currentStreak: Int
     ) async {
         guard let activity = currentActivity else {
-            print("[LiveActivity] No active activity to update")
+            MPLogger.debug("No active activity to update", category: MPLogger.liveActivity)
             return
         }
 
@@ -87,7 +87,7 @@ class LiveActivityManager: ObservableObject {
             ActivityContent(state: updatedState, staleDate: activity.attributes.cutoffTime)
         )
 
-        print("[LiveActivity] Updated: \(completedHabits)/\(totalHabits)")
+        MPLogger.debug("Updated: \(completedHabits)/\(totalHabits)", category: MPLogger.liveActivity)
 
         // Auto-end if all habits completed
         if completedHabits >= totalHabits {
@@ -113,7 +113,7 @@ class LiveActivityManager: ObservableObject {
 
         currentActivity = nil
         isActivityActive = false
-        print("[LiveActivity] Ended activity")
+        MPLogger.debug("Ended activity", category: MPLogger.liveActivity)
     }
 
     /// Ends activity when cutoff time is reached
@@ -146,7 +146,7 @@ class LiveActivityManager: ObservableObject {
             if activity.activityState == .active {
                 currentActivity = activity
                 isActivityActive = true
-                print("[LiveActivity] Found existing activity: \(activity.id)")
+                MPLogger.debug("Found existing activity: \(activity.id)", category: MPLogger.liveActivity)
                 break
             }
         }
@@ -159,7 +159,9 @@ class LiveActivityManager: ObservableObject {
 }
 
 // MARK: - MorningRoutineAttributes (Shared with Widget)
-// Note: This must match the definition in the widget extension
+// IMPORTANT: This definition MUST remain identical to MorningProofWidget/MorningRoutineLiveActivity.swift
+// Both the main app and widget extension need this type for Live Activities to work.
+// If you modify this, you MUST update the widget version as well.
 struct MorningRoutineAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
         var completedHabits: Int

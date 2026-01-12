@@ -68,7 +68,9 @@ class SwiftDataService: DataServiceProtocol {
 
     func loadDailyLog(for date: Date) -> DailyLog? {
         let startOfDay = Calendar.current.startOfDay(for: date)
-        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return nil
+        }
 
         var descriptor = FetchDescriptor<SDDailyLog>(
             predicate: #Predicate { $0.date >= startOfDay && $0.date < endOfDay }
@@ -83,7 +85,9 @@ class SwiftDataService: DataServiceProtocol {
 
     func saveDailyLog(_ log: DailyLog) {
         let startOfDay = Calendar.current.startOfDay(for: log.date)
-        let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay)!
+        guard let endOfDay = Calendar.current.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return
+        }
 
         var descriptor = FetchDescriptor<SDDailyLog>(
             predicate: #Predicate { $0.date >= startOfDay && $0.date < endOfDay }

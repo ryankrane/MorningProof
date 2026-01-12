@@ -3,6 +3,9 @@ import WidgetKit
 import SwiftUI
 
 // MARK: - Activity Attributes
+// IMPORTANT: This definition MUST remain identical to MorningProof/Services/LiveActivityManager.swift
+// Both the main app and widget extension need this type for Live Activities to work.
+// If you modify this, you MUST update the main app version as well.
 @available(iOS 16.1, *)
 struct MorningRoutineAttributes: ActivityAttributes {
     public struct ContentState: Codable, Hashable {
@@ -223,7 +226,7 @@ struct LockScreenView: View {
 #if swift(>=5.9)
 @available(iOS 17.0, *)
 #Preview("Lock Screen", as: .content, using: MorningRoutineAttributes(
-    cutoffTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date())!,
+    cutoffTime: Calendar.current.date(byAdding: .hour, value: 2, to: Date()) ?? Date().addingTimeInterval(7200),
     startTime: Date()
 )) {
     MorningRoutineLiveActivity()

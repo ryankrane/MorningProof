@@ -1,17 +1,27 @@
 import Foundation
+import FirebaseCore
 import FirebaseCrashlytics
 
 /// Service for crash reporting and analytics via Firebase Crashlytics
+/// iOS Only - Production-ready with Firebase safety guards
 @MainActor
 class CrashReportingService {
     static let shared = CrashReportingService()
 
     private init() {}
 
+    // MARK: - Firebase Safety Check
+
+    /// Returns true if Firebase has been configured
+    private var isFirebaseConfigured: Bool {
+        return FirebaseApp.app() != nil
+    }
+
     // MARK: - User Identification
 
     /// Set user identifier for crash reports (use anonymous ID, not PII)
     func setUserID(_ userID: String) {
+        guard isFirebaseConfigured else { return }
         Crashlytics.crashlytics().setUserID(userID)
     }
 
@@ -19,6 +29,7 @@ class CrashReportingService {
 
     /// Set a custom key-value pair for crash reports
     func setCustomValue(_ value: Any, forKey key: String) {
+        guard isFirebaseConfigured else { return }
         Crashlytics.crashlytics().setCustomValue(value, forKey: key)
     }
 
@@ -41,6 +52,7 @@ class CrashReportingService {
 
     /// Log a breadcrumb message that will appear in crash reports
     func log(_ message: String) {
+        guard isFirebaseConfigured else { return }
         Crashlytics.crashlytics().log(message)
     }
 
@@ -64,6 +76,7 @@ class CrashReportingService {
 
     /// Record a non-fatal error (e.g., API errors, validation failures)
     func recordError(_ error: Error, userInfo: [String: Any]? = nil) {
+        guard isFirebaseConfigured else { return }
         var info = userInfo ?? [:]
         info["timestamp"] = Date().ISO8601Format()
 

@@ -104,7 +104,7 @@ class SubscriptionManager: ObservableObject {
             products = try await Product.products(for: productIDs)
             isLoading = false
         } catch {
-            print("Failed to load products: \(error)")
+            MPLogger.error("Failed to load products", error: error, category: MPLogger.subscription)
             isLoading = false
         }
     }
@@ -160,7 +160,7 @@ class SubscriptionManager: ObservableObject {
             try await AppStore.sync()
             await updateSubscriptionStatus()
         } catch {
-            print("Failed to restore purchases: \(error)")
+            MPLogger.error("Failed to restore purchases", error: error, category: MPLogger.subscription)
         }
     }
 
@@ -178,7 +178,7 @@ class SubscriptionManager: ObservableObject {
                     hasActiveSubscription = true
                 }
             } catch {
-                print("Failed to verify transaction: \(error)")
+                MPLogger.error("Failed to verify transaction", error: error, category: MPLogger.subscription)
             }
         }
 
@@ -206,7 +206,7 @@ class SubscriptionManager: ObservableObject {
 
     func startTrial() {
         let now = Date()
-        let trialEnd = Calendar.current.date(byAdding: .day, value: 7, to: now)!
+        guard let trialEnd = Calendar.current.date(byAdding: .day, value: 7, to: now) else { return }
 
         trialStartDate = now
         trialEndDate = trialEnd
@@ -256,7 +256,7 @@ class SubscriptionManager: ObservableObject {
     }
 
     var aiVerificationsRemaining: Int {
-        if isPremium { return .max }
+        if isPremium { return Int.max }
         return max(0, freeAIVerificationsPerMonth - aiVerificationsUsedThisMonth)
     }
 
@@ -287,7 +287,7 @@ class SubscriptionManager: ObservableObject {
                     await self.updateSubscriptionStatus()
                     await transaction.finish()
                 } catch {
-                    print("Transaction failed verification: \(error)")
+                    MPLogger.error("Transaction failed verification", error: error, category: MPLogger.subscription)
                 }
             }
         }

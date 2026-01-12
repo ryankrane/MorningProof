@@ -16,11 +16,11 @@ class MigrationManager {
         let currentVersion = UserDefaults.standard.integer(forKey: migrationVersionKey)
 
         guard currentVersion < currentMigrationVersion else {
-            print("Migration: Already at version \(currentVersion), no migration needed")
+            MPLogger.debug("Already at version \(currentVersion), no migration needed", category: MPLogger.migration)
             return
         }
 
-        print("Migration: Starting migration from version \(currentVersion) to \(currentMigrationVersion)")
+        MPLogger.info("Starting migration from version \(currentVersion) to \(currentMigrationVersion)", category: MPLogger.migration)
 
         // Migration v0 -> v1: UserDefaults to SwiftData
         if currentVersion < 1 {
@@ -28,7 +28,7 @@ class MigrationManager {
         }
 
         UserDefaults.standard.set(currentMigrationVersion, forKey: migrationVersionKey)
-        print("Migration: Complete, now at version \(currentMigrationVersion)")
+        MPLogger.info("Migration complete, now at version \(currentMigrationVersion)", category: MPLogger.migration)
     }
 
     /// Check if there's existing data that needs migration
@@ -49,18 +49,18 @@ class MigrationManager {
     private func migrateFromUserDefaults(to context: ModelContext) async {
         let storage = StorageService()
 
-        print("Migration: Reading legacy data from UserDefaults...")
+        MPLogger.debug("Reading legacy data from UserDefaults", category: MPLogger.migration)
 
         // 1. Migrate Settings
         if let settings = storage.loadMorningProofSettings() {
-            print("Migration: Migrating settings...")
+            MPLogger.debug("Migrating settings", category: MPLogger.migration)
             let sdSettings = createSDSettings(from: settings)
             context.insert(sdSettings)
         }
 
         // 2. Migrate Habit Configs
         if let configs = storage.loadHabitConfigs() {
-            print("Migration: Migrating \(configs.count) habit configs...")
+            MPLogger.debug("Migrating \(configs.count) habit configs", category: MPLogger.migration)
             for config in configs {
                 let sdConfig = SDHabitConfig(from: config)
                 context.insert(sdConfig)
@@ -68,7 +68,7 @@ class MigrationManager {
         }
 
         // 3. Migrate Daily Logs (last 365 days)
-        print("Migration: Migrating daily logs...")
+        MPLogger.debug("Migrating daily logs", category: MPLogger.migration)
         let calendar = Calendar.current
         var migratedLogs = 0
 
@@ -80,12 +80,12 @@ class MigrationManager {
                 migratedLogs += 1
             }
         }
-        print("Migration: Migrated \(migratedLogs) daily logs")
+        MPLogger.debug("Migrated \(migratedLogs) daily logs", category: MPLogger.migration)
 
         // 4. Migrate Achievements
         let achievements = storage.loadAchievements()
         if !achievements.unlockedAchievements.isEmpty {
-            print("Migration: Migrating \(achievements.unlockedAchievements.count) achievements...")
+            MPLogger.debug("Migrating \(achievements.unlockedAchievements.count) achievements", category: MPLogger.migration)
             for (id, date) in achievements.unlockedAchievements {
                 let sdAchievement = SDUnlockedAchievement(achievementId: id, unlockedDate: date)
                 context.insert(sdAchievement)
@@ -100,9 +100,9 @@ class MigrationManager {
         // Save all migrations
         do {
             try context.save()
-            print("Migration: Successfully saved all data to SwiftData")
+            MPLogger.info("Successfully saved all data to SwiftData", category: MPLogger.migration)
         } catch {
-            print("Migration: Failed to save - \(error)")
+            MPLogger.error("Failed to save migration data", error: error, category: MPLogger.migration)
             await MainActor.run {
                 CrashReportingService.shared.recordError(error, userInfo: ["context": "migration"])
             }

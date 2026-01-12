@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  MorningProof Privacy Manifest
+  iOS Only - Required for App Store submission since Spring 2024
+
+  This manifest declares:
+  - Data types collected by the app
+  - API usage reasons for privacy-sensitive APIs
+  - Tracking status
+-->
+<plist version="1.0">
+<dict>
+    <!-- App does not track users across apps/websites -->
+    <key>NSPrivacyTracking</key>
+    <false/>
+
+    <!-- No tracking domains -->
+    <key>NSPrivacyTrackingDomains</key>
+    <array/>
+
+    <!-- Data types collected -->
+    <key>NSPrivacyCollectedDataTypes</key>
+    <array>
+        <!-- Health Data (Steps, Sleep) -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeHealth</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Photos (for bed verification) -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePhotos</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- Purchase History (for subscriptions) -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypePurchaseHistory</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+
+        <!-- User Content (journal entries, gratitude notes) -->
+        <dict>
+            <key>NSPrivacyCollectedDataType</key>
+            <string>NSPrivacyCollectedDataTypeOtherUserContent</string>
+            <key>NSPrivacyCollectedDataTypeLinked</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypeTracking</key>
+            <false/>
+            <key>NSPrivacyCollectedDataTypePurposes</key>
+            <array>
+                <string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+            </array>
+        </dict>
+    </array>
+
+    <!-- Privacy-sensitive API usage -->
+    <key>NSPrivacyAccessedAPITypes</key>
+    <array>
+        <!-- UserDefaults API -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- App reads/writes data to app container -->
+                <string>CA92.1</string>
+            </array>
+        </dict>
+
+        <!-- File timestamp API (for data management) -->
+        <dict>
+            <key>NSPrivacyAccessedAPIType</key>
+            <string>NSPrivacyAccessedAPICategoryFileTimestamp</string>
+            <key>NSPrivacyAccessedAPITypeReasons</key>
+            <array>
+                <!-- Accessing file timestamps for app's own container -->
+                <string>C617.1</string>
+            </array>
+        </dict>
+    </array>
+</dict>
+</plist>

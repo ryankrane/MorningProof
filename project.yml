@@ -44,14 +44,8 @@ targets:
       path: MorningProof/Resources/MorningProof.entitlements
       properties:
         com.apple.developer.healthkit: true
-        # Note: iCloud and App Groups require a paid developer account
-        # Uncomment these when you have proper provisioning:
-        # com.apple.developer.icloud-container-identifiers:
-        #   - iCloud.com.rk.morningproof
-        # com.apple.developer.icloud-services:
-        #   - CloudKit
-        # com.apple.security.application-groups:
-        #   - group.com.rk.morningproof
+        com.apple.security.application-groups:
+          - group.com.rk.morningproof
     info:
       path: MorningProof/Resources/Info.plist
       properties:
@@ -90,10 +84,9 @@ targets:
         SKIP_INSTALL: YES
     entitlements:
       path: MorningProofWidget/MorningProofWidget.entitlements
-      properties: {}
-        # Note: App Groups require a paid developer account
-        # com.apple.security.application-groups:
-        #   - group.com.rk.morningproof
+      properties:
+        com.apple.security.application-groups:
+          - group.com.rk.morningproof
     info:
       path: MorningProofWidget/Info.plist
       properties:

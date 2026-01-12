@@ -157,7 +157,7 @@ class MorningProofManager: ObservableObject {
 
             return result
         } catch {
-            print("Bed verification failed: \(error)")
+            MPLogger.error("Bed verification failed", error: error, category: MPLogger.api)
             return nil
         }
     }
@@ -390,7 +390,8 @@ class MorningProofManager: ObservableObject {
                 if lastDay == today {
                     // Already counted today
                     return
-                } else if calendar.isDate(lastDay, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: today)!) {
+                } else if let yesterdayDate = calendar.date(byAdding: .day, value: -1, to: today),
+                          calendar.isDate(lastDay, inSameDayAs: yesterdayDate) {
                     // Yesterday was perfect, increment streak
                     currentStreak += 1
                 } else {
@@ -423,7 +424,7 @@ class MorningProofManager: ObservableObject {
     func recoverStreak() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return }
 
         // Restore the streak by pretending yesterday was a perfect morning
         lastPerfectMorningDate = yesterday

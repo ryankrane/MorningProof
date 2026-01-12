@@ -23,16 +23,16 @@ struct MorningProofApp: App {
     let modelContainer: ModelContainer
 
     init() {
-        do {
-            let schema = Schema([
-                SDSettings.self,
-                SDHabitConfig.self,
-                SDDailyLog.self,
-                SDHabitCompletion.self,
-                SDStreakRecord.self,
-                SDUnlockedAchievement.self
-            ])
+        let schema = Schema([
+            SDSettings.self,
+            SDHabitConfig.self,
+            SDDailyLog.self,
+            SDHabitCompletion.self,
+            SDStreakRecord.self,
+            SDUnlockedAchievement.self
+        ])
 
+        do {
             // CloudKit sync disabled until paid developer account is set up
             let modelConfiguration = ModelConfiguration(
                 schema: schema,
@@ -45,7 +45,25 @@ struct MorningProofApp: App {
                 configurations: [modelConfiguration]
             )
         } catch {
-            fatalError("Could not initialize ModelContainer: \(error)")
+            // Log error and attempt in-memory fallback
+            MPLogger.error("Failed to initialize persistent ModelContainer", error: error, category: MPLogger.storage)
+
+            // Try in-memory fallback - app will work but data won't persist
+            do {
+                let fallbackConfig = ModelConfiguration(
+                    schema: schema,
+                    isStoredInMemoryOnly: true,
+                    cloudKitDatabase: .none
+                )
+                modelContainer = try ModelContainer(
+                    for: schema,
+                    configurations: [fallbackConfig]
+                )
+                MPLogger.warning("Using in-memory storage - data will not persist", category: MPLogger.storage)
+            } catch {
+                // This should never happen, but if it does, we can't recover
+                fatalError("Could not initialize ModelContainer: \(error)")
+            }
         }
     }
 

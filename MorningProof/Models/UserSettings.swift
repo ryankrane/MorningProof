@@ -26,7 +26,9 @@ struct UserSettings: Codable {
 
         if now > deadline {
             // Deadline passed today, show time until tomorrow's deadline
-            let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: deadline)!
+            guard let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: deadline) else {
+                return 0
+            }
             return tomorrow.timeIntervalSince(now)
         }
         return deadline.timeIntervalSince(now)

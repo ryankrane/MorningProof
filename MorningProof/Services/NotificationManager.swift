@@ -32,7 +32,7 @@ class NotificationManager: ObservableObject {
             }
             return granted
         } catch {
-            print("Notification permission error: \(error)")
+            MPLogger.error("Notification permission error", error: error, category: MPLogger.notification)
             return false
         }
     }
@@ -90,7 +90,7 @@ class NotificationManager: ObservableObject {
         do {
             try await notificationCenter.add(request)
         } catch {
-            print("Failed to schedule morning reminder: \(error)")
+            MPLogger.error("Failed to schedule morning reminder", error: error, category: MPLogger.notification)
         }
     }
 
@@ -144,7 +144,7 @@ class NotificationManager: ObservableObject {
             do {
                 try await notificationCenter.add(request)
             } catch {
-                print("Failed to schedule \(warningMinutes)min warning: \(error)")
+                MPLogger.error("Failed to schedule \(warningMinutes)min warning", error: error, category: MPLogger.notification)
             }
         }
     }
@@ -174,7 +174,7 @@ class NotificationManager: ObservableObject {
         do {
             try await notificationCenter.add(request)
         } catch {
-            print("Failed to schedule cutoff passed notification: \(error)")
+            MPLogger.error("Failed to schedule cutoff passed notification", error: error, category: MPLogger.notification)
         }
     }
 

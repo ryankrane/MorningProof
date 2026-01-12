@@ -141,7 +141,10 @@ struct CalendarView: View {
     func dayCell(_ date: Date) -> some View {
         let log = manager.getDailyLog(for: date)
         let isToday = calendar.isDateInToday(date)
-        let isSelected = selectedDate != nil && calendar.isDate(date, inSameDayAs: selectedDate!)
+        let isSelected: Bool = {
+            guard let selected = selectedDate else { return false }
+            return calendar.isDate(date, inSameDayAs: selected)
+        }()
         let isFuture = date > Date()
 
         let completedCount = log?.completions.filter { $0.isCompleted }.count ?? 0

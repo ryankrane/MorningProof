@@ -63,7 +63,10 @@ actor ClaudeAPIService {
             ]
         ]
 
-        var request = URLRequest(url: URL(string: baseURL)!)
+        guard let url = URL(string: baseURL) else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
@@ -135,6 +138,7 @@ struct ContentBlock: Codable {
 // MARK: - Errors
 
 enum APIError: LocalizedError {
+    case invalidURL
     case imageConversionFailed
     case invalidResponse
     case serverError(statusCode: Int, message: String)
@@ -142,6 +146,8 @@ enum APIError: LocalizedError {
 
     var errorDescription: String? {
         switch self {
+        case .invalidURL:
+            return "Invalid API URL configuration"
         case .imageConversionFailed:
             return "Failed to process image"
         case .invalidResponse:
