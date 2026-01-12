@@ -30,6 +30,9 @@ struct MorningProofSettingsView: View {
     @State private var customSleepGoal: Double = 7.0
     @State private var customStepGoal: Int = 500
 
+    // Test celebration
+    @State private var showTestCelebration = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -150,17 +153,36 @@ struct MorningProofSettingsView: View {
 
                         // Danger Zone
                         settingsSection(title: "Data") {
-                            Button {
-                                showResetConfirmation = true
-                            } label: {
-                                HStack {
-                                    Image(systemName: "trash")
-                                    Text("Reset All Data")
+                            VStack(spacing: MPSpacing.md) {
+                                // Test Celebration button
+                                Button {
+                                    showTestCelebration = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "flame.fill")
+                                        Text("Test Celebration")
+                                    }
+                                    .font(MPFont.bodyMedium())
+                                    .foregroundColor(MPColors.primary)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, MPSpacing.md)
                                 }
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.error)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, MPSpacing.md)
+
+                                Divider()
+
+                                // Reset Data button
+                                Button {
+                                    showResetConfirmation = true
+                                } label: {
+                                    HStack {
+                                        Image(systemName: "trash")
+                                        Text("Reset All Data")
+                                    }
+                                    .font(MPFont.bodyMedium())
+                                    .foregroundColor(MPColors.error)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, MPSpacing.md)
+                                }
                             }
                         }
 
@@ -178,6 +200,16 @@ struct MorningProofSettingsView: View {
                     }
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.top, MPSpacing.xl)
+                }
+
+                // Test celebration overlay
+                if showTestCelebration {
+                    AllHabitsCompleteCelebrationView(
+                        isShowing: $showTestCelebration,
+                        streakCount: max(manager.currentStreak, 1),
+                        habitsCompleted: manager.totalEnabled,
+                        totalHabits: manager.totalEnabled
+                    )
                 }
             }
             .navigationTitle("Settings")
