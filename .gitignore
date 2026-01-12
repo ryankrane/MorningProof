@@ -36,3 +36,4 @@ Thumbs.db
 
 # Secrets - NEVER commit API keys
 MorningProof/Services/Config.swift
+Config.swift
