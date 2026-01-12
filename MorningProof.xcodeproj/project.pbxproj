@@ -33,7 +33,7 @@
 		43FD81844A20AED0658247A2 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */; };
 		4536987E4D02514E625C49EA /* SDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACC698ADA5AC3BD5172F402 /* SDModels.swift */; };
 		49797C886BDE9E1940FB196E /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02803BF9F11FE07F6AAC89F /* PaywallView.swift */; };
-		4C849E19777E84F8722DBFC3 /* BedMadeUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7F1EA34F60AFB06FE555E /* BedMadeUITests.swift */; };
+		4C849E19777E84F8722DBFC3 /* MorningProofUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7F1EA34F60AFB06FE555E /* MorningProofUITests.swift */; };
 		519BBF0F167F731B7A5948D9 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B56830852B2722B2A4D5958D /* SharedDataManager.swift */; };
 		54FA492C5A39656B4085053E /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF851795EA491C844DB4CB0F /* Config.swift */; };
 		5644616FBAC2D42C2FDF6EA9 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970A6074B025718639B71CD8 /* CalendarView.swift */; };
@@ -50,7 +50,7 @@
 		944F1899E418BED86F19C544 /* MorningProofWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5278A0D88B9F11414F0F9B7 /* MorningProofWidgetBundle.swift */; };
 		9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */; };
 		9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */; };
-		9E95E247966FD99813068489 /* BedMadeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE49ACF8BBAF19284CCC85C /* BedMadeTests.swift */; };
+		9E95E247966FD99813068489 /* MorningProofTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE49ACF8BBAF19284CCC85C /* MorningProofTests.swift */; };
 		A03FF6C90FE9AFF06D9A291B /* HabitsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA847D8A193F4A32248395B3 /* HabitsWidget.swift */; };
 		A693DB546892E62EC3680F62 /* MPCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269A2CFCAE1171B58D22D159 /* MPCard.swift */; };
 		A999E4ED4631257F8ECCE86A /* StreakWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E66DC7C495C19D6EFC7F0CF /* StreakWidget.swift */; };
@@ -126,7 +126,7 @@
 		0981D9827F6FBBF7C421AF40 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningRoutineLiveActivity.swift; sourceTree = "<group>"; };
 		09D1428911FA711F907BD661 /* WeekProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekProgressView.swift; sourceTree = "<group>"; };
-		0BB7F1EA34F60AFB06FE555E /* BedMadeUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedMadeUITests.swift; sourceTree = "<group>"; };
+		0BB7F1EA34F60AFB06FE555E /* MorningProofUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofUITests.swift; sourceTree = "<group>"; };
 		0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
@@ -173,7 +173,7 @@
 		B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofManager.swift; sourceTree = "<group>"; };
 		B9512DA434D53924F8D22A7D /* SideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideMenuView.swift; sourceTree = "<group>"; };
 		BD685B51A8DBDF220310D798 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		CAE49ACF8BBAF19284CCC85C /* BedMadeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedMadeTests.swift; sourceTree = "<group>"; };
+		CAE49ACF8BBAF19284CCC85C /* MorningProofTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofTests.swift; sourceTree = "<group>"; };
 		CBAB7E9F4A2111F22E9C1132 /* VerificationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationResult.swift; sourceTree = "<group>"; };
 		CC2AC488A4583BA62DC0C80A /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		D02803BF9F11FE07F6AAC89F /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -347,7 +347,7 @@
 		BB3DEDB15BF94066A00EF614 /* MorningProofUITests */ = {
 			isa = PBXGroup;
 			children = (
-				0BB7F1EA34F60AFB06FE555E /* BedMadeUITests.swift */,
+				0BB7F1EA34F60AFB06FE555E /* MorningProofUITests.swift */,
 			);
 			path = MorningProofUITests;
 			sourceTree = "<group>";
@@ -355,7 +355,7 @@
 		BBD2BA31B411CF895D0F9454 /* MorningProofTests */ = {
 			isa = PBXGroup;
 			children = (
-				CAE49ACF8BBAF19284CCC85C /* BedMadeTests.swift */,
+				CAE49ACF8BBAF19284CCC85C /* MorningProofTests.swift */,
 			);
 			path = MorningProofTests;
 			sourceTree = "<group>";
@@ -621,7 +621,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9E95E247966FD99813068489 /* BedMadeTests.swift in Sources */,
+				9E95E247966FD99813068489 /* MorningProofTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -641,7 +641,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C849E19777E84F8722DBFC3 /* BedMadeUITests.swift in Sources */,
+				4C849E19777E84F8722DBFC3 /* MorningProofUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -805,7 +805,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.rk.bedmate;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rk.morningproof;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
@@ -841,7 +841,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.rk.bedmate;
+				PRODUCT_BUNDLE_IDENTIFIER = com.rk.morningproof;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};

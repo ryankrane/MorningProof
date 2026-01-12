@@ -3,7 +3,7 @@ import Foundation
 /// Shared data manager for widget and main app communication via App Groups
 /// This file is duplicated in both main app and widget extension
 struct SharedDataManager {
-    static let appGroupID = "group.com.rk.bedmate"
+    static let appGroupID = "group.com.rk.morningproof"
 
     private static var sharedDefaults: UserDefaults? {
         UserDefaults(suiteName: appGroupID)

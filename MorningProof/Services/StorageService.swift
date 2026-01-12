@@ -2,9 +2,9 @@ import Foundation
 
 class StorageService {
     // Legacy keys
-    private let streakKey = "bedmate_streak_data"
-    private let achievementsKey = "bedmate_achievements"
-    private let settingsKey = "bedmate_settings"
+    private let streakKey = "morningproof_streak_data"
+    private let achievementsKey = "morningproof_achievements"
+    private let settingsKey = "morningproof_settings"
 
     // Morning Proof keys
     private let mpSettingsKey = "morningproof_settings"

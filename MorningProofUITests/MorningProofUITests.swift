@@ -1,6 +1,6 @@
 import XCTest
 
-final class BedMadeUITests: XCTestCase {
+final class MorningProofUITests: XCTestCase {
 
     override func setUpWithError() throws {
         continueAfterFailure = false
@@ -11,7 +11,7 @@ final class BedMadeUITests: XCTestCase {
         app.launch()
 
         // Verify main UI elements exist
-        XCTAssertTrue(app.staticTexts["BedMade"].exists)
+        XCTAssertTrue(app.staticTexts["MorningProof"].exists)
         XCTAssertTrue(app.staticTexts["Current Streak"].exists)
     }
 }

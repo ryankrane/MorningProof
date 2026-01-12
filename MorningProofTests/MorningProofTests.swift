@@ -1,7 +1,7 @@
 import XCTest
-@testable import BedMade
+@testable import MorningProof
 
-final class BedMadeTests: XCTestCase {
+final class MorningProofTests: XCTestCase {
 
     func testStreakDataInitialization() {
         let streakData = StreakData()

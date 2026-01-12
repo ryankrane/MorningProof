@@ -83,7 +83,7 @@ class CrashReportingService {
     }
 
     /// Record a custom error with message
-    func recordCustomError(_ message: String, code: Int = -1, domain: String = "com.rk.bedmate") {
+    func recordCustomError(_ message: String, code: Int = -1, domain: String = "com.rk.morningproof") {
         let error = NSError(domain: domain, code: code, userInfo: [
             NSLocalizedDescriptionKey: message
         ])
