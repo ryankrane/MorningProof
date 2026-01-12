@@ -357,7 +357,7 @@ struct MorningProofSettingsView: View {
 
                     Toggle("", isOn: $notificationsEnabled)
                         .tint(MPColors.primary)
-                        .onChange(of: notificationsEnabled) { newValue in
+                        .onChange(of: notificationsEnabled) { _, newValue in
                             if newValue {
                                 Task {
                                     _ = await notificationManager.requestPermission()

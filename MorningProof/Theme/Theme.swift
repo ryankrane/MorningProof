@@ -33,7 +33,7 @@ enum MPColors {
     static let primaryDark = Color("PrimaryDark")
 
     // Accent
-    static let accent = Color("Accent")
+    static let accent = Color("AccentMain")
     static let accentLight = Color("AccentLight")
     static let accentGold = Color("AccentGold")
 

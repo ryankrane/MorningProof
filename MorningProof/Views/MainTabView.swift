@@ -110,7 +110,7 @@ struct DashboardContentView: View {
             .task {
                 await manager.syncHealthData()
             }
-            .onChange(of: manager.isPerfectMorning) { newValue in
+            .onChange(of: manager.isPerfectMorning) { _, newValue in
                 if newValue && !showPerfectMorningCelebration {
                     showPerfectMorningCelebration = true
                     HapticManager.shared.perfectMorning()

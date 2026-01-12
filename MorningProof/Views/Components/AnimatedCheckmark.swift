@@ -30,7 +30,7 @@ struct AnimatedCheckmark: View {
         }
         .scaleEffect(scale)
         .opacity(opacity)
-        .onChange(of: isCompleted) { newValue in
+        .onChange(of: isCompleted) { _, newValue in
             if newValue {
                 animateIn()
             } else {
@@ -145,7 +145,7 @@ struct CheckmarkCircle: View {
                 .scaleEffect(checkScale)
                 .rotationEffect(.degrees(checkRotation))
         }
-        .onChange(of: isCompleted) { newValue in
+        .onChange(of: isCompleted) { _, newValue in
             if newValue {
                 animateCompletion()
             } else {

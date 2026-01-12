@@ -160,7 +160,7 @@ struct StreakHeroCard: View {
                 }
             }
         }
-        .onChange(of: isPerfectMorning) { newValue in
+        .onChange(of: isPerfectMorning) { _, newValue in
             if newValue {
                 withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                     showPerfectBadge = true
@@ -168,7 +168,7 @@ struct StreakHeroCard: View {
                 HapticManager.shared.success()
             }
         }
-        .onChange(of: triggerPulse) { newValue in
+        .onChange(of: triggerPulse) { _, newValue in
             if newValue {
                 // Big pulse when the flying flame arrives!
                 withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {

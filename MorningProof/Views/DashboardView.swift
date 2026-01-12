@@ -86,7 +86,7 @@ struct DashboardView: View {
                 onSelectSettings: { showSettings = true }
             )
         }
-        .onChange(of: selectedMenuItem) { item in
+        .onChange(of: selectedMenuItem) { _, item in
             guard let item = item else { return }
             switch item {
             case .history:
@@ -140,7 +140,7 @@ struct DashboardView: View {
             // Check for newly auto-completed habits after sync
             checkForNewlyCompletedHabits()
         }
-        .onChange(of: manager.hasCompletedAllHabitsToday) { newValue in
+        .onChange(of: manager.hasCompletedAllHabitsToday) { _, newValue in
             if newValue && !showPerfectMorningCelebration {
                 triggerFlameCelebration()
             }
