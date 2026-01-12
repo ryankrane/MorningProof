@@ -132,8 +132,12 @@ struct WeekDayDot: View {
                     .frame(width: 40, height: 40)
             }
 
-            // Show progress for today
-            if case .today(let count) = status, count > 0 && enabledCount > 0 {
+            // Gold star for complete days, number for today's partial progress
+            if case .complete = status {
+                Image(systemName: "star.fill")
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+            } else if case .today(let count) = status, count > 0 && enabledCount > 0 {
                 Text("\(count)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.primary)
@@ -172,21 +176,52 @@ struct SelectedDayDetails: View {
         log.completions.count
     }
 
+    private var isPerfectDay: Bool {
+        completedCount == totalCount && totalCount > 0
+    }
+
+    // Sort completions: completed first, then incomplete
+    private var sortedCompletions: [HabitCompletion] {
+        log.completions.sorted { $0.isCompleted && !$1.isCompleted }
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.sm) {
-            Text(formattedDate)
-                .font(MPFont.labelMedium())
-                .foregroundColor(MPColors.textPrimary)
+        VStack(alignment: .leading, spacing: MPSpacing.md) {
+            // Header row with date and perfect badge
+            HStack {
+                Text(formattedDate)
+                    .font(MPFont.labelMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
-            HStack(spacing: MPSpacing.lg) {
-                Label("\(completedCount)/\(totalCount) completed", systemImage: "checkmark.circle.fill")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.success)
+                Spacer()
 
-                if log.allCompletedBeforeCutoff && completedCount == totalCount && totalCount > 0 {
-                    Label("Perfect", systemImage: "star.fill")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.accentGold)
+                // Perfect day badge
+                if isPerfectDay {
+                    HStack(spacing: MPSpacing.xs) {
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 12))
+                        Text("Perfect")
+                            .font(MPFont.labelSmall())
+                    }
+                    .foregroundColor(MPColors.accentGold)
+                    .padding(.horizontal, MPSpacing.sm)
+                    .padding(.vertical, MPSpacing.xs)
+                    .background(MPColors.accentGold.opacity(0.15))
+                    .cornerRadius(MPRadius.sm)
+                }
+            }
+
+            // Summary line
+            Text("\(completedCount)/\(totalCount) completed")
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textSecondary)
+
+            // Habit completion list with icons
+            if !log.completions.isEmpty {
+                VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                    ForEach(sortedCompletions) { completion in
+                        HabitCompletionRow(completion: completion)
+                    }
                 }
             }
         }
@@ -200,6 +235,35 @@ struct SelectedDayDetails: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMM d"
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Habit Completion Row
+
+struct HabitCompletionRow: View {
+    let completion: HabitCompletion
+
+    var body: some View {
+        HStack(spacing: MPSpacing.sm) {
+            // Habit icon
+            Image(systemName: completion.habitType.icon)
+                .font(.system(size: 14))
+                .foregroundColor(completion.isCompleted ? MPColors.success : MPColors.textMuted)
+                .frame(width: 20)
+
+            // Habit name
+            Text(completion.habitType.displayName)
+                .font(MPFont.bodySmall())
+                .foregroundColor(completion.isCompleted ? MPColors.textPrimary : MPColors.textMuted)
+
+            Spacer()
+
+            // Completion status
+            Image(systemName: completion.isCompleted ? "checkmark.circle.fill" : "circle")
+                .font(.system(size: 14))
+                .foregroundColor(completion.isCompleted ? MPColors.success : MPColors.textMuted)
+        }
+        .accessibilityLabel("\(completion.habitType.displayName), \(completion.isCompleted ? "completed" : "not completed")")
     }
 }
 
