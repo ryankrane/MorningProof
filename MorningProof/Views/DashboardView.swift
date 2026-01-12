@@ -438,10 +438,6 @@ struct DashboardView: View {
                     Text("Completed")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.success)
-                } else if config.habitType.requiresHoldToConfirm {
-                    Text("Hold to confirm")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
                 } else {
                     Text("Tap to complete")
                         .font(MPFont.bodySmall())

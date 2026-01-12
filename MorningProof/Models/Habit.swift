@@ -78,12 +78,8 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     }
 
     var requiresHoldToConfirm: Bool {
-        switch self {
-        case .morningStretch, .coldShower, .sunlightExposure:
-            return true
-        case .madeBed, .sleepDuration, .noSnooze, .morningWorkout, .morningSteps, .meditation:
-            return false
-        }
+        // All habits use tap-to-complete for better UX
+        return false
     }
 
     var requiresTextEntry: Bool {
