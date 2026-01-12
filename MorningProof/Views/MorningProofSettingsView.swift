@@ -204,12 +204,7 @@ struct MorningProofSettingsView: View {
 
                 // Test celebration overlay
                 if showTestCelebration {
-                    AllHabitsCompleteCelebrationView(
-                        isShowing: $showTestCelebration,
-                        streakCount: max(manager.currentStreak, 1),
-                        habitsCompleted: manager.totalEnabled,
-                        totalHabits: manager.totalEnabled
-                    )
+                    TestFlameAnimationView(isShowing: $showTestCelebration)
                 }
             }
             .navigationTitle("Settings")

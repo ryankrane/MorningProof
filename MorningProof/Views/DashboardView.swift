@@ -26,6 +26,7 @@ struct DashboardView: View {
     // Enhanced animation state
     @State private var habitRowFlash: [HabitType: Bool] = [:]
     @State private var habitRowGlow: [HabitType: CGFloat] = [:]
+    @State private var triggerStreakPulse = false
 
     var body: some View {
         ZStack {
@@ -43,7 +44,8 @@ struct DashboardView: View {
                         currentStreak: manager.currentStreak,
                         completedToday: manager.completedCount,
                         totalHabits: manager.totalEnabled,
-                        isPerfectMorning: manager.isPerfectMorning
+                        isPerfectMorning: manager.isPerfectMorning,
+                        triggerPulse: $triggerStreakPulse
                     )
 
                     // Countdown
@@ -63,13 +65,15 @@ struct DashboardView: View {
                 await manager.syncHealthData()
             }
 
-            // Perfect Morning celebration overlay
+            // Flame celebration overlay (when all habits completed)
             if showPerfectMorningCelebration {
                 AllHabitsCompleteCelebrationView(
                     isShowing: $showPerfectMorningCelebration,
                     streakCount: manager.currentStreak,
-                    habitsCompleted: manager.completedCount,
-                    totalHabits: manager.totalEnabled
+                    onFlameArrived: {
+                        // Trigger StreakHeroCard pulse when flame arrives
+                        triggerStreakPulse = true
+                    }
                 )
             }
 
@@ -136,16 +140,16 @@ struct DashboardView: View {
             // Check for newly auto-completed habits after sync
             checkForNewlyCompletedHabits()
         }
-        .onChange(of: manager.isPerfectMorning) { newValue in
+        .onChange(of: manager.hasCompletedAllHabitsToday) { newValue in
             if newValue && !showPerfectMorningCelebration {
-                triggerPerfectMorningCelebration()
+                triggerFlameCelebration()
             }
         }
     }
 
-    private func triggerPerfectMorningCelebration() {
+    private func triggerFlameCelebration() {
         showPerfectMorningCelebration = true
-        HapticManager.shared.allHabitsCompleteCelebration()
+        // Haptics are handled in the celebration view itself
     }
 
     /// Checks for habits that were just auto-completed by HealthKit sync and triggers confetti

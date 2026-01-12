@@ -5,11 +5,13 @@ struct StreakHeroCard: View {
     let completedToday: Int
     let totalHabits: Int
     let isPerfectMorning: Bool
+    @Binding var triggerPulse: Bool  // External trigger for flame pulse (when flying flame arrives)
 
     @State private var flameScale: CGFloat = 1.0
     @State private var streakNumberScale: CGFloat = 0.8
     @State private var showPerfectBadge = false
     @State private var glowPulse: CGFloat = 0.0
+    @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
 
     // Milestone targets
     private let milestones = [7, 14, 21, 30, 60, 90, 180, 365]
@@ -70,7 +72,7 @@ struct StreakHeroCard: View {
                 Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
                     .font(.system(size: MPIconSize.xl))
                     .foregroundStyle(flameGradient)
-                    .scaleEffect(flameScale)
+                    .scaleEffect(flameScale * arrivalPulse)  // Combines normal pulse with arrival pulse
                     // Always-on glow when streak > 0, with pulsing effect
                     .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2), radius: glowRadius + glowPulse * 4)
                     .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
@@ -166,6 +168,24 @@ struct StreakHeroCard: View {
                 HapticManager.shared.success()
             }
         }
+        .onChange(of: triggerPulse) { newValue in
+            if newValue {
+                // Big pulse when the flying flame arrives!
+                withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
+                    arrivalPulse = 1.3
+                }
+                // Return to normal
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
+                        arrivalPulse = 1.0
+                    }
+                }
+                // Reset the trigger
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    triggerPulse = false
+                }
+            }
+        }
     }
 
     var flameGradient: LinearGradient {
@@ -181,9 +201,9 @@ struct StreakHeroCard: View {
 
 #Preview {
     VStack(spacing: MPSpacing.xl) {
-        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false)
-        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true)
-        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false)
+        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false))
+        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, triggerPulse: .constant(false))
+        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false))
     }
     .padding()
     .background(MPColors.background)

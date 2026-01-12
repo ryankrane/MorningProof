@@ -55,6 +55,7 @@ struct DashboardContentView: View {
     @State private var recentlyCompletedHabits: Set<HabitType> = []
     @State private var showConfettiForHabit: HabitType? = nil
     @State private var showPerfectMorningCelebration = false
+    @State private var triggerStreakPulse = false
 
     var body: some View {
         NavigationStack {
@@ -69,7 +70,8 @@ struct DashboardContentView: View {
                             currentStreak: manager.currentStreak,
                             completedToday: manager.completedCount,
                             totalHabits: manager.totalEnabled,
-                            isPerfectMorning: manager.isPerfectMorning
+                            isPerfectMorning: manager.isPerfectMorning,
+                            triggerPulse: $triggerStreakPulse
                         )
 
                         // Countdown
