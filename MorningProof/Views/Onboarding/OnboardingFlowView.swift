@@ -1,5 +1,6 @@
 import SwiftUI
 import StoreKit
+import AuthenticationServices
 
 // MARK: - Onboarding Data Model
 
@@ -18,14 +19,12 @@ class OnboardingData: ObservableObject {
     enum Gender: String, CaseIterable {
         case male = "Male"
         case female = "Female"
-        case nonBinary = "Non-binary"
         case preferNotToSay = "Prefer not to say"
 
         var icon: String {
             switch self {
             case .male: return "figure.stand"
             case .female: return "figure.stand.dress"
-            case .nonBinary: return "figure.wave"
             case .preferNotToSay: return "person.fill.questionmark"
             }
         }
@@ -116,6 +115,7 @@ class OnboardingData: ObservableObject {
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
     @StateObject private var onboardingData = OnboardingData()
+    @StateObject private var authManager = AuthenticationManager.shared
     @State private var currentStep = 0
     @State private var isAnimatingTransition = false
 
@@ -210,6 +210,15 @@ struct OnboardingFlowView: View {
     }
 
     private func nextStep() {
+        // If user just signed in, prefill their name
+        if currentStep == 0, let user = authManager.currentUser {
+            if let fullName = user.fullName, !fullName.isEmpty {
+                // Extract first name only
+                let firstName = fullName.components(separatedBy: " ").first ?? fullName
+                onboardingData.userName = firstName
+            }
+        }
+
         withAnimation(.easeInOut(duration: 0.3)) {
             currentStep += 1
         }
@@ -260,8 +269,10 @@ struct OnboardingProgressBar: View {
 
 struct WelcomeStep: View {
     let onContinue: () -> Void
+    @StateObject private var authManager = AuthenticationManager.shared
     @State private var animateIcon = false
     @State private var animateText = false
+    @State private var showSignInOptions = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -308,7 +319,7 @@ struct WelcomeStep: View {
                 .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateIcon)
             }
 
-            Spacer().frame(height: 60)
+            Spacer().frame(height: 40)
 
             // Purpose statement
             VStack(spacing: MPSpacing.md) {
@@ -328,12 +339,85 @@ struct WelcomeStep: View {
 
             Spacer()
 
-            // Get Started button
-            MPButton(title: "Get Started", style: .primary, icon: "arrow.right") {
-                onContinue()
+            // Sign-in buttons
+            VStack(spacing: MPSpacing.md) {
+                // Sign in with Apple
+                SignInWithAppleButton(.signIn) { request in
+                    authManager.handleAppleSignInRequest(request)
+                } onCompletion: { result in
+                    authManager.handleAppleSignInCompletion(result) { success in
+                        if success {
+                            onContinue()
+                        }
+                    }
+                }
+                .signInWithAppleButtonStyle(.black)
+                .frame(height: 50)
+                .cornerRadius(MPRadius.lg)
+
+                // Sign in with Google button (styled to match)
+                Button {
+                    authManager.signInWithGoogle { success in
+                        if success {
+                            onContinue()
+                        }
+                    }
+                } label: {
+                    HStack(spacing: MPSpacing.md) {
+                        Image(systemName: "g.circle.fill")
+                            .font(.system(size: 20))
+                        Text("Sign in with Google")
+                            .font(.system(size: 17, weight: .medium))
+                    }
+                    .foregroundColor(MPColors.textPrimary)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 50)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: MPRadius.lg)
+                            .stroke(MPColors.border, lineWidth: 1)
+                    )
+                }
+
+                // Divider with "or"
+                HStack {
+                    Rectangle()
+                        .fill(MPColors.divider)
+                        .frame(height: 1)
+                    Text("or")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                        .padding(.horizontal, MPSpacing.md)
+                    Rectangle()
+                        .fill(MPColors.divider)
+                        .frame(height: 1)
+                }
+                .padding(.vertical, MPSpacing.sm)
+
+                // Continue without account
+                Button {
+                    authManager.continueAnonymously()
+                    onContinue()
+                } label: {
+                    Text("Continue without account")
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.primary)
+                }
             }
             .padding(.horizontal, MPSpacing.xl)
             .padding(.bottom, 50)
+            .opacity(animateText ? 1 : 0)
+
+            // Error message
+            if let error = authManager.errorMessage {
+                Text(error)
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.error)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, MPSpacing.xl)
+                    .padding(.bottom, MPSpacing.md)
+            }
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.8)) {
@@ -390,7 +474,7 @@ struct GenderStep: View {
     }
 }
 
-// MARK: - Step 3: Name
+// MARK: - Step 3: Name (Optional)
 
 struct NameStep: View {
     @ObservedObject var data: OnboardingData
@@ -406,18 +490,18 @@ struct NameStep: View {
                     .font(.system(size: 60))
                     .foregroundColor(MPColors.primary)
 
-                Text("What's your name?")
+                Text("What should we call you?")
                     .font(MPFont.headingLarge())
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("We'll use this to personalize your plan")
+                Text("Optional - just to personalize your experience")
                     .font(MPFont.bodyMedium())
                     .foregroundColor(MPColors.textSecondary)
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            TextField("", text: $data.userName, prompt: Text("Enter your name").foregroundColor(MPColors.textTertiary))
+            TextField("", text: $data.userName, prompt: Text("First name (optional)").foregroundColor(MPColors.textTertiary))
                 .font(.system(size: 24, weight: .medium))
                 .foregroundColor(MPColors.textPrimary)
                 .multilineTextAlignment(.center)
@@ -432,8 +516,7 @@ struct NameStep: View {
 
             MPButton(
                 title: "Continue",
-                style: .primary,
-                isDisabled: data.userName.trimmingCharacters(in: .whitespaces).isEmpty
+                style: .primary
             ) {
                 isNameFocused = false
                 onContinue()
