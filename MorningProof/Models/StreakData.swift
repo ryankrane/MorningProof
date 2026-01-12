@@ -5,16 +5,17 @@ struct StreakData: Codable {
     var longestStreak: Int
     var totalCompletions: Int
     var lastCompletionDate: Date?
-    var completionDates: [Date] // All dates bed was made
+    var completionDates: [Date]
 
-    // New tracking fields for achievements
-    var earlyCompletions: [Int: Int] // hour -> count (completions before that hour)
-    var comebackCount: Int // Number of times user came back after losing a streak
-    var lastLostStreak: Int // The streak count when last broken (for bounce back achievement)
-    var completedWeekends: Int // Number of complete weekends (both Sat & Sun)
-    var mondayCompletions: Int // Number of Monday completions
-    var completedOnNewYear: Bool // Has completed on Jan 1st
-    var lastWeekendSaturday: Date? // Track partial weekend progress
+    // Achievement tracking fields
+    var earlyCompletions: [Int: Int]  // hour -> count
+    var comebackCount: Int
+    var lastLostStreak: Int
+    var hasRebuiltAfterLoss: Bool
+    var perfectMonthsCompleted: Int
+    var completedOnNewYear: Bool
+    var installDate: Date?
+    var completedOnAnniversary: Bool
 
     init() {
         self.currentStreak = 0
@@ -25,10 +26,11 @@ struct StreakData: Codable {
         self.earlyCompletions = [:]
         self.comebackCount = 0
         self.lastLostStreak = 0
-        self.completedWeekends = 0
-        self.mondayCompletions = 0
+        self.hasRebuiltAfterLoss = false
+        self.perfectMonthsCompleted = 0
         self.completedOnNewYear = false
-        self.lastWeekendSaturday = nil
+        self.installDate = Date()
+        self.completedOnAnniversary = false
     }
 
     mutating func recordCompletion() {
@@ -42,21 +44,24 @@ struct StreakData: Codable {
             let daysDifference = calendar.dateComponents([.day], from: lastDay, to: today).day ?? 0
 
             if daysDifference == 0 {
-                // Already completed today, no change
                 return
             } else if daysDifference == 1 {
-                // Consecutive day, increment streak
                 currentStreak += 1
+
+                // Check if we've rebuilt after a loss
+                if lastLostStreak > 0 && !hasRebuiltAfterLoss {
+                    hasRebuiltAfterLoss = true
+                }
             } else {
-                // Streak broken, track for comeback achievements
+                // Streak broken
                 if currentStreak > 0 {
                     lastLostStreak = currentStreak
                     comebackCount += 1
+                    hasRebuiltAfterLoss = false
                 }
                 currentStreak = 1
             }
         } else {
-            // First ever completion
             currentStreak = 1
         }
 
@@ -71,45 +76,17 @@ struct StreakData: Codable {
         // Track early completions
         trackEarlyCompletion(hour: hour)
 
-        // Track day-of-week achievements
-        trackDayOfWeek(date: today, calendar: calendar)
-
         // Track special dates
         trackSpecialDates(date: today, calendar: calendar)
+
+        // Check for perfect month
+        checkPerfectMonth(date: today, calendar: calendar)
     }
 
     private mutating func trackEarlyCompletion(hour: Int) {
-        // Track completions before various hours (6 AM and 7 AM)
-        let trackedHours = [6, 7]
-        for trackedHour in trackedHours {
-            if hour < trackedHour {
-                earlyCompletions[trackedHour, default: 0] += 1
-            }
-        }
-    }
-
-    private mutating func trackDayOfWeek(date: Date, calendar: Calendar) {
-        let weekday = calendar.component(.weekday, from: date)
-
-        // Monday is weekday 2 in Calendar
-        if weekday == 2 {
-            mondayCompletions += 1
-        }
-
-        // Saturday is weekday 7, Sunday is weekday 1
-        if weekday == 7 {
-            // It's Saturday, track it
-            lastWeekendSaturday = date
-        } else if weekday == 1 {
-            // It's Sunday, check if we completed Saturday too
-            if let saturday = lastWeekendSaturday {
-                let daysDiff = calendar.dateComponents([.day], from: saturday, to: date).day ?? 0
-                if daysDiff == 1 {
-                    // Completed both Saturday and Sunday consecutively
-                    completedWeekends += 1
-                }
-            }
-            lastWeekendSaturday = nil
+        // Track completions before 7 AM
+        if hour < 7 {
+            earlyCompletions[7, default: 0] += 1
         }
     }
 
@@ -120,6 +97,37 @@ struct StreakData: Codable {
         // New Year's Day
         if month == 1 && day == 1 {
             completedOnNewYear = true
+        }
+
+        // Anniversary check
+        if let install = installDate {
+            let installMonth = calendar.component(.month, from: install)
+            let installDay = calendar.component(.day, from: install)
+
+            // Check if at least one year has passed
+            if let yearsSinceInstall = calendar.dateComponents([.year], from: install, to: date).year,
+               yearsSinceInstall >= 1,
+               month == installMonth,
+               day == installDay {
+                completedOnAnniversary = true
+            }
+        }
+    }
+
+    private mutating func checkPerfectMonth(date: Date, calendar: Calendar) {
+        // Get the previous month (since we just completed today)
+        guard let previousMonth = calendar.date(byAdding: .month, value: -1, to: date) else { return }
+
+        let daysInPreviousMonth = calendar.range(of: .day, in: .month, for: previousMonth)?.count ?? 0
+        let completionsInPreviousMonth = completionsInMonth(date: previousMonth)
+
+        // If we completed every day of the previous month
+        if completionsInPreviousMonth.count >= daysInPreviousMonth {
+            // Verify it's actually consecutive days
+            let uniqueDays = Set(completionsInPreviousMonth.map { calendar.component(.day, from: $0) })
+            if uniqueDays.count >= daysInPreviousMonth {
+                perfectMonthsCompleted += 1
+            }
         }
     }
 
@@ -149,9 +157,11 @@ struct StreakData: Codable {
             earlyCompletions: earlyCompletions,
             comebackCount: comebackCount,
             lastLostStreak: lastLostStreak,
-            completedWeekends: completedWeekends,
-            mondayCompletions: mondayCompletions,
-            completedOnNewYear: completedOnNewYear
+            hasRebuiltAfterLoss: hasRebuiltAfterLoss,
+            perfectMonthsCompleted: perfectMonthsCompleted,
+            completedOnNewYear: completedOnNewYear,
+            installDate: installDate,
+            completedOnAnniversary: completedOnAnniversary
         )
     }
 }
