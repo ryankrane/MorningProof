@@ -230,13 +230,13 @@ struct DashboardView: View {
 
         switch hour {
         case 5..<12:
-            return "Good morning\(name)"
+            return "Good morning\(name) ☀️"
         case 12..<17:
-            return "Good afternoon\(name)"
+            return "Good afternoon\(name) 🌤️"
         case 17..<21:
-            return "Good evening\(name)"
+            return "Good evening\(name) 🌙"
         default:
-            return "Hello\(name)"
+            return "Good night\(name) 🌙"
         }
     }
 
