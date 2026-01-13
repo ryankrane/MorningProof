@@ -1,5 +1,8 @@
 # MorningProof
 
+## Developer Context
+First-time app developer, but fast learner. When explaining things, include big-picture context about why something works the way it does - not just how to fix it. Explain iOS/Swift concepts along the way when relevant.
+
 ## What This App Does
 Morning habit tracking app that uses photo verification (AI checks if you made your bed) to build streaks and accountability.
 
