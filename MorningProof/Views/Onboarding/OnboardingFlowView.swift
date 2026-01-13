@@ -474,7 +474,7 @@ struct GenderStep: View {
     }
 }
 
-// MARK: - Step 3: Name (Optional)
+// MARK: - Step 3: Name
 
 struct NameStep: View {
     @ObservedObject var data: OnboardingData
@@ -491,35 +491,55 @@ struct NameStep: View {
                     .foregroundColor(MPColors.primary)
 
                 Text("What should we call you?")
-                    .font(MPFont.headingLarge())
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("Optional - just to personalize your experience")
+                Text("We'll use this to personalize your experience")
                     .font(MPFont.bodyMedium())
                     .foregroundColor(MPColors.textSecondary)
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            TextField("", text: $data.userName, prompt: Text("First name (optional)").foregroundColor(MPColors.textTertiary))
-                .font(.system(size: 24, weight: .medium))
-                .foregroundColor(MPColors.textPrimary)
-                .multilineTextAlignment(.center)
-                .padding(MPSpacing.xl)
-                .background(MPColors.surface)
-                .cornerRadius(MPRadius.lg)
-                .mpShadow(.small)
-                .padding(.horizontal, MPSpacing.xxxl)
-                .focused($isNameFocused)
+            VStack(spacing: MPSpacing.sm) {
+                TextField("", text: $data.userName, prompt: Text("First name").foregroundColor(MPColors.textTertiary))
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .padding(MPSpacing.xl)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .mpShadow(.small)
+                    .focused($isNameFocused)
+
+                // Privacy note
+                HStack(spacing: MPSpacing.xs) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 10))
+                    Text("Stored locally. Never shared.")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(MPColors.textMuted)
+                .padding(.top, MPSpacing.xs)
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
 
             Spacer()
 
-            MPButton(
-                title: "Continue",
-                style: .primary
-            ) {
-                isNameFocused = false
-                onContinue()
+            VStack(spacing: MPSpacing.md) {
+                MPButton(
+                    title: data.userName.isEmpty ? "Skip" : "Continue",
+                    style: .primary
+                ) {
+                    isNameFocused = false
+                    onContinue()
+                }
+
+                if data.userName.isEmpty {
+                    Text("You can add your name later in settings")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
+                }
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
@@ -638,105 +658,116 @@ struct TrackingComparisonStep: View {
     let currentlyTracking: Bool
     let onContinue: () -> Void
 
+    @State private var showHeroStat = false
     @State private var showComparison = false
-    @State private var trackingProgress: CGFloat = 0
-    @State private var noTrackingProgress: CGFloat = 0
+    @State private var showPills = false
+    @State private var heroProgress: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer().frame(height: MPSpacing.xxxl)
 
-            Text("The Power of Tracking")
-                .font(MPFont.headingLarge())
+            // Header
+            Text("The Research Is Clear")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(MPColors.textPrimary)
+                .opacity(showHeroStat ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.sm)
+
+            Text("People who track their habits")
+                .font(MPFont.bodyLarge())
+                .foregroundColor(MPColors.textSecondary)
+                .opacity(showHeroStat ? 1 : 0)
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Comparison cards
-            HStack(spacing: MPSpacing.lg) {
-                // Without tracking
-                VStack(spacing: MPSpacing.lg) {
-                    ZStack {
-                        Circle()
-                            .stroke(MPColors.progressBg, lineWidth: 8)
-                            .frame(width: 100, height: 100)
+            // Hero stat card
+            VStack(spacing: MPSpacing.lg) {
+                ZStack {
+                    // Background ring
+                    Circle()
+                        .stroke(MPColors.progressBg, lineWidth: 12)
+                        .frame(width: 140, height: 140)
 
-                        Circle()
-                            .trim(from: 0, to: noTrackingProgress)
-                            .stroke(MPColors.error, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                            .frame(width: 100, height: 100)
-                            .rotationEffect(.degrees(-90))
+                    // Progress ring with gradient
+                    Circle()
+                        .trim(from: 0, to: heroProgress)
+                        .stroke(
+                            LinearGradient(
+                                colors: [MPColors.primary, MPColors.accent],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
+                        )
+                        .frame(width: 140, height: 140)
+                        .rotationEffect(.degrees(-90))
 
-                        Text("\(Int(noTrackingProgress * 100))%")
-                            .font(MPFont.headingMedium())
+                    // Percentage text
+                    VStack(spacing: 0) {
+                        Text("\(Int(heroProgress * 100))%")
+                            .font(.system(size: 44, weight: .bold, design: .rounded))
                             .foregroundColor(MPColors.textPrimary)
+                        Text("success rate")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(MPColors.textSecondary)
                     }
-
-                    Text("Without\nTracking")
-                        .font(MPFont.labelMedium())
-                        .foregroundColor(MPColors.textSecondary)
-                        .multilineTextAlignment(.center)
-
-                    Text("23% success rate")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
                 }
-                .padding(MPSpacing.xl)
-                .background(MPColors.surface)
-                .cornerRadius(MPRadius.lg)
-                .mpShadow(.small)
 
-                // With tracking
-                VStack(spacing: MPSpacing.lg) {
-                    ZStack {
-                        Circle()
-                            .stroke(MPColors.progressBg, lineWidth: 8)
-                            .frame(width: 100, height: 100)
-
-                        Circle()
-                            .trim(from: 0, to: trackingProgress)
-                            .stroke(MPColors.success, style: StrokeStyle(lineWidth: 8, lineCap: .round))
-                            .frame(width: 100, height: 100)
-                            .rotationEffect(.degrees(-90))
-
-                        Text("\(Int(trackingProgress * 100))%")
-                            .font(MPFont.headingMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                    }
-
-                    Text("With\nTracking")
-                        .font(MPFont.labelMedium())
-                        .foregroundColor(MPColors.textSecondary)
-                        .multilineTextAlignment(.center)
-
-                    Text("91% success rate")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.success)
-                }
-                .padding(MPSpacing.xl)
-                .background(MPColors.surface)
-                .cornerRadius(MPRadius.lg)
-                .overlay(
-                    RoundedRectangle(cornerRadius: MPRadius.lg)
-                        .stroke(MPColors.success.opacity(0.3), lineWidth: 2)
-                )
-                .mpShadow(.medium)
+                // Comparison text
+                Text("vs 35% who don't track")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(MPColors.textTertiary)
+                    .opacity(showComparison ? 1 : 0)
             }
-            .padding(.horizontal, MPSpacing.xl)
+            .padding(MPSpacing.xxl)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.xl)
+            .overlay(
+                RoundedRectangle(cornerRadius: MPRadius.xl)
+                    .stroke(
+                        LinearGradient(
+                            colors: [MPColors.primary.opacity(0.3), MPColors.accent.opacity(0.3)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 2
+                    )
+            )
+            .mpShadow(.large)
+            .padding(.horizontal, MPSpacing.xxl)
 
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            // Insight text
-            VStack(spacing: MPSpacing.sm) {
-                Text("People who track their habits are")
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textSecondary)
-
-                Text("4x more likely to succeed")
-                    .font(MPFont.headingSmall())
-                    .foregroundColor(MPColors.success)
+            // Research citation
+            HStack(spacing: MPSpacing.xs) {
+                Image(systemName: "checkmark.seal.fill")
+                    .font(.system(size: 12))
+                    .foregroundColor(MPColors.primary)
+                Text("Dominican University Study, 267 participants")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(MPColors.textTertiary)
             }
             .opacity(showComparison ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Supporting stats pills
+            HStack(spacing: MPSpacing.sm) {
+                StatPill(value: "42%", label: "more likely", icon: "arrow.up.right")
+                    .opacity(showPills ? 1 : 0)
+                    .offset(y: showPills ? 0 : 10)
+
+                StatPill(value: "2.2x", label: "better results", icon: "chart.line.uptrend.xyaxis")
+                    .opacity(showPills ? 1 : 0)
+                    .offset(y: showPills ? 0 : 10)
+
+                StatPill(value: "95%", label: "w/ accountability", icon: "person.2.fill")
+                    .opacity(showPills ? 1 : 0)
+                    .offset(y: showPills ? 0 : 10)
+            }
+            .padding(.horizontal, MPSpacing.lg)
 
             Spacer()
 
@@ -747,16 +778,52 @@ struct TrackingComparisonStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 1.2).delay(0.3)) {
-                noTrackingProgress = 0.23
+            // Staggered animations
+            withAnimation(.easeOut(duration: 0.5)) {
+                showHeroStat = true
             }
-            withAnimation(.easeOut(duration: 1.5).delay(0.5)) {
-                trackingProgress = 0.91
+            withAnimation(.easeOut(duration: 1.5).delay(0.3)) {
+                heroProgress = 0.76
             }
-            withAnimation(.easeIn(duration: 0.5).delay(1.5)) {
+            withAnimation(.easeOut(duration: 0.5).delay(1.2)) {
                 showComparison = true
             }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.5)) {
+                showPills = true
+            }
         }
+    }
+}
+
+// MARK: - Supporting Stat Pill Component
+
+struct StatPill: View {
+    let value: String
+    let label: String
+    let icon: String
+
+    var body: some View {
+        VStack(spacing: MPSpacing.xs) {
+            Image(systemName: icon)
+                .font(.system(size: 14))
+                .foregroundColor(MPColors.accent)
+
+            Text(value)
+                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .foregroundColor(MPColors.textPrimary)
+
+            Text(label)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(MPColors.textTertiary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, MPSpacing.md)
+        .padding(.horizontal, MPSpacing.sm)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.md)
+        .mpShadow(.small)
     }
 }
 
@@ -838,89 +905,196 @@ struct PrimaryGoalStep: View {
     }
 }
 
-// MARK: - Step 8: Gain Twice Animation
+// MARK: - Step 8: Morning Advantage Animation
 
 struct GainTwiceAnimationStep: View {
     let onContinue: () -> Void
 
+    @State private var showHeader = false
     @State private var showMultiplier = false
-    @State private var showText = false
+    @State private var animatedValue: Double = 1.0
+    @State private var showCards = false
+    @State private var showCitation = false
     @State private var pulseAnimation = false
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            // Header
+            VStack(spacing: MPSpacing.sm) {
+                Text("The Morning Advantage")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Morning routine builders are")
+                    .font(MPFont.bodyLarge())
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .opacity(showHeader ? 1 : 0)
+            .offset(y: showHeader ? 0 : -10)
+
+            Spacer().frame(height: MPSpacing.xxl)
 
             // Animated multiplier
             ZStack {
-                // Pulse circles
-                ForEach(0..<3, id: \.self) { index in
+                // Subtle pulse rings
+                ForEach(0..<2, id: \.self) { index in
                     Circle()
-                        .stroke(MPColors.accent.opacity(0.3 - Double(index) * 0.1), lineWidth: 2)
-                        .frame(width: CGFloat(150 + index * 40), height: CGFloat(150 + index * 40))
-                        .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-                        .opacity(pulseAnimation ? 0 : 1)
+                        .stroke(MPColors.accent.opacity(0.15 - Double(index) * 0.05), lineWidth: 1.5)
+                        .frame(width: CGFloat(160 + index * 30), height: CGFloat(160 + index * 30))
+                        .scaleEffect(pulseAnimation ? 1.15 : 1.0)
+                        .opacity(pulseAnimation ? 0 : 0.8)
                         .animation(
-                            .easeOut(duration: 2)
+                            .easeOut(duration: 2.5)
                             .repeatForever(autoreverses: false)
-                            .delay(Double(index) * 0.3),
+                            .delay(Double(index) * 0.4),
                             value: pulseAnimation
                         )
                 }
 
+                // Main circle with gradient
                 Circle()
                     .fill(
                         LinearGradient(
-                            colors: [MPColors.accent, MPColors.accentGold],
+                            colors: [MPColors.primary, MPColors.accent],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 120, height: 120)
+                    .frame(width: 130, height: 130)
                     .mpShadow(.large)
 
-                Text("2x")
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-                    .scaleEffect(showMultiplier ? 1 : 0.5)
-                    .opacity(showMultiplier ? 1 : 0)
+                // Animated number
+                VStack(spacing: 0) {
+                    Text(String(format: "%.1fx", animatedValue))
+                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .contentTransition(.numericText())
+
+                    Text("more likely")
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                .scaleEffect(showMultiplier ? 1 : 0.5)
+                .opacity(showMultiplier ? 1 : 0)
             }
 
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            VStack(spacing: MPSpacing.lg) {
-                Text("Gain Twice as Much")
-                    .font(MPFont.headingLarge())
-                    .foregroundColor(MPColors.textPrimary)
-                    .opacity(showText ? 1 : 0)
-                    .offset(y: showText ? 0 : 20)
+            // Supporting evidence cards
+            VStack(spacing: MPSpacing.md) {
+                EvidenceCard(
+                    stat: "78%",
+                    description: "of successful habit-formers complete key habits before 9 AM",
+                    icon: "sunrise.fill",
+                    iconColor: MPColors.accent
+                )
+                .opacity(showCards ? 1 : 0)
+                .offset(x: showCards ? 0 : -20)
 
-                Text("Morning Proof users accomplish\ntwice their goals compared to\ntraditional habit trackers.")
-                    .font(MPFont.bodyLarge())
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .opacity(showText ? 1 : 0)
-                    .offset(y: showText ? 0 : 20)
+                EvidenceCard(
+                    stat: "92%",
+                    description: "with morning routines report feeling highly productive",
+                    icon: "bolt.fill",
+                    iconColor: MPColors.accentGold
+                )
+                .opacity(showCards ? 1 : 0)
+                .offset(x: showCards ? 0 : 20)
             }
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer().frame(height: MPSpacing.lg)
+
+            // Research citation
+            HStack(spacing: MPSpacing.xs) {
+                Image(systemName: "book.closed.fill")
+                    .font(.system(size: 11))
+                    .foregroundColor(MPColors.textMuted)
+                Text("2025 Executive Performance Study")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(MPColors.textMuted)
+            }
+            .opacity(showCitation ? 1 : 0)
 
             Spacer()
 
-            MPButton(title: "Show Me How", style: .primary, icon: "arrow.right") {
+            MPButton(title: "Build My Routine", style: .primary, icon: "arrow.right") {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
+            // Staggered entrance animations
+            withAnimation(.easeOut(duration: 0.5)) {
+                showHeader = true
+            }
+
             pulseAnimation = true
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.2)) {
+
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3)) {
                 showMultiplier = true
             }
-            withAnimation(.easeOut(duration: 0.6).delay(0.5)) {
-                showText = true
+
+            // Animate the number from 1.0 to 3.2
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                withAnimation(.easeOut(duration: 1.2)) {
+                    animatedValue = 3.2
+                }
+            }
+
+            withAnimation(.easeOut(duration: 0.5).delay(1.0)) {
+                showCards = true
+            }
+
+            withAnimation(.easeOut(duration: 0.3).delay(1.4)) {
+                showCitation = true
             }
         }
+    }
+}
+
+// MARK: - Evidence Card Component
+
+struct EvidenceCard: View {
+    let stat: String
+    let description: String
+    let icon: String
+    let iconColor: Color
+
+    var body: some View {
+        HStack(spacing: MPSpacing.md) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.15))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(iconColor)
+            }
+
+            // Text
+            VStack(alignment: .leading, spacing: 2) {
+                Text(stat)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundColor(MPColors.textSecondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+        }
+        .padding(MPSpacing.md)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
     }
 }
 
@@ -1377,56 +1551,93 @@ struct LoadingPlanStep: View {
     let onComplete: () -> Void
 
     @State private var progress: CGFloat = 0
-    @State private var currentMessage = 0
+    @State private var currentPhase = 0
+    @State private var completedSteps: Set<Int> = []
+    @State private var isPulsing = false
 
-    private let messages = [
-        "Analyzing your goals...",
-        "Customizing habits...",
-        "Building your routine...",
-        "Optimizing for success...",
-        "Finalizing your plan..."
+    private let phases = [
+        (title: "Analyzing your responses", icon: "doc.text.magnifyingglass"),
+        (title: "Identifying optimal habits", icon: "brain.head.profile"),
+        (title: "Building your routine", icon: "calendar.badge.plus"),
+        (title: "Personalizing recommendations", icon: "person.crop.circle.badge.checkmark"),
+        (title: "Finalizing your plan", icon: "checkmark.seal")
     ]
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+            Spacer().frame(height: MPSpacing.xxxl * 2)
 
-            VStack(spacing: MPSpacing.xxl) {
-                // Animated loading indicator
-                ZStack {
-                    Circle()
-                        .stroke(MPColors.progressBg, lineWidth: 8)
-                        .frame(width: 120, height: 120)
+            // Header
+            VStack(spacing: MPSpacing.sm) {
+                Text("Creating Your Plan")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
 
-                    Circle()
-                        .trim(from: 0, to: progress)
-                        .stroke(
-                            LinearGradient(
-                                colors: [MPColors.primary, MPColors.accent],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                        )
-                        .frame(width: 120, height: 120)
-                        .rotationEffect(.degrees(-90))
-
-                    Text("\(Int(progress * 100))%")
-                        .font(MPFont.headingMedium())
-                        .foregroundColor(MPColors.textPrimary)
-                }
-
-                VStack(spacing: MPSpacing.md) {
-                    Text("Creating Your Plan")
-                        .font(MPFont.headingLarge())
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text(messages[currentMessage])
-                        .font(MPFont.bodyLarge())
+                if !userName.isEmpty {
+                    Text("Hang tight, \(userName)")
+                        .font(MPFont.bodyMedium())
                         .foregroundColor(MPColors.textSecondary)
-                        .animation(.easeInOut, value: currentMessage)
+                } else {
+                    Text("This won't take long")
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textSecondary)
                 }
             }
+
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            // Progress circle with pulse
+            ZStack {
+                // Pulse effect
+                Circle()
+                    .fill(MPColors.primary.opacity(0.1))
+                    .frame(width: 150, height: 150)
+                    .scaleEffect(isPulsing ? 1.15 : 1.0)
+                    .opacity(isPulsing ? 0.3 : 0.6)
+                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
+
+                // Background ring
+                Circle()
+                    .stroke(MPColors.progressBg, lineWidth: 10)
+                    .frame(width: 120, height: 120)
+
+                // Progress ring
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(
+                        LinearGradient(
+                            colors: [MPColors.primary, MPColors.accent],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                    )
+                    .frame(width: 120, height: 120)
+                    .rotationEffect(.degrees(-90))
+
+                // Percentage
+                VStack(spacing: 0) {
+                    Text("\(Int(progress * 100))%")
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .contentTransition(.numericText())
+                }
+            }
+
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            // Phase checklist
+            VStack(spacing: MPSpacing.md) {
+                ForEach(0..<phases.count, id: \.self) { index in
+                    LoadingPhaseRow(
+                        title: phases[index].title,
+                        icon: phases[index].icon,
+                        isActive: currentPhase == index,
+                        isCompleted: completedSteps.contains(index)
+                    )
+                }
+            }
+            .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
         }
@@ -1436,24 +1647,86 @@ struct LoadingPlanStep: View {
     }
 
     private func startLoading() {
-        // Animate progress bar
-        withAnimation(.easeInOut(duration: 3)) {
+        isPulsing = true
+
+        // Total duration: ~5.5 seconds
+        // Progress animation over 5 seconds
+        withAnimation(.easeOut(duration: 5.0)) {
             progress = 1.0
         }
 
-        // Cycle through messages
-        for i in 0..<messages.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.6) {
-                withAnimation {
-                    currentMessage = i
+        // Phase transitions (5 phases over ~5 seconds = 1 second each)
+        for i in 0..<phases.count {
+            // Set phase active
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.0) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    currentPhase = i
+                }
+            }
+
+            // Mark previous phase complete
+            if i > 0 {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.0) {
+                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                        completedSteps.insert(i - 1)
+                    }
                 }
             }
         }
 
-        // Complete after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
+        // Mark last phase complete
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
+                completedSteps.insert(phases.count - 1)
+            }
+        }
+
+        // Complete and transition
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
             onComplete()
         }
+    }
+}
+
+// MARK: - Loading Phase Row
+
+struct LoadingPhaseRow: View {
+    let title: String
+    let icon: String
+    let isActive: Bool
+    let isCompleted: Bool
+
+    var body: some View {
+        HStack(spacing: MPSpacing.md) {
+            // Status indicator
+            ZStack {
+                Circle()
+                    .fill(isCompleted ? MPColors.success : (isActive ? MPColors.primary.opacity(0.15) : MPColors.surfaceSecondary))
+                    .frame(width: 32, height: 32)
+
+                if isCompleted {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(.white)
+                } else if isActive {
+                    ProgressView()
+                        .scaleEffect(0.7)
+                        .tint(MPColors.primary)
+                } else {
+                    Image(systemName: icon)
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+
+            // Title
+            Text(title)
+                .font(.system(size: 15, weight: isActive || isCompleted ? .medium : .regular))
+                .foregroundColor(isActive || isCompleted ? MPColors.textPrimary : MPColors.textTertiary)
+
+            Spacer()
+        }
+        .padding(.vertical, MPSpacing.xs)
     }
 }
 
@@ -1861,27 +2134,29 @@ struct OnboardingGridButton: View {
 
     var body: some View {
         Button(action: action) {
-            VStack(spacing: MPSpacing.md) {
+            VStack(spacing: MPSpacing.sm) {
                 ZStack {
                     Circle()
                         .fill(isSelected ? MPColors.primaryLight : MPColors.surfaceSecondary)
-                        .frame(width: 50, height: 50)
+                        .frame(width: 44, height: 44)
 
                     Image(systemName: icon)
-                        .font(.system(size: 22))
+                        .font(.system(size: 18))
                         .foregroundColor(isSelected ? MPColors.primary : MPColors.textTertiary)
                 }
 
                 Text(title)
-                    .font(MPFont.labelSmall())
+                    .font(.system(size: 13, weight: .medium))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
-                    .minimumScaleFactor(0.8)
+                    .minimumScaleFactor(0.75)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, MPSpacing.lg)
-            .padding(.horizontal, MPSpacing.md)
+            .frame(minHeight: 95)
+            .padding(.vertical, MPSpacing.md)
+            .padding(.horizontal, MPSpacing.sm)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
             .overlay(
