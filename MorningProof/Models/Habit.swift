@@ -185,6 +185,23 @@ struct DailyLog: Codable, Identifiable {
         self.lockedInAt = nil
     }
 
+    // Custom decoder to handle old data without new fields
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        date = try container.decode(Date.self, forKey: .date)
+        completions = try container.decode([HabitCompletion].self, forKey: .completions)
+        morningScore = try container.decode(Int.self, forKey: .morningScore)
+        allCompletedBeforeCutoff = try container.decode(Bool.self, forKey: .allCompletedBeforeCutoff)
+        // Default to false if not present in old data
+        isDayLockedIn = try container.decodeIfPresent(Bool.self, forKey: .isDayLockedIn) ?? false
+        lockedInAt = try container.decodeIfPresent(Date.self, forKey: .lockedInAt)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, date, completions, morningScore, allCompletedBeforeCutoff, isDayLockedIn, lockedInAt
+    }
+
     mutating func calculateScore(enabledHabits: [HabitConfig]) {
         let enabledTypes = Set(enabledHabits.filter { $0.isEnabled }.map { $0.habitType })
         let relevantCompletions = completions.filter { enabledTypes.contains($0.habitType) }
