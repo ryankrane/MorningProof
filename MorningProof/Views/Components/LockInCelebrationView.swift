@@ -177,7 +177,7 @@ struct LockInCelebrationView: View {
 
         var delay: Double = 0
 
-        for (index, bounce) in bounces.enumerated() {
+        for (_, bounce) in bounces.enumerated() {
             let (targetPos, bounceHeight, duration) = bounce
 
             // Bounce up
