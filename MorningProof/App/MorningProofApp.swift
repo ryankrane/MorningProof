@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import FirebaseCore
+import GoogleSignIn
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication,
@@ -78,6 +79,10 @@ struct MorningProofApp: App {
             }
             .environmentObject(themeManager)
             .preferredColorScheme(themeManager.preferredColorScheme)
+            .onOpenURL { url in
+                // Handle Google Sign-In callback
+                _ = authManager.handleGoogleURL(url)
+            }
             .task {
                 // Run migration if needed
                 let context = modelContainer.mainContext
