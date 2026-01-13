@@ -43,6 +43,8 @@ targets:
     entitlements:
       path: MorningProof/Resources/MorningProof.entitlements
       properties:
+        com.apple.developer.applesignin:
+          - Default
         com.apple.developer.healthkit: true
         com.apple.security.application-groups:
           - group.com.rk.morningproof
