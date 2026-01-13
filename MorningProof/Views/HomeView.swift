@@ -159,9 +159,9 @@ struct HomeView: View {
 
             // Stats row
             HStack(spacing: MPSpacing.xxl) {
-                StatPill(value: viewModel.streakData.longestStreak, label: "Best")
-                StatPill(value: viewModel.streakData.totalCompletions, label: "Total")
-                StatPill(value: viewModel.achievements.unlockedCount, label: "Awards")
+                HomeStatPill(value: viewModel.streakData.longestStreak, label: "Best")
+                HomeStatPill(value: viewModel.streakData.totalCompletions, label: "Total")
+                HomeStatPill(value: viewModel.achievements.unlockedCount, label: "Awards")
             }
         }
         .frame(maxWidth: .infinity)
@@ -292,7 +292,7 @@ struct HomeView: View {
 
 // MARK: - Supporting Views
 
-struct StatPill: View {
+private struct HomeStatPill: View {
     let value: Int
     let label: String
 
