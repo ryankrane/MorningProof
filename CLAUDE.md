@@ -3,6 +3,9 @@
 ## Developer Context
 First-time app developer, but fast learner. When explaining things, include big-picture context about why something works the way it does - not just how to fix it. Explain iOS/Swift concepts along the way when relevant.
 
+## Claude Instructions
+When you learn something important about this project (gotchas, patterns, decisions, or context that would help future sessions), add it to this file. Keep it concise.
+
 ## What This App Does
 Morning habit tracking app that uses photo verification (AI checks if you made your bed) to build streaks and accountability.
 
@@ -30,3 +33,6 @@ To deploy: `git checkout main && git merge dev && git push && git checkout dev`
 - `NotificationManager` - Push notifications
 - `AuthenticationManager` - Sign in with Apple
 - `ThemeManager` - Light/dark mode
+
+## Gotchas & Learnings
+- Don't add `UIBackgroundModes: processing` to Info.plist unless you also add `BGTaskSchedulerPermittedIdentifiers` with task IDs - Apple will reject the build (ITMS-90771)
