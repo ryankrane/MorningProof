@@ -111,8 +111,9 @@ class AuthenticationManager: NSObject, ObservableObject {
 
                 if let error = error {
                     self.isLoading = false
-                    // Check if user cancelled
-                    if (error as NSError).code == GIDSignInError.canceled.rawValue {
+                    // Check if user cancelled (GIDSignInError code 1 = canceled)
+                    let nsError = error as NSError
+                    if nsError.domain == "com.google.GIDSignIn" && nsError.code == -5 {
                         self.errorMessage = nil
                     } else {
                         self.errorMessage = error.localizedDescription
