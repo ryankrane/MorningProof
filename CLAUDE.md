@@ -10,10 +10,8 @@ When you learn something important about this project (gotchas, patterns, decisi
 Morning habit tracking app that uses photo verification (AI checks if you made your bed) to build streaks and accountability.
 
 ## Git Workflow
-- **dev branch**: All development work happens here. Push freely.
-- **main branch**: Merging to main triggers Xcode Cloud → TestFlight build.
-
-To deploy: `git checkout main && git merge dev && git push && git checkout dev`
+- **main branch**: Default branch for all work. Pushing to main triggers Xcode Cloud → TestFlight build.
+- **dev branch**: Use only when explicitly requested for experimental work.
 
 ## Tech Stack
 - SwiftUI + SwiftData
@@ -33,6 +31,12 @@ To deploy: `git checkout main && git merge dev && git push && git checkout dev`
 - `NotificationManager` - Push notifications
 - `AuthenticationManager` - Sign in with Apple
 - `ThemeManager` - Light/dark mode
+
+## App Identifiers
+- Bundle ID: `com.rk.morningproof`
+- App Store ID: `6757691737`
+- Team ID: `P9ZXADV42A`
+- Google OAuth Client: `591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3.apps.googleusercontent.com`
 
 ## Gotchas & Learnings
 - Don't add `UIBackgroundModes: processing` to Info.plist unless you also add `BGTaskSchedulerPermittedIdentifiers` with task IDs - Apple will reject the build (ITMS-90771)

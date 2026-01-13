@@ -28,7 +28,7 @@ enum MPColors {
     static let textMuted = Color("TextMuted")
 
     // Brand
-    static let primary = Color("Primary")
+    static let primary = Color("BrandPrimary")
     static let primaryLight = Color("PrimaryLight")
     static let primaryDark = Color("PrimaryDark")
 

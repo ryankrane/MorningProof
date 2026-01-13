@@ -61,8 +61,6 @@
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
 		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* AchievementUnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* AchievementUnlockCelebrationView.swift */; };
-		LOCK1NBTN012345678901234 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NBTNREF012345678901 /* LockInDayButton.swift */; };
-		LOCK1NCEL012345678901234 /* LockInCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
 		C3852E731ABDE35227F81FA6 /* MorningRoutineLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */; };
 		CD10621B534AEC0D3BFBBBB2 /* DataServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */; };
@@ -81,6 +79,8 @@
 		FBC53C28FE3C647ABD28D688 /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3671DB51C5213888E586A8D3 /* AchievementsView.swift */; };
 		FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD129FC6CB536710C7F464C /* UserSettings.swift */; };
 		FE0AF8A5837165E0CC89F30F /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6711E8B3FC3C7118542CE8D8 /* NotificationManager.swift */; };
+		LOCK1NBTN012345678901234 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NBTNREF012345678901 /* LockInDayButton.swift */; };
+		LOCK1NCEL012345678901234 /* LockInCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -135,8 +135,6 @@
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
-		LOCK1NBTNREF012345678901 /* LockInDayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInDayButton.swift; sourceTree = "<group>"; };
-		LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInCelebrationView.swift; sourceTree = "<group>"; };
 		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
@@ -201,6 +199,8 @@
 		F5278A0D88B9F11414F0F9B7 /* MorningProofWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofWidgetBundle.swift; sourceTree = "<group>"; };
 		F6CB434AF33E074D379634A1 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
+		LOCK1NBTNREF012345678901 /* LockInDayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInDayButton.swift; sourceTree = "<group>"; };
+		LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInCelebrationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -681,6 +681,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -749,6 +750,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
