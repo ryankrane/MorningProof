@@ -57,6 +57,7 @@ struct DashboardContentView: View {
     @State private var showPerfectMorningCelebration = false
     @State private var triggerStreakPulse = false
     @State private var flameFrame: CGRect = .zero
+    @State private var showLockInCelebration = false
 
     var body: some View {
         NavigationStack {
@@ -96,6 +97,18 @@ struct DashboardContentView: View {
                 // Perfect Morning celebration overlay
                 if showPerfectMorningCelebration {
                     FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
+                }
+
+                // Lock-in celebration overlay
+                if showLockInCelebration {
+                    LockInCelebrationView(
+                        isShowing: $showLockInCelebration,
+                        buttonPosition: CGPoint(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height - 200),
+                        streakFlamePosition: CGPoint(x: flameFrame.midX, y: flameFrame.midY),
+                        onFlameArrived: {
+                            triggerStreakPulse = true
+                        }
+                    )
                 }
             }
             .navigationTitle(greeting)
@@ -193,7 +206,26 @@ struct DashboardContentView: View {
             ForEach(manager.enabledHabits) { config in
                 habitRow(for: config)
             }
+
+            // Lock In Day Button
+            HStack {
+                Spacer()
+                LockInDayButton(
+                    isEnabled: manager.canLockInDay,
+                    isLockedIn: manager.todayLog.isDayLockedIn,
+                    onLockIn: {
+                        triggerLockInCelebration()
+                    }
+                )
+                Spacer()
+            }
+            .padding(.top, MPSpacing.lg)
         }
+    }
+
+    private func triggerLockInCelebration() {
+        manager.lockInDay()
+        showLockInCelebration = true
     }
 
     func habitRow(for config: HabitConfig) -> some View {
