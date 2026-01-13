@@ -1197,7 +1197,7 @@ struct RatingStep: View {
 
             // Star rating visual
             HStack(spacing: MPSpacing.sm) {
-                ForEach(0..<5, id: \.self) { index in
+                ForEach(0..<5, id: \.self) { _ in
                     Image(systemName: "star.fill")
                         .font(.system(size: 36))
                         .foregroundColor(MPColors.accentGold)
