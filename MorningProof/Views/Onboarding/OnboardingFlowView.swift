@@ -1668,7 +1668,7 @@ struct LoadingPlanStep: View {
             if i > 0 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.0) {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        completedSteps.insert(i - 1)
+                        _ = completedSteps.insert(i - 1)
                     }
                 }
             }
@@ -1677,7 +1677,7 @@ struct LoadingPlanStep: View {
         // Mark last phase complete
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                completedSteps.insert(phases.count - 1)
+                _ = completedSteps.insert(phases.count - 1)
             }
         }
 
