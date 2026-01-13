@@ -9,6 +9,9 @@ packages:
   Firebase:
     url: https://github.com/firebase/firebase-ios-sdk
     from: "11.0.0"
+  GoogleSignIn:
+    url: https://github.com/google/GoogleSignIn-iOS
+    from: "8.0.0"
 
 settings:
   base:
@@ -30,6 +33,8 @@ targets:
         product: FirebaseCrashlytics
       - package: Firebase
         product: FirebaseAnalytics
+      - package: GoogleSignIn
+        product: GoogleSignIn
       - target: MorningProofWidget
         embed: true
     settings:
@@ -69,6 +74,10 @@ targets:
         NSPhotoLibraryUsageDescription: "Morning Proof needs photo library access to select bed photos for verification."
         NSHealthShareUsageDescription: "Morning Proof uses your health data to automatically track morning movement and sleep quality."
         NSHealthUpdateUsageDescription: "Morning Proof may save your morning routine data to Health."
+        GIDClientID: 591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3.apps.googleusercontent.com
+        CFBundleURLTypes:
+          - CFBundleURLSchemes:
+              - com.googleusercontent.apps.591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3
 
   MorningProofWidget:
     type: app-extension
