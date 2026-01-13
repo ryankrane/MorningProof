@@ -36,3 +36,5 @@ To deploy: `git checkout main && git merge dev && git push && git checkout dev`
 
 ## Gotchas & Learnings
 - Don't add `UIBackgroundModes: processing` to Info.plist unless you also add `BGTaskSchedulerPermittedIdentifiers` with task IDs - Apple will reject the build (ITMS-90771)
+- Version numbers need to be updated in both `project.yml` AND `project.pbxproj` (MARKETING_VERSION)
+- `project.yml` also defines Info.plist properties - changes there can override the actual Info.plist file
