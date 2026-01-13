@@ -14,7 +14,7 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     TARGETED_DEVICE_FAMILY: "1"
-    MARKETING_VERSION: "1.0.0"
+    MARKETING_VERSION: "1.0.1"
     CURRENT_PROJECT_VERSION: "1"
 
 targets:
@@ -67,8 +67,6 @@ targets:
         NSPhotoLibraryUsageDescription: "Morning Proof needs photo library access to select bed photos for verification."
         NSHealthShareUsageDescription: "Morning Proof uses your health data to automatically track morning movement and sleep quality."
         NSHealthUpdateUsageDescription: "Morning Proof may save your morning routine data to Health."
-        UIBackgroundModes:
-          - processing
 
   MorningProofWidget:
     type: app-extension
