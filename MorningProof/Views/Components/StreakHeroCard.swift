@@ -6,6 +6,7 @@ struct StreakHeroCard: View {
     let totalHabits: Int
     let isPerfectMorning: Bool
     @Binding var triggerPulse: Bool  // External trigger for flame pulse (when flying flame arrives)
+    @Binding var flameFrame: CGRect  // For lock-in celebration to target the flame
 
     @State private var flameScale: CGFloat = 1.0
     @State private var streakNumberScale: CGFloat = 0.8
@@ -76,6 +77,17 @@ struct StreakHeroCard: View {
                     // Always-on glow when streak > 0, with pulsing effect
                     .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2), radius: glowRadius + glowPulse * 4)
                     .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear {
+                                    flameFrame = geo.frame(in: .global)
+                                }
+                                .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                                    flameFrame = newFrame
+                                }
+                        }
+                    )
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
@@ -201,9 +213,9 @@ struct StreakHeroCard: View {
 
 #Preview {
     VStack(spacing: MPSpacing.xl) {
-        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false))
-        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, triggerPulse: .constant(false))
-        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false))
+        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
     }
     .padding()
     .background(MPColors.background)

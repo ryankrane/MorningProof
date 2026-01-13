@@ -19,7 +19,7 @@ struct DashboardView: View {
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
     @State private var showConfettiForHabit: HabitType? = nil
-    @State private var showPerfectMorningCelebration = false
+    @State private var showLockInCelebration = false
     @State private var previousCompletedCount = 0
     @State private var previouslyCompletedHabits: Set<HabitType> = []
 
@@ -27,6 +27,10 @@ struct DashboardView: View {
     @State private var habitRowFlash: [HabitType: Bool] = [:]
     @State private var habitRowGlow: [HabitType: CGFloat] = [:]
     @State private var triggerStreakPulse = false
+
+    // Lock-in button position tracking
+    @State private var lockButtonFrame: CGRect = .zero
+    @State private var streakFlameFrame: CGRect = .zero
 
     var body: some View {
         ZStack {
@@ -39,13 +43,14 @@ struct DashboardView: View {
                     // Header
                     headerSection
 
-                    // Streak Hero Card
+                    // Streak Hero Card with flame position tracking
                     StreakHeroCard(
                         currentStreak: manager.currentStreak,
                         completedToday: manager.completedCount,
                         totalHabits: manager.totalEnabled,
                         isPerfectMorning: manager.isPerfectMorning,
-                        triggerPulse: $triggerStreakPulse
+                        triggerPulse: $triggerStreakPulse,
+                        flameFrame: $streakFlameFrame
                     )
 
                     // Countdown
@@ -65,11 +70,12 @@ struct DashboardView: View {
                 await manager.syncHealthData()
             }
 
-            // Flame celebration overlay (when all habits completed)
-            if showPerfectMorningCelebration {
-                AllHabitsCompleteCelebrationView(
-                    isShowing: $showPerfectMorningCelebration,
-                    streakCount: manager.currentStreak,
+            // Lock-in celebration overlay (when user locks in their day)
+            if showLockInCelebration {
+                LockInCelebrationView(
+                    isShowing: $showLockInCelebration,
+                    buttonPosition: lockButtonFrame.origin,
+                    streakFlamePosition: streakFlameFrame.origin,
                     onFlameArrived: {
                         // Trigger StreakHeroCard pulse when flame arrives
                         triggerStreakPulse = true
@@ -140,16 +146,11 @@ struct DashboardView: View {
             // Check for newly auto-completed habits after sync
             checkForNewlyCompletedHabits()
         }
-        .onChange(of: manager.hasCompletedAllHabitsToday) { _, newValue in
-            if newValue && !showPerfectMorningCelebration {
-                triggerFlameCelebration()
-            }
-        }
     }
 
-    private func triggerFlameCelebration() {
-        showPerfectMorningCelebration = true
-        // Haptics are handled in the celebration view itself
+    private func triggerLockInCelebration() {
+        manager.lockInDay()
+        showLockInCelebration = true
     }
 
     /// Checks for habits that were just auto-completed by HealthKit sync and triggers confetti
@@ -306,6 +307,30 @@ struct DashboardView: View {
             ForEach(manager.enabledHabits) { config in
                 habitRow(for: config)
             }
+
+            // Lock In Day Button
+            HStack {
+                Spacer()
+                LockInDayButton(
+                    isEnabled: manager.canLockInDay,
+                    isLockedIn: manager.todayLog.isDayLockedIn,
+                    onLockIn: {
+                        triggerLockInCelebration()
+                    }
+                )
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.onAppear {
+                            lockButtonFrame = geo.frame(in: .global)
+                        }
+                        .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                            lockButtonFrame = newFrame
+                        }
+                    }
+                )
+                Spacer()
+            }
+            .padding(.top, MPSpacing.lg)
         }
     }
 

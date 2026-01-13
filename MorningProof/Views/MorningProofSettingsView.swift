@@ -204,7 +204,12 @@ struct MorningProofSettingsView: View {
 
                 // Test celebration overlay
                 if showTestCelebration {
-                    TestFlameAnimationView(isShowing: $showTestCelebration)
+                    LockInCelebrationView(
+                        isShowing: $showTestCelebration,
+                        buttonPosition: CGPoint(x: 200, y: 600),
+                        streakFlamePosition: CGPoint(x: 60, y: 150),
+                        onFlameArrived: {}
+                    )
                 }
             }
             .navigationTitle("Settings")

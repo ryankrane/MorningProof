@@ -172,6 +172,8 @@ struct DailyLog: Codable, Identifiable {
     var completions: [HabitCompletion]
     var morningScore: Int // 0-100
     var allCompletedBeforeCutoff: Bool
+    var isDayLockedIn: Bool // True when user has explicitly locked in the day
+    var lockedInAt: Date? // Timestamp when day was locked in
 
     init(date: Date = Date()) {
         self.id = UUID()
@@ -179,6 +181,8 @@ struct DailyLog: Codable, Identifiable {
         self.completions = []
         self.morningScore = 0
         self.allCompletedBeforeCutoff = false
+        self.isDayLockedIn = false
+        self.lockedInAt = nil
     }
 
     mutating func calculateScore(enabledHabits: [HabitConfig]) {

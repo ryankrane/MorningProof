@@ -375,6 +375,30 @@ class MorningProofManager: ObservableObject {
         return hasCompletedAllHabitsToday
     }
 
+    // MARK: - Lock In Day
+
+    /// Returns true if user can lock in their day (all habits complete and not already locked)
+    var canLockInDay: Bool {
+        hasCompletedAllHabitsToday && !todayLog.isDayLockedIn
+    }
+
+    /// Explicitly lock in the day - called when user long-presses the lock button
+    func lockInDay() {
+        guard canLockInDay else { return }
+
+        todayLog.isDayLockedIn = true
+        todayLog.lockedInAt = Date()
+
+        saveCurrentState()
+
+        // Future: When Screen Time API is ready
+        // if settings.appLockingEnabled {
+        //     Task {
+        //         await ScreenTimeManager.shared.unlockApps(settings.lockedApps)
+        //     }
+        // }
+    }
+
     func updateStreak() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())

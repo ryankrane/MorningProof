@@ -61,7 +61,8 @@
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
 		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
 		B2C3D4E5F6A7B8C9D0E1F2A3 /* AchievementUnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* AchievementUnlockCelebrationView.swift */; };
-		B2F6537A94E5A4BCD71305C5 /* AllHabitsCompleteCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 243AA6D1EAF7B85D8939124C /* AllHabitsCompleteCelebrationView.swift */; };
+		LOCK1NBTN012345678901234 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NBTNREF012345678901 /* LockInDayButton.swift */; };
+		LOCK1NCEL012345678901234 /* LockInCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
 		C3852E731ABDE35227F81FA6 /* MorningRoutineLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */; };
 		CD10621B534AEC0D3BFBBBB2 /* DataServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */; };
@@ -134,7 +135,8 @@
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
-		243AA6D1EAF7B85D8939124C /* AllHabitsCompleteCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AllHabitsCompleteCelebrationView.swift; sourceTree = "<group>"; };
+		LOCK1NBTNREF012345678901 /* LockInDayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInDayButton.swift; sourceTree = "<group>"; };
+		LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInCelebrationView.swift; sourceTree = "<group>"; };
 		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
@@ -251,7 +253,8 @@
 			isa = PBXGroup;
 			children = (
 				A1B2C3D4E5F6A7B8C9D0E1F2 /* AchievementUnlockCelebrationView.swift */,
-				243AA6D1EAF7B85D8939124C /* AllHabitsCompleteCelebrationView.swift */,
+				LOCK1NBTNREF012345678901 /* LockInDayButton.swift */,
+				LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */,
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
 				4721A0F6D815690A22663A52 /* MiniConfettiView.swift */,
 				ECA15CD82E35AFFFCE2A958F /* MPButton.swift */,
@@ -563,7 +566,8 @@
 				F9057F0A326F15BFE632754F /* Achievement.swift in Sources */,
 				B2C3D4E5F6A7B8C9D0E1F2A3 /* AchievementUnlockCelebrationView.swift in Sources */,
 				FBC53C28FE3C647ABD28D688 /* AchievementsView.swift in Sources */,
-				B2F6537A94E5A4BCD71305C5 /* AllHabitsCompleteCelebrationView.swift in Sources */,
+				LOCK1NBTN012345678901234 /* LockInDayButton.swift in Sources */,
+				LOCK1NCEL012345678901234 /* LockInCelebrationView.swift in Sources */,
 				AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */,
 				9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */,
 				8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */,

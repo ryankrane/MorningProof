@@ -11,15 +11,31 @@ class HapticManager {
         generator.impactOccurred()
     }
 
+    // Alias for lightTap
+    func light() {
+        lightTap()
+    }
+
     // Medium tap for confirmations
     func mediumTap() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
     }
 
+    // Alias for mediumTap
+    func medium() {
+        mediumTap()
+    }
+
     // Heavy tap for important actions
     func heavyTap() {
         let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.impactOccurred()
+    }
+
+    // Rigid tap for sharp, satisfying feedback (like a lock clicking)
+    func rigid() {
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
         generator.impactOccurred()
     }
 
