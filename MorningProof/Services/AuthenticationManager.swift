@@ -1,6 +1,7 @@
 import Foundation
 import AuthenticationServices
 import SwiftUI
+import GoogleSignIn
 
 @MainActor
 class AuthenticationManager: NSObject, ObservableObject {
@@ -12,6 +13,7 @@ class AuthenticationManager: NSObject, ObservableObject {
     @Published var errorMessage: String?
 
     private let storageKey = "morning_proof_auth_user"
+    private let googleClientID = "591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3.apps.googleusercontent.com"
 
     override init() {
         super.init()
@@ -89,26 +91,73 @@ class AuthenticationManager: NSObject, ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        // Google Sign-In requires the GoogleSignIn SDK
-        // For now, we'll create a placeholder that can be filled in
-        // when the SDK is properly configured
+        // Configure Google Sign-In with client ID
+        let config = GIDConfiguration(clientID: googleClientID)
+        GIDSignIn.sharedInstance.configuration = config
 
-        #if canImport(GoogleSignIn)
-        // Real Google Sign-In implementation would go here
-        // GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { result, error in ... }
-        #endif
-
-        // Placeholder: Show that Google Sign-In needs SDK setup
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.isLoading = false
-            self.errorMessage = "Google Sign-In requires additional setup. Use Apple Sign-In or Skip for now."
+        // Get the root view controller for presenting the sign-in flow
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootViewController = windowScene.windows.first?.rootViewController else {
+            isLoading = false
+            errorMessage = "Unable to get root view controller"
             completion(false)
+            return
         }
+
+        // Present Google Sign-In
+        GIDSignIn.sharedInstance.signIn(withPresenting: rootViewController) { [weak self] result, error in
+            Task { @MainActor in
+                guard let self = self else { return }
+
+                if let error = error {
+                    self.isLoading = false
+                    // Check if user cancelled
+                    if (error as NSError).code == GIDSignInError.canceled.rawValue {
+                        self.errorMessage = nil
+                    } else {
+                        self.errorMessage = error.localizedDescription
+                    }
+                    completion(false)
+                    return
+                }
+
+                guard let user = result?.user,
+                      let profile = user.profile else {
+                    self.isLoading = false
+                    self.errorMessage = "Unable to get user profile"
+                    completion(false)
+                    return
+                }
+
+                // Create AuthUser from Google profile
+                let authUser = AuthUser(
+                    id: user.userID ?? UUID().uuidString,
+                    email: profile.email,
+                    fullName: profile.name,
+                    provider: .google
+                )
+
+                self.saveUser(authUser)
+                self.isAuthenticated = true
+                self.currentUser = authUser
+                self.isLoading = false
+                completion(true)
+            }
+        }
+    }
+
+    /// Handle Google Sign-In URL callback
+    func handleGoogleURL(_ url: URL) -> Bool {
+        return GIDSignIn.sharedInstance.handle(url)
     }
 
     // MARK: - Sign Out
 
     func signOut() {
+        // Sign out of Google if using Google provider
+        if currentUser?.provider == .google {
+            GIDSignIn.sharedInstance.signOut()
+        }
         currentUser = nil
         isAuthenticated = false
         UserDefaults.standard.removeObject(forKey: storageKey)

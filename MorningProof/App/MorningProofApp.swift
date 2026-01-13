@@ -78,6 +78,9 @@ struct MorningProofApp: App {
             }
             .environmentObject(themeManager)
             .preferredColorScheme(themeManager.preferredColorScheme)
+            .onOpenURL { url in
+                _ = authManager.handleGoogleURL(url)
+            }
             .task {
                 // Run migration if needed
                 let context = modelContainer.mainContext
