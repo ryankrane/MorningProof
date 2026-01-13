@@ -7,11 +7,11 @@ import AuthenticationServices
 class OnboardingData: ObservableObject {
     @Published var userName: String = ""
     @Published var gender: Gender = .preferNotToSay
-    @Published var heardAboutUs: HeardAboutSource = .other
-    @Published var currentlyTracking: Bool = false
+    @Published var heardAboutUs: HeardAboutSource = .instagram
+    @Published var trackingStatus: TrackingStatus = .no
     @Published var primaryGoal: PrimaryGoal = .setHabits
     @Published var obstacles: Set<Obstacle> = []
-    @Published var desiredOutcome: DesiredOutcome = .moreEnergy
+    @Published var desiredOutcomes: Set<DesiredOutcome> = []
     @Published var healthConnected: Bool = false
     @Published var notificationsEnabled: Bool = false
     @Published var selectedHabits: Set<HabitType> = [.madeBed, .sleepDuration, .noSnooze]
@@ -31,20 +31,20 @@ class OnboardingData: ObservableObject {
     }
 
     enum HeardAboutSource: String, CaseIterable {
-        case appStore = "App Store"
-        case socialMedia = "Social Media"
-        case friend = "Friend or Family"
+        case instagram = "Instagram"
+        case tiktok = "TikTok"
+        case reddit = "Reddit"
         case youtube = "YouTube"
-        case podcast = "Podcast"
+        case friend = "Friend or Family"
         case other = "Other"
 
         var icon: String {
             switch self {
-            case .appStore: return "apple.logo"
-            case .socialMedia: return "bubble.left.and.bubble.right.fill"
-            case .friend: return "person.2.fill"
+            case .instagram: return "camera.circle.fill"
+            case .tiktok: return "play.square.stack.fill"
+            case .reddit: return "bubble.left.and.text.bubble.right.fill"
             case .youtube: return "play.rectangle.fill"
-            case .podcast: return "mic.fill"
+            case .friend: return "person.2.fill"
             case .other: return "ellipsis.circle.fill"
             }
         }
@@ -108,6 +108,20 @@ class OnboardingData: ObservableObject {
             }
         }
     }
+
+    enum TrackingStatus: String, CaseIterable {
+        case yesConsistently = "Yes, I track consistently"
+        case yesNotEnough = "Yes, but not as much as I'd like"
+        case no = "No, I don't track yet"
+
+        var icon: String {
+            switch self {
+            case .yesConsistently: return "checkmark.circle.fill"
+            case .yesNotEnough: return "circle.dotted"
+            case .no: return "xmark.circle.fill"
+            }
+        }
+    }
 }
 
 // MARK: - Onboarding Flow View
@@ -152,58 +166,49 @@ struct OnboardingFlowView: View {
                         .padding(.top, MPSpacing.sm)
                 }
 
-                // Content
-                TabView(selection: $currentStep) {
-                    WelcomeStep(onContinue: nextStep)
-                        .tag(0)
-
-                    GenderStep(data: onboardingData, onContinue: nextStep)
-                        .tag(1)
-
-                    NameStep(data: onboardingData, onContinue: nextStep)
-                        .tag(2)
-
-                    HeardAboutStep(data: onboardingData, onContinue: nextStep)
-                        .tag(3)
-
-                    TrackingQuestionStep(data: onboardingData, onContinue: nextStep)
-                        .tag(4)
-
-                    TrackingComparisonStep(currentlyTracking: onboardingData.currentlyTracking, onContinue: nextStep)
-                        .tag(5)
-
-                    PrimaryGoalStep(data: onboardingData, onContinue: nextStep)
-                        .tag(6)
-
-                    GainTwiceAnimationStep(onContinue: nextStep)
-                        .tag(7)
-
-                    ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                        .tag(8)
-
-                    DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
-                        .tag(9)
-
-                    HealthConnectStep(data: onboardingData, onContinue: nextStep)
-                        .tag(10)
-
-                    RatingStep(onContinue: nextStep)
-                        .tag(11)
-
-                    NotificationStep(data: onboardingData, onContinue: nextStep)
-                        .tag(12)
-
-                    LoadingPlanStep(userName: onboardingData.userName, onComplete: nextStep)
-                        .tag(13)
-
-                    CustomPlanStep(
-                        data: onboardingData,
-                        manager: manager,
-                        onComplete: completeOnboarding
-                    )
-                    .tag(14)
+                // Content - ZStack with switch to prevent swipe navigation
+                ZStack {
+                    Group {
+                        switch currentStep {
+                        case 0:
+                            WelcomeStep(onContinue: nextStep)
+                        case 1:
+                            GenderStep(data: onboardingData, onContinue: nextStep)
+                        case 2:
+                            NameStep(data: onboardingData, onContinue: nextStep)
+                        case 3:
+                            HeardAboutStep(data: onboardingData, onContinue: nextStep)
+                        case 4:
+                            TrackingQuestionStep(data: onboardingData, onContinue: nextStep)
+                        case 5:
+                            TrackingComparisonStep(trackingStatus: onboardingData.trackingStatus, onContinue: nextStep)
+                        case 6:
+                            PrimaryGoalStep(data: onboardingData, onContinue: nextStep)
+                        case 7:
+                            GainTwiceAnimationStep(onContinue: nextStep)
+                        case 8:
+                            ObstaclesStep(data: onboardingData, onContinue: nextStep)
+                        case 9:
+                            DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                        case 10:
+                            HealthConnectStep(data: onboardingData, onContinue: nextStep)
+                        case 11:
+                            RatingStep(onContinue: nextStep)
+                        case 12:
+                            NotificationStep(data: onboardingData, onContinue: nextStep)
+                        case 13:
+                            LoadingPlanStep(userName: onboardingData.userName, onComplete: nextStep)
+                        case 14:
+                            CustomPlanStep(
+                                data: onboardingData,
+                                manager: manager,
+                                onComplete: completeOnboarding
+                            )
+                        default:
+                            EmptyView()
+                        }
+                    }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .never))
                 .animation(.easeInOut(duration: 0.3), value: currentStep)
             }
         }
@@ -623,20 +628,14 @@ struct TrackingQuestionStep: View {
             Spacer().frame(height: MPSpacing.xxxl)
 
             VStack(spacing: MPSpacing.md) {
-                OnboardingOptionButton(
-                    title: "Yes, I track my habits",
-                    icon: "checkmark.circle.fill",
-                    isSelected: data.currentlyTracking
-                ) {
-                    data.currentlyTracking = true
-                }
-
-                OnboardingOptionButton(
-                    title: "No, I don't track yet",
-                    icon: "xmark.circle.fill",
-                    isSelected: !data.currentlyTracking
-                ) {
-                    data.currentlyTracking = false
+                ForEach(OnboardingData.TrackingStatus.allCases, id: \.rawValue) { status in
+                    OnboardingOptionButton(
+                        title: status.rawValue,
+                        icon: status.icon,
+                        isSelected: data.trackingStatus == status
+                    ) {
+                        data.trackingStatus = status
+                    }
                 }
             }
             .padding(.horizontal, MPSpacing.xl)
@@ -655,7 +654,7 @@ struct TrackingQuestionStep: View {
 // MARK: - Step 6: Tracking Comparison Animation
 
 struct TrackingComparisonStep: View {
-    let currentlyTracking: Bool
+    let trackingStatus: OnboardingData.TrackingStatus
     let onContinue: () -> Void
 
     @State private var showHeroStat = false
@@ -1173,7 +1172,7 @@ struct DesiredOutcomeStep: View {
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("Your primary motivation")
+                Text("Select all that apply")
                     .font(MPFont.bodyMedium())
                     .foregroundColor(MPColors.textSecondary)
             }
@@ -1185,9 +1184,13 @@ struct DesiredOutcomeStep: View {
                     OnboardingGridButton(
                         title: outcome.rawValue,
                         icon: outcome.icon,
-                        isSelected: data.desiredOutcome == outcome
+                        isSelected: data.desiredOutcomes.contains(outcome)
                     ) {
-                        data.desiredOutcome = outcome
+                        if data.desiredOutcomes.contains(outcome) {
+                            data.desiredOutcomes.remove(outcome)
+                        } else {
+                            data.desiredOutcomes.insert(outcome)
+                        }
                     }
                 }
             }
@@ -1195,7 +1198,7 @@ struct DesiredOutcomeStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary) {
+            MPButton(title: "Continue", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -1554,14 +1557,20 @@ struct LoadingPlanStep: View {
     @State private var currentPhase = 0
     @State private var completedSteps: Set<Int> = []
     @State private var isPulsing = false
+    @State private var showSocialProof = false
+    @State private var userCount: Int = 0
+    @State private var orbitRotation: Double = 0
 
-    private let phases = [
-        (title: "Analyzing your responses", icon: "doc.text.magnifyingglass"),
-        (title: "Identifying optimal habits", icon: "brain.head.profile"),
-        (title: "Building your routine", icon: "calendar.badge.plus"),
-        (title: "Personalizing recommendations", icon: "person.crop.circle.badge.checkmark"),
-        (title: "Finalizing your plan", icon: "checkmark.seal")
-    ]
+    private var phases: [(title: String, icon: String)] {
+        let name = userName.isEmpty ? "" : " for \(userName)"
+        return [
+            (title: "Reviewing your responses", icon: "doc.text.magnifyingglass"),
+            (title: "Analyzing your goals", icon: "target"),
+            (title: "Selecting optimal habits\(name)", icon: "brain.head.profile"),
+            (title: "Calibrating verification methods", icon: "checkmark.shield"),
+            (title: "Finalizing your custom plan", icon: "checkmark.seal")
+        ]
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1595,6 +1604,16 @@ struct LoadingPlanStep: View {
                     .scaleEffect(isPulsing ? 1.15 : 1.0)
                     .opacity(isPulsing ? 0.3 : 0.6)
                     .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
+
+                // Orbiting particles
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .fill(MPColors.accent)
+                        .frame(width: 6, height: 6)
+                        .offset(y: -85)
+                        .rotationEffect(.degrees(orbitRotation + Double(index * 120)))
+                        .opacity(0.6)
+                }
 
                 // Background ring
                 Circle()
@@ -1639,6 +1658,21 @@ struct LoadingPlanStep: View {
             }
             .padding(.horizontal, MPSpacing.xl)
 
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Social proof counter
+            HStack(spacing: MPSpacing.sm) {
+                Image(systemName: "person.3.fill")
+                    .font(.system(size: 14))
+                    .foregroundColor(MPColors.accent)
+
+                Text("\(userCount.formatted()) people built their routine this week")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .opacity(showSocialProof ? 1 : 0)
+            .offset(y: showSocialProof ? 0 : 10)
+
             Spacer()
         }
         .onAppear {
@@ -1649,10 +1683,23 @@ struct LoadingPlanStep: View {
     private func startLoading() {
         isPulsing = true
 
+        // Start orbit animation
+        withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
+            orbitRotation = 360
+        }
+
         // Total duration: ~5.5 seconds
         // Progress animation over 5 seconds
         withAnimation(.easeOut(duration: 5.0)) {
             progress = 1.0
+        }
+
+        // Show social proof after 2 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            withAnimation(.easeOut(duration: 0.5)) {
+                showSocialProof = true
+            }
+            animateCounter(to: 2847)
         }
 
         // Phase transitions (5 phases over ~5 seconds = 1 second each)
@@ -1684,6 +1731,21 @@ struct LoadingPlanStep: View {
         // Complete and transition
         DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
             onComplete()
+        }
+    }
+
+    private func animateCounter(to target: Int) {
+        let duration: Double = 1.5
+        let steps = 30
+        let interval = duration / Double(steps)
+        let increment = target / steps
+
+        for i in 1...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + interval * Double(i)) {
+                withAnimation(.easeOut(duration: 0.05)) {
+                    userCount = min(increment * i, target)
+                }
+            }
         }
     }
 }
@@ -1753,28 +1815,37 @@ struct CustomPlanStep: View {
     private var benefitChips: [(text: String, icon: String, color: Color)] {
         var chips: [(String, String, Color)] = []
 
-        // Add based on desired outcome
-        switch data.desiredOutcome {
-        case .moreEnergy:
-            chips.append(("More Energy", "bolt.fill", Color.orange))
-        case .betterFocus:
-            chips.append(("Better Focus", "scope", MPColors.primary))
-        case .improvedMood:
-            chips.append(("Better Mood", "face.smiling.fill", MPColors.success))
-        case .increasedProductivity:
-            chips.append(("Productivity", "chart.line.uptrend.xyaxis", MPColors.primary))
-        case .betterHealth:
-            chips.append(("Better Health", "heart.fill", MPColors.error))
-        case .selfDiscipline:
-            chips.append(("Self-Discipline", "flame.fill", Color.orange))
+        // Add based on all selected desired outcomes
+        for outcome in data.desiredOutcomes {
+            switch outcome {
+            case .moreEnergy:
+                chips.append(("More Energy", "bolt.fill", Color.orange))
+            case .betterFocus:
+                chips.append(("Better Focus", "scope", MPColors.primary))
+            case .improvedMood:
+                chips.append(("Better Mood", "face.smiling.fill", MPColors.success))
+            case .increasedProductivity:
+                chips.append(("Productivity", "chart.line.uptrend.xyaxis", MPColors.primary))
+            case .betterHealth:
+                chips.append(("Better Health", "heart.fill", MPColors.error))
+            case .selfDiscipline:
+                chips.append(("Self-Discipline", "flame.fill", Color.orange))
+            }
         }
 
-        // Add some default benefits
-        chips.append(("Consistency", "checkmark.circle.fill", MPColors.success))
-        chips.append(("Accountability", "person.2.fill", MPColors.accent))
-        chips.append(("Better Sleep", "moon.zzz.fill", MPColors.primary))
-        chips.append(("Morning Wins", "trophy.fill", MPColors.accentGold))
-        chips.append(("Healthy Habits", "leaf.fill", MPColors.success))
+        // Add some default benefits to round out the chips
+        if chips.count < 6 {
+            chips.append(("Consistency", "checkmark.circle.fill", MPColors.success))
+        }
+        if chips.count < 6 {
+            chips.append(("Accountability", "person.2.fill", MPColors.accent))
+        }
+        if chips.count < 6 {
+            chips.append(("Better Sleep", "moon.zzz.fill", MPColors.primary))
+        }
+        if chips.count < 6 {
+            chips.append(("Morning Wins", "trophy.fill", MPColors.accentGold))
+        }
 
         return chips
     }
@@ -1832,60 +1903,73 @@ struct CustomPlanStep: View {
                             .scaleEffect(animateContent ? 1 : 0.9)
                     }
 
-                    Spacer().frame(height: MPSpacing.xxxl)
-
-                    // Divider line
-                    Rectangle()
-                        .fill(MPColors.divider)
-                        .frame(width: 200, height: 1)
-                        .opacity(animateContent ? 1 : 0)
-
-                    Spacer().frame(height: MPSpacing.xxxl)
-
-                    // Stars decoration
-                    HStack(spacing: 4) {
-                        // Left laurel
-                        Image(systemName: "laurel.leading")
-                            .font(.system(size: 36))
-                            .foregroundColor(MPColors.textTertiary)
-
-                        // 5 stars
-                        HStack(spacing: 2) {
-                            ForEach(0..<5, id: \.self) { _ in
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 18))
-                                    .foregroundColor(MPColors.accentGold)
-                            }
-                        }
-
-                        // Right laurel
-                        Image(systemName: "laurel.trailing")
-                            .font(.system(size: 36))
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .opacity(animateContent ? 1 : 0)
-
                     Spacer().frame(height: MPSpacing.xl)
 
-                    // Motivational headline
-                    VStack(spacing: MPSpacing.sm) {
-                        Text("Become the best of\nyourself with Morning Proof")
-                            .font(.system(size: 22, weight: .bold, design: .rounded))
-                            .foregroundColor(MPColors.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .opacity(animateContent ? 1 : 0)
-
-                        Text("Consistent. Accountable. Unstoppable.")
-                            .font(MPFont.bodyMedium())
+                    // "Hands-free verification" highlight
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: "hand.raised.slash.fill")
+                            .font(.system(size: 14))
+                            .foregroundColor(MPColors.accent)
+                        Text("Hands-free verification for most habits")
+                            .font(MPFont.labelMedium())
                             .foregroundColor(MPColors.textSecondary)
-                            .opacity(animateContent ? 1 : 0)
                     }
+                    .padding(.horizontal, MPSpacing.lg)
+                    .padding(.vertical, MPSpacing.md)
+                    .background(MPColors.accentLight.opacity(0.3))
+                    .cornerRadius(MPRadius.full)
+                    .opacity(animateContent ? 1 : 0)
 
                     Spacer().frame(height: MPSpacing.xxl)
 
-                    // Benefit chips
-                    BenefitChipsView(chips: benefitChips, animate: animateChips)
-                        .padding(.horizontal, MPSpacing.lg)
+                    // Your Routine section header
+                    HStack {
+                        Text("Your Recommended Routine")
+                            .font(MPFont.headingSmall())
+                            .foregroundColor(MPColors.textPrimary)
+                        Spacer()
+                    }
+                    .padding(.horizontal, MPSpacing.xl)
+                    .opacity(animateChips ? 1 : 0)
+
+                    Spacer().frame(height: MPSpacing.md)
+
+                    // Recommended habits
+                    VStack(spacing: MPSpacing.md) {
+                        RecommendedHabitCard(habitType: .madeBed, isHighlighted: true)
+                            .opacity(animateChips ? 1 : 0)
+                            .offset(x: animateChips ? 0 : -20)
+
+                        RecommendedHabitCard(habitType: .morningSteps, isHighlighted: true)
+                            .opacity(animateChips ? 1 : 0)
+                            .offset(x: animateChips ? 0 : 20)
+
+                        RecommendedHabitCard(habitType: .sleepDuration, isHighlighted: false)
+                            .opacity(animateChips ? 1 : 0)
+                            .offset(x: animateChips ? 0 : -20)
+
+                        RecommendedHabitCard(habitType: .morningWorkout, isHighlighted: false)
+                            .opacity(animateChips ? 1 : 0)
+                            .offset(x: animateChips ? 0 : 20)
+                    }
+                    .padding(.horizontal, MPSpacing.xl)
+
+                    Spacer().frame(height: MPSpacing.xxl)
+
+                    // Social proof
+                    VStack(spacing: MPSpacing.md) {
+                        HStack(spacing: 2) {
+                            ForEach(0..<5, id: \.self) { _ in
+                                Image(systemName: "star.fill")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(MPColors.accentGold)
+                            }
+                        }
+                        Text("Join 10,000+ morning achievers")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .opacity(animateChips ? 1 : 0)
 
                     Spacer().frame(height: 140)
                 }
@@ -2035,6 +2119,78 @@ struct BenefitChip: View {
                 )
         )
         .mpShadow(.small)
+    }
+}
+
+// MARK: - Recommended Habit Card
+
+struct RecommendedHabitCard: View {
+    let habitType: HabitType
+    let isHighlighted: Bool
+
+    var body: some View {
+        HStack(spacing: MPSpacing.lg) {
+            // Icon
+            ZStack {
+                Circle()
+                    .fill(isHighlighted ? MPColors.primaryLight : MPColors.surfaceSecondary)
+                    .frame(width: 50, height: 50)
+
+                Image(systemName: habitType.icon)
+                    .font(.system(size: 22))
+                    .foregroundColor(isHighlighted ? MPColors.primary : MPColors.textTertiary)
+            }
+
+            VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                Text(habitType.displayName)
+                    .font(MPFont.labelMedium())
+                    .foregroundColor(MPColors.textPrimary)
+
+                // Verification badge
+                HStack(spacing: 4) {
+                    Image(systemName: verificationBadgeIcon)
+                        .font(.system(size: 10))
+                    Text(habitType.tier.description)
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(verificationBadgeColor)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(verificationBadgeColor.opacity(0.1))
+                .cornerRadius(MPRadius.sm)
+            }
+
+            Spacer()
+
+            // Checkmark for included habits
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 22))
+                .foregroundColor(MPColors.success)
+        }
+        .padding(MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .overlay(
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .stroke(isHighlighted ? MPColors.primary.opacity(0.3) : Color.clear, lineWidth: 2)
+        )
+        .mpShadow(.small)
+    }
+
+    private var verificationBadgeIcon: String {
+        switch habitType.tier {
+        case .aiVerified: return "sparkles"
+        case .autoTracked: return "arrow.triangle.2.circlepath"
+        case .honorSystem: return "hand.raised.fill"
+        }
+    }
+
+    private var verificationBadgeColor: Color {
+        switch habitType.tier {
+        case .aiVerified: return MPColors.accent
+        case .autoTracked: return MPColors.primary
+        case .honorSystem: return MPColors.textTertiary
+        }
     }
 }
 

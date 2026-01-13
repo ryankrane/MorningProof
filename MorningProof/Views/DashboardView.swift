@@ -587,12 +587,13 @@ struct HoldToConfirmButton: View {
                         isHolding = true
                         HapticManager.shared.lightTap()
 
-                        withAnimation(.linear(duration: 2.0)) {
+                        withAnimation(.linear(duration: 1.0)) {
                             progress = 1.0
                         }
 
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                             if isHolding {
+                                HapticManager.shared.success()
                                 onComplete()
                             }
                         }

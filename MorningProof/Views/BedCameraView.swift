@@ -5,7 +5,6 @@ struct BedCameraView: View {
     @Environment(\.dismiss) var dismiss
 
     @State private var showingCamera = false
-    @State private var showingImagePicker = false
     @State private var selectedImage: UIImage?
     @State private var isAnalyzing = false
     @State private var result: VerificationResult?
@@ -56,9 +55,6 @@ struct BedCameraView: View {
         .sheet(isPresented: $showingCamera) {
             ImagePicker(image: $selectedImage, sourceType: .camera)
         }
-        .sheet(isPresented: $showingImagePicker) {
-            ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
-        }
     }
 
     var captureView: some View {
@@ -104,22 +100,8 @@ struct BedCameraView: View {
                     .mpShadow(.medium)
                     .padding(.horizontal, MPSpacing.xxl)
 
-                    VStack(spacing: MPSpacing.md) {
-                        MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
-                            showingCamera = true
-                        }
-
-                        Button {
-                            showingImagePicker = true
-                        } label: {
-                            HStack(spacing: MPSpacing.sm) {
-                                Image(systemName: "photo.on.rectangle")
-                                Text("Choose from Library")
-                            }
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.primary)
-                        }
-                        .padding(.top, MPSpacing.xs)
+                    MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
+                        showingCamera = true
                     }
                     .padding(.horizontal, MPSpacing.xxl)
                 }

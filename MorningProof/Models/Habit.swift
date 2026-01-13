@@ -78,8 +78,8 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     }
 
     var requiresHoldToConfirm: Bool {
-        // All habits use tap-to-complete for better UX
-        return false
+        // Honor system habits require hold to prevent accidental completion
+        return self.tier == .honorSystem
     }
 
     var requiresTextEntry: Bool {
