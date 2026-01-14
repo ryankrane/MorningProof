@@ -136,11 +136,17 @@ class ManagerWrapper: ObservableObject {
 }
 
 /// Wrapper to safely hold the ThemeManager singleton
+/// Forwards objectWillChange from the wrapped manager so SwiftUI updates properly
 @MainActor
 class ThemeWrapper: ObservableObject {
     let themeManager: ThemeManager
+    private var cancellable: AnyCancellable?
 
     init() {
         self.themeManager = ThemeManager.shared
+        // Forward objectWillChange from the manager to this wrapper
+        cancellable = themeManager.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
     }
 }
