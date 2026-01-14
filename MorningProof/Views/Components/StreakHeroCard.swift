@@ -5,6 +5,8 @@ struct StreakHeroCard: View {
     let completedToday: Int
     let totalHabits: Int
     let isPerfectMorning: Bool
+    let timeUntilCutoff: TimeInterval?  // nil or <= 0 means cutoff has passed
+    let cutoffTimeFormatted: String  // e.g. "9:00 AM"
     @Binding var triggerPulse: Bool  // External trigger for flame pulse (when flying flame arrives)
     @Binding var flameFrame: CGRect  // For lock-in celebration to target the flame
 
@@ -63,6 +65,18 @@ struct StreakHeroCard: View {
         let range = nextMilestone - previousMilestone
         let progress = currentStreak - previousMilestone
         return CGFloat(progress) / CGFloat(range)
+    }
+
+    /// Formats the countdown interval into a readable string
+    private func countdownText(for interval: TimeInterval) -> String {
+        let hours = Int(interval) / 3600
+        let minutes = (Int(interval) % 3600) / 60
+
+        if hours > 0 {
+            return "\(hours)h \(minutes)m until \(cutoffTimeFormatted)"
+        } else {
+            return "\(minutes)m until \(cutoffTimeFormatted)"
+        }
     }
 
     var body: some View {
@@ -142,6 +156,17 @@ struct StreakHeroCard: View {
 
                 Spacer()
             }
+
+            // Countdown to cutoff (only shown before cutoff)
+            if let interval = timeUntilCutoff, interval > 0 {
+                HStack(spacing: MPSpacing.xs) {
+                    Text("🕐")
+                        .font(.system(size: 12))
+                    Text(countdownText(for: interval))
+                        .font(MPFont.labelSmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
         }
         .padding(MPSpacing.xl)
         .background(MPColors.surface)
@@ -213,9 +238,9 @@ struct StreakHeroCard: View {
 
 #Preview {
     VStack(spacing: MPSpacing.xl) {
-        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
-        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, triggerPulse: .constant(false), flameFrame: .constant(.zero))
-        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 8 * 3600 + 37 * 60, cutoffTimeFormatted: "9:00 AM", triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 30 * 60, cutoffTimeFormatted: "9:00 AM", triggerPulse: .constant(false), flameFrame: .constant(.zero))
     }
     .padding()
     .background(MPColors.background)

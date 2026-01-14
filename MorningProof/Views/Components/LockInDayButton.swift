@@ -88,7 +88,7 @@ struct LockInDayButton: View {
                 Image(systemName: isLockedIn ? "lock.fill" : "lock.open")
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(iconColor)
-                    .rotationEffect(.degrees(isLockedIn ? -15 : 180))
+                    .rotationEffect(.degrees(isLockedIn ? -15 : 0))
 
                 // Label text
                 Text(buttonText)
