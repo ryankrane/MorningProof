@@ -73,14 +73,11 @@ struct DashboardContentView: View {
                             completedToday: manager.completedCount,
                             totalHabits: manager.totalEnabled,
                             isPerfectMorning: manager.isPerfectMorning,
+                            timeUntilCutoff: manager.isPastCutoff ? nil : manager.timeUntilCutoff,
+                            cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
                             triggerPulse: $triggerStreakPulse,
                             flameFrame: $flameFrame
                         )
-
-                        // Countdown
-                        if !manager.isPastCutoff {
-                            countdownBanner
-                        }
 
                         // Habits List
                         habitsSection
@@ -147,36 +144,6 @@ struct DashboardContentView: View {
             return "Good evening\(name)"
         default:
             return "Hello\(name)"
-        }
-    }
-
-    // MARK: - Countdown Banner
-
-    var countdownBanner: some View {
-        HStack {
-            Image(systemName: "clock.fill")
-                .foregroundColor(MPColors.accent)
-
-            Text(countdownText)
-                .font(MPFont.labelMedium())
-                .foregroundColor(MPColors.textPrimary)
-
-            Spacer()
-        }
-        .padding(MPSpacing.lg)
-        .background(MPColors.surfaceHighlight)
-        .cornerRadius(MPRadius.md)
-    }
-
-    var countdownText: String {
-        let interval = manager.timeUntilCutoff
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-
-        if hours > 0 {
-            return "\(hours)h \(minutes)m until \(manager.settings.cutoffTimeFormatted) cutoff"
-        } else {
-            return "\(minutes)m until \(manager.settings.cutoffTimeFormatted) cutoff"
         }
     }
 
@@ -375,19 +342,10 @@ struct DashboardContentView: View {
                 CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
 
             default:
-                if config.habitType.requiresHoldToConfirm {
-                    HoldToConfirmButton(habitType: config.habitType) {
-                        completeHabitWithCelebration(config.habitType)
-                    }
-                } else {
-                    Button {
-                        completeHabitWithCelebration(config.habitType)
-                    } label: {
-                        Circle()
-                            .stroke(MPColors.border, lineWidth: 2)
-                            .frame(width: 28, height: 28)
-                    }
-                }
+                // All other habits show empty circle - tap row to complete
+                Circle()
+                    .stroke(MPColors.border, lineWidth: 2)
+                    .frame(width: 28, height: 28)
             }
         }
     }
