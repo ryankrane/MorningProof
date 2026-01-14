@@ -104,8 +104,13 @@ final class ScreenTimeManager: ObservableObject {
     // MARK: - Schedule Management
 
     /// Starts monitoring for the morning routine schedule.
-    /// Apps will be blocked from midnight until the cutoff time.
-    func startMorningBlockingSchedule(cutoffMinutes: Int) throws {
+    /// Apps will be blocked from the user's blocking start time.
+    /// NOTE: Apps stay locked until habits are complete - no auto-unlock at cutoff.
+    ///
+    /// - Parameters:
+    ///   - startMinutes: When blocking starts (minutes from midnight, e.g. 360 = 6:00 AM)
+    ///   - cutoffMinutes: The morning cutoff time (used for interval end, but extension won't auto-unlock)
+    func startMorningBlockingSchedule(startMinutes: Int, cutoffMinutes: Int) throws {
         guard isAuthorized else {
             MPLogger.warning("Cannot start schedule - not authorized", category: MPLogger.screenTime)
             return
@@ -116,12 +121,21 @@ final class ScreenTimeManager: ObservableObject {
             return
         }
 
+        guard startMinutes > 0 else {
+            MPLogger.warning("Cannot start schedule - blocking start time not configured", category: MPLogger.screenTime)
+            return
+        }
+
+        let startHour = startMinutes / 60
+        let startMinute = startMinutes % 60
         let cutoffHour = cutoffMinutes / 60
         let cutoffMinute = cutoffMinutes % 60
 
-        // Schedule from midnight to cutoff time, repeating daily
+        // Schedule from user's blocking start time to cutoff time
+        // NOTE: The extension will NOT auto-remove shields at intervalEnd
+        // Shields only removed when user completes habits and locks in
         let schedule = DeviceActivitySchedule(
-            intervalStart: DateComponents(hour: 0, minute: 0, second: 0),
+            intervalStart: DateComponents(hour: startHour, minute: startMinute, second: 0),
             intervalEnd: DateComponents(hour: cutoffHour, minute: cutoffMinute, second: 0),
             repeats: true
         )
@@ -130,7 +144,11 @@ final class ScreenTimeManager: ObservableObject {
             try activityCenter.startMonitoring(.morningRoutine, during: schedule)
             isMonitoring = true
             saveMonitoringStatus(true)
-            MPLogger.info("Started morning blocking schedule (until \(cutoffHour):\(String(format: "%02d", cutoffMinute)))", category: MPLogger.screenTime)
+
+            // Sync blocking start time to App Group for extension access
+            AppLockingDataStore.blockingStartMinutes = startMinutes
+
+            MPLogger.info("Started morning blocking schedule (\(startHour):\(String(format: "%02d", startMinute)) - \(cutoffHour):\(String(format: "%02d", cutoffMinute)))", category: MPLogger.screenTime)
         } catch {
             MPLogger.error("Failed to start monitoring", error: error, category: MPLogger.screenTime)
             throw error

@@ -52,7 +52,11 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
                 color: .white
             ),
             primaryButtonBackgroundColor: primaryColor,
-            secondaryButtonLabel: nil  // No secondary button - must complete habits
+            // Emergency unlock option - breaks streak but allows access
+            secondaryButtonLabel: ShieldConfiguration.Label(
+                text: "Emergency Unlock",
+                color: .systemRed
+            )
         )
     }
 }

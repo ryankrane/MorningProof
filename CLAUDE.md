@@ -52,7 +52,6 @@ Shared data between app and extensions uses App Group: `group.com.rk.morningproo
 - Version numbers need to be updated in both `project.yml` AND `project.pbxproj` (MARKETING_VERSION)
 - `project.yml` also defines Info.plist properties - changes there can override the actual Info.plist file
 - Google Sign-In requires `GIDClientID` and `CFBundleURLTypes` in Info.plist - project.yml may not merge these correctly, so add them directly to Info.plist
-- Don't access `@MainActor` singletons as stored properties in the App struct - causes deadlock. Move them to a nested View struct instead
 - Screen Time extensions can't access SwiftData/CoreData - must use App Group UserDefaults for shared data
 - Each Screen Time extension needs its own entitlements file with `com.apple.developer.family-controls` and App Group
 - xcodegen may clear entitlements files - add `properties:` section in project.yml to preserve them

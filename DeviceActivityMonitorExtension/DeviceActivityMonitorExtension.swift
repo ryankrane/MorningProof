@@ -11,7 +11,7 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
 
     // MARK: - Schedule Callbacks
 
-    /// Called when the morning blocking period starts (at midnight).
+    /// Called when the morning blocking period starts (at the user's configured start time).
     /// This applies shields to block the user's selected apps.
     override func intervalDidStart(for activity: DeviceActivityName) {
         super.intervalDidStart(for: activity)
@@ -28,15 +28,21 @@ class DeviceActivityMonitorExtension: DeviceActivityMonitor {
         }
     }
 
-    /// Called when the morning blocking period ends (at cutoff time).
-    /// This removes shields regardless of whether habits were completed.
+    /// Called when the schedule interval ends (at cutoff time).
+    /// NOTE: We intentionally do NOT remove shields here.
+    /// Apps stay locked until the user completes their habits and locks in.
+    /// The main app calls ScreenTimeManager.removeShields() when habits are complete.
     override func intervalDidEnd(for activity: DeviceActivityName) {
         super.intervalDidEnd(for: activity)
 
         guard activity == .morningRoutine else { return }
 
-        // Cutoff time reached - remove all shields
-        store.clearAllSettings()
+        // IMPORTANT: Do NOT auto-unlock at cutoff time.
+        // Apps stay locked until user completes habits.
+        // Shields are removed by the main app when user locks in their day.
+
+        // If user hasn't completed habits by cutoff, shields remain active.
+        // This provides strict accountability.
     }
 
     /// Called when a usage threshold is reached (not used in our implementation).

@@ -19,8 +19,7 @@ struct MorningProofApp: App {
     }
 }
 
-/// Root view that handles app initialization safely
-/// This avoids the @MainActor singleton deadlock by deferring manager access
+/// Root view that handles app initialization
 struct RootView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var isReady = false
@@ -35,17 +34,31 @@ struct RootView: View {
                     Color(UIColor.systemBackground)
                         .ignoresSafeArea()
                     ProgressView()
+                    Text("Loading...")
+                        .foregroundColor(.gray)
+                        .offset(y: 40)
                 }
             }
         }
         .task {
+            print("🚀 RootView: Starting initialization...")
+
             // Run migration first, then mark ready
+            print("🚀 RootView: Running migration...")
             await MigrationManager.shared.migrateIfNeeded(modelContext: modelContext)
+            print("🚀 RootView: Migration complete")
+
             // Small delay to ensure main actor is ready
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 sec
+
+            print("🚀 RootView: Setting isReady = true")
             await MainActor.run {
                 isReady = true
             }
+            print("🚀 RootView: Initialization complete")
+        }
+        .onAppear {
+            print("🚀 RootView: onAppear called")
         }
     }
 }

@@ -18,9 +18,11 @@ struct AppLockingDataStore {
     private enum Keys {
         static let isDayLockedIn = "appLocking_isDayLockedIn"
         static let morningCutoffMinutes = "appLocking_cutoffMinutes"
+        static let blockingStartMinutes = "appLocking_blockingStartMinutes"
         static let appLockingEnabled = "appLocking_enabled"
         static let lastLockInDate = "appLocking_lastLockInDate"
         static let selectedAppsData = "appLocking_selectedApps"
+        static let wasEmergencyUnlock = "appLocking_wasEmergencyUnlock"
     }
 
     // MARK: - Private Helpers
@@ -75,6 +77,22 @@ struct AppLockingDataStore {
         }
     }
 
+    /// The time when app blocking starts, in minutes from midnight.
+    /// e.g., 360 = 6:00 AM
+    /// A value of 0 means not configured - user must set this.
+    static var blockingStartMinutes: Int {
+        get { defaults?.integer(forKey: Keys.blockingStartMinutes) ?? 0 }
+        set {
+            defaults?.set(newValue, forKey: Keys.blockingStartMinutes)
+            defaults?.synchronize()
+        }
+    }
+
+    /// Whether the user has configured a blocking start time.
+    static var hasConfiguredBlockingStartTime: Bool {
+        blockingStartMinutes > 0
+    }
+
     /// Whether app locking is enabled by the user.
     static var appLockingEnabled: Bool {
         get { defaults?.bool(forKey: Keys.appLockingEnabled) ?? false }
@@ -84,30 +102,56 @@ struct AppLockingDataStore {
         }
     }
 
+    // MARK: - Emergency Unlock
+
+    /// Whether the last unlock was an emergency unlock (user bypassed habits).
+    /// The main app checks this to break the streak.
+    static var wasEmergencyUnlock: Bool {
+        get { defaults?.bool(forKey: Keys.wasEmergencyUnlock) ?? false }
+        set {
+            defaults?.set(newValue, forKey: Keys.wasEmergencyUnlock)
+            defaults?.synchronize()
+        }
+    }
+
+    /// Emergency unlock - removes shields but marks it as a bypass.
+    /// This should break the user's streak when the main app detects it.
+    static func emergencyUnlock() {
+        wasEmergencyUnlock = true
+        isDayLockedIn = true
+        lastLockInDate = Date()
+    }
+
     // MARK: - Helpers
 
     /// Resets the lock status for a new day.
     /// Called by the DeviceActivityMonitor at the start of the morning period.
     static func resetForNewDay() {
         isDayLockedIn = false
+        wasEmergencyUnlock = false
     }
 
     /// Checks if shields should currently be applied.
     /// Returns true if:
     /// - App locking is enabled
+    /// - A blocking start time is configured
     /// - The user hasn't locked in today
-    /// - We're within the morning blocking period
+    /// - We're past the blocking start time
+    ///
+    /// NOTE: Shields stay active until habits are complete - no auto-unlock at cutoff.
     static func shouldApplyShields() -> Bool {
         guard appLockingEnabled else { return false }
+        guard hasConfiguredBlockingStartTime else { return false }
         guard !hasLockedInToday else { return false }
 
-        // Check if we're before the cutoff time
+        // Check if we're past the blocking start time
         let now = Date()
         let calendar = Calendar.current
         let components = calendar.dateComponents([.hour, .minute], from: now)
         let currentMinutes = (components.hour ?? 0) * 60 + (components.minute ?? 0)
 
-        return currentMinutes < morningCutoffMinutes
+        // Apps are blocked from start time onwards until habits are complete
+        return currentMinutes >= blockingStartMinutes
     }
 
     /// Debug description of current state
@@ -115,9 +159,11 @@ struct AppLockingDataStore {
         """
         AppLockingDataStore:
         - Enabled: \(appLockingEnabled)
+        - Blocking Start: \(blockingStartMinutes) minutes
+        - Cutoff: \(morningCutoffMinutes) minutes
         - Day Locked In: \(isDayLockedIn)
         - Has Locked In Today: \(hasLockedInToday)
-        - Cutoff: \(morningCutoffMinutes) minutes
+        - Was Emergency Unlock: \(wasEmergencyUnlock)
         - Should Apply Shields: \(shouldApplyShields())
         """
     }

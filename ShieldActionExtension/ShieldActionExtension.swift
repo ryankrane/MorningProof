@@ -4,7 +4,11 @@ import ManagedSettingsUI
 /// Extension that handles button taps on the shield overlay.
 /// When the user taps "Open Morning Proof", this defers to allow the system
 /// to potentially open the main app (though iOS doesn't guarantee this).
+/// When the user taps "Emergency Unlock", this removes all shields but marks
+/// the day as an emergency unlock (which will break their streak).
 class ShieldActionExtension: ShieldActionDelegate {
+
+    private let store = ManagedSettingsStore()
 
     // MARK: - App Shield Actions
 
@@ -45,11 +49,23 @@ class ShieldActionExtension: ShieldActionDelegate {
             completionHandler(.defer)
 
         case .secondaryButtonPressed:
-            // We don't have a secondary button, but handle it anyway
-            completionHandler(.defer)
+            // "Emergency Unlock" was tapped
+            // This removes shields but marks it as an emergency unlock (breaks streak)
+            performEmergencyUnlock()
+            completionHandler(.close)
 
         @unknown default:
             completionHandler(.defer)
         }
+    }
+
+    /// Performs emergency unlock - removes shields but marks as bypass.
+    /// The main app will detect this and break the streak.
+    private func performEmergencyUnlock() {
+        // Mark as emergency unlock in App Group (main app will detect and break streak)
+        AppLockingDataStore.emergencyUnlock()
+
+        // Remove all shields
+        store.clearAllSettings()
     }
 }

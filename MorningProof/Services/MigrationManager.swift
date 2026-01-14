@@ -128,7 +128,7 @@ class MigrationManager {
         sd.countdownWarnings = settings.countdownWarnings
         sd.appLockingEnabled = settings.appLockingEnabled
         sd.lockedApps = settings.lockedApps
-        sd.lockGracePeriod = settings.lockGracePeriod
+        sd.blockingStartMinutes = settings.blockingStartMinutes
         sd.strictModeEnabled = settings.strictModeEnabled
         sd.allowStreakRecovery = settings.allowStreakRecovery
         sd.weeklyPerfectMorningsGoal = settings.weeklyPerfectMorningsGoal

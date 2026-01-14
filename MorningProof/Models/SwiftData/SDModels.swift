@@ -33,7 +33,7 @@ final class SDSettings {
     // App Locking
     var appLockingEnabled: Bool
     var lockedApps: [String]
-    var lockGracePeriod: Int
+    var blockingStartMinutes: Int  // When app blocking starts (minutes from midnight, e.g. 360 = 6 AM)
 
     // Accountability
     var strictModeEnabled: Bool
@@ -59,7 +59,7 @@ final class SDSettings {
         self.countdownWarnings = [15, 5, 1]
         self.appLockingEnabled = false
         self.lockedApps = []
-        self.lockGracePeriod = 5
+        self.blockingStartMinutes = 0  // 0 = not configured, user must set
         self.strictModeEnabled = true
         self.allowStreakRecovery = false
         self.weeklyPerfectMorningsGoal = 5

@@ -22,7 +22,7 @@ struct MorningProofSettingsView: View {
 
     // App Locking settings
     @State private var appLockingEnabled = false
-    @State private var lockGracePeriod: Int = 5
+    @State private var blockingStartMinutes: Int = 0
 
 
     // Goals settings
@@ -303,7 +303,7 @@ struct MorningProofSettingsView: View {
 
         // App Locking
         appLockingEnabled = manager.settings.appLockingEnabled
-        lockGracePeriod = manager.settings.lockGracePeriod
+        blockingStartMinutes = manager.settings.blockingStartMinutes
 
         // Goals
         weeklyPerfectMorningsGoal = manager.settings.weeklyPerfectMorningsGoal
@@ -327,7 +327,7 @@ struct MorningProofSettingsView: View {
 
         // App Locking
         manager.settings.appLockingEnabled = appLockingEnabled
-        manager.settings.lockGracePeriod = lockGracePeriod
+        manager.settings.blockingStartMinutes = blockingStartMinutes
 
         // Goals
         manager.settings.weeklyPerfectMorningsGoal = weeklyPerfectMorningsGoal
@@ -437,19 +437,9 @@ struct MorningProofSettingsView: View {
                 // Enable toggle
                 HStack {
                     VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        HStack(spacing: MPSpacing.sm) {
-                            Text("Lock Apps")
-                                .font(MPFont.labelMedium())
-                                .foregroundColor(MPColors.textPrimary)
-
-                            Text("COMING SOON")
-                                .font(.system(size: 9, weight: .bold))
-                                .foregroundColor(.white)
-                                .padding(.horizontal, 6)
-                                .padding(.vertical, 2)
-                                .background(MPColors.accent)
-                                .cornerRadius(MPRadius.xs)
-                        }
+                        Text("Lock Apps")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
                         Text("Block distracting apps until habits are complete")
                             .font(MPFont.bodySmall())
                             .foregroundColor(MPColors.textTertiary)
@@ -464,56 +454,37 @@ struct MorningProofSettingsView: View {
                 if appLockingEnabled {
                     Divider()
 
-                    // Select apps button
+                    // Configure button - opens full settings
                     Button {
                         showAppLockingSheet = true
                     } label: {
                         HStack {
-                            Image(systemName: "apps.iphone")
+                            Image(systemName: "gearshape.fill")
                                 .foregroundColor(MPColors.primary)
-                            Text("Select Apps to Lock")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.textPrimary)
+
+                            VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                                Text("Configure App Locking")
+                                    .font(MPFont.bodyMedium())
+                                    .foregroundColor(MPColors.textPrimary)
+
+                                if blockingStartMinutes > 0 {
+                                    Text("Starts at \(formatTime(blockingStartMinutes))")
+                                        .font(MPFont.bodySmall())
+                                        .foregroundColor(MPColors.textTertiary)
+                                } else {
+                                    Text("Tap to set up")
+                                        .font(MPFont.bodySmall())
+                                        .foregroundColor(MPColors.warning)
+                                }
+                            }
+
                             Spacer()
+
                             Image(systemName: "chevron.right")
                                 .font(.caption)
                                 .foregroundColor(MPColors.textTertiary)
                         }
                     }
-
-                    Divider()
-
-                    // Grace period
-                    HStack {
-                        VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                            Text("Grace Period")
-                                .font(MPFont.labelMedium())
-                                .foregroundColor(MPColors.textPrimary)
-                            Text("Time after cutoff before locking")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Picker("Grace", selection: $lockGracePeriod) {
-                            ForEach(NotificationManager.gracePeriodOptions, id: \.minutes) { option in
-                                Text(option.label).tag(option.minutes)
-                            }
-                        }
-                        .pickerStyle(.menu)
-                        .tint(MPColors.primary)
-                    }
-
-                    // Info note
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "info.circle")
-                            .foregroundColor(MPColors.textTertiary)
-                        Text("Requires iOS 16+ and Screen Time permission")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .padding(.top, MPSpacing.xs)
                 }
             }
         }
@@ -601,6 +572,16 @@ struct MorningProofSettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Helpers
+
+    private func formatTime(_ minutes: Int) -> String {
+        let hour = minutes / 60
+        let minute = minutes % 60
+        let period = hour >= 12 ? "PM" : "AM"
+        let displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour)
+        return String(format: "%d:%02d %@", displayHour, minute, period)
     }
 }
 

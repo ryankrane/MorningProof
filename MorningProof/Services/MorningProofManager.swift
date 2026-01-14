@@ -58,6 +58,25 @@ final class MorningProofManager: ObservableObject, Sendable {
         // Load streak data
         loadStreakData()
         checkAndUpdateStreakOnLoad()
+
+        // Check for emergency unlock (user bypassed app blocking)
+        checkForEmergencyUnlock()
+    }
+
+    /// Checks if the user performed an emergency unlock (bypassed app blocking).
+    /// If so, breaks their streak as a consequence.
+    private func checkForEmergencyUnlock() {
+        guard AppLockingDataStore.wasEmergencyUnlock else { return }
+
+        // Reset the flag
+        AppLockingDataStore.wasEmergencyUnlock = false
+
+        // Break the streak
+        if settings.currentStreak > 0 {
+            MPLogger.warning("Emergency unlock detected - breaking streak from \(settings.currentStreak) to 0", category: MPLogger.general)
+            settings.currentStreak = 0
+            saveCurrentState()
+        }
     }
 
     func createDailyLog(for date: Date) -> DailyLog {
@@ -261,6 +280,7 @@ final class MorningProofManager: ObservableObject, Sendable {
         // Sync to App Group for Screen Time extensions
         AppLockingDataStore.morningCutoffMinutes = settings.morningCutoffMinutes
         AppLockingDataStore.appLockingEnabled = settings.appLockingEnabled
+        AppLockingDataStore.blockingStartMinutes = settings.blockingStartMinutes
 
         // Update Live Activity
         Task {
@@ -490,10 +510,10 @@ struct MorningProofSettings: Codable {
     var morningReminderTime: Int  // Minutes from midnight (e.g., 420 = 7:00 AM)
     var countdownWarnings: [Int]  // Minutes before cutoff (e.g., [15, 5, 1])
 
-    // App Locking (UI ready, functionality later)
+    // App Locking
     var appLockingEnabled: Bool
     var lockedApps: [String]  // App bundle IDs (for future use)
-    var lockGracePeriod: Int  // Minutes after cutoff before locking
+    var blockingStartMinutes: Int  // When blocking starts (minutes from midnight, e.g. 360 = 6 AM)
 
     // Accountability
     var strictModeEnabled: Bool  // Prevents editing past completions
@@ -522,7 +542,7 @@ struct MorningProofSettings: Codable {
         // App Locking
         self.appLockingEnabled = false
         self.lockedApps = []
-        self.lockGracePeriod = 5
+        self.blockingStartMinutes = 0  // 0 = not configured, user must set
 
         // Accountability - strict mode always on (no editing past completions)
         self.strictModeEnabled = true

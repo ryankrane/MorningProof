@@ -1,6 +1,7 @@
 import SwiftUI
 import StoreKit
 import AuthenticationServices
+import FamilyControls
 
 // MARK: - Onboarding Data Model
 
@@ -133,7 +134,7 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 19
+    private let totalSteps = 20
 
     var body: some View {
         ZStack {
@@ -171,13 +172,14 @@ struct OnboardingFlowView: View {
                         case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
                         case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
                         case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                        case 14: AppLockingOnboardingStep(data: onboardingData, onContinue: nextStep, onSkip: nextStep)
 
                         // Phase 4: Habits & Paywall
-                        case 14: OptionalRatingStep(onContinue: nextStep)
-                        case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                        case 17: SocialProofFinalStep(onContinue: nextStep)
-                        case 18: HardPaywallStep(
+                        case 15: OptionalRatingStep(onContinue: nextStep)
+                        case 16: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
+                        case 17: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                        case 18: SocialProofFinalStep(onContinue: nextStep)
+                        case 19: HardPaywallStep(
                             subscriptionManager: subscriptionManager,
                             onSubscribe: completeOnboarding,
                             onSkip: completeOnboarding // Testing only - remove before release
@@ -1611,7 +1613,251 @@ struct PermissionCard: View {
     }
 }
 
-// MARK: - Step 15: Optional Rating
+// MARK: - Step 15: App Locking Setup
+
+struct AppLockingOnboardingStep: View {
+    @ObservedObject var data: OnboardingData
+    let onContinue: () -> Void
+    let onSkip: () -> Void
+
+    @StateObject private var screenTimeManager = ScreenTimeManager.shared
+    private var manager: MorningProofManager { MorningProofManager.shared }
+
+    @State private var isPickerPresented = false
+    @State private var blockingStartMinutes: Int = 360  // 6 AM default suggestion
+    @State private var showAuthorizationError = false
+    @State private var isRequestingAuth = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            // Header
+            VStack(spacing: MPSpacing.lg) {
+                ZStack {
+                    Circle()
+                        .fill(MPColors.primaryLight)
+                        .frame(width: 80, height: 80)
+
+                    Image(systemName: "lock.shield.fill")
+                        .font(.system(size: 36))
+                        .foregroundColor(MPColors.primary)
+                }
+
+                Text("Block Distractions")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Lock distracting apps until you\ncomplete your morning habits")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Content based on authorization status
+            if screenTimeManager.authorizationStatus != .approved {
+                authorizationContent
+            } else {
+                configurationContent
+            }
+
+            Spacer()
+
+            // Buttons
+            VStack(spacing: MPSpacing.md) {
+                if screenTimeManager.authorizationStatus == .approved && screenTimeManager.hasSelectedApps {
+                    MPButton(title: "Enable App Locking", style: .primary, icon: "lock.fill") {
+                        enableAndContinue()
+                    }
+                }
+
+                Button {
+                    onSkip()
+                } label: {
+                    Text("Skip for now")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .familyActivityPicker(
+            isPresented: $isPickerPresented,
+            selection: $screenTimeManager.selectedApps
+        )
+        .onChange(of: screenTimeManager.selectedApps) { _, newValue in
+            screenTimeManager.saveSelectedApps(newValue)
+        }
+        .alert("Authorization Failed", isPresented: $showAuthorizationError) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("Screen Time access is required. You can enable this later in Settings.")
+        }
+    }
+
+    // Authorization view
+    var authorizationContent: some View {
+        VStack(spacing: MPSpacing.lg) {
+            // Benefits list
+            VStack(alignment: .leading, spacing: MPSpacing.md) {
+                benefitRow(icon: "xmark.app.fill", text: "Block social media & games")
+                benefitRow(icon: "checkmark.circle.fill", text: "Stay focused on your routine")
+                benefitRow(icon: "flame.fill", text: "Build stronger habits faster")
+            }
+            .padding(MPSpacing.xl)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+
+            // Authorize button
+            Button {
+                requestAuthorization()
+            } label: {
+                HStack {
+                    if isRequestingAuth {
+                        ProgressView().tint(.white)
+                    } else {
+                        Image(systemName: "hand.raised.fill")
+                        Text("Enable Screen Time Access")
+                    }
+                }
+                .font(.system(size: 16, weight: .semibold))
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, MPSpacing.lg)
+                .background(MPColors.primary)
+                .cornerRadius(MPRadius.lg)
+            }
+            .disabled(isRequestingAuth)
+        }
+        .padding(.horizontal, MPSpacing.xl)
+    }
+
+    // Configuration view (after authorization)
+    var configurationContent: some View {
+        VStack(spacing: MPSpacing.lg) {
+            // Select apps
+            Button {
+                isPickerPresented = true
+            } label: {
+                HStack {
+                    Image(systemName: "apps.iphone")
+                        .font(.system(size: 20))
+                        .foregroundColor(MPColors.primary)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Select Apps to Block")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MPColors.textPrimary)
+
+                        if screenTimeManager.hasSelectedApps {
+                            let count = screenTimeManager.selectedApps.applicationTokens.count
+                            Text("\(count) app\(count == 1 ? "" : "s") selected")
+                                .font(.system(size: 13))
+                                .foregroundColor(MPColors.success)
+                        } else {
+                            Text("Tap to choose apps")
+                                .font(.system(size: 13))
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+                    }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .padding(MPSpacing.lg)
+                .background(MPColors.surface)
+                .cornerRadius(MPRadius.lg)
+            }
+
+            // Blocking start time
+            HStack {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Block apps starting at")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("When should blocking begin?")
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+                Spacer()
+
+                Picker("Time", selection: $blockingStartMinutes) {
+                    ForEach(blockingStartTimeOptions, id: \.minutes) { option in
+                        Text(option.label).tag(option.minutes)
+                    }
+                }
+                .pickerStyle(.menu)
+                .tint(MPColors.primary)
+            }
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+        }
+        .padding(.horizontal, MPSpacing.xl)
+    }
+
+    private func benefitRow(icon: String, text: String) -> some View {
+        HStack(spacing: MPSpacing.md) {
+            Image(systemName: icon)
+                .foregroundColor(MPColors.primary)
+            Text(text)
+                .font(.system(size: 15))
+                .foregroundColor(MPColors.textPrimary)
+        }
+    }
+
+    private var blockingStartTimeOptions: [(minutes: Int, label: String)] {
+        stride(from: 240, through: 600, by: 30).map { mins in
+            let hour = mins / 60
+            let minute = mins % 60
+            let period = hour >= 12 ? "PM" : "AM"
+            let displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour)
+            return (mins, String(format: "%d:%02d %@", displayHour, minute, period))
+        }
+    }
+
+    private func requestAuthorization() {
+        isRequestingAuth = true
+        Task {
+            do {
+                try await screenTimeManager.requestAuthorization()
+            } catch {
+                showAuthorizationError = true
+            }
+            isRequestingAuth = false
+        }
+    }
+
+    private func enableAndContinue() {
+        // Save settings
+        manager.settings.appLockingEnabled = true
+        manager.settings.blockingStartMinutes = blockingStartMinutes
+        AppLockingDataStore.appLockingEnabled = true
+        AppLockingDataStore.blockingStartMinutes = blockingStartMinutes
+
+        // Start monitoring
+        do {
+            try screenTimeManager.startMorningBlockingSchedule(
+                startMinutes: blockingStartMinutes,
+                cutoffMinutes: manager.settings.morningCutoffMinutes
+            )
+        } catch {
+            // Log error but continue - they can set it up later
+        }
+
+        manager.saveCurrentState()
+        onContinue()
+    }
+}
+
+// MARK: - Step 16: Optional Rating
 
 struct OptionalRatingStep: View {
     let onContinue: () -> Void
