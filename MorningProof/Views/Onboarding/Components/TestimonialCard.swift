@@ -27,13 +27,15 @@ struct TestimonialCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.md) {
+        VStack(alignment: .leading, spacing: MPSpacing.lg) {
             // Quote
             Text("\"\(quote)\"")
-                .font(.system(size: 15, weight: .medium))
+                .font(.system(size: 17, weight: .medium))
                 .foregroundColor(MPColors.textPrimary)
-                .lineSpacing(4)
+                .lineSpacing(6)
                 .fixedSize(horizontal: false, vertical: true)
+
+            Spacer()
 
             // User info row
             HStack(spacing: MPSpacing.md) {
@@ -41,21 +43,21 @@ struct TestimonialCard: View {
                 ZStack {
                     Circle()
                         .fill(avatarColor.opacity(0.2))
-                        .frame(width: 40, height: 40)
+                        .frame(width: 44, height: 44)
 
                     Text(initials)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(avatarColor)
                 }
 
                 // Name and location
                 VStack(alignment: .leading, spacing: 2) {
                     Text(name)
-                        .font(.system(size: 14, weight: .semibold))
+                        .font(.system(size: 15, weight: .semibold))
                         .foregroundColor(MPColors.textPrimary)
 
                     Text("\(age), \(location)")
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .foregroundColor(MPColors.textTertiary)
                 }
 
@@ -64,20 +66,21 @@ struct TestimonialCard: View {
                 // Streak badge
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill")
-                        .font(.system(size: 12))
+                        .font(.system(size: 13))
                         .foregroundColor(MPColors.accent)
 
                     Text("\(streakDays) days")
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(MPColors.accent)
                 }
-                .padding(.horizontal, MPSpacing.sm)
-                .padding(.vertical, MPSpacing.xs)
+                .padding(.horizontal, MPSpacing.md)
+                .padding(.vertical, MPSpacing.sm)
                 .background(MPColors.accentLight.opacity(0.3))
                 .cornerRadius(MPRadius.full)
             }
         }
-        .padding(MPSpacing.lg)
+        .padding(MPSpacing.xl)
+        .frame(minHeight: 220)
         .background(MPColors.surface)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)

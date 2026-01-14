@@ -578,32 +578,30 @@ struct ProblemStatisticsStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            Text("Here's the truth")
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(MPColors.textTertiary)
+            VStack(spacing: MPSpacing.xxl) {
+                Text("Here's the truth")
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(MPColors.textTertiary)
+                    .opacity(showContent ? 1 : 0)
+
+                StatisticHeroCard(
+                    value: "73%",
+                    label: "of people abandon their morning\nroutine within 2 weeks",
+                    citation: "American Psychological Association, 2023"
+                )
+
+                // Supporting stats
+                HStack(spacing: MPSpacing.md) {
+                    StatPillView(value: "3.5", label: "avg. snoozes", icon: "alarm.fill")
+                    StatPillView(value: "47m", label: "avg. scrolling", icon: "iphone")
+                    StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
+                }
+                .padding(.horizontal, MPSpacing.lg)
                 .opacity(showContent ? 1 : 0)
-
-            Spacer().frame(height: MPSpacing.xl)
-
-            StatisticHeroCard(
-                value: "73%",
-                label: "of people abandon their morning\nroutine within 2 weeks",
-                citation: "American Psychological Association, 2023"
-            )
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Supporting stats
-            HStack(spacing: MPSpacing.md) {
-                StatPillView(value: "3.5", label: "avg. snoozes", icon: "alarm.fill")
-                StatPillView(value: "47m", label: "avg. scrolling", icon: "iphone")
-                StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
+                .offset(y: showContent ? 0 : 20)
             }
-            .padding(.horizontal, MPSpacing.lg)
-            .opacity(showContent ? 1 : 0)
-            .offset(y: showContent ? 0 : 20)
 
             Spacer()
 
@@ -632,68 +630,66 @@ struct YouAreNotAloneStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                Text("You're not alone")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.xxl) {
+                VStack(spacing: MPSpacing.md) {
+                    Text("You're not alone")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-                Text("Thousands have transformed their mornings")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .opacity(showContent ? 1 : 0)
+                    Text("Thousands have transformed their mornings")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .opacity(showContent ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                // Continuously scrolling testimonial carousel
+                GeometryReader { geometry in
+                    let cardWidth: CGFloat = geometry.size.width - 60
 
-            // Continuously scrolling testimonial carousel
-            GeometryReader { geometry in
-                let cardWidth: CGFloat = geometry.size.width - 60
-
-                HStack(spacing: MPSpacing.md) {
-                    // Duplicate testimonials for seamless loop
-                    ForEach(0..<testimonials.count * 2, id: \.self) { index in
-                        let testimonial = testimonials[index % testimonials.count]
-                        TestimonialCard(
-                            name: testimonial.name,
-                            age: testimonial.age,
-                            location: testimonial.location,
-                            quote: testimonial.quote,
-                            streakDays: testimonial.streakDays,
-                            avatarIndex: index % testimonials.count
-                        )
-                        .frame(width: cardWidth)
+                    HStack(spacing: MPSpacing.md) {
+                        // Duplicate testimonials for seamless loop
+                        ForEach(0..<testimonials.count * 2, id: \.self) { index in
+                            let testimonial = testimonials[index % testimonials.count]
+                            TestimonialCard(
+                                name: testimonial.name,
+                                age: testimonial.age,
+                                location: testimonial.location,
+                                quote: testimonial.quote,
+                                streakDays: testimonial.streakDays,
+                                avatarIndex: index % testimonials.count
+                            )
+                            .frame(width: cardWidth)
+                        }
+                    }
+                    .offset(x: scrollOffset)
+                    .onAppear {
+                        let singleSetWidth = cardWidth * CGFloat(testimonials.count) + CGFloat(testimonials.count) * MPSpacing.md
+                        withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
+                            scrollOffset = -singleSetWidth
+                        }
                     }
                 }
-                .offset(x: scrollOffset)
-                .onAppear {
-                    let singleSetWidth = cardWidth * CGFloat(testimonials.count) + CGFloat(testimonials.count) * MPSpacing.md
-                    withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
-                        scrollOffset = -singleSetWidth
-                    }
-                }
-            }
-            .frame(height: 200)
-            .clipped()
-            .opacity(showContent ? 1 : 0)
+                .frame(height: 260)
+                .clipped()
+                .opacity(showContent ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xl)
-
-            // Rating stat
-            VStack(spacing: MPSpacing.sm) {
-                HStack(spacing: 2) {
-                    ForEach(0..<5, id: \.self) { _ in
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 20))
-                            .foregroundColor(MPColors.accentGold)
+                // Rating stat
+                VStack(spacing: MPSpacing.sm) {
+                    HStack(spacing: 2) {
+                        ForEach(0..<5, id: \.self) { _ in
+                            Image(systemName: "star.fill")
+                                .font(.system(size: 20))
+                                .foregroundColor(MPColors.accentGold)
+                        }
                     }
+                    Text("4.9 avg. rating from beta testers")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
                 }
-                Text("4.9 avg. rating from beta testers")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(MPColors.textTertiary)
+                .opacity(showContent ? 1 : 0)
             }
-            .opacity(showContent ? 1 : 0)
 
             Spacer()
 
@@ -720,35 +716,31 @@ struct SuccessStoriesStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                Text("What 30 days looks like")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.xxl) {
+                VStack(spacing: MPSpacing.md) {
+                    Text("Your first 10 days")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-                Text("Based on tracked user data")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .opacity(showContent ? 1 : 0)
+                    Text("Based on tracked user data")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .opacity(showContent ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                // Before/After comparison
+                BeforeAfterCard(
+                    beforeTitle: "Day 1",
+                    beforeItems: ["Hit snooze 3+ times", "Rush through morning", "Feel groggy until noon"],
+                    afterTitle: "Day 10",
+                    afterItems: ["Wake up on first alarm", "Calm, productive mornings", "Energized all afternoon"]
+                )
+                .padding(.horizontal, MPSpacing.xl)
+                .opacity(showContent ? 1 : 0)
 
-            // Before/After comparison
-            BeforeAfterCard(
-                beforeTitle: "Week 1",
-                beforeItems: ["Hit snooze 3+ times", "Rush through morning", "Feel groggy until noon"],
-                afterTitle: "Week 4",
-                afterItems: ["Wake up on first alarm", "Calm, productive mornings", "Energized by 8 AM"]
-            )
-            .padding(.horizontal, MPSpacing.xl)
-            .opacity(showContent ? 1 : 0)
-
-            Spacer().frame(height: MPSpacing.xl)
-
-            // Success metrics
-            VStack(spacing: MPSpacing.lg) {
+                // Success metrics
                 HStack(spacing: MPSpacing.lg) {
                     TransformationStatCard(
                         value: "89%",
@@ -757,30 +749,22 @@ struct SuccessStoriesStep: View {
                         color: MPColors.accent
                     )
                     TransformationStatCard(
-                        value: "2.4x",
-                        label: "longer streaks",
+                        value: "3.7x",
+                        label: "habit consistency",
                         icon: "flame.fill",
                         color: MPColors.primary
                     )
-                }
-                HStack(spacing: MPSpacing.lg) {
                     TransformationStatCard(
-                        value: "67%",
-                        label: "feel more productive",
+                        value: "80%",
+                        label: "more productive",
                         icon: "bolt.fill",
                         color: MPColors.accentGold
                     )
-                    TransformationStatCard(
-                        value: "94%",
-                        label: "still active at day 30",
-                        icon: "person.fill.checkmark",
-                        color: MPColors.success
-                    )
                 }
+                .padding(.horizontal, MPSpacing.xl)
+                .opacity(showStats ? 1 : 0)
+                .offset(y: showStats ? 0 : 20)
             }
-            .padding(.horizontal, MPSpacing.xl)
-            .opacity(showStats ? 1 : 0)
-            .offset(y: showStats ? 0 : 20)
 
             Spacer()
 
@@ -874,50 +858,46 @@ struct TrackingComparisonStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            Text("The Research Is Clear")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.xxl) {
+                VStack(spacing: MPSpacing.sm) {
+                    Text("Tracking works")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-            Spacer().frame(height: MPSpacing.sm)
+                    Text("Here's what the data shows")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
 
-            Text("People who track their habits")
-                .font(.system(size: 16))
-                .foregroundColor(MPColors.textSecondary)
+                StatisticRingCard(
+                    percentage: 76,
+                    label: "success rate",
+                    comparisonText: "vs 35% who don't track"
+                )
+                .padding(.horizontal, MPSpacing.xxl)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                // Research citation
+                HStack(spacing: MPSpacing.xs) {
+                    Image(systemName: "checkmark.seal.fill")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.primary)
+                    Text("Journal of Behavioral Psychology, 2024")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                }
 
-            StatisticRingCard(
-                percentage: 76,
-                label: "success rate",
-                comparisonText: "vs 35% who don't track"
-            )
-            .padding(.horizontal, MPSpacing.xxl)
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Research citation
-            HStack(spacing: MPSpacing.xs) {
-                Image(systemName: "checkmark.seal.fill")
-                    .font(.system(size: 12))
-                    .foregroundColor(MPColors.primary)
-                Text("Journal of Behavioral Psychology, 2024")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(MPColors.textTertiary)
+                // Supporting pills
+                HStack(spacing: MPSpacing.sm) {
+                    StatPillView(value: "42%", label: "hit their goals", icon: "target")
+                    StatPillView(value: "3.1x", label: "better follow-through", icon: "checkmark.circle.fill")
+                    StatPillView(value: "91%", label: "w/ accountability", icon: "person.2.fill")
+                }
+                .padding(.horizontal, MPSpacing.lg)
+                .opacity(showPills ? 1 : 0)
+                .offset(y: showPills ? 0 : 10)
             }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Supporting pills
-            HStack(spacing: MPSpacing.sm) {
-                StatPillView(value: "42%", label: "hit their goals", icon: "target")
-                StatPillView(value: "2.2x", label: "longer streaks", icon: "flame.fill")
-                StatPillView(value: "91%", label: "w/ accountability", icon: "person.2.fill")
-            }
-            .padding(.horizontal, MPSpacing.lg)
-            .opacity(showPills ? 1 : 0)
-            .offset(y: showPills ? 0 : 10)
 
             Spacer()
 
@@ -947,91 +927,87 @@ struct MorningAdvantageStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            VStack(spacing: MPSpacing.sm) {
-                Text("The Morning Advantage")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.xxl) {
+                VStack(spacing: MPSpacing.sm) {
+                    Text("The Morning Advantage")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-                Text("People with morning routines are")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .opacity(showHeader ? 1 : 0)
+                    Text("People with morning routines are")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .opacity(showHeader ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                // Animated multiplier
+                ZStack {
+                    ForEach(0..<2, id: \.self) { index in
+                        Circle()
+                            .stroke(MPColors.accent.opacity(0.15 - Double(index) * 0.05), lineWidth: 1.5)
+                            .frame(width: CGFloat(160 + index * 30), height: CGFloat(160 + index * 30))
+                            .scaleEffect(pulseAnimation ? 1.15 : 1.0)
+                            .opacity(pulseAnimation ? 0 : 0.8)
+                            .animation(
+                                .easeOut(duration: 2.5).repeatForever(autoreverses: false).delay(Double(index) * 0.4),
+                                value: pulseAnimation
+                            )
+                    }
 
-            // Animated multiplier
-            ZStack {
-                ForEach(0..<2, id: \.self) { index in
                     Circle()
-                        .stroke(MPColors.accent.opacity(0.15 - Double(index) * 0.05), lineWidth: 1.5)
-                        .frame(width: CGFloat(160 + index * 30), height: CGFloat(160 + index * 30))
-                        .scaleEffect(pulseAnimation ? 1.15 : 1.0)
-                        .opacity(pulseAnimation ? 0 : 0.8)
-                        .animation(
-                            .easeOut(duration: 2.5).repeatForever(autoreverses: false).delay(Double(index) * 0.4),
-                            value: pulseAnimation
+                        .fill(
+                            LinearGradient(
+                                colors: [MPColors.primary, MPColors.accent],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
+                        .frame(width: 130, height: 130)
+                        .mpShadow(.large)
+
+                    VStack(spacing: 0) {
+                        Text(String(format: "%.1fx", animatedValue))
+                            .font(.system(size: 42, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .contentTransition(.numericText())
+
+                        Text("more productive")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.white.opacity(0.9))
+                    }
+                    .scaleEffect(showMultiplier ? 1 : 0.5)
+                    .opacity(showMultiplier ? 1 : 0)
                 }
 
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [MPColors.primary, MPColors.accent],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                // Evidence cards
+                VStack(spacing: MPSpacing.md) {
+                    EvidenceCard(
+                        stat: "78%",
+                        description: "complete key habits before 9 AM",
+                        icon: "sunrise.fill",
+                        iconColor: MPColors.accent
                     )
-                    .frame(width: 130, height: 130)
-                    .mpShadow(.large)
 
-                VStack(spacing: 0) {
-                    Text(String(format: "%.1fx", animatedValue))
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
-                        .foregroundColor(.white)
-                        .contentTransition(.numericText())
-
-                    Text("more productive")
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(.white.opacity(0.9))
+                    EvidenceCard(
+                        stat: "92%",
+                        description: "report feeling highly productive",
+                        icon: "bolt.fill",
+                        iconColor: MPColors.accentGold
+                    )
                 }
-                .scaleEffect(showMultiplier ? 1 : 0.5)
-                .opacity(showMultiplier ? 1 : 0)
+                .padding(.horizontal, MPSpacing.xl)
+                .opacity(showCards ? 1 : 0)
+
+                HStack(spacing: MPSpacing.xs) {
+                    Image(systemName: "book.closed.fill")
+                        .font(.system(size: 11))
+                    Text("2025 Executive Performance Study")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(MPColors.textMuted)
+                .opacity(showCards ? 1 : 0)
             }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Evidence cards
-            VStack(spacing: MPSpacing.md) {
-                EvidenceCard(
-                    stat: "78%",
-                    description: "complete key habits before 9 AM",
-                    icon: "sunrise.fill",
-                    iconColor: MPColors.accent
-                )
-
-                EvidenceCard(
-                    stat: "92%",
-                    description: "report feeling highly productive",
-                    icon: "bolt.fill",
-                    iconColor: MPColors.accentGold
-                )
-            }
-            .padding(.horizontal, MPSpacing.xl)
-            .opacity(showCards ? 1 : 0)
-
-            Spacer().frame(height: MPSpacing.md)
-
-            HStack(spacing: MPSpacing.xs) {
-                Image(systemName: "book.closed.fill")
-                    .font(.system(size: 11))
-                Text("2025 Executive Performance Study")
-                    .font(.system(size: 11, weight: .medium))
-            }
-            .foregroundColor(MPColors.textMuted)
-            .opacity(showCards ? 1 : 0)
 
             Spacer()
 
@@ -1100,53 +1076,51 @@ struct HowItWorksStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                Text("MorningProof is different")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.xxl) {
+                VStack(spacing: MPSpacing.md) {
+                    Text("MorningProof is different")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-                Text("Real accountability that works")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
+                    Text("Real accountability that works")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+
+                VStack(spacing: MPSpacing.xl) {
+                    HowItWorksRow(
+                        number: "1",
+                        title: "Set your habits",
+                        description: "Choose morning habits to track",
+                        icon: "list.bullet.clipboard.fill",
+                        isVisible: showSteps[0]
+                    )
+
+                    HowItWorksRow(
+                        number: "2",
+                        title: "Prove them",
+                        description: "AI verifies you actually did it",
+                        icon: "camera.viewfinder",
+                        isVisible: showSteps[1]
+                    )
+
+                    HowItWorksRow(
+                        number: "3",
+                        title: "Build your streak",
+                        description: "Stay consistent, see progress",
+                        icon: "flame.fill",
+                        isVisible: showSteps[2]
+                    )
+                }
+                .padding(.horizontal, MPSpacing.xl)
+
+                Text("No more lying to yourself")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(MPColors.accent)
+                    .opacity(showSteps[2] ? 1 : 0)
             }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            VStack(spacing: MPSpacing.xl) {
-                HowItWorksRow(
-                    number: "1",
-                    title: "Set your habits",
-                    description: "Choose morning habits to track",
-                    icon: "list.bullet.clipboard.fill",
-                    isVisible: showSteps[0]
-                )
-
-                HowItWorksRow(
-                    number: "2",
-                    title: "Prove them",
-                    description: "AI verifies you actually did it",
-                    icon: "camera.viewfinder",
-                    isVisible: showSteps[1]
-                )
-
-                HowItWorksRow(
-                    number: "3",
-                    title: "Build your streak",
-                    description: "Stay consistent, see progress",
-                    icon: "flame.fill",
-                    isVisible: showSteps[2]
-                )
-            }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            Text("No more lying to yourself")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(MPColors.accent)
-                .opacity(showSteps[2] ? 1 : 0)
 
             Spacer()
 
@@ -1221,113 +1195,111 @@ struct AIVerificationShowcaseStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                Text("AI-Powered Verification")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text("Snap a photo, we'll verify it")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Phone mockup
-            ZStack {
-                // Phone frame
-                RoundedRectangle(cornerRadius: 30)
-                    .fill(MPColors.surface)
-                    .frame(width: 220, height: 340)
-                    .mpShadow(.large)
-
-                // Screen content
+            VStack(spacing: MPSpacing.xxl) {
                 VStack(spacing: MPSpacing.md) {
-                    // Bed image placeholder
-                    RoundedRectangle(cornerRadius: MPRadius.md)
-                        .fill(
-                            LinearGradient(
-                                colors: [MPColors.surfaceSecondary, MPColors.progressBg],
-                                startPoint: .top,
-                                endPoint: .bottom
+                    Text("AI-Powered Verification")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("Snap a photo, we'll verify it")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+
+                // Phone mockup
+                ZStack {
+                    // Phone frame
+                    RoundedRectangle(cornerRadius: 30)
+                        .fill(MPColors.surface)
+                        .frame(width: 220, height: 340)
+                        .mpShadow(.large)
+
+                    // Screen content
+                    VStack(spacing: MPSpacing.md) {
+                        // Bed image placeholder
+                        RoundedRectangle(cornerRadius: MPRadius.md)
+                            .fill(
+                                LinearGradient(
+                                    colors: [MPColors.surfaceSecondary, MPColors.progressBg],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
                             )
-                        )
-                        .frame(width: 180, height: 140)
-                        .overlay(
-                            Image(systemName: "bed.double.fill")
-                                .font(.system(size: 50))
-                                .foregroundColor(MPColors.textMuted)
-                        )
+                            .frame(width: 180, height: 140)
+                            .overlay(
+                                Image(systemName: "bed.double.fill")
+                                    .font(.system(size: 50))
+                                    .foregroundColor(MPColors.textMuted)
+                            )
 
-                    // Scan line animation
-                    if showScan && !showScore {
-                        Rectangle()
-                            .fill(MPColors.accent)
-                            .frame(width: 180, height: 2)
-                            .offset(y: -70 + (scanProgress * 140))
-                    }
-
-                    // Score display
-                    if showScore {
-                        VStack(spacing: MPSpacing.sm) {
-                            HStack(spacing: MPSpacing.sm) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(MPColors.success)
-                                Text("Verified!")
-                                    .font(.system(size: 16, weight: .bold))
-                                    .foregroundColor(MPColors.success)
-                            }
-
-                            HStack(spacing: MPSpacing.xs) {
-                                Text("Bed Score:")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(MPColors.textSecondary)
-                                Text("9/10")
-                                    .font(.system(size: 18, weight: .bold))
-                                    .foregroundColor(MPColors.primary)
-                            }
-
-                            Text("Great job making your bed!")
-                                .font(.system(size: 12))
-                                .foregroundColor(MPColors.textTertiary)
+                        // Scan line animation
+                        if showScan && !showScore {
+                            Rectangle()
+                                .fill(MPColors.accent)
+                                .frame(width: 180, height: 2)
+                                .offset(y: -70 + (scanProgress * 140))
                         }
-                        .transition(.scale.combined(with: .opacity))
+
+                        // Score display
+                        if showScore {
+                            VStack(spacing: MPSpacing.sm) {
+                                HStack(spacing: MPSpacing.sm) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(MPColors.success)
+                                    Text("Verified!")
+                                        .font(.system(size: 16, weight: .bold))
+                                        .foregroundColor(MPColors.success)
+                                }
+
+                                HStack(spacing: MPSpacing.xs) {
+                                    Text("Bed Score:")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(MPColors.textSecondary)
+                                    Text("9/10")
+                                        .font(.system(size: 18, weight: .bold))
+                                        .foregroundColor(MPColors.primary)
+                                }
+
+                                Text("Great job making your bed!")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(MPColors.textTertiary)
+                            }
+                            .transition(.scale.combined(with: .opacity))
+                        }
+                    }
+                    .frame(width: 200, height: 300)
+                }
+                .scaleEffect(showPhone ? 1 : 0.8)
+                .opacity(showPhone ? 1 : 0)
+
+                // Features
+                HStack(spacing: MPSpacing.xl) {
+                    VStack(spacing: 4) {
+                        Image(systemName: "bolt.fill")
+                            .foregroundColor(MPColors.accent)
+                        Text("Instant")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(MPColors.textSecondary)
+                    }
+                    VStack(spacing: 4) {
+                        Image(systemName: "hand.raised.slash.fill")
+                            .foregroundColor(MPColors.accent)
+                        Text("Hands-free")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(MPColors.textSecondary)
+                    }
+                    VStack(spacing: 4) {
+                        Image(systemName: "lock.shield.fill")
+                            .foregroundColor(MPColors.accent)
+                        Text("Private")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(MPColors.textSecondary)
                     }
                 }
-                .frame(width: 200, height: 300)
+                .opacity(showScore ? 1 : 0)
             }
-            .scaleEffect(showPhone ? 1 : 0.8)
-            .opacity(showPhone ? 1 : 0)
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Features
-            HStack(spacing: MPSpacing.xl) {
-                VStack(spacing: 4) {
-                    Image(systemName: "bolt.fill")
-                        .foregroundColor(MPColors.accent)
-                    Text("Instant")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                VStack(spacing: 4) {
-                    Image(systemName: "hand.raised.slash.fill")
-                        .foregroundColor(MPColors.accent)
-                    Text("Hands-free")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                VStack(spacing: 4) {
-                    Image(systemName: "lock.shield.fill")
-                        .foregroundColor(MPColors.accent)
-                    Text("Private")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-            }
-            .opacity(showScore ? 1 : 0)
 
             Spacer()
 
