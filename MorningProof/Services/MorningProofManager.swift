@@ -2,8 +2,8 @@ import Foundation
 import SwiftUI
 
 @MainActor
-class MorningProofManager: ObservableObject {
-    nonisolated(unsafe) static let shared = MorningProofManager()
+final class MorningProofManager: ObservableObject, Sendable {
+    static let shared = MorningProofManager()
 
     // MARK: - Published Properties
 

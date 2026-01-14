@@ -2,8 +2,8 @@ import Foundation
 import HealthKit
 
 @MainActor
-class HealthKitManager: ObservableObject {
-    nonisolated(unsafe) static let shared = HealthKitManager()
+final class HealthKitManager: ObservableObject, Sendable {
+    static let shared = HealthKitManager()
 
     private let healthStore = HKHealthStore()
 

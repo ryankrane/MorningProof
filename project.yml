@@ -68,6 +68,7 @@ targets:
           UIImageName: ""
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
+        UIRequiresFullScreen: true
         NSCameraUsageDescription: "Morning Proof needs camera access to take photos of your made bed for verification."
         NSPhotoLibraryUsageDescription: "Morning Proof needs photo library access to select bed photos for verification."
         NSHealthShareUsageDescription: "Morning Proof uses your health data to automatically track morning movement and sleep quality."

@@ -4,8 +4,8 @@ import SwiftUI
 import GoogleSignIn
 
 @MainActor
-class AuthenticationManager: NSObject, ObservableObject {
-    nonisolated(unsafe) static let shared = AuthenticationManager()
+final class AuthenticationManager: NSObject, ObservableObject, Sendable {
+    static let shared = AuthenticationManager()
 
     @Published var isAuthenticated = false
     @Published var currentUser: AuthUser?

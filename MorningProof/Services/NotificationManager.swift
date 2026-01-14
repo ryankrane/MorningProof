@@ -2,8 +2,8 @@ import Foundation
 import UserNotifications
 
 @MainActor
-class NotificationManager: ObservableObject {
-    nonisolated(unsafe) static let shared = NotificationManager()
+final class NotificationManager: ObservableObject, Sendable {
+    static let shared = NotificationManager()
 
     @Published var isAuthorized = false
 
