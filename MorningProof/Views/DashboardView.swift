@@ -50,14 +50,11 @@ struct DashboardView: View {
                         completedToday: manager.completedCount,
                         totalHabits: manager.totalEnabled,
                         isPerfectMorning: manager.isPerfectMorning,
+                        timeUntilCutoff: manager.isPastCutoff ? nil : manager.timeUntilCutoff,
+                        cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
                         triggerPulse: $triggerStreakPulse,
                         flameFrame: $streakFlameFrame
                     )
-
-                    // Countdown
-                    if !manager.isPastCutoff {
-                        countdownBanner
-                    }
 
                     // Habits List
                     habitsSection
@@ -250,36 +247,6 @@ struct DashboardView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMMM d"
         return formatter.string(from: Date())
-    }
-
-    // MARK: - Countdown Banner
-
-    var countdownBanner: some View {
-        HStack {
-            Image(systemName: "clock.fill")
-                .foregroundColor(MPColors.accent)
-
-            Text(countdownText)
-                .font(MPFont.labelMedium())
-                .foregroundColor(MPColors.textPrimary)
-
-            Spacer()
-        }
-        .padding(MPSpacing.lg)
-        .background(MPColors.surfaceHighlight)
-        .cornerRadius(MPRadius.md)
-    }
-
-    var countdownText: String {
-        let interval = manager.timeUntilCutoff
-        let hours = Int(interval) / 3600
-        let minutes = (Int(interval) % 3600) / 60
-
-        if hours > 0 {
-            return "\(hours)h \(minutes)m until \(manager.settings.cutoffTimeFormatted) cutoff"
-        } else {
-            return "\(minutes)m until \(manager.settings.cutoffTimeFormatted) cutoff"
-        }
     }
 
     // MARK: - Habits Section
