@@ -4,18 +4,43 @@ import Combine
 
 @main
 struct MorningProofApp: App {
+    let container: ModelContainer
+
+    init() {
+        print("🚀 MorningProofApp: init starting...")
+        do {
+            print("🚀 MorningProofApp: Creating model container...")
+            container = try ModelContainer(for:
+                SDSettings.self,
+                SDHabitConfig.self,
+                SDDailyLog.self,
+                SDHabitCompletion.self,
+                SDStreakRecord.self,
+                SDUnlockedAchievement.self
+            )
+            print("🚀 MorningProofApp: Model container created successfully")
+        } catch {
+            print("🚨 MorningProofApp: FATAL - Failed to create model container: \(error)")
+            // Create an in-memory container as fallback so the app at least launches
+            container = try! ModelContainer(for:
+                SDSettings.self,
+                SDHabitConfig.self,
+                SDDailyLog.self,
+                SDHabitCompletion.self,
+                SDStreakRecord.self,
+                SDUnlockedAchievement.self,
+                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+            )
+            print("🚨 MorningProofApp: Using in-memory fallback container")
+        }
+        print("🚀 MorningProofApp: init complete")
+    }
+
     var body: some Scene {
         WindowGroup {
             RootView()
         }
-        .modelContainer(for: [
-            SDSettings.self,
-            SDHabitConfig.self,
-            SDDailyLog.self,
-            SDHabitCompletion.self,
-            SDStreakRecord.self,
-            SDUnlockedAchievement.self
-        ])
+        .modelContainer(container)
     }
 }
 
