@@ -13,6 +13,10 @@ struct MorningProofSettingsView: View {
     @State private var showPaywall = false
     @State private var showAppLockingSheet = false
 
+    // Inline name editing
+    @State private var isEditingName = false
+    @FocusState private var nameFieldFocused: Bool
+
     // Notification settings
     @State private var notificationsEnabled = true
     @State private var morningReminderTime: Int = 420
@@ -23,7 +27,6 @@ struct MorningProofSettingsView: View {
     // App Locking settings
     @State private var appLockingEnabled = false
     @State private var blockingStartMinutes: Int = 0
-
 
     // Goals settings
     @State private var weeklyPerfectMorningsGoal: Int = 5
@@ -40,166 +43,28 @@ struct MorningProofSettingsView: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: MPSpacing.xxl) {
-                        // Profile Section
-                        settingsSection(title: "Profile") {
-                            VStack(alignment: .leading, spacing: MPSpacing.md) {
-                                Text("Your Name")
-                                    .font(MPFont.bodyMedium())
-                                    .foregroundColor(MPColors.textTertiary)
+                    VStack(spacing: MPSpacing.xl) {
+                        // MARK: - Header with Greeting & Theme
+                        headerSection
 
-                                TextField("", text: $userName, prompt: Text("Enter your name").foregroundColor(MPColors.textSecondary))
-                                    .textFieldStyle(.plain)
-                                    .foregroundColor(MPColors.textPrimary)
-                                    .padding(MPSpacing.lg)
-                                    .background(MPColors.background)
-                                    .cornerRadius(MPRadius.sm)
-                            }
-                        }
+                        // MARK: - Morning Routine (Schedule + Habits combined)
+                        morningRoutineSection
 
-                        // Appearance Section
-                        settingsSection(title: "Appearance") {
-                            VStack(spacing: MPSpacing.lg) {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                                        Text("Theme")
-                                            .font(MPFont.labelMedium())
-                                            .foregroundColor(MPColors.textPrimary)
-                                        Text("Choose your preferred appearance")
-                                            .font(MPFont.bodySmall())
-                                            .foregroundColor(MPColors.textTertiary)
-                                    }
-
-                                    Spacer()
-                                }
-
-                                HStack(spacing: MPSpacing.md) {
-                                    ForEach(AppThemeMode.allCases, id: \.rawValue) { mode in
-                                        Button {
-                                            themeManager.themeMode = mode
-                                        } label: {
-                                            VStack(spacing: MPSpacing.sm) {
-                                                ZStack {
-                                                    RoundedRectangle(cornerRadius: MPRadius.md)
-                                                        .fill(themeManager.themeMode == mode ? MPColors.primary : MPColors.surfaceSecondary)
-                                                        .frame(width: 56, height: 56)
-
-                                                    Image(systemName: mode.icon)
-                                                        .font(.system(size: MPIconSize.lg))
-                                                        .foregroundColor(themeManager.themeMode == mode ? .white : MPColors.textTertiary)
-                                                }
-
-                                                Text(mode.displayName)
-                                                    .font(MPFont.labelSmall())
-                                                    .foregroundColor(themeManager.themeMode == mode ? MPColors.primary : MPColors.textSecondary)
-                                            }
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-
-                                        if mode != AppThemeMode.allCases.last {
-                                            Spacer()
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        // Time Settings
-                        settingsSection(title: "Schedule") {
-                            HStack {
-                                VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                                    Text("Morning Cutoff")
-                                        .font(MPFont.labelMedium())
-                                        .foregroundColor(MPColors.textPrimary)
-                                    Text("Deadline to complete habits")
-                                        .font(MPFont.bodySmall())
-                                        .foregroundColor(MPColors.textTertiary)
-                                }
-
-                                Spacer()
-
-                                Picker("Cutoff", selection: $cutoffMinutes) {
-                                    ForEach(MorningProofSettings.cutoffTimeOptions, id: \.minutes) { option in
-                                        Text(option.label).tag(option.minutes)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .tint(MPColors.primary)
-                            }
-                        }
-
-                        // Habits Section
-                        settingsSection(title: "Habits") {
-                            VStack(spacing: 0) {
-                    ForEach(manager.habitConfigs) { config in
-                        habitToggleRow(config: config)
-
-                        if config.id != manager.habitConfigs.last?.id {
-                            Divider()
-                                .padding(.leading, 50)
-                        }
-                    }
-                }
-                        }
-
-                        // Notifications Section
+                        // MARK: - Notifications
                         notificationsSection
 
-                        // App Locking Section
+                        // MARK: - App Locking
                         appLockingSection
 
-                        // Goals Section
+                        // MARK: - Goals
                         goalsSection
 
-                        // Danger Zone
-                        settingsSection(title: "Data") {
-                            VStack(spacing: MPSpacing.md) {
-                                // Test Celebration button
-                                Button {
-                                    showTestCelebration = true
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "flame.fill")
-                                        Text("Test Celebration")
-                                    }
-                                    .font(MPFont.bodyMedium())
-                                    .foregroundColor(MPColors.primary)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, MPSpacing.md)
-                                }
-
-                                Divider()
-
-                                // Reset Data button
-                                Button {
-                                    showResetConfirmation = true
-                                } label: {
-                                    HStack {
-                                        Image(systemName: "trash")
-                                        Text("Reset All Data")
-                                    }
-                                    .font(MPFont.bodyMedium())
-                                    .foregroundColor(MPColors.error)
-                                    .frame(maxWidth: .infinity)
-                                    .padding(.vertical, MPSpacing.md)
-                                }
-                            }
-                        }
-
-                        // App Info
-                        VStack(spacing: MPSpacing.xs) {
-                            Text("Morning Proof")
-                                .font(MPFont.labelSmall())
-                                .foregroundColor(MPColors.textTertiary)
-                            Text("Version 1.0")
-                                .font(MPFont.labelTiny())
-                                .foregroundColor(MPColors.textMuted)
-                        }
-                        .padding(.top, MPSpacing.xl)
-                        .padding(.bottom, 40)
+                        // MARK: - About
+                        aboutSection
                     }
                     .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, MPSpacing.xl)
+                    .padding(.top, MPSpacing.lg)
+                    .padding(.bottom, 40)
                 }
 
                 // Test celebration overlay
@@ -242,13 +107,177 @@ struct MorningProofSettingsView: View {
         }
     }
 
-    func settingsSection<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
+    // MARK: - Header Section
+
+    var headerSection: some View {
+        VStack(spacing: MPSpacing.lg) {
+            // Greeting with inline name editing
+            HStack {
+                if isEditingName {
+                    HStack(spacing: MPSpacing.sm) {
+                        Text(greetingPrefix)
+                            .font(MPFont.headingMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        TextField("Your name", text: $userName)
+                            .font(MPFont.headingMedium())
+                            .foregroundColor(MPColors.primary)
+                            .focused($nameFieldFocused)
+                            .submitLabel(.done)
+                            .onSubmit {
+                                isEditingName = false
+                            }
+                    }
+
+                    Spacer()
+
+                    Button {
+                        isEditingName = false
+                    } label: {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: MPIconSize.lg))
+                            .foregroundColor(MPColors.primary)
+                    }
+                } else {
+                    Button {
+                        isEditingName = true
+                        nameFieldFocused = true
+                    } label: {
+                        HStack(spacing: MPSpacing.sm) {
+                            Text(greeting)
+                                .font(MPFont.headingMedium())
+                                .foregroundColor(MPColors.textPrimary)
+
+                            Image(systemName: "pencil.circle.fill")
+                                .font(.system(size: MPIconSize.md))
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+                    }
+                    .buttonStyle(PlainButtonStyle())
+
+                    Spacer()
+                }
+            }
+            .padding(.horizontal, MPSpacing.xs)
+
+            // Compact theme picker
+            themePickerSegmented
+        }
+        .padding(MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+    }
+
+    var greetingPrefix: String {
+        let hour = Calendar.current.component(.hour, from: Date())
+        if hour < 12 {
+            return "Good morning,"
+        } else if hour < 17 {
+            return "Good afternoon,"
+        } else {
+            return "Good evening,"
+        }
+    }
+
+    var greeting: String {
+        let name = userName.isEmpty ? "there" : userName
+        return "\(greetingPrefix) \(name)"
+    }
+
+    var themePickerSegmented: some View {
+        HStack(spacing: 0) {
+            ForEach(AppThemeMode.allCases, id: \.rawValue) { mode in
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        themeManager.themeMode = mode
+                    }
+                } label: {
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: mode.icon)
+                            .font(.system(size: MPIconSize.sm))
+                        Text(mode.displayName)
+                            .font(MPFont.labelSmall())
+                    }
+                    .foregroundColor(themeManager.themeMode == mode ? .white : MPColors.textSecondary)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, MPSpacing.md)
+                    .background(
+                        RoundedRectangle(cornerRadius: MPRadius.sm)
+                            .fill(themeManager.themeMode == mode ? MPColors.primary : Color.clear)
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+        }
+        .padding(MPSpacing.xs)
+        .background(MPColors.surfaceSecondary)
+        .cornerRadius(MPRadius.md)
+    }
+
+    // MARK: - Morning Routine Section (Combined Schedule + Habits)
+
+    var morningRoutineSection: some View {
+        settingsSection(title: "Morning Routine", icon: "sunrise.fill") {
+            VStack(spacing: 0) {
+                // Cutoff time
+                HStack {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(MPColors.primary)
+                        .frame(width: 30)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Cutoff Time")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
+                        Text("Complete habits by this time")
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+
+                    Spacer()
+
+                    Picker("Cutoff", selection: $cutoffMinutes) {
+                        ForEach(MorningProofSettings.cutoffTimeOptions, id: \.minutes) { option in
+                            Text(option.label).tag(option.minutes)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(MPColors.primary)
+                }
+                .padding(.vertical, MPSpacing.sm)
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Habits
+                ForEach(manager.habitConfigs) { config in
+                    habitToggleRow(config: config)
+
+                    if config.id != manager.habitConfigs.last?.id {
+                        Divider()
+                            .padding(.leading, 46)
+                    }
+                }
+            }
+        }
+    }
+
+    func settingsSection<Content: View>(title: String, icon: String? = nil, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
-            Text(title.uppercased())
-                .font(MPFont.labelSmall())
-                .foregroundColor(MPColors.textTertiary)
-                .tracking(0.5)
-                .padding(.leading, MPSpacing.xs)
+            HStack(spacing: MPSpacing.sm) {
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                Text(title.uppercased())
+                    .font(MPFont.labelSmall())
+                    .foregroundColor(MPColors.textTertiary)
+                    .tracking(0.5)
+            }
+            .padding(.leading, MPSpacing.xs)
 
             VStack {
                 content()
@@ -264,7 +293,7 @@ struct MorningProofSettingsView: View {
         HStack(spacing: MPSpacing.lg) {
             Image(systemName: config.habitType.icon)
                 .font(.system(size: MPIconSize.sm))
-                .foregroundColor(MPColors.textTertiary)
+                .foregroundColor(config.isEnabled ? MPColors.primary : MPColors.textTertiary)
                 .frame(width: 30)
 
             VStack(alignment: .leading, spacing: 2) {
@@ -345,7 +374,7 @@ struct MorningProofSettingsView: View {
     // MARK: - Notifications Section
 
     var notificationsSection: some View {
-        settingsSection(title: "Notifications") {
+        settingsSection(title: "Notifications", icon: "bell.fill") {
             VStack(spacing: MPSpacing.lg) {
                 // Enable toggle
                 HStack {
@@ -432,7 +461,7 @@ struct MorningProofSettingsView: View {
     // MARK: - App Locking Section
 
     var appLockingSection: some View {
-        settingsSection(title: "App Locking") {
+        settingsSection(title: "App Locking", icon: "lock.fill") {
             VStack(spacing: MPSpacing.lg) {
                 // Enable toggle
                 HStack {
@@ -496,7 +525,7 @@ struct MorningProofSettingsView: View {
     // MARK: - Goals Section
 
     var goalsSection: some View {
-        settingsSection(title: "Goals") {
+        settingsSection(title: "Goals", icon: "target") {
             VStack(spacing: MPSpacing.lg) {
                 // Weekly perfect mornings
                 HStack {
@@ -570,6 +599,83 @@ struct MorningProofSettingsView: View {
                         .foregroundColor(MPColors.primary)
                         .frame(width: 50)
                 }
+            }
+        }
+    }
+
+    // MARK: - About Section
+
+    var aboutSection: some View {
+        settingsSection(title: "About", icon: "info.circle.fill") {
+            VStack(spacing: 0) {
+                // App info row
+                HStack {
+                    Image(systemName: "app.fill")
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(MPColors.primary)
+                        .frame(width: 30)
+
+                    Text("Morning Proof")
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Spacer()
+
+                    Text("Version 1.0")
+                        .font(MPFont.labelSmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .padding(.vertical, MPSpacing.sm)
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Test Celebration button
+                Button {
+                    showTestCelebration = true
+                } label: {
+                    HStack {
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.accent)
+                            .frame(width: 30)
+
+                        Text("Test Celebration")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.caption)
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Reset Data button
+                Button {
+                    showResetConfirmation = true
+                } label: {
+                    HStack {
+                        Image(systemName: "arrow.counterclockwise")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.error)
+                            .frame(width: 30)
+
+                        Text("Reset All Data")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.error)
+
+                        Spacer()
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                }
+                .buttonStyle(PlainButtonStyle())
             }
         }
     }
