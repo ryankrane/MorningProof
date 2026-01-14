@@ -335,6 +335,11 @@ struct DashboardView: View {
         }
     }
 
+    /// Determines if a habit is a "hold to complete" type (not a special input type)
+    private func isHoldToCompleteHabit(_ habitType: HabitType) -> Bool {
+        habitType != .madeBed && habitType != .sleepDuration && habitType != .morningSteps
+    }
+
     func habitRow(for config: HabitConfig) -> some View {
         let completion = manager.getCompletion(for: config.habitType)
         let isCompleted = completion?.isCompleted ?? false
@@ -342,8 +347,22 @@ struct DashboardView: View {
         let isFlashing = habitRowFlash[config.habitType] ?? false
         let glowIntensity = habitRowGlow[config.habitType] ?? 0
         let progress = holdProgress[config.habitType] ?? 0
+        let isHoldType = isHoldToCompleteHabit(config.habitType)
 
         return ZStack {
+            // Base background
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.surface)
+
+            // Green fill progress overlay (fills from left to right)
+            if isHoldType && !isCompleted {
+                GeometryReader { geo in
+                    RoundedRectangle(cornerRadius: MPRadius.lg)
+                        .fill(MPColors.success.opacity(0.3))
+                        .frame(width: geo.size.width * progress)
+                }
+            }
+
             HStack(spacing: MPSpacing.lg) {
                 // Icon
                 ZStack {
@@ -368,7 +387,7 @@ struct DashboardView: View {
 
                 Spacer()
 
-                // Action / Status indicator
+                // Action / Status indicator (only for special types or completed)
                 if isCompleted {
                     CheckmarkCircle(isCompleted: true, size: 28)
                 } else if config.habitType == .madeBed {
@@ -402,95 +421,73 @@ struct DashboardView: View {
                 } else if config.habitType == .morningSteps {
                     let score = completion?.score ?? 0
                     CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
-                } else if config.habitType.requiresHoldToConfirm {
-                    // Hold progress indicator for honor system habits
-                    ZStack {
-                        Circle()
-                            .stroke(MPColors.border, lineWidth: 2)
-                            .frame(width: 28, height: 28)
-
-                        Circle()
-                            .trim(from: 0, to: progress)
-                            .stroke(MPColors.primary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                            .frame(width: 28, height: 28)
-                            .rotationEffect(.degrees(-90))
-                    }
-                } else {
-                    Circle()
-                        .stroke(MPColors.border, lineWidth: 2)
-                        .frame(width: 28, height: 28)
                 }
+                // No indicator for hold-to-complete habits - the green fill is the indicator
             }
             .padding(MPSpacing.lg)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
+
             // Flash overlay for completion celebration
-            .overlay(
-                RoundedRectangle(cornerRadius: MPRadius.lg)
-                    .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
-            )
-            .mpShadow(.small)
-            // Enhanced glow shadow when completing
-            .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
-            // Enhanced scale effect (1.05 instead of 1.03)
-            .scaleEffect(justCompleted ? 1.05 : 1.0)
-            .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
-            .animation(.easeOut(duration: 0.15), value: isFlashing)
-            .animation(.easeOut(duration: 0.3), value: glowIntensity)
-            // Make entire row tappable for honor system habits
-            .contentShape(Rectangle())
-            .gesture(
-                config.habitType.requiresHoldToConfirm && !isCompleted ?
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        // Only start if not already holding this habit
-                        if isHoldingHabit != config.habitType {
-                            isHoldingHabit = config.habitType
-                            HapticManager.shared.lightTap()
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
+        }
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+        // Enhanced glow shadow when completing
+        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+        // Enhanced scale effect (1.05 instead of 1.03)
+        .scaleEffect(justCompleted ? 1.05 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+        .animation(.easeOut(duration: 0.15), value: isFlashing)
+        .animation(.easeOut(duration: 0.3), value: glowIntensity)
+        // Make entire row tappable for hold-to-complete habits
+        .contentShape(Rectangle())
+        .gesture(
+            isHoldType && !isCompleted ?
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    // Only start if not already holding this habit
+                    if isHoldingHabit != config.habitType {
+                        isHoldingHabit = config.habitType
+                        HapticManager.shared.lightTap()
 
-                            // Animate progress ring
-                            withAnimation(.linear(duration: 1.0)) {
-                                holdProgress[config.habitType] = 1.0
-                            }
-
-                            // Schedule completion check
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                                // Only complete if still holding this habit
-                                if isHoldingHabit == config.habitType {
-                                    HapticManager.shared.success()
-                                    completeHabitWithCelebration(config.habitType)
-                                    holdProgress[config.habitType] = 0
-                                    isHoldingHabit = nil
-                                }
-                            }
+                        // Animate green fill across the row
+                        withAnimation(.linear(duration: 1.0)) {
+                            holdProgress[config.habitType] = 1.0
                         }
-                    }
-                    .onEnded { _ in
-                        // Cancel if finger lifted before completion
-                        if isHoldingHabit == config.habitType {
-                            isHoldingHabit = nil
-                            withAnimation(.easeOut(duration: 0.2)) {
+
+                        // Schedule completion check
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            // Only complete if still holding this habit
+                            if isHoldingHabit == config.habitType {
+                                HapticManager.shared.success()
+                                completeHabitWithCelebration(config.habitType)
                                 holdProgress[config.habitType] = 0
+                                isHoldingHabit = nil
                             }
-                            HapticManager.shared.lightTap()
                         }
                     }
-                : nil
-            )
-            // Simple tap for non-hold habits that aren't special types
-            .onTapGesture {
-                if !isCompleted && !config.habitType.requiresHoldToConfirm &&
-                   config.habitType != .madeBed && config.habitType != .sleepDuration && config.habitType != .morningSteps {
-                    completeHabitWithCelebration(config.habitType)
+                }
+                .onEnded { _ in
+                    // Cancel if finger lifted before completion - green backtracks
+                    if isHoldingHabit == config.habitType {
+                        isHoldingHabit = nil
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            holdProgress[config.habitType] = 0
+                        }
+                        HapticManager.shared.lightTap()
+                    }
+                }
+            : nil
+        )
+        .overlay(
+            // Mini confetti overlay
+            Group {
+                if showConfettiForHabit == config.habitType {
+                    MiniConfettiView()
+                        .allowsHitTesting(false)
                 }
             }
-
-            // Mini confetti overlay
-            if showConfettiForHabit == config.habitType {
-                MiniConfettiView()
-                    .allowsHitTesting(false)
-            }
-        }
+        )
     }
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
@@ -598,57 +595,6 @@ struct CircularProgressView: View {
                 .foregroundColor(MPColors.textSecondary)
         }
         .frame(width: size, height: size)
-    }
-}
-
-struct HoldToConfirmButton: View {
-    let habitType: HabitType
-    let onComplete: () -> Void
-
-    @State private var progress: CGFloat = 0
-    @State private var isHolding = false
-
-    var body: some View {
-        ZStack {
-            Circle()
-                .stroke(MPColors.border, lineWidth: 2)
-                .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-
-            Circle()
-                .trim(from: 0, to: progress)
-                .stroke(MPColors.primary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
-                .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                .rotationEffect(.degrees(-90))
-        }
-        .gesture(
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    if !isHolding {
-                        isHolding = true
-                        HapticManager.shared.lightTap()
-
-                        withAnimation(.linear(duration: 1.0)) {
-                            progress = 1.0
-                        }
-
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            if isHolding {
-                                HapticManager.shared.success()
-                                onComplete()
-                            }
-                        }
-                    }
-                }
-                .onEnded { _ in
-                    isHolding = false
-                    if progress < 1.0 {
-                        withAnimation(.easeOut(duration: 0.2)) {
-                            progress = 0
-                        }
-                        HapticManager.shared.lightTap()
-                    }
-                }
-        )
     }
 }
 
