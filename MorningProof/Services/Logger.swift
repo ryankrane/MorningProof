@@ -16,6 +16,7 @@ enum MPLogger {
     static let liveActivity = os.Logger(subsystem: subsystem, category: "liveactivity")
     static let api = os.Logger(subsystem: subsystem, category: "api")
     static let storage = os.Logger(subsystem: subsystem, category: "storage")
+    static let screenTime = os.Logger(subsystem: subsystem, category: "screentime")
     static let general = os.Logger(subsystem: subsystem, category: "general")
 
     // MARK: - Convenience Methods

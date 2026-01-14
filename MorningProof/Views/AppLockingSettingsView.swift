@@ -1,21 +1,14 @@
 import SwiftUI
+import FamilyControls
 
 struct AppLockingSettingsView: View {
     @Environment(\.dismiss) var dismiss
+    @StateObject private var screenTimeManager = ScreenTimeManager.shared
+    @ObservedObject private var manager = MorningProofManager.shared
 
-    // Example apps that could be locked (placeholder data)
-    private let suggestedApps = [
-        AppInfo(name: "Instagram", icon: "camera.fill", bundleId: "com.instagram.instagram"),
-        AppInfo(name: "TikTok", icon: "play.rectangle.fill", bundleId: "com.zhiliaoapp.musically"),
-        AppInfo(name: "Twitter / X", icon: "bubble.left.fill", bundleId: "com.twitter.twitter"),
-        AppInfo(name: "YouTube", icon: "play.tv.fill", bundleId: "com.google.ios.youtube"),
-        AppInfo(name: "Reddit", icon: "text.bubble.fill", bundleId: "com.reddit.reddit"),
-        AppInfo(name: "Facebook", icon: "person.2.fill", bundleId: "com.facebook.facebook"),
-        AppInfo(name: "Snapchat", icon: "camera.viewfinder", bundleId: "com.toyopagroup.picaboo"),
-        AppInfo(name: "Netflix", icon: "tv.fill", bundleId: "com.netflix.netflix")
-    ]
-
-    @State private var selectedApps: Set<String> = []
+    @State private var isPickerPresented = false
+    @State private var showAuthorizationError = false
+    @State private var isRequestingAuth = false
 
     var body: some View {
         NavigationStack {
@@ -28,14 +21,19 @@ struct AppLockingSettingsView: View {
                         // Header explanation
                         headerSection
 
-                        // Coming soon banner
-                        comingSoonBanner
+                        // Authorization status
+                        if screenTimeManager.authorizationStatus != .approved {
+                            authorizationSection
+                        } else {
+                            // App selection (only if authorized)
+                            appSelectionSection
 
-                        // App selection
-                        appSelectionSection
+                            // Enable toggle
+                            enableSection
 
-                        // How it works
-                        howItWorksSection
+                            // How it works
+                            howItWorksSection
+                        }
                     }
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.top, MPSpacing.lg)
@@ -52,8 +50,22 @@ struct AppLockingSettingsView: View {
                     .foregroundColor(MPColors.primary)
                 }
             }
+            .familyActivityPicker(
+                isPresented: $isPickerPresented,
+                selection: $screenTimeManager.selectedApps
+            )
+            .onChange(of: screenTimeManager.selectedApps) { _, newValue in
+                screenTimeManager.saveSelectedApps(newValue)
+            }
+            .alert("Authorization Failed", isPresented: $showAuthorizationError) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("Screen Time access is required to block apps. Please enable it in Settings > Screen Time.")
+            }
         }
     }
+
+    // MARK: - Header Section
 
     var headerSection: some View {
         VStack(spacing: MPSpacing.md) {
@@ -79,26 +91,55 @@ struct AppLockingSettingsView: View {
         .padding(.vertical, MPSpacing.lg)
     }
 
-    var comingSoonBanner: some View {
-        HStack(spacing: MPSpacing.md) {
-            Image(systemName: "clock.badge.checkmark.fill")
-                .font(.title2)
-                .foregroundColor(MPColors.accent)
+    // MARK: - Authorization Section
 
-            VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                Text("Coming Soon")
-                    .font(MPFont.labelMedium())
-                    .foregroundColor(MPColors.textPrimary)
+    var authorizationSection: some View {
+        VStack(spacing: MPSpacing.lg) {
+            // Status banner
+            HStack(spacing: MPSpacing.md) {
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.title2)
+                    .foregroundColor(MPColors.warning)
 
-                Text("App locking requires special approval from Apple. We're working on getting this feature approved.")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                    Text("Screen Time Access Required")
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("To block apps, Morning Proof needs permission to access Screen Time.")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
             }
+            .padding(MPSpacing.lg)
+            .background(MPColors.warningLight)
+            .cornerRadius(MPRadius.lg)
+
+            // Authorize button
+            Button {
+                requestAuthorization()
+            } label: {
+                HStack {
+                    if isRequestingAuth {
+                        ProgressView()
+                            .tint(.white)
+                    } else {
+                        Image(systemName: "hand.raised.fill")
+                        Text("Enable Screen Time Access")
+                    }
+                }
+                .font(MPFont.labelMedium())
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, MPSpacing.lg)
+                .background(MPColors.primary)
+                .cornerRadius(MPRadius.lg)
+            }
+            .disabled(isRequestingAuth)
         }
-        .padding(MPSpacing.lg)
-        .background(MPColors.warningLight)
-        .cornerRadius(MPRadius.lg)
     }
+
+    // MARK: - App Selection Section
 
     var appSelectionSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
@@ -108,57 +149,118 @@ struct AppLockingSettingsView: View {
                 .tracking(0.5)
                 .padding(.leading, MPSpacing.xs)
 
-            VStack(spacing: 0) {
-                ForEach(suggestedApps) { app in
-                    appRow(app)
+            Button {
+                isPickerPresented = true
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                        Text("Select Apps")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
 
-                    if app.id != suggestedApps.last?.id {
-                        Divider()
-                            .padding(.leading, 60)
+                        let appCount = screenTimeManager.selectedApps.applicationTokens.count
+                        let categoryCount = screenTimeManager.selectedApps.categoryTokens.count
+
+                        if appCount > 0 || categoryCount > 0 {
+                            Text("\(appCount) app\(appCount == 1 ? "" : "s")\(categoryCount > 0 ? ", \(categoryCount) categor\(categoryCount == 1 ? "y" : "ies")" : "") selected")
+                                .font(MPFont.bodySmall())
+                                .foregroundColor(MPColors.success)
+                        } else {
+                            Text("Tap to choose apps to block")
+                                .font(MPFont.bodySmall())
+                                .foregroundColor(MPColors.textTertiary)
+                        }
                     }
+
+                    Spacer()
+
+                    Image(systemName: "chevron.right")
+                        .font(.body)
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .padding(MPSpacing.lg)
+                .background(MPColors.surface)
+                .cornerRadius(MPRadius.lg)
+                .mpShadow(.small)
+            }
+        }
+    }
+
+    // MARK: - Enable Section
+
+    var enableSection: some View {
+        VStack(alignment: .leading, spacing: MPSpacing.md) {
+            Text("SETTINGS")
+                .font(MPFont.labelSmall())
+                .foregroundColor(MPColors.textTertiary)
+                .tracking(0.5)
+                .padding(.leading, MPSpacing.xs)
+
+            VStack(spacing: 0) {
+                // Enable toggle
+                HStack {
+                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                        Text("Enable App Locking")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Text("Block selected apps until habits are done")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+
+                    Spacer()
+
+                    Toggle("", isOn: Binding(
+                        get: { manager.settings.appLockingEnabled },
+                        set: { newValue in
+                            manager.settings.appLockingEnabled = newValue
+                            AppLockingDataStore.appLockingEnabled = newValue
+
+                            if newValue && screenTimeManager.hasSelectedApps {
+                                // Start monitoring
+                                do {
+                                    try screenTimeManager.startMorningBlockingSchedule(
+                                        cutoffMinutes: manager.settings.morningCutoffMinutes
+                                    )
+                                } catch {
+                                    // Failed to start monitoring
+                                    manager.settings.appLockingEnabled = false
+                                }
+                            } else if !newValue {
+                                // Stop monitoring
+                                screenTimeManager.stopMonitoring()
+                                screenTimeManager.removeShields()
+                            }
+
+                            manager.saveCurrentState()
+                        }
+                    ))
+                    .tint(MPColors.primary)
+                }
+                .padding(MPSpacing.lg)
+
+                if manager.settings.appLockingEnabled && !screenTimeManager.hasSelectedApps {
+                    Divider()
+
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: "info.circle.fill")
+                            .foregroundColor(MPColors.warning)
+
+                        Text("Select apps above to enable blocking")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.warning)
+                    }
+                    .padding(MPSpacing.lg)
                 }
             }
-            .padding(MPSpacing.lg)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
             .mpShadow(.small)
         }
     }
 
-    func appRow(_ app: AppInfo) -> some View {
-        let isSelected = selectedApps.contains(app.bundleId)
-
-        return Button {
-            if isSelected {
-                selectedApps.remove(app.bundleId)
-            } else {
-                selectedApps.insert(app.bundleId)
-            }
-        } label: {
-            HStack(spacing: MPSpacing.lg) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? MPColors.primaryLight.opacity(0.3) : MPColors.surfaceSecondary)
-                        .frame(width: 44, height: 44)
-
-                    Image(systemName: app.icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(isSelected ? MPColors.primary : MPColors.textTertiary)
-                }
-
-                Text(app.name)
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textPrimary)
-
-                Spacer()
-
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title3)
-                    .foregroundColor(isSelected ? MPColors.primary : MPColors.border)
-            }
-            .padding(.vertical, MPSpacing.sm)
-        }
-    }
+    // MARK: - How It Works Section
 
     var howItWorksSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
@@ -178,19 +280,19 @@ struct AppLockingSettingsView: View {
                 howItWorksRow(
                     number: "2",
                     title: "Morning Starts",
-                    description: "Selected apps are blocked until you complete your habits"
+                    description: "Selected apps are blocked from midnight until your cutoff time"
                 )
 
                 howItWorksRow(
                     number: "3",
                     title: "Complete Habits",
-                    description: "Once all habits are done, apps unlock automatically"
+                    description: "Once all habits are done and you lock in, apps unlock instantly"
                 )
 
                 howItWorksRow(
                     number: "4",
-                    title: "Grace Period",
-                    description: "If cutoff passes, apps stay locked for your set grace period"
+                    title: "Cutoff Passes",
+                    description: "If cutoff time passes without completing habits, apps unlock anyway"
                 )
             }
             .padding(MPSpacing.lg)
@@ -223,15 +325,21 @@ struct AppLockingSettingsView: View {
             }
         }
     }
-}
 
-// MARK: - App Info Model
+    // MARK: - Actions
 
-struct AppInfo: Identifiable {
-    let id = UUID()
-    let name: String
-    let icon: String
-    let bundleId: String
+    private func requestAuthorization() {
+        isRequestingAuth = true
+
+        Task {
+            do {
+                try await screenTimeManager.requestAuthorization()
+            } catch {
+                showAuthorizationError = true
+            }
+            isRequestingAuth = false
+        }
+    }
 }
 
 #Preview {

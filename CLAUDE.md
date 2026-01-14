@@ -31,6 +31,15 @@ Morning habit tracking app that uses photo verification (AI checks if you made y
 - `NotificationManager` - Push notifications
 - `AuthenticationManager` - Sign in with Apple
 - `ThemeManager` - Light/dark mode
+- `ScreenTimeManager` - App blocking via Family Controls API
+
+## Screen Time Extensions (App Blocking Feature)
+Three extensions are required for app blocking functionality:
+- `MorningProofActivityMonitor` - Monitors schedule, applies/removes shields at midnight/cutoff
+- `MorningProofShieldConfig` - Customizes the blocking overlay appearance
+- `MorningProofShieldAction` - Handles "Open Morning Proof" button tap on shield
+
+Shared data between app and extensions uses App Group: `group.com.rk.morningproof`
 
 ## App Identifiers
 - Bundle ID: `com.rk.morningproof`
@@ -44,6 +53,10 @@ Morning habit tracking app that uses photo verification (AI checks if you made y
 - `project.yml` also defines Info.plist properties - changes there can override the actual Info.plist file
 - Google Sign-In requires `GIDClientID` and `CFBundleURLTypes` in Info.plist - project.yml may not merge these correctly, so add them directly to Info.plist
 - Don't access `@MainActor` singletons as stored properties in the App struct - causes deadlock. Move them to a nested View struct instead
+- Screen Time extensions can't access SwiftData/CoreData - must use App Group UserDefaults for shared data
+- Each Screen Time extension needs its own entitlements file with `com.apple.developer.family-controls` and App Group
+- xcodegen may clear entitlements files - add `properties:` section in project.yml to preserve them
+- When defining local model types in Views (like `Achievement`), watch for naming conflicts with types in Models folder
 
 ## TODO: Pre-Release Checklist
 - [ ] **REMOVE SKIP BUTTON** in `HardPaywallStep.swift` before App Store release - it's for testing only!

@@ -258,6 +258,10 @@ final class MorningProofManager: ObservableObject, Sendable {
         storageService.saveHabitConfigs(habitConfigs)
         storageService.saveDailyLog(todayLog)
 
+        // Sync to App Group for Screen Time extensions
+        AppLockingDataStore.morningCutoffMinutes = settings.morningCutoffMinutes
+        AppLockingDataStore.appLockingEnabled = settings.appLockingEnabled
+
         // Update Live Activity
         Task {
             await updateLiveActivity()
@@ -364,6 +368,14 @@ final class MorningProofManager: ObservableObject, Sendable {
 
         todayLog.isDayLockedIn = true
         todayLog.lockedInAt = Date()
+
+        // Sync lock status to App Group for extensions
+        AppLockingDataStore.isDayLockedIn = true
+
+        // Remove app shields if app locking is enabled
+        if settings.appLockingEnabled {
+            ScreenTimeManager.shared.removeShields()
+        }
 
         saveCurrentState()
     }

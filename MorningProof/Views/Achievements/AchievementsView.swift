@@ -2,12 +2,12 @@ import SwiftUI
 
 // MARK: - Achievement Model
 
-struct Achievement: Identifiable {
+struct AchievementItem: Identifiable {
     let id = UUID()
     let name: String
     let description: String
     let icon: String
-    let category: AchievementCategory
+    let category: AchievementItemCategory
     let requirement: Int
     let gradientColors: [Color]
     var isUnlocked: Bool
@@ -18,7 +18,7 @@ struct Achievement: Identifiable {
     }
 }
 
-enum AchievementCategory: String, CaseIterable {
+enum AchievementItemCategory: String, CaseIterable {
     case streaks = "Streaks"
     case lifetime = "Lifetime"
 }
@@ -26,10 +26,10 @@ enum AchievementCategory: String, CaseIterable {
 // MARK: - Achievement Data
 
 enum AchievementData {
-    static func all(currentStreak: Int, totalDays: Int) -> [Achievement] {
+    static func all(currentStreak: Int, totalDays: Int) -> [AchievementItem] {
         [
             // Streaks
-            Achievement(
+            AchievementItem(
                 name: "One Week",
                 description: "Maintain a 7-day streak",
                 icon: "flame.fill",
@@ -39,7 +39,7 @@ enum AchievementData {
                 isUnlocked: currentStreak >= 7,
                 progress: currentStreak
             ),
-            Achievement(
+            AchievementItem(
                 name: "Habit Formed",
                 description: "Maintain a 21-day streak",
                 icon: "flame.fill",
@@ -49,7 +49,7 @@ enum AchievementData {
                 isUnlocked: currentStreak >= 21,
                 progress: currentStreak
             ),
-            Achievement(
+            AchievementItem(
                 name: "Monthly Master",
                 description: "Maintain a 30-day streak",
                 icon: "crown.fill",
@@ -59,7 +59,7 @@ enum AchievementData {
                 isUnlocked: currentStreak >= 30,
                 progress: currentStreak
             ),
-            Achievement(
+            AchievementItem(
                 name: "Quarterly Champion",
                 description: "Maintain a 90-day streak",
                 icon: "trophy.fill",
@@ -69,7 +69,7 @@ enum AchievementData {
                 isUnlocked: currentStreak >= 90,
                 progress: currentStreak
             ),
-            Achievement(
+            AchievementItem(
                 name: "Legendary",
                 description: "Maintain a 365-day streak",
                 icon: "star.fill",
@@ -80,7 +80,7 @@ enum AchievementData {
                 progress: currentStreak
             ),
             // Lifetime
-            Achievement(
+            AchievementItem(
                 name: "Fifty Strong",
                 description: "Complete 50 total days",
                 icon: "50.circle.fill",
@@ -90,7 +90,7 @@ enum AchievementData {
                 isUnlocked: totalDays >= 50,
                 progress: totalDays
             ),
-            Achievement(
+            AchievementItem(
                 name: "Century Club",
                 description: "Complete 100 total days",
                 icon: "medal.fill",
@@ -100,7 +100,7 @@ enum AchievementData {
                 isUnlocked: totalDays >= 100,
                 progress: totalDays
             ),
-            Achievement(
+            AchievementItem(
                 name: "Full Year",
                 description: "Complete 365 total days",
                 icon: "calendar.badge.checkmark",
@@ -110,7 +110,7 @@ enum AchievementData {
                 isUnlocked: totalDays >= 365,
                 progress: totalDays
             ),
-            Achievement(
+            AchievementItem(
                 name: "Thousand Days",
                 description: "Complete 1000 total days",
                 icon: "diamond.fill",
@@ -127,12 +127,12 @@ enum AchievementData {
 // MARK: - Main Achievements View
 
 struct AchievementsView: View {
-    @ObservedObject var manager: MorningProofManager
-    @State private var selectedAchievement: Achievement?
+    @ObservedObject private var manager = MorningProofManager.shared
+    @State private var selectedAchievement: AchievementItem?
     @State private var showDetail = false
     @Environment(\.dismiss) private var dismiss
 
-    private var achievements: [Achievement] {
+    private var achievements: [AchievementItem] {
         AchievementData.all(
             currentStreak: manager.settings.currentStreak,
             totalDays: manager.settings.totalPerfectMornings
@@ -173,7 +173,7 @@ struct AchievementsView: View {
                 // Achievement Grid
                 ScrollView(showsIndicators: false) {
                     LazyVStack(spacing: MPSpacing.xl) {
-                        ForEach(AchievementCategory.allCases, id: \.self) { category in
+                        ForEach(AchievementItemCategory.allCases, id: \.self) { category in
                             let categoryAchievements = achievements.filter { $0.category == category }
 
                             // Subtle category divider
@@ -295,7 +295,7 @@ struct CategoryDivider: View {
 // MARK: - Achievement Badge
 
 struct AchievementBadge: View {
-    let achievement: Achievement
+    let achievement: AchievementItem
     @State private var isAnimating = false
     @State private var shimmerOffset: CGFloat = -1
 
@@ -429,7 +429,7 @@ struct AchievementBadge: View {
         }
     }
 
-    private var unlockedBackground: some ShapeStyle {
+    private var unlockedBackground: LinearGradient {
         LinearGradient(
             colors: [
                 Color.white.opacity(0.15),
@@ -440,7 +440,7 @@ struct AchievementBadge: View {
         )
     }
 
-    private var lockedBackground: some ShapeStyle {
+    private var lockedBackground: LinearGradient {
         LinearGradient(
             colors: [
                 Color.white.opacity(0.08),
@@ -455,7 +455,7 @@ struct AchievementBadge: View {
 // MARK: - Achievement Detail Sheet
 
 struct AchievementDetailSheet: View {
-    let achievement: Achievement
+    let achievement: AchievementItem
     @Environment(\.dismiss) private var dismiss
     @State private var animateProgress = false
 
@@ -609,5 +609,5 @@ extension Color {
 // MARK: - Preview
 
 #Preview {
-    AchievementsView(manager: MorningProofManager.shared)
+    AchievementsView()
 }
