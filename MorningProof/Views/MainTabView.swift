@@ -636,12 +636,36 @@ struct StatsTabView: View {
     @ObservedObject var manager: MorningProofManager
     @State private var showAchievements = false
 
+    private let calendar = Calendar.current
+
     var body: some View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: MPSpacing.xl) {
-                    // Hero: Streak + Week visualization
-                    ProgressHeroCard(manager: manager)
+                    // Quick Stats Summary
+                    QuickStatsCard(
+                        currentStreak: manager.currentStreak,
+                        thisWeekRate: calculateThisWeekRate(),
+                        perfectDaysThisWeek: calculatePerfectDaysThisWeek()
+                    )
+
+                    // This Week section with trend
+                    VStack(alignment: .leading, spacing: MPSpacing.md) {
+                        HStack {
+                            Text("This Week")
+                                .font(MPFont.headingSmall())
+                                .foregroundColor(MPColors.textPrimary)
+
+                            Spacer()
+
+                            TrendIndicator(
+                                thisWeekRate: calculateThisWeekRate(),
+                                lastWeekRate: calculateLastWeekRate()
+                            )
+                        }
+
+                        ProgressHeroCard(manager: manager)
+                    }
 
                     // Records: Best Streak + Perfect Days
                     RecordsCard(
@@ -684,6 +708,79 @@ struct StatsTabView: View {
                     .environmentObject(BedVerificationViewModel())
             }
         }
+    }
+
+    // MARK: - Stats Calculations
+
+    private func calculateThisWeekRate() -> Double {
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+        guard let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: today) else {
+            return 0
+        }
+
+        var completed = 0
+        var total = 0
+
+        // Only count days up to and including today
+        for dayOffset in 0..<weekday {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: startOfWeek) else { continue }
+            if let log = manager.getDailyLog(for: date) {
+                let dayCompleted = log.completions.filter { $0.isCompleted }.count
+                let dayTotal = log.completions.count
+                completed += dayCompleted
+                total += dayTotal
+            }
+        }
+
+        return total > 0 ? Double(completed) / Double(total) * 100 : 0
+    }
+
+    private func calculateLastWeekRate() -> Double {
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+        guard let startOfThisWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: today),
+              let startOfLastWeek = calendar.date(byAdding: .day, value: -7, to: startOfThisWeek) else {
+            return 0
+        }
+
+        var completed = 0
+        var total = 0
+
+        for dayOffset in 0..<7 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: startOfLastWeek) else { continue }
+            if let log = manager.getDailyLog(for: date) {
+                let dayCompleted = log.completions.filter { $0.isCompleted }.count
+                let dayTotal = log.completions.count
+                completed += dayCompleted
+                total += dayTotal
+            }
+        }
+
+        return total > 0 ? Double(completed) / Double(total) * 100 : 0
+    }
+
+    private func calculatePerfectDaysThisWeek() -> Int {
+        let today = calendar.startOfDay(for: Date())
+        let weekday = calendar.component(.weekday, from: today)
+        guard let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 1), to: today) else {
+            return 0
+        }
+
+        var perfectDays = 0
+
+        for dayOffset in 0..<weekday {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: startOfWeek) else { continue }
+            if let log = manager.getDailyLog(for: date) {
+                let completed = log.completions.filter { $0.isCompleted }.count
+                let total = log.completions.count
+                if completed == total && total > 0 {
+                    perfectDays += 1
+                }
+            }
+        }
+
+        return perfectDays
     }
 }
 

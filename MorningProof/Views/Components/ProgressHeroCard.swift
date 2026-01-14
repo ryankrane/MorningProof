@@ -163,10 +163,16 @@ struct HabitProgressRow: View {
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
-            Image(systemName: habitType.icon)
-                .font(.system(size: 14))
-                .foregroundColor(MPColors.textTertiary)
-                .frame(width: 24)
+            // Icon with color based on rate
+            ZStack {
+                Circle()
+                    .fill(progressColor.opacity(0.15))
+                    .frame(width: 32, height: 32)
+
+                Image(systemName: habitType.icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(progressColor)
+            }
 
             Text(habitType.displayName)
                 .font(MPFont.bodySmall())
@@ -174,23 +180,22 @@ struct HabitProgressRow: View {
 
             Spacer()
 
-            // Progress bar
-            GeometryReader { geo in
-                ZStack(alignment: .leading) {
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(MPColors.progressBg)
+            // Circular progress indicator
+            ZStack {
+                Circle()
+                    .stroke(MPColors.progressBg, lineWidth: 3)
+                    .frame(width: 40, height: 40)
 
-                    RoundedRectangle(cornerRadius: 3)
-                        .fill(progressColor)
-                        .frame(width: geo.size.width * CGFloat(completionRate / 100))
-                }
+                Circle()
+                    .trim(from: 0, to: completionRate / 100)
+                    .stroke(progressColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                    .rotationEffect(.degrees(-90))
+                    .frame(width: 40, height: 40)
+
+                Text("\(Int(completionRate))%")
+                    .font(.system(size: 10, weight: .semibold, design: .rounded))
+                    .foregroundColor(progressColor)
             }
-            .frame(width: 80, height: 6)
-
-            Text("\(Int(completionRate))%")
-                .font(MPFont.labelSmall())
-                .foregroundColor(MPColors.textSecondary)
-                .frame(width: 36, alignment: .trailing)
         }
     }
 
@@ -202,6 +207,132 @@ struct HabitProgressRow: View {
         } else {
             return MPColors.error
         }
+    }
+}
+
+// MARK: - Quick Stats Card
+
+struct QuickStatsCard: View {
+    let currentStreak: Int
+    let thisWeekRate: Double
+    let perfectDaysThisWeek: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            // Streak
+            StatPill(
+                icon: "flame.fill",
+                iconColor: MPColors.accent,
+                value: "\(currentStreak)",
+                label: "Streak"
+            )
+
+            Divider()
+                .frame(height: 40)
+
+            // This Week Rate
+            StatPill(
+                icon: "chart.line.uptrend.xyaxis",
+                iconColor: MPColors.success,
+                value: "\(Int(thisWeekRate))%",
+                label: "This Week"
+            )
+
+            Divider()
+                .frame(height: 40)
+
+            // Perfect Days
+            StatPill(
+                icon: "star.fill",
+                iconColor: MPColors.accentGold,
+                value: "\(perfectDaysThisWeek)",
+                label: "Perfect"
+            )
+        }
+        .padding(.vertical, MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+    }
+}
+
+struct StatPill: View {
+    let icon: String
+    let iconColor: Color
+    let value: String
+    let label: String
+
+    var body: some View {
+        VStack(spacing: MPSpacing.xs) {
+            HStack(spacing: MPSpacing.xs) {
+                Image(systemName: icon)
+                    .font(.system(size: 14))
+                    .foregroundColor(iconColor)
+                Text(value)
+                    .font(.system(size: 20, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+            }
+            Text(label)
+                .font(MPFont.labelTiny())
+                .foregroundColor(MPColors.textTertiary)
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Trend Indicator
+
+struct TrendIndicator: View {
+    let thisWeekRate: Double
+    let lastWeekRate: Double
+
+    private var trend: Trend {
+        let diff = thisWeekRate - lastWeekRate
+        if diff > 5 { return .improving }
+        else if diff < -5 { return .declining }
+        else { return .stable }
+    }
+
+    enum Trend {
+        case improving, stable, declining
+
+        var icon: String {
+            switch self {
+            case .improving: return "arrow.up.right"
+            case .stable: return "arrow.right"
+            case .declining: return "arrow.down.right"
+            }
+        }
+
+        var color: Color {
+            switch self {
+            case .improving: return MPColors.success
+            case .stable: return MPColors.textSecondary
+            case .declining: return MPColors.error
+            }
+        }
+
+        var label: String {
+            switch self {
+            case .improving: return "Improving"
+            case .stable: return "Steady"
+            case .declining: return "Needs focus"
+            }
+        }
+    }
+
+    var body: some View {
+        HStack(spacing: MPSpacing.xs) {
+            Image(systemName: trend.icon)
+                .font(.system(size: 12, weight: .medium))
+            Text(trend.label)
+                .font(MPFont.labelSmall())
+        }
+        .foregroundColor(trend.color)
+        .padding(.horizontal, MPSpacing.sm)
+        .padding(.vertical, MPSpacing.xs)
+        .background(trend.color.opacity(0.1))
+        .cornerRadius(MPRadius.full)
     }
 }
 
