@@ -44,3 +44,6 @@ Morning habit tracking app that uses photo verification (AI checks if you made y
 - `project.yml` also defines Info.plist properties - changes there can override the actual Info.plist file
 - Google Sign-In requires `GIDClientID` and `CFBundleURLTypes` in Info.plist - project.yml may not merge these correctly, so add them directly to Info.plist
 - Don't access `@MainActor` singletons as stored properties in the App struct - causes deadlock. Move them to a nested View struct instead
+
+## TODO: Pre-Release Checklist
+- [ ] **REMOVE SKIP BUTTON** in `HardPaywallStep.swift` before App Store release - it's for testing only!

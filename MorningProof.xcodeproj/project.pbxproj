@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3A4279D805984E859020B822 /* SocialProofCounter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EE88E5992304F1481D285CC /* SocialProofCounter.swift */; };
+		2333F5B878BF41329FC3BC0D /* TestimonialCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD410FA69DCB4860BDF07B2C /* TestimonialCard.swift */; };
+		EAB44A6520B149ED99E3A1DC /* StatisticHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF811DBCB19648E8A575CA4B /* StatisticHeroCard.swift */; };
+		1811DC95DEA0401F85680399 /* EnhancedPlanCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 446F3BA2F4B54657902BCCC4 /* EnhancedPlanCard.swift */; };
+		5E46AD1F8EB04807BAA95D76 /* ProgressGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E268BC843CC34E2480A0924B /* ProgressGraphView.swift */; };
 		0557C3B7F27FB0AA8E6A6078 /* ProgressHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */; };
 		07413D8B7ACA9D63E8F4F7E3 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0981D9827F6FBBF7C421AF40 /* HomeView.swift */; };
 		0A3D6E8D94AB52F80409BACE /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = EBBDC128BC8C42A7843DDD53 /* FirebaseCrashlytics */; };
@@ -163,6 +168,11 @@
 		F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		F6CB434AF33E074D379634A1 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
+		8EE88E5992304F1481D285CC /* SocialProofCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialProofCounter.swift; sourceTree = "<group>"; };
+		CD410FA69DCB4860BDF07B2C /* TestimonialCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TestimonialCard.swift; sourceTree = "<group>"; };
+		CF811DBCB19648E8A575CA4B /* StatisticHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticHeroCard.swift; sourceTree = "<group>"; };
+		446F3BA2F4B54657902BCCC4 /* EnhancedPlanCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPlanCard.swift; sourceTree = "<group>"; };
+		E268BC843CC34E2480A0924B /* ProgressGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressGraphView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -182,6 +192,7 @@
 		1843E6E113FAED24331F6AD4 /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				37DDB59E971E47EA873239F6 /* Components */,
 				E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */,
 			);
 			path = Onboarding;
@@ -366,6 +377,18 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
+		37DDB59E971E47EA873239F6 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				8EE88E5992304F1481D285CC /* SocialProofCounter.swift */,
+				CD410FA69DCB4860BDF07B2C /* TestimonialCard.swift */,
+				CF811DBCB19648E8A575CA4B /* StatisticHeroCard.swift */,
+				446F3BA2F4B54657902BCCC4 /* EnhancedPlanCard.swift */,
+				E268BC843CC34E2480A0924B /* ProgressGraphView.swift */,
+			);
+			path = Components;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -526,6 +549,11 @@
 				9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */,
 				FE0AF8A5837165E0CC89F30F /* NotificationManager.swift in Sources */,
 				14FC0ED912DFDF42657ACCEF /* OnboardingFlowView.swift in Sources */,
+				3A4279D805984E859020B822 /* SocialProofCounter.swift in Sources */,
+				2333F5B878BF41329FC3BC0D /* TestimonialCard.swift in Sources */,
+				EAB44A6520B149ED99E3A1DC /* StatisticHeroCard.swift in Sources */,
+				1811DC95DEA0401F85680399 /* EnhancedPlanCard.swift in Sources */,
+				5E46AD1F8EB04807BAA95D76 /* ProgressGraphView.swift in Sources */,
 				3796BBBB023F2FDBDF2C4D09 /* OnboardingView.swift in Sources */,
 				49797C886BDE9E1940FB196E /* PaywallView.swift in Sources */,
 				0557C3B7F27FB0AA8E6A6078 /* ProgressHeroCard.swift in Sources */,

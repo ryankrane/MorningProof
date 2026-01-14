@@ -7,7 +7,7 @@ import AuthenticationServices
 class OnboardingData: ObservableObject {
     @Published var userName: String = ""
     @Published var gender: Gender = .preferNotToSay
-    @Published var heardAboutUs: HeardAboutSource = .instagram
+    @Published var morningStruggle: MorningStruggle = .lackConsistency
     @Published var trackingStatus: TrackingStatus = .no
     @Published var primaryGoal: PrimaryGoal = .setHabits
     @Published var obstacles: Set<Obstacle> = []
@@ -30,22 +30,22 @@ class OnboardingData: ObservableObject {
         }
     }
 
-    enum HeardAboutSource: String, CaseIterable {
-        case instagram = "Instagram"
-        case tiktok = "TikTok"
-        case reddit = "Reddit"
-        case youtube = "YouTube"
-        case friend = "Friend or Family"
-        case other = "Other"
+    enum MorningStruggle: String, CaseIterable {
+        case cantWakeUp = "I can't wake up on time"
+        case wasteScrolling = "I waste mornings scrolling"
+        case lackConsistency = "I lack consistency"
+        case feelGroggy = "I feel groggy until noon"
+        case noRoutine = "I don't have a routine"
+        case hitSnooze = "I hit snooze too much"
 
         var icon: String {
             switch self {
-            case .instagram: return "camera.circle.fill"
-            case .tiktok: return "play.square.stack.fill"
-            case .reddit: return "bubble.left.and.text.bubble.right.fill"
-            case .youtube: return "play.rectangle.fill"
-            case .friend: return "person.2.fill"
-            case .other: return "ellipsis.circle.fill"
+            case .cantWakeUp: return "alarm.fill"
+            case .wasteScrolling: return "iphone"
+            case .lackConsistency: return "arrow.triangle.2.circlepath"
+            case .feelGroggy: return "moon.zzz.fill"
+            case .noRoutine: return "list.bullet.clipboard"
+            case .hitSnooze: return "hand.tap.fill"
             }
         }
     }
@@ -124,17 +124,16 @@ class OnboardingData: ObservableObject {
     }
 }
 
-// MARK: - Onboarding Flow View
+// MARK: - Onboarding Flow View (19 Steps)
 
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
     @StateObject private var onboardingData = OnboardingData()
-    // Use computed property to avoid @MainActor singleton deadlock
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
+    private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
-    @State private var isAnimatingTransition = false
 
-    private let totalSteps = 15
+    private let totalSteps = 19
 
     var body: some View {
         ZStack {
@@ -142,71 +141,49 @@ struct OnboardingFlowView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Top bar with skip button
-                HStack {
-                    Spacer()
-
-                    // Skip button for testing
-                    Button {
-                        completeOnboarding()
-                    } label: {
-                        Text("Skip")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textTertiary)
-                            .padding(.horizontal, MPSpacing.md)
-                            .padding(.vertical, MPSpacing.sm)
-                    }
-                }
-                .padding(.horizontal, MPSpacing.lg)
-                .padding(.top, MPSpacing.sm)
-
-                // Progress bar
+                // Progress bar (show for steps 2-18, not welcome or paywall)
                 if currentStep > 0 && currentStep < totalSteps - 1 {
                     OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
                         .padding(.horizontal, MPSpacing.xl)
-                        .padding(.top, MPSpacing.sm)
+                        .padding(.top, MPSpacing.md)
                 }
 
-                // Content - ZStack with switch to prevent swipe navigation
+                // Content
                 ZStack {
                     Group {
                         switch currentStep {
-                        case 0:
-                            WelcomeStep(onContinue: nextStep)
-                        case 1:
-                            GenderStep(data: onboardingData, onContinue: nextStep)
-                        case 2:
-                            NameStep(data: onboardingData, onContinue: nextStep)
-                        case 3:
-                            HeardAboutStep(data: onboardingData, onContinue: nextStep)
-                        case 4:
-                            TrackingQuestionStep(data: onboardingData, onContinue: nextStep)
-                        case 5:
-                            TrackingComparisonStep(trackingStatus: onboardingData.trackingStatus, onContinue: nextStep)
-                        case 6:
-                            PrimaryGoalStep(data: onboardingData, onContinue: nextStep)
-                        case 7:
-                            GainTwiceAnimationStep(onContinue: nextStep)
-                        case 8:
-                            ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                        case 9:
-                            DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
-                        case 10:
-                            HealthConnectStep(data: onboardingData, onContinue: nextStep)
-                        case 11:
-                            RatingStep(onContinue: nextStep)
-                        case 12:
-                            NotificationStep(data: onboardingData, onContinue: nextStep)
-                        case 13:
-                            LoadingPlanStep(userName: onboardingData.userName, onComplete: nextStep)
-                        case 14:
-                            CustomPlanStep(
-                                data: onboardingData,
-                                manager: manager,
-                                onComplete: completeOnboarding
-                            )
-                        default:
-                            EmptyView()
+                        // Phase 1: Hook & Personalization
+                        case 0: WelcomeHeroStep(onContinue: nextStep)
+                        case 1: NameStep(data: onboardingData, onContinue: nextStep)
+                        case 2: GenderStep(data: onboardingData, onContinue: nextStep)
+                        case 3: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
+
+                        // Phase 2: Problem Agitation & Social Proof
+                        case 4: ProblemStatisticsStep(onContinue: nextStep)
+                        case 5: YouAreNotAloneStep(onContinue: nextStep)
+                        case 6: SuccessStoriesStep(onContinue: nextStep)
+                        case 7: TrackingComparisonStep(onContinue: nextStep)
+                        case 8: MorningAdvantageStep(onContinue: nextStep)
+
+                        // Phase 3: Solution & Investment
+                        case 9: HowItWorksStep(onContinue: nextStep)
+                        case 10: AIVerificationShowcaseStep(onContinue: nextStep)
+                        case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                        case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
+                        case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+
+                        // Phase 4: Habits & Paywall
+                        case 14: OptionalRatingStep(onContinue: nextStep)
+                        case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
+                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                        case 17: SocialProofFinalStep(onContinue: nextStep)
+                        case 18: HardPaywallStep(
+                            subscriptionManager: subscriptionManager,
+                            onSubscribe: completeOnboarding,
+                            onSkip: completeOnboarding // Testing only - remove before release
+                        )
+
+                        default: EmptyView()
                         }
                     }
                 }
@@ -219,7 +196,6 @@ struct OnboardingFlowView: View {
         // If user just signed in, prefill their name
         if currentStep == 0, let user = authManager.currentUser {
             if let fullName = user.fullName, !fullName.isEmpty {
-                // Extract first name only
                 let firstName = fullName.components(separatedBy: " ").first ?? fullName
                 onboardingData.userName = firstName
             }
@@ -231,10 +207,8 @@ struct OnboardingFlowView: View {
     }
 
     private func completeOnboarding() {
-        // Save all data to manager
         manager.settings.userName = onboardingData.userName
 
-        // Update habit configs
         for habitType in HabitType.allCases {
             let isEnabled = onboardingData.selectedHabits.contains(habitType)
             manager.updateHabitConfig(habitType, isEnabled: isEnabled)
@@ -257,63 +231,61 @@ struct OnboardingProgressBar: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .leading) {
-                RoundedRectangle(cornerRadius: 4)
+                RoundedRectangle(cornerRadius: 3)
                     .fill(MPColors.progressBg)
-                    .frame(height: 6)
+                    .frame(height: 4)
 
-                RoundedRectangle(cornerRadius: 4)
-                    .fill(MPColors.primary)
-                    .frame(width: geometry.size.width * progress, height: 6)
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(
+                        LinearGradient(
+                            colors: [MPColors.primary, MPColors.accent],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: geometry.size.width * progress, height: 4)
                     .animation(.easeInOut(duration: 0.3), value: progress)
             }
         }
-        .frame(height: 6)
+        .frame(height: 4)
     }
 }
 
-// MARK: - Step 1: Welcome
+// MARK: - Step 1: Welcome Hero
 
-struct WelcomeStep: View {
+struct WelcomeHeroStep: View {
     let onContinue: () -> Void
-    // Use computed property to avoid @MainActor singleton deadlock
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
-    @State private var animateIcon = false
-    @State private var animateText = false
-    @State private var showSignInOptions = false
+    @State private var animateContent = false
+    @State private var animateOrb = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
             // App branding
-            VStack(spacing: MPSpacing.xl) {
-                Text("Morning Proof")
-                    .font(.system(size: 36, weight: .bold, design: .default))
-                    .foregroundColor(MPColors.textPrimary)
-                    .tracking(-0.5)
-                    .opacity(animateText ? 1 : 0)
-                    .offset(y: animateText ? 0 : 20)
-
-                // Soft gradient orb
+            VStack(spacing: MPSpacing.lg) {
+                // Animated orb with sunrise
                 ZStack {
+                    // Outer glow
                     Circle()
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    MPColors.accentLight.opacity(0.8),
-                                    MPColors.accent.opacity(0.4),
+                                    MPColors.accentLight.opacity(0.6),
+                                    MPColors.accent.opacity(0.2),
                                     Color.clear
                                 ],
                                 center: .center,
                                 startRadius: 0,
-                                endRadius: 80
+                                endRadius: 100
                             )
                         )
-                        .frame(width: 160, height: 160)
-                        .scaleEffect(animateIcon ? 1.05 : 1.0)
+                        .frame(width: 200, height: 200)
+                        .scaleEffect(animateOrb ? 1.1 : 1.0)
 
                     Image(systemName: "sunrise.fill")
-                        .font(.system(size: 50))
+                        .font(.system(size: 60))
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [MPColors.accent, MPColors.accentGold],
@@ -321,53 +293,51 @@ struct WelcomeStep: View {
                                 endPoint: .bottom
                             )
                         )
-                        .offset(y: animateIcon ? -3 : 3)
+                        .offset(y: animateOrb ? -4 : 4)
                 }
-                .animation(.easeInOut(duration: 2).repeatForever(autoreverses: true), value: animateIcon)
+                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
+
+                VStack(spacing: MPSpacing.sm) {
+                    Text("Earn Your Morning")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("Build daily habits that stick")
+                        .font(.system(size: 17))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .opacity(animateContent ? 1 : 0)
+                .offset(y: animateContent ? 0 : 20)
             }
 
-            Spacer().frame(height: 40)
+            Spacer().frame(height: MPSpacing.xxxl)
 
-            // Purpose statement
-            VStack(spacing: MPSpacing.md) {
-                Text("Build your morning routine")
-                    .font(.system(size: 22, weight: .semibold))
-                    .foregroundColor(MPColors.textPrimary)
-                    .opacity(animateText ? 1 : 0)
-
-                Text("Prove your habits with AI verification.\nTrack streaks, stay accountable, win your mornings.")
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .opacity(animateText ? 1 : 0)
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
+            // Social proof counter
+            HeroSocialProofCounter(
+                targetNumber: 27432,
+                suffix: "people joined this week",
+                icon: "person.3.fill"
+            )
+            .opacity(animateContent ? 1 : 0)
 
             Spacer()
 
-            // Sign-in buttons
+            // Sign-in options
             VStack(spacing: MPSpacing.md) {
-                // Sign in with Apple
                 SignInWithAppleButton(.signIn) { request in
                     authManager.handleAppleSignInRequest(request)
                 } onCompletion: { result in
                     authManager.handleAppleSignInCompletion(result) { success in
-                        if success {
-                            onContinue()
-                        }
+                        if success { onContinue() }
                     }
                 }
                 .signInWithAppleButtonStyle(.black)
-                .frame(height: 50)
+                .frame(height: 52)
                 .cornerRadius(MPRadius.lg)
 
-                // Sign in with Google button (styled to match)
                 Button {
                     authManager.signInWithGoogle { success in
-                        if success {
-                            onContinue()
-                        }
+                        if success { onContinue() }
                     }
                 } label: {
                     HStack(spacing: MPSpacing.md) {
@@ -378,7 +348,7 @@ struct WelcomeStep: View {
                     }
                     .foregroundColor(MPColors.textPrimary)
                     .frame(maxWidth: .infinity)
-                    .frame(height: 50)
+                    .frame(height: 52)
                     .background(MPColors.surface)
                     .cornerRadius(MPRadius.lg)
                     .overlay(
@@ -387,39 +357,32 @@ struct WelcomeStep: View {
                     )
                 }
 
-                // Divider with "or"
                 HStack {
-                    Rectangle()
-                        .fill(MPColors.divider)
-                        .frame(height: 1)
+                    Rectangle().fill(MPColors.divider).frame(height: 1)
                     Text("or")
-                        .font(MPFont.bodySmall())
+                        .font(.system(size: 13))
                         .foregroundColor(MPColors.textTertiary)
                         .padding(.horizontal, MPSpacing.md)
-                    Rectangle()
-                        .fill(MPColors.divider)
-                        .frame(height: 1)
+                    Rectangle().fill(MPColors.divider).frame(height: 1)
                 }
-                .padding(.vertical, MPSpacing.sm)
+                .padding(.vertical, MPSpacing.xs)
 
-                // Continue without account
                 Button {
                     authManager.continueAnonymously()
                     onContinue()
                 } label: {
                     Text("Continue without account")
-                        .font(MPFont.labelMedium())
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundColor(MPColors.primary)
                 }
             }
             .padding(.horizontal, MPSpacing.xl)
             .padding(.bottom, 50)
-            .opacity(animateText ? 1 : 0)
+            .opacity(animateContent ? 1 : 0)
 
-            // Error message
             if let error = authManager.errorMessage {
                 Text(error)
-                    .font(MPFont.bodySmall())
+                    .font(.system(size: 13))
                     .foregroundColor(MPColors.error)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, MPSpacing.xl)
@@ -427,15 +390,91 @@ struct WelcomeStep: View {
             }
         }
         .onAppear {
+            animateOrb = true
             withAnimation(.easeOut(duration: 0.8)) {
-                animateText = true
+                animateContent = true
             }
-            animateIcon = true
         }
     }
 }
 
-// MARK: - Step 2: Gender
+// MARK: - Step 2: Name
+
+struct NameStep: View {
+    @ObservedObject var data: OnboardingData
+    let onContinue: () -> Void
+    @FocusState private var isNameFocused: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl * 2)
+
+            VStack(spacing: MPSpacing.lg) {
+                Image(systemName: "person.circle.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(MPColors.primary)
+
+                Text("Let's make this personal")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("What should we call you?")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            VStack(spacing: MPSpacing.sm) {
+                TextField("", text: $data.userName, prompt: Text("First name").foregroundColor(MPColors.textTertiary))
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .padding(MPSpacing.xl)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .mpShadow(.small)
+                    .focused($isNameFocused)
+
+                HStack(spacing: MPSpacing.xs) {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 10))
+                    Text("Stored locally. Never shared.")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .foregroundColor(MPColors.textMuted)
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                MPButton(
+                    title: data.userName.isEmpty ? "Skip" : "Continue",
+                    style: .primary
+                ) {
+                    isNameFocused = false
+                    onContinue()
+                }
+
+                if data.userName.isEmpty {
+                    Text("You can add your name later")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                isNameFocused = true
+            }
+        }
+    }
+}
+
+// MARK: - Step 3: Gender
 
 struct GenderStep: View {
     @ObservedObject var data: OnboardingData
@@ -447,11 +486,11 @@ struct GenderStep: View {
 
             VStack(spacing: MPSpacing.md) {
                 Text("How do you identify?")
-                    .font(MPFont.headingLarge())
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
                 Text("This helps us personalize your experience")
-                    .font(MPFont.bodyMedium())
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
 
@@ -481,119 +520,222 @@ struct GenderStep: View {
     }
 }
 
-// MARK: - Step 3: Name
+// MARK: - Step 4: Morning Struggle
 
-struct NameStep: View {
+struct MorningStruggleStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
-    @FocusState private var isNameFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: MPSpacing.xxxl * 2)
 
             VStack(spacing: MPSpacing.md) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 60))
-                    .foregroundColor(MPColors.primary)
-
-                Text("What should we call you?")
+                Text("What's your biggest\nmorning struggle?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
 
-                Text("We'll use this to personalize your experience")
-                    .font(MPFont.bodyMedium())
+                Text("We'll help you overcome it")
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
 
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            VStack(spacing: MPSpacing.sm) {
-                TextField("", text: $data.userName, prompt: Text("First name").foregroundColor(MPColors.textTertiary))
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .padding(MPSpacing.xl)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.lg)
-                    .mpShadow(.small)
-                    .focused($isNameFocused)
-
-                // Privacy note
-                HStack(spacing: MPSpacing.xs) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 10))
-                    Text("Stored locally. Never shared.")
-                        .font(.system(size: 11, weight: .medium))
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
+                ForEach(OnboardingData.MorningStruggle.allCases, id: \.rawValue) { struggle in
+                    OnboardingGridButton(
+                        title: struggle.rawValue,
+                        icon: struggle.icon,
+                        isSelected: data.morningStruggle == struggle
+                    ) {
+                        data.morningStruggle = struggle
+                    }
                 }
-                .foregroundColor(MPColors.textMuted)
-                .padding(.top, MPSpacing.xs)
             }
-            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                MPButton(
-                    title: data.userName.isEmpty ? "Skip" : "Continue",
-                    style: .primary
-                ) {
-                    isNameFocused = false
-                    onContinue()
-                }
+            MPButton(title: "Continue", style: .primary) {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+    }
+}
 
-                if data.userName.isEmpty {
-                    Text("You can add your name later in settings")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.textTertiary)
-                }
+// MARK: - Step 5: Problem Statistics
+
+struct ProblemStatisticsStep: View {
+    let onContinue: () -> Void
+    @State private var showContent = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            Text("Here's the truth")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(MPColors.textTertiary)
+                .opacity(showContent ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.xl)
+
+            StatisticHeroCard(
+                value: "73%",
+                label: "of people fail to stick with\ntheir morning routine goals",
+                citation: "Based on survey of 17,000+ users"
+            )
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Supporting stats
+            HStack(spacing: MPSpacing.md) {
+                StatPillView(value: "3.5x", label: "avg snoozes", icon: "alarm.fill")
+                StatPillView(value: "47min", label: "lost to scrolling", icon: "iphone")
+                StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
+            }
+            .padding(.horizontal, MPSpacing.lg)
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 20)
+
+            Spacer()
+
+            MPButton(title: "What can I do?", style: .primary, icon: "arrow.right") {
+                onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isNameFocused = true
+            withAnimation(.easeOut(duration: 0.6).delay(0.5)) {
+                showContent = true
             }
         }
     }
 }
 
-// MARK: - Step 4: Where did you hear about us
+// MARK: - Step 6: You Are Not Alone
 
-struct HeardAboutStep: View {
-    @ObservedObject var data: OnboardingData
+struct YouAreNotAloneStep: View {
     let onContinue: () -> Void
+    @State private var showContent = false
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer().frame(height: MPSpacing.xxxl)
 
             VStack(spacing: MPSpacing.md) {
-                Text("Where did you hear\nabout us?")
-                    .font(MPFont.headingLarge())
+                Text("You're not alone")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
 
-                Text("Help us understand how you found Morning Proof")
-                    .font(MPFont.bodyMedium())
+                Text("Thousands have transformed their mornings")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .opacity(showContent ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Testimonial cards
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: MPSpacing.md) {
+                    ForEach(Array(SampleTestimonials.all.prefix(4).enumerated()), id: \.element.id) { index, testimonial in
+                        CompactTestimonialCard(
+                            name: testimonial.name,
+                            quote: testimonial.quote,
+                            streakDays: testimonial.streakDays,
+                            avatarIndex: index
+                        )
+                        .opacity(showContent ? 1 : 0)
+                        .offset(x: showContent ? 0 : 50)
+                        .animation(.easeOut(duration: 0.5).delay(Double(index) * 0.1), value: showContent)
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xl)
+            }
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Star rating
+            VStack(spacing: MPSpacing.sm) {
+                HStack(spacing: 2) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(MPColors.accentGold)
+                    }
+                }
+                Text("4.8 from 12,000+ reviews")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(MPColors.textTertiary)
+            }
+            .opacity(showContent ? 1 : 0)
+
+            Spacer()
+
+            MPButton(title: "See the results", style: .primary) {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.5)) {
+                showContent = true
+            }
+        }
+    }
+}
+
+// MARK: - Step 7: Success Stories
+
+struct SuccessStoriesStep: View {
+    let onContinue: () -> Void
+    @State private var showContent = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            VStack(spacing: MPSpacing.md) {
+                Text("Real transformations")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("See what's possible in 30 days")
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
 
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                ForEach(OnboardingData.HeardAboutSource.allCases, id: \.rawValue) { source in
-                    OnboardingGridButton(
-                        title: source.rawValue,
-                        icon: source.icon,
-                        isSelected: data.heardAboutUs == source
-                    ) {
-                        data.heardAboutUs = source
-                    }
-                }
+            // Before/After comparison
+            BeforeAfterCard(
+                beforeTitle: "Before",
+                beforeItems: ["Hit snooze 5+ times", "Rush through morning", "Feel groggy until noon"],
+                afterTitle: "After 30 Days",
+                afterItems: ["Wake up on first alarm", "Calm, productive mornings", "Energized all day"]
+            )
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Progress graph
+            VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                Text("Average user progress")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(MPColors.textSecondary)
+                    .padding(.horizontal, MPSpacing.lg)
+
+                ProgressGraphView()
             }
             .padding(.horizontal, MPSpacing.xl)
+            .opacity(showContent ? 1 : 0)
 
             Spacer()
 
@@ -603,140 +745,41 @@ struct HeardAboutStep: View {
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
-    }
-}
-
-// MARK: - Step 5: Do you currently track
-
-struct TrackingQuestionStep: View {
-    @ObservedObject var data: OnboardingData
-    let onContinue: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
-
-            VStack(spacing: MPSpacing.md) {
-                Image(systemName: "checklist")
-                    .font(.system(size: 60))
-                    .foregroundColor(MPColors.primary)
-
-                Text("Do you currently track\nyour morning routine?")
-                    .font(MPFont.headingLarge())
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.5).delay(0.3)) {
+                showContent = true
             }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            VStack(spacing: MPSpacing.md) {
-                ForEach(OnboardingData.TrackingStatus.allCases, id: \.rawValue) { status in
-                    OnboardingOptionButton(
-                        title: status.rawValue,
-                        icon: status.icon,
-                        isSelected: data.trackingStatus == status
-                    ) {
-                        data.trackingStatus = status
-                    }
-                }
-            }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            MPButton(title: "Continue", style: .primary) {
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
     }
 }
 
-// MARK: - Step 6: Tracking Comparison Animation
+// MARK: - Step 8: Tracking Comparison
 
 struct TrackingComparisonStep: View {
-    let trackingStatus: OnboardingData.TrackingStatus
     let onContinue: () -> Void
-
-    @State private var showHeroStat = false
-    @State private var showComparison = false
     @State private var showPills = false
-    @State private var heroProgress: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Header
             Text("The Research Is Clear")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(MPColors.textPrimary)
-                .opacity(showHeroStat ? 1 : 0)
 
             Spacer().frame(height: MPSpacing.sm)
 
             Text("People who track their habits")
-                .font(MPFont.bodyLarge())
+                .font(.system(size: 16))
                 .foregroundColor(MPColors.textSecondary)
-                .opacity(showHeroStat ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            // Hero stat card
-            VStack(spacing: MPSpacing.lg) {
-                ZStack {
-                    // Background ring
-                    Circle()
-                        .stroke(MPColors.progressBg, lineWidth: 12)
-                        .frame(width: 140, height: 140)
-
-                    // Progress ring with gradient
-                    Circle()
-                        .trim(from: 0, to: heroProgress)
-                        .stroke(
-                            LinearGradient(
-                                colors: [MPColors.primary, MPColors.accent],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            style: StrokeStyle(lineWidth: 12, lineCap: .round)
-                        )
-                        .frame(width: 140, height: 140)
-                        .rotationEffect(.degrees(-90))
-
-                    // Percentage text
-                    VStack(spacing: 0) {
-                        Text("\(Int(heroProgress * 100))%")
-                            .font(.system(size: 44, weight: .bold, design: .rounded))
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("success rate")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(MPColors.textSecondary)
-                    }
-                }
-
-                // Comparison text
-                Text("vs 35% who don't track")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundColor(MPColors.textTertiary)
-                    .opacity(showComparison ? 1 : 0)
-            }
-            .padding(MPSpacing.xxl)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.xl)
-            .overlay(
-                RoundedRectangle(cornerRadius: MPRadius.xl)
-                    .stroke(
-                        LinearGradient(
-                            colors: [MPColors.primary.opacity(0.3), MPColors.accent.opacity(0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 2
-                    )
+            StatisticRingCard(
+                percentage: 76,
+                label: "success rate",
+                comparisonText: "vs 35% who don't track"
             )
-            .mpShadow(.large)
             .padding(.horizontal, MPSpacing.xxl)
 
             Spacer().frame(height: MPSpacing.xxl)
@@ -750,25 +793,18 @@ struct TrackingComparisonStep: View {
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(MPColors.textTertiary)
             }
-            .opacity(showComparison ? 1 : 0)
 
             Spacer().frame(height: MPSpacing.xxl)
 
-            // Supporting stats pills
+            // Supporting pills
             HStack(spacing: MPSpacing.sm) {
-                StatPill(value: "42%", label: "more likely", icon: "arrow.up.right")
-                    .opacity(showPills ? 1 : 0)
-                    .offset(y: showPills ? 0 : 10)
-
-                StatPill(value: "2.2x", label: "better results", icon: "chart.line.uptrend.xyaxis")
-                    .opacity(showPills ? 1 : 0)
-                    .offset(y: showPills ? 0 : 10)
-
-                StatPill(value: "95%", label: "w/ accountability", icon: "person.2.fill")
-                    .opacity(showPills ? 1 : 0)
-                    .offset(y: showPills ? 0 : 10)
+                StatPillView(value: "42%", label: "more likely", icon: "arrow.up.right")
+                StatPillView(value: "2.2x", label: "better results", icon: "chart.line.uptrend.xyaxis")
+                StatPillView(value: "95%", label: "w/ accountability", icon: "person.2.fill")
             }
             .padding(.horizontal, MPSpacing.lg)
+            .opacity(showPills ? 1 : 0)
+            .offset(y: showPills ? 0 : 10)
 
             Spacer()
 
@@ -779,16 +815,6 @@ struct TrackingComparisonStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            // Staggered animations
-            withAnimation(.easeOut(duration: 0.5)) {
-                showHeroStat = true
-            }
-            withAnimation(.easeOut(duration: 1.5).delay(0.3)) {
-                heroProgress = 0.76
-            }
-            withAnimation(.easeOut(duration: 0.5).delay(1.2)) {
-                showComparison = true
-            }
             withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.5)) {
                 showPills = true
             }
@@ -796,150 +822,35 @@ struct TrackingComparisonStep: View {
     }
 }
 
-// MARK: - Supporting Stat Pill Component
+// MARK: - Step 9: Morning Advantage
 
-struct StatPill: View {
-    let value: String
-    let label: String
-    let icon: String
-
-    var body: some View {
-        VStack(spacing: MPSpacing.xs) {
-            Image(systemName: icon)
-                .font(.system(size: 14))
-                .foregroundColor(MPColors.accent)
-
-            Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundColor(MPColors.textPrimary)
-
-            Text(label)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(MPColors.textTertiary)
-                .lineLimit(1)
-                .minimumScaleFactor(0.8)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, MPSpacing.md)
-        .padding(.horizontal, MPSpacing.sm)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.md)
-        .mpShadow(.small)
-    }
-}
-
-// MARK: - Step 7: Primary Goal
-
-struct PrimaryGoalStep: View {
-    @ObservedObject var data: OnboardingData
+struct MorningAdvantageStep: View {
     let onContinue: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
-
-            VStack(spacing: MPSpacing.md) {
-                Image(systemName: "target")
-                    .font(.system(size: 50))
-                    .foregroundColor(MPColors.accent)
-
-                Text("What's your goal?")
-                    .font(MPFont.headingLarge())
-                    .foregroundColor(MPColors.textPrimary)
-            }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            VStack(spacing: MPSpacing.md) {
-                ForEach(OnboardingData.PrimaryGoal.allCases, id: \.rawValue) { goal in
-                    Button {
-                        data.primaryGoal = goal
-                    } label: {
-                        HStack(spacing: MPSpacing.lg) {
-                            ZStack {
-                                Circle()
-                                    .fill(data.primaryGoal == goal ? MPColors.primaryLight : MPColors.surfaceSecondary)
-                                    .frame(width: 50, height: 50)
-
-                                Image(systemName: goal.icon)
-                                    .font(.system(size: 22))
-                                    .foregroundColor(data.primaryGoal == goal ? MPColors.primary : MPColors.textTertiary)
-                            }
-
-                            VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                                Text(goal.rawValue)
-                                    .font(MPFont.labelLarge())
-                                    .foregroundColor(MPColors.textPrimary)
-
-                                Text(goal.description)
-                                    .font(MPFont.bodySmall())
-                                    .foregroundColor(MPColors.textTertiary)
-                            }
-
-                            Spacer()
-
-                            Image(systemName: data.primaryGoal == goal ? "checkmark.circle.fill" : "circle")
-                                .font(.title2)
-                                .foregroundColor(data.primaryGoal == goal ? MPColors.primary : MPColors.border)
-                        }
-                        .padding(MPSpacing.lg)
-                        .background(MPColors.surface)
-                        .cornerRadius(MPRadius.lg)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: MPRadius.lg)
-                                .stroke(data.primaryGoal == goal ? MPColors.primary : Color.clear, lineWidth: 2)
-                        )
-                        .mpShadow(.small)
-                    }
-                }
-            }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            MPButton(title: "Continue", style: .primary) {
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-        }
-    }
-}
-
-// MARK: - Step 8: Morning Advantage Animation
-
-struct GainTwiceAnimationStep: View {
-    let onContinue: () -> Void
-
     @State private var showHeader = false
     @State private var showMultiplier = false
     @State private var animatedValue: Double = 1.0
     @State private var showCards = false
-    @State private var showCitation = false
     @State private var pulseAnimation = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Header
             VStack(spacing: MPSpacing.sm) {
                 Text("The Morning Advantage")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
                 Text("Morning routine builders are")
-                    .font(MPFont.bodyLarge())
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
             .opacity(showHeader ? 1 : 0)
-            .offset(y: showHeader ? 0 : -10)
 
             Spacer().frame(height: MPSpacing.xxl)
 
             // Animated multiplier
             ZStack {
-                // Subtle pulse rings
                 ForEach(0..<2, id: \.self) { index in
                     Circle()
                         .stroke(MPColors.accent.opacity(0.15 - Double(index) * 0.05), lineWidth: 1.5)
@@ -947,14 +858,11 @@ struct GainTwiceAnimationStep: View {
                         .scaleEffect(pulseAnimation ? 1.15 : 1.0)
                         .opacity(pulseAnimation ? 0 : 0.8)
                         .animation(
-                            .easeOut(duration: 2.5)
-                            .repeatForever(autoreverses: false)
-                            .delay(Double(index) * 0.4),
+                            .easeOut(duration: 2.5).repeatForever(autoreverses: false).delay(Double(index) * 0.4),
                             value: pulseAnimation
                         )
                 }
 
-                // Main circle with gradient
                 Circle()
                     .fill(
                         LinearGradient(
@@ -966,7 +874,6 @@ struct GainTwiceAnimationStep: View {
                     .frame(width: 130, height: 130)
                     .mpShadow(.large)
 
-                // Animated number
                 VStack(spacing: 0) {
                     Text(String(format: "%.1fx", animatedValue))
                         .font(.system(size: 42, weight: .bold, design: .rounded))
@@ -983,40 +890,35 @@ struct GainTwiceAnimationStep: View {
 
             Spacer().frame(height: MPSpacing.xxl)
 
-            // Supporting evidence cards
+            // Evidence cards
             VStack(spacing: MPSpacing.md) {
                 EvidenceCard(
                     stat: "78%",
-                    description: "of successful habit-formers complete key habits before 9 AM",
+                    description: "complete key habits before 9 AM",
                     icon: "sunrise.fill",
                     iconColor: MPColors.accent
                 )
-                .opacity(showCards ? 1 : 0)
-                .offset(x: showCards ? 0 : -20)
 
                 EvidenceCard(
                     stat: "92%",
-                    description: "with morning routines report feeling highly productive",
+                    description: "report feeling highly productive",
                     icon: "bolt.fill",
                     iconColor: MPColors.accentGold
                 )
-                .opacity(showCards ? 1 : 0)
-                .offset(x: showCards ? 0 : 20)
             }
             .padding(.horizontal, MPSpacing.xl)
+            .opacity(showCards ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.lg)
+            Spacer().frame(height: MPSpacing.md)
 
-            // Research citation
             HStack(spacing: MPSpacing.xs) {
                 Image(systemName: "book.closed.fill")
                     .font(.system(size: 11))
-                    .foregroundColor(MPColors.textMuted)
                 Text("2025 Executive Performance Study")
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundColor(MPColors.textMuted)
             }
-            .opacity(showCitation ? 1 : 0)
+            .foregroundColor(MPColors.textMuted)
+            .opacity(showCards ? 1 : 0)
 
             Spacer()
 
@@ -1027,36 +929,18 @@ struct GainTwiceAnimationStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            // Staggered entrance animations
-            withAnimation(.easeOut(duration: 0.5)) {
-                showHeader = true
-            }
-
+            withAnimation(.easeOut(duration: 0.5)) { showHeader = true }
             pulseAnimation = true
-
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3)) {
-                showMultiplier = true
-            }
-
-            // Animate the number from 1.0 to 3.2
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3)) { showMultiplier = true }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeOut(duration: 1.2)) {
-                    animatedValue = 3.2
-                }
+                withAnimation(.easeOut(duration: 1.2)) { animatedValue = 3.2 }
             }
-
-            withAnimation(.easeOut(duration: 0.5).delay(1.0)) {
-                showCards = true
-            }
-
-            withAnimation(.easeOut(duration: 0.3).delay(1.4)) {
-                showCitation = true
-            }
+            withAnimation(.easeOut(duration: 0.5).delay(1.0)) { showCards = true }
         }
     }
 }
 
-// MARK: - Evidence Card Component
+// MARK: - Evidence Card
 
 struct EvidenceCard: View {
     let stat: String
@@ -1066,7 +950,6 @@ struct EvidenceCard: View {
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
-            // Icon
             ZStack {
                 Circle()
                     .fill(iconColor.opacity(0.15))
@@ -1077,7 +960,6 @@ struct EvidenceCard: View {
                     .foregroundColor(iconColor)
             }
 
-            // Text
             VStack(alignment: .leading, spacing: 2) {
                 Text(stat)
                     .font(.system(size: 20, weight: .bold, design: .rounded))
@@ -1086,8 +968,6 @@ struct EvidenceCard: View {
                 Text(description)
                     .font(.system(size: 13))
                     .foregroundColor(MPColors.textSecondary)
-                    .lineLimit(2)
-                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer()
@@ -1099,66 +979,277 @@ struct EvidenceCard: View {
     }
 }
 
-// MARK: - Step 9: Obstacles
+// MARK: - Step 10: How It Works
 
-struct ObstaclesStep: View {
-    @ObservedObject var data: OnboardingData
+struct HowItWorksStep: View {
     let onContinue: () -> Void
+    @State private var showSteps = [false, false, false]
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer().frame(height: MPSpacing.xxxl)
 
             VStack(spacing: MPSpacing.md) {
-                Text("What's stopping you from\nreaching your goals?")
-                    .font(MPFont.headingLarge())
+                Text("MorningProof is different")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
 
-                Text("Select all that apply")
-                    .font(MPFont.bodyMedium())
+                Text("Real accountability that works")
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
 
-            Spacer().frame(height: MPSpacing.xxl)
+            Spacer().frame(height: MPSpacing.xxxl)
 
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                ForEach(OnboardingData.Obstacle.allCases, id: \.rawValue) { obstacle in
-                    OnboardingGridButton(
-                        title: obstacle.rawValue,
-                        icon: obstacle.icon,
-                        isSelected: data.obstacles.contains(obstacle)
-                    ) {
-                        if data.obstacles.contains(obstacle) {
-                            data.obstacles.remove(obstacle)
-                        } else {
-                            data.obstacles.insert(obstacle)
-                        }
-                    }
-                }
+            VStack(spacing: MPSpacing.xl) {
+                HowItWorksRow(
+                    number: "1",
+                    title: "Set your habits",
+                    description: "Choose morning habits to track",
+                    icon: "list.bullet.clipboard.fill",
+                    isVisible: showSteps[0]
+                )
+
+                HowItWorksRow(
+                    number: "2",
+                    title: "Prove them",
+                    description: "AI verifies you actually did it",
+                    icon: "camera.viewfinder",
+                    isVisible: showSteps[1]
+                )
+
+                HowItWorksRow(
+                    number: "3",
+                    title: "Build your streak",
+                    description: "Stay consistent, see progress",
+                    icon: "flame.fill",
+                    isVisible: showSteps[2]
+                )
             }
             .padding(.horizontal, MPSpacing.xl)
 
+            Spacer().frame(height: MPSpacing.xxl)
+
+            Text("No more lying to yourself")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(MPColors.accent)
+                .opacity(showSteps[2] ? 1 : 0)
+
             Spacer()
 
-            MPButton(
-                title: "Continue",
-                style: .primary,
-                isDisabled: data.obstacles.isEmpty
-            ) {
+            MPButton(title: "See it in action", style: .primary) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
+        .onAppear {
+            for i in 0..<3 {
+                withAnimation(.easeOut(duration: 0.5).delay(Double(i) * 0.3)) {
+                    showSteps[i] = true
+                }
+            }
+        }
     }
 }
 
-// MARK: - Step 10: Desired Outcome
+struct HowItWorksRow: View {
+    let number: String
+    let title: String
+    let description: String
+    let icon: String
+    let isVisible: Bool
+
+    var body: some View {
+        HStack(spacing: MPSpacing.lg) {
+            ZStack {
+                Circle()
+                    .fill(MPColors.primaryLight)
+                    .frame(width: 56, height: 56)
+
+                Image(systemName: icon)
+                    .font(.system(size: 24))
+                    .foregroundColor(MPColors.primary)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text(description)
+                    .font(.system(size: 14))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer()
+
+            Text(number)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundColor(MPColors.textMuted)
+        }
+        .padding(MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+        .opacity(isVisible ? 1 : 0)
+        .offset(x: isVisible ? 0 : -30)
+    }
+}
+
+// MARK: - Step 11: AI Verification Showcase
+
+struct AIVerificationShowcaseStep: View {
+    let onContinue: () -> Void
+    @State private var showPhone = false
+    @State private var showScan = false
+    @State private var showScore = false
+    @State private var scanProgress: CGFloat = 0
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl)
+
+            VStack(spacing: MPSpacing.md) {
+                Text("AI-Powered Verification")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Snap a photo, we'll verify it")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Phone mockup
+            ZStack {
+                // Phone frame
+                RoundedRectangle(cornerRadius: 30)
+                    .fill(MPColors.surface)
+                    .frame(width: 220, height: 340)
+                    .mpShadow(.large)
+
+                // Screen content
+                VStack(spacing: MPSpacing.md) {
+                    // Bed image placeholder
+                    RoundedRectangle(cornerRadius: MPRadius.md)
+                        .fill(
+                            LinearGradient(
+                                colors: [MPColors.surfaceSecondary, MPColors.progressBg],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 180, height: 140)
+                        .overlay(
+                            Image(systemName: "bed.double.fill")
+                                .font(.system(size: 50))
+                                .foregroundColor(MPColors.textMuted)
+                        )
+
+                    // Scan line animation
+                    if showScan && !showScore {
+                        Rectangle()
+                            .fill(MPColors.accent)
+                            .frame(width: 180, height: 2)
+                            .offset(y: -70 + (scanProgress * 140))
+                    }
+
+                    // Score display
+                    if showScore {
+                        VStack(spacing: MPSpacing.sm) {
+                            HStack(spacing: MPSpacing.sm) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(MPColors.success)
+                                Text("Verified!")
+                                    .font(.system(size: 16, weight: .bold))
+                                    .foregroundColor(MPColors.success)
+                            }
+
+                            HStack(spacing: MPSpacing.xs) {
+                                Text("Bed Score:")
+                                    .font(.system(size: 14))
+                                    .foregroundColor(MPColors.textSecondary)
+                                Text("9/10")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(MPColors.primary)
+                            }
+
+                            Text("Great job making your bed!")
+                                .font(.system(size: 12))
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+                        .transition(.scale.combined(with: .opacity))
+                    }
+                }
+                .frame(width: 200, height: 300)
+            }
+            .scaleEffect(showPhone ? 1 : 0.8)
+            .opacity(showPhone ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Features
+            HStack(spacing: MPSpacing.xl) {
+                VStack(spacing: 4) {
+                    Image(systemName: "bolt.fill")
+                        .foregroundColor(MPColors.accent)
+                    Text("Instant")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                VStack(spacing: 4) {
+                    Image(systemName: "hand.raised.slash.fill")
+                        .foregroundColor(MPColors.accent)
+                    Text("Hands-free")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                VStack(spacing: 4) {
+                    Image(systemName: "lock.shield.fill")
+                        .foregroundColor(MPColors.accent)
+                    Text("Private")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+            }
+            .opacity(showScore ? 1 : 0)
+
+            Spacer()
+
+            MPButton(title: "Continue", style: .primary) {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                showPhone = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                showScan = true
+                withAnimation(.linear(duration: 1.5)) {
+                    scanProgress = 1.0
+                }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    showScore = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Step 12: Desired Outcome
 
 struct DesiredOutcomeStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
+
+    private let popularOutcomes: Set<OnboardingData.DesiredOutcome> = [.moreEnergy, .betterFocus, .selfDiscipline]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1170,12 +1261,12 @@ struct DesiredOutcomeStep: View {
                     .foregroundColor(MPColors.accentGold)
 
                 Text("What would you like\nto accomplish?")
-                    .font(MPFont.headingLarge())
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
 
                 Text("Select all that apply")
-                    .font(MPFont.bodyMedium())
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
 
@@ -1183,10 +1274,11 @@ struct DesiredOutcomeStep: View {
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
                 ForEach(OnboardingData.DesiredOutcome.allCases, id: \.rawValue) { outcome in
-                    OnboardingGridButton(
+                    OnboardingGridButtonWithBadge(
                         title: outcome.rawValue,
                         icon: outcome.icon,
-                        isSelected: data.desiredOutcomes.contains(outcome)
+                        isSelected: data.desiredOutcomes.contains(outcome),
+                        badge: popularOutcomes.contains(outcome) ? "Popular" : nil
                     ) {
                         if data.desiredOutcomes.contains(outcome) {
                             data.desiredOutcomes.remove(outcome)
@@ -1209,87 +1301,140 @@ struct DesiredOutcomeStep: View {
     }
 }
 
-// MARK: - Step 11: Health Connect
+// MARK: - Step 13: Obstacles
 
-struct HealthConnectStep: View {
+struct ObstaclesStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
-
-    @State private var isRequesting = false
-    // Use computed property to avoid @MainActor singleton deadlock
-    private var healthKit: HealthKitManager { HealthKitManager.shared }
+    @State private var showReassurance = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: MPSpacing.xxxl * 2)
 
-            ZStack {
-                Circle()
-                    .fill(MPColors.errorLight)
-                    .frame(width: 120, height: 120)
+            VStack(spacing: MPSpacing.md) {
+                Text("What's stopping you from\nreaching your goals?")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
 
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(MPColors.error)
+                Text("Select all that apply")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
             }
 
             Spacer().frame(height: MPSpacing.xxl)
 
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
+                ForEach(OnboardingData.Obstacle.allCases, id: \.rawValue) { obstacle in
+                    OnboardingGridButton(
+                        title: obstacle.rawValue,
+                        icon: obstacle.icon,
+                        isSelected: data.obstacles.contains(obstacle)
+                    ) {
+                        if data.obstacles.contains(obstacle) {
+                            data.obstacles.remove(obstacle)
+                        } else {
+                            data.obstacles.insert(obstacle)
+                        }
+                        if !data.obstacles.isEmpty {
+                            withAnimation(.easeOut(duration: 0.3)) {
+                                showReassurance = true
+                            }
+                        }
+                    }
+                }
+            }
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer().frame(height: MPSpacing.lg)
+
+            if showReassurance {
+                HStack(spacing: MPSpacing.sm) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(MPColors.success)
+                    Text("We'll help you overcome this")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(MPColors.success)
+                }
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+
+            Spacer()
+
+            MPButton(title: "Continue", style: .primary, isDisabled: data.obstacles.isEmpty) {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+    }
+}
+
+// MARK: - Step 14: Permissions (Combined)
+
+struct PermissionsStep: View {
+    @ObservedObject var data: OnboardingData
+    let onContinue: () -> Void
+
+    @State private var isRequestingHealth = false
+    @State private var isRequestingNotifications = false
+    private var healthKit: HealthKitManager { HealthKitManager.shared }
+    private var notificationManager: NotificationManager { NotificationManager.shared }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl * 2)
+
             VStack(spacing: MPSpacing.md) {
-                Text("Connect Apple Health")
-                    .font(MPFont.headingLarge())
+                Text("Supercharge your tracking")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("Automatically track your sleep\nand step count")
-                    .font(MPFont.bodyLarge())
+                Text("Enable these for the best experience")
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Benefits
             VStack(spacing: MPSpacing.lg) {
-                HealthBenefitRow(icon: "moon.zzz.fill", title: "Sleep Tracking", description: "Auto-log your sleep duration")
-                HealthBenefitRow(icon: "figure.walk", title: "Step Count", description: "Track morning walks automatically")
+                // Health permission card
+                PermissionCard(
+                    icon: "heart.fill",
+                    iconColor: MPColors.error,
+                    title: "Apple Health",
+                    description: "Auto-track sleep & steps",
+                    isEnabled: data.healthConnected,
+                    isLoading: isRequestingHealth
+                ) {
+                    requestHealthAccess()
+                }
+
+                // Notification permission card
+                PermissionCard(
+                    icon: "bell.badge.fill",
+                    iconColor: MPColors.primary,
+                    title: "Notifications",
+                    description: "Morning reminders & streak alerts",
+                    isEnabled: data.notificationsEnabled,
+                    isLoading: isRequestingNotifications
+                ) {
+                    requestNotifications()
+                }
             }
-            .padding(MPSpacing.xl)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
-            .mpShadow(.small)
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                Button {
-                    requestHealthAccess()
-                } label: {
-                    HStack {
-                        if isRequesting {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Image(systemName: data.healthConnected ? "checkmark.circle.fill" : "heart.fill")
-                            Text(data.healthConnected ? "Connected!" : "Connect Health")
-                        }
-                    }
-                    .font(MPFont.labelLarge())
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: MPButtonHeight.lg)
-                    .background(data.healthConnected ? MPColors.success : MPColors.error)
-                    .cornerRadius(MPRadius.lg)
-                }
-                .disabled(isRequesting || data.healthConnected)
-
-                Button {
+                MPButton(title: "Continue", style: .primary) {
                     onContinue()
-                } label: {
-                    Text(data.healthConnected ? "Continue" : "Skip for Now")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.primary)
                 }
+
+                Text("You can change these anytime in Settings")
+                    .font(.system(size: 12))
+                    .foregroundColor(MPColors.textTertiary)
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
@@ -1297,52 +1442,93 @@ struct HealthConnectStep: View {
     }
 
     private func requestHealthAccess() {
-        isRequesting = true
+        isRequestingHealth = true
         Task {
             let authorized = await healthKit.requestAuthorization()
             await MainActor.run {
-                isRequesting = false
+                isRequestingHealth = false
                 data.healthConnected = authorized
-                if authorized {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        onContinue()
-                    }
-                }
+            }
+        }
+    }
+
+    private func requestNotifications() {
+        isRequestingNotifications = true
+        Task {
+            let granted = await notificationManager.requestPermission()
+            await MainActor.run {
+                isRequestingNotifications = false
+                data.notificationsEnabled = granted
             }
         }
     }
 }
 
-struct HealthBenefitRow: View {
+struct PermissionCard: View {
     let icon: String
+    let iconColor: Color
     let title: String
     let description: String
+    let isEnabled: Bool
+    let isLoading: Bool
+    let action: () -> Void
 
     var body: some View {
         HStack(spacing: MPSpacing.lg) {
-            Image(systemName: icon)
-                .font(.system(size: 24))
-                .foregroundColor(MPColors.primary)
-                .frame(width: 30)
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.15))
+                    .frame(width: 50, height: 50)
+
+                Image(systemName: icon)
+                    .font(.system(size: 22))
+                    .foregroundColor(iconColor)
+            }
 
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
-                    .font(MPFont.labelMedium())
+                    .font(.system(size: 16, weight: .semibold))
                     .foregroundColor(MPColors.textPrimary)
 
                 Text(description)
-                    .font(MPFont.bodySmall())
+                    .font(.system(size: 13))
                     .foregroundColor(MPColors.textTertiary)
             }
 
             Spacer()
+
+            Button(action: action) {
+                Group {
+                    if isLoading {
+                        ProgressView()
+                            .tint(isEnabled ? MPColors.success : MPColors.primary)
+                    } else if isEnabled {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 28))
+                            .foregroundColor(MPColors.success)
+                    } else {
+                        Text("Enable")
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.full)
+                    }
+                }
+            }
+            .disabled(isLoading || isEnabled)
         }
+        .padding(MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
     }
 }
 
-// MARK: - Step 12: Rating
+// MARK: - Step 15: Optional Rating
 
-struct RatingStep: View {
+struct OptionalRatingStep: View {
     let onContinue: () -> Void
     @State private var hasRequestedReview = false
 
@@ -1353,33 +1539,32 @@ struct RatingStep: View {
             ZStack {
                 Circle()
                     .fill(MPColors.accentLight)
-                    .frame(width: 120, height: 120)
+                    .frame(width: 100, height: 100)
 
-                Image(systemName: "star.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(MPColors.accentGold)
+                Image(systemName: "heart.fill")
+                    .font(.system(size: 44))
+                    .foregroundColor(MPColors.accent)
             }
 
             Spacer().frame(height: MPSpacing.xxl)
 
             VStack(spacing: MPSpacing.md) {
-                Text("Enjoying Morning Proof?")
-                    .font(MPFont.headingLarge())
+                Text("Help us grow")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("Your rating helps us improve\nand reach more people")
-                    .font(MPFont.bodyLarge())
+                Text("Your rating helps others\ndiscover Morning Proof")
+                    .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
             }
 
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            // Star rating visual
             HStack(spacing: MPSpacing.sm) {
                 ForEach(0..<5, id: \.self) { _ in
                     Image(systemName: "star.fill")
-                        .font(.system(size: 36))
+                        .font(.system(size: 32))
                         .foregroundColor(MPColors.accentGold)
                 }
             }
@@ -1391,14 +1576,12 @@ struct RatingStep: View {
                     requestReview()
                 }
 
-                if hasRequestedReview {
-                    Button {
-                        onContinue()
-                    } label: {
-                        Text("Continue")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.primary)
-                    }
+                Button {
+                    onContinue()
+                } label: {
+                    Text("Maybe later")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
                 }
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -1411,149 +1594,15 @@ struct RatingStep: View {
             SKStoreReviewController.requestReview(in: scene)
         }
         hasRequestedReview = true
-
-        // Auto-continue after a delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             onContinue()
         }
     }
 }
 
-// MARK: - Step 13: Notifications
+// MARK: - Step 16: Analyzing
 
-struct NotificationStep: View {
-    @ObservedObject var data: OnboardingData
-    let onContinue: () -> Void
-
-    @State private var isRequesting = false
-    // Use computed property to avoid @MainActor singleton deadlock
-    private var notificationManager: NotificationManager { NotificationManager.shared }
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
-
-            ZStack {
-                Circle()
-                    .fill(MPColors.primaryLight)
-                    .frame(width: 120, height: 120)
-
-                Image(systemName: "bell.badge.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(MPColors.primary)
-            }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            VStack(spacing: MPSpacing.md) {
-                Text("Stay on Track")
-                    .font(MPFont.headingLarge())
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text("Get gentle reminders to complete\nyour morning routine")
-                    .font(MPFont.bodyLarge())
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            // Notification features
-            VStack(spacing: MPSpacing.lg) {
-                NotificationFeatureRow(icon: "sunrise.fill", title: "Morning Reminder", description: "Wake up to a motivating nudge")
-                NotificationFeatureRow(icon: "clock.badge.exclamationmark.fill", title: "Deadline Alerts", description: "Never miss your cutoff time")
-                NotificationFeatureRow(icon: "flame.fill", title: "Streak Protection", description: "Reminders to keep your streak alive")
-            }
-            .padding(MPSpacing.xl)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
-            .mpShadow(.small)
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            VStack(spacing: MPSpacing.md) {
-                Button {
-                    requestNotifications()
-                } label: {
-                    HStack {
-                        if isRequesting {
-                            ProgressView()
-                                .tint(.white)
-                        } else {
-                            Image(systemName: data.notificationsEnabled ? "checkmark.circle.fill" : "bell.fill")
-                            Text(data.notificationsEnabled ? "Enabled!" : "Enable Notifications")
-                        }
-                    }
-                    .font(MPFont.labelLarge())
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .frame(height: MPButtonHeight.lg)
-                    .background(data.notificationsEnabled ? MPColors.success : MPColors.primary)
-                    .cornerRadius(MPRadius.lg)
-                }
-                .disabled(isRequesting || data.notificationsEnabled)
-
-                Button {
-                    onContinue()
-                } label: {
-                    Text(data.notificationsEnabled ? "Continue" : "Maybe Later")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.primary)
-                }
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-        }
-    }
-
-    private func requestNotifications() {
-        isRequesting = true
-        Task {
-            let granted = await notificationManager.requestPermission()
-            await MainActor.run {
-                isRequesting = false
-                data.notificationsEnabled = granted
-                if granted {
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                        onContinue()
-                    }
-                }
-            }
-        }
-    }
-}
-
-struct NotificationFeatureRow: View {
-    let icon: String
-    let title: String
-    let description: String
-
-    var body: some View {
-        HStack(spacing: MPSpacing.lg) {
-            Image(systemName: icon)
-                .font(.system(size: 22))
-                .foregroundColor(MPColors.accent)
-                .frame(width: 30)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title)
-                    .font(MPFont.labelMedium())
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text(description)
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-
-            Spacer()
-        }
-    }
-}
-
-// MARK: - Step 14: Loading Plan
-
-struct LoadingPlanStep: View {
+struct AnalyzingStep: View {
     let userName: String
     let onComplete: () -> Void
 
@@ -1563,16 +1612,13 @@ struct LoadingPlanStep: View {
     @State private var isPulsing = false
     @State private var showSocialProof = false
     @State private var userCount: Int = 0
-    @State private var orbitRotation: Double = 0
 
     private var phases: [(title: String, icon: String)] {
-        let name = userName.isEmpty ? "" : " for \(userName)"
-        return [
-            (title: "Reviewing your responses", icon: "doc.text.magnifyingglass"),
-            (title: "Analyzing your goals", icon: "target"),
-            (title: "Selecting optimal habits\(name)", icon: "brain.head.profile"),
-            (title: "Calibrating verification methods", icon: "checkmark.shield"),
-            (title: "Finalizing your custom plan", icon: "checkmark.seal")
+        [
+            (title: "Analyzing your responses", icon: "doc.text.magnifyingglass"),
+            (title: "Identifying your patterns", icon: "brain.head.profile"),
+            (title: "Selecting optimal habits", icon: "target"),
+            (title: "Building your routine", icon: "checkmark.seal")
         ]
     }
 
@@ -1580,51 +1626,32 @@ struct LoadingPlanStep: View {
         VStack(spacing: 0) {
             Spacer().frame(height: MPSpacing.xxxl * 2)
 
-            // Header
             VStack(spacing: MPSpacing.sm) {
-                Text("Creating Your Plan")
+                Text("Creating Your Routine")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
                 if !userName.isEmpty {
-                    Text("Hang tight, \(userName)")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textSecondary)
-                } else {
-                    Text("This won't take long")
-                        .font(MPFont.bodyMedium())
+                    Text("Almost there, \(userName)")
+                        .font(.system(size: 16))
                         .foregroundColor(MPColors.textSecondary)
                 }
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Progress circle with pulse
+            // Progress circle
             ZStack {
-                // Pulse effect
                 Circle()
                     .fill(MPColors.primary.opacity(0.1))
-                    .frame(width: 150, height: 150)
-                    .scaleEffect(isPulsing ? 1.15 : 1.0)
-                    .opacity(isPulsing ? 0.3 : 0.6)
+                    .frame(width: 140, height: 140)
+                    .scaleEffect(isPulsing ? 1.1 : 1.0)
                     .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
 
-                // Orbiting particles
-                ForEach(0..<3, id: \.self) { index in
-                    Circle()
-                        .fill(MPColors.accent)
-                        .frame(width: 6, height: 6)
-                        .offset(y: -85)
-                        .rotationEffect(.degrees(orbitRotation + Double(index * 120)))
-                        .opacity(0.6)
-                }
-
-                // Background ring
                 Circle()
-                    .stroke(MPColors.progressBg, lineWidth: 10)
-                    .frame(width: 120, height: 120)
+                    .stroke(MPColors.progressBg, lineWidth: 8)
+                    .frame(width: 110, height: 110)
 
-                // Progress ring
                 Circle()
                     .trim(from: 0, to: progress)
                     .stroke(
@@ -1633,18 +1660,15 @@ struct LoadingPlanStep: View {
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
-                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
+                        style: StrokeStyle(lineWidth: 8, lineCap: .round)
                     )
-                    .frame(width: 120, height: 120)
+                    .frame(width: 110, height: 110)
                     .rotationEffect(.degrees(-90))
 
-                // Percentage
-                VStack(spacing: 0) {
-                    Text("\(Int(progress * 100))%")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-                        .contentTransition(.numericText())
-                }
+                Text("\(Int(progress * 100))%")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .contentTransition(.numericText())
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
@@ -1652,7 +1676,7 @@ struct LoadingPlanStep: View {
             // Phase checklist
             VStack(spacing: MPSpacing.md) {
                 ForEach(0..<phases.count, id: \.self) { index in
-                    LoadingPhaseRow(
+                    AnalyzingPhaseRow(
                         title: phases[index].title,
                         icon: phases[index].icon,
                         isActive: currentPhase == index,
@@ -1664,18 +1688,13 @@ struct LoadingPlanStep: View {
 
             Spacer().frame(height: MPSpacing.xxl)
 
-            // Social proof counter
-            HStack(spacing: MPSpacing.sm) {
-                Image(systemName: "person.3.fill")
-                    .font(.system(size: 14))
-                    .foregroundColor(MPColors.accent)
-
-                Text("\(userCount.formatted()) people built their routine this week")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textSecondary)
-            }
+            // Social proof
+            SocialProofCounter(
+                targetNumber: userCount,
+                suffix: " people built their routine this week",
+                icon: "person.3.fill"
+            )
             .opacity(showSocialProof ? 1 : 0)
-            .offset(y: showSocialProof ? 0 : 10)
 
             Spacer()
         }
@@ -1687,37 +1706,25 @@ struct LoadingPlanStep: View {
     private func startLoading() {
         isPulsing = true
 
-        // Start orbit animation
-        withAnimation(.linear(duration: 3).repeatForever(autoreverses: false)) {
-            orbitRotation = 360
-        }
-
-        // Total duration: ~5.5 seconds
-        // Progress animation over 5 seconds
-        withAnimation(.easeOut(duration: 5.0)) {
+        withAnimation(.easeOut(duration: 4.0)) {
             progress = 1.0
         }
 
-        // Show social proof after 2 seconds
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation(.easeOut(duration: 0.5)) {
                 showSocialProof = true
             }
             animateCounter(to: 2847)
         }
 
-        // Phase transitions (5 phases over ~5 seconds = 1 second each)
         for i in 0..<phases.count {
-            // Set phase active
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.9) {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     currentPhase = i
                 }
             }
-
-            // Mark previous phase complete
             if i > 0 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 1.0) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.9) {
                     withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                         _ = completedSteps.insert(i - 1)
                     }
@@ -1725,38 +1732,31 @@ struct LoadingPlanStep: View {
             }
         }
 
-        // Mark last phase complete
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
                 _ = completedSteps.insert(phases.count - 1)
             }
         }
 
-        // Complete and transition
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.2) {
             onComplete()
         }
     }
 
     private func animateCounter(to target: Int) {
-        let duration: Double = 1.5
-        let steps = 30
-        let interval = duration / Double(steps)
+        let steps = 25
+        let interval = 1.2 / Double(steps)
         let increment = target / steps
 
         for i in 1...steps {
             DispatchQueue.main.asyncAfter(deadline: .now() + interval * Double(i)) {
-                withAnimation(.easeOut(duration: 0.05)) {
-                    userCount = min(increment * i, target)
-                }
+                userCount = min(increment * i, target)
             }
         }
     }
 }
 
-// MARK: - Loading Phase Row
-
-struct LoadingPhaseRow: View {
+struct AnalyzingPhaseRow: View {
     let title: String
     let icon: String
     let isActive: Bool
@@ -1764,7 +1764,6 @@ struct LoadingPhaseRow: View {
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
-            // Status indicator
             ZStack {
                 Circle()
                     .fill(isCompleted ? MPColors.success : (isActive ? MPColors.primary.opacity(0.15) : MPColors.surfaceSecondary))
@@ -1785,403 +1784,137 @@ struct LoadingPhaseRow: View {
                 }
             }
 
-            // Title
             Text(title)
                 .font(.system(size: 15, weight: isActive || isCompleted ? .medium : .regular))
                 .foregroundColor(isActive || isCompleted ? MPColors.textPrimary : MPColors.textTertiary)
 
             Spacer()
         }
-        .padding(.vertical, MPSpacing.xs)
     }
 }
 
-// MARK: - Step 15: Custom Plan
+// MARK: - Step 17: Your Habits
 
-struct CustomPlanStep: View {
+struct YourHabitsStep: View {
     @ObservedObject var data: OnboardingData
-    @ObservedObject var manager: MorningProofManager
-    let onComplete: () -> Void
+    let onContinue: () -> Void
+    @State private var showContent = false
 
-    @State private var animateCheckmark = false
-    @State private var animateContent = false
-    @State private var animateChips = false
-
-    // Calculate goal date (30 days from now)
-    private var goalDate: String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMM d, yyyy"
-        let futureDate = Calendar.current.date(byAdding: .day, value: 30, to: Date()) ?? Date()
-        return formatter.string(from: futureDate)
-    }
-
-    // Benefit chips based on user's selections
-    private var benefitChips: [(text: String, icon: String, color: Color)] {
-        var chips: [(String, String, Color)] = []
-
-        // Add based on all selected desired outcomes
-        for outcome in data.desiredOutcomes {
-            switch outcome {
-            case .moreEnergy:
-                chips.append(("More Energy", "bolt.fill", Color.orange))
-            case .betterFocus:
-                chips.append(("Better Focus", "scope", MPColors.primary))
-            case .improvedMood:
-                chips.append(("Better Mood", "face.smiling.fill", MPColors.success))
-            case .increasedProductivity:
-                chips.append(("Productivity", "chart.line.uptrend.xyaxis", MPColors.primary))
-            case .betterHealth:
-                chips.append(("Better Health", "heart.fill", MPColors.error))
-            case .selfDiscipline:
-                chips.append(("Self-Discipline", "flame.fill", Color.orange))
-            }
-        }
-
-        // Add some default benefits to round out the chips
-        if chips.count < 6 {
-            chips.append(("Consistency", "checkmark.circle.fill", MPColors.success))
-        }
-        if chips.count < 6 {
-            chips.append(("Accountability", "person.2.fill", MPColors.accent))
-        }
-        if chips.count < 6 {
-            chips.append(("Better Sleep", "moon.zzz.fill", MPColors.primary))
-        }
-        if chips.count < 6 {
-            chips.append(("Morning Wins", "trophy.fill", MPColors.accentGold))
-        }
-
-        return chips
-    }
+    private let recommendedHabits: [HabitType] = [.madeBed, .morningSteps, .sleepDuration, .noSnooze]
 
     var body: some View {
-        ZStack {
-            MPColors.background
-                .ignoresSafeArea()
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl)
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    Spacer().frame(height: MPSpacing.xxxl * 2)
-
-                    // Checkmark icon
-                    ZStack {
-                        Circle()
-                            .fill(MPColors.successLight)
-                            .frame(width: 80, height: 80)
-
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 36, weight: .bold))
-                            .foregroundColor(MPColors.success)
-                    }
-                    .scaleEffect(animateCheckmark ? 1 : 0.5)
-                    .opacity(animateCheckmark ? 1 : 0)
-
-                    Spacer().frame(height: MPSpacing.xxl)
-
-                    // Personalized header
-                    VStack(spacing: MPSpacing.md) {
-                        Text("\(data.userName.isEmpty ? "Friend" : data.userName), we've made you\na custom plan.")
-                            .font(.system(size: 26, weight: .bold, design: .rounded))
-                            .foregroundColor(MPColors.textPrimary)
-                            .multilineTextAlignment(.center)
-                            .opacity(animateContent ? 1 : 0)
-                            .offset(y: animateContent ? 0 : 20)
-
-                        Spacer().frame(height: MPSpacing.md)
-
-                        Text("You will build your routine by:")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textSecondary)
-                            .opacity(animateContent ? 1 : 0)
-
-                        // Date pill
-                        Text(goalDate)
-                            .font(.system(size: 18, weight: .semibold))
-                            .foregroundColor(MPColors.textPrimary)
-                            .padding(.horizontal, MPSpacing.xl)
-                            .padding(.vertical, MPSpacing.md)
-                            .background(MPColors.surface)
-                            .cornerRadius(MPRadius.full)
-                            .mpShadow(.small)
-                            .opacity(animateContent ? 1 : 0)
-                            .scaleEffect(animateContent ? 1 : 0.9)
-                    }
-
-                    Spacer().frame(height: MPSpacing.xl)
-
-                    // "Hands-free verification" highlight
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "hand.raised.slash.fill")
-                            .font(.system(size: 14))
-                            .foregroundColor(MPColors.accent)
-                        Text("Hands-free verification for most habits")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textSecondary)
-                    }
-                    .padding(.horizontal, MPSpacing.lg)
-                    .padding(.vertical, MPSpacing.md)
-                    .background(MPColors.accentLight.opacity(0.3))
-                    .cornerRadius(MPRadius.full)
-                    .opacity(animateContent ? 1 : 0)
-
-                    Spacer().frame(height: MPSpacing.xxl)
-
-                    // Your Routine section header
-                    HStack {
-                        Text("Your Recommended Routine")
-                            .font(MPFont.headingSmall())
-                            .foregroundColor(MPColors.textPrimary)
-                        Spacer()
-                    }
-                    .padding(.horizontal, MPSpacing.xl)
-                    .opacity(animateChips ? 1 : 0)
-
-                    Spacer().frame(height: MPSpacing.md)
-
-                    // Recommended habits
-                    VStack(spacing: MPSpacing.md) {
-                        RecommendedHabitCard(habitType: .madeBed, isHighlighted: true)
-                            .opacity(animateChips ? 1 : 0)
-                            .offset(x: animateChips ? 0 : -20)
-
-                        RecommendedHabitCard(habitType: .morningSteps, isHighlighted: true)
-                            .opacity(animateChips ? 1 : 0)
-                            .offset(x: animateChips ? 0 : 20)
-
-                        RecommendedHabitCard(habitType: .sleepDuration, isHighlighted: false)
-                            .opacity(animateChips ? 1 : 0)
-                            .offset(x: animateChips ? 0 : -20)
-
-                        RecommendedHabitCard(habitType: .morningWorkout, isHighlighted: false)
-                            .opacity(animateChips ? 1 : 0)
-                            .offset(x: animateChips ? 0 : 20)
-                    }
-                    .padding(.horizontal, MPSpacing.xl)
-
-                    Spacer().frame(height: MPSpacing.xxl)
-
-                    // Social proof
-                    VStack(spacing: MPSpacing.md) {
-                        HStack(spacing: 2) {
-                            ForEach(0..<5, id: \.self) { _ in
-                                Image(systemName: "star.fill")
-                                    .font(.system(size: 14))
-                                    .foregroundColor(MPColors.accentGold)
-                            }
-                        }
-                        Text("Join 10,000+ morning achievers")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .opacity(animateChips ? 1 : 0)
-
-                    Spacer().frame(height: 140)
-                }
-            }
-
-            // Bottom CTA overlay
-            VStack {
-                Spacer()
-
-                VStack(spacing: MPSpacing.md) {
-                    MPButton(title: "Start My Journey", style: .primary, icon: "arrow.right") {
-                        onComplete()
-                    }
-                    .padding(.horizontal, MPSpacing.xxxl)
-
-                    // Subtle info text
-                    HStack(spacing: MPSpacing.lg) {
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(MPColors.success)
-                                .font(.system(size: 14))
-                            Text("Free to start")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        HStack(spacing: 4) {
-                            Image(systemName: "sunrise.fill")
-                                .foregroundColor(MPColors.accent)
-                                .font(.system(size: 14))
-                            Text("Transform your mornings")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-                    }
-                }
-                .padding(.bottom, 40)
-                .padding(.top, MPSpacing.lg)
-                .background(
-                    LinearGradient(
-                        colors: [
-                            MPColors.background.opacity(0),
-                            MPColors.background.opacity(0.9),
-                            MPColors.background
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                    .allowsHitTesting(false)
-                )
-            }
-        }
-        .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-                animateCheckmark = true
-            }
-            withAnimation(.easeOut(duration: 0.6).delay(0.3)) {
-                animateContent = true
-            }
-            withAnimation(.easeOut(duration: 0.8).delay(0.6)) {
-                animateChips = true
-            }
-        }
-    }
-}
-
-// MARK: - Benefit Chips View
-
-struct BenefitChipsView: View {
-    let chips: [(text: String, icon: String, color: Color)]
-    let animate: Bool
-
-    var body: some View {
-        VStack(spacing: MPSpacing.md) {
-            // Row 1 - 2 chips
-            HStack(spacing: MPSpacing.sm) {
-                if chips.count > 0 {
-                    BenefitChip(text: chips[0].text, icon: chips[0].icon, color: chips[0].color)
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : -20)
-                }
-                if chips.count > 1 {
-                    BenefitChip(text: chips[1].text, icon: chips[1].icon, color: chips[1].color)
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : 20)
-                }
-            }
-
-            // Row 2 - 3 chips
-            HStack(spacing: MPSpacing.sm) {
-                if chips.count > 2 {
-                    BenefitChip(text: chips[2].text, icon: chips[2].icon, color: chips[2].color)
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : -20)
-                }
-                if chips.count > 3 {
-                    BenefitChip(text: chips[3].text, icon: chips[3].icon, color: chips[3].color)
-                        .opacity(animate ? 1 : 0)
-                }
-                if chips.count > 4 {
-                    BenefitChip(text: chips[4].text, icon: chips[4].icon, color: chips[4].color)
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : 20)
-                }
-            }
-
-            // Row 3 - 2 chips
-            HStack(spacing: MPSpacing.sm) {
-                if chips.count > 5 {
-                    BenefitChip(text: chips[5].text, icon: chips[5].icon, color: chips[5].color)
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : -20)
-                }
-                if chips.count > 6 {
-                    BenefitChip(text: chips[6].text, icon: chips[6].icon, color: chips[6].color)
-                        .opacity(animate ? 1 : 0)
-                        .offset(x: animate ? 0 : 20)
-                }
-            }
-        }
-    }
-}
-
-struct BenefitChip: View {
-    let text: String
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        HStack(spacing: 6) {
-            Image(systemName: icon)
-                .font(.system(size: 12))
-                .foregroundColor(color)
-
-            Text(text)
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(MPColors.textPrimary)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(MPColors.surface)
-                .overlay(
-                    Capsule()
-                        .stroke(color.opacity(0.3), lineWidth: 1)
-                )
-        )
-        .mpShadow(.small)
-    }
-}
-
-// MARK: - Recommended Habit Card
-
-struct RecommendedHabitCard: View {
-    let habitType: HabitType
-    let isHighlighted: Bool
-
-    var body: some View {
-        HStack(spacing: MPSpacing.lg) {
-            // Icon
-            ZStack {
-                Circle()
-                    .fill(isHighlighted ? MPColors.primaryLight : MPColors.surfaceSecondary)
-                    .frame(width: 50, height: 50)
-
-                Image(systemName: habitType.icon)
-                    .font(.system(size: 22))
-                    .foregroundColor(isHighlighted ? MPColors.primary : MPColors.textTertiary)
-            }
-
-            VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                Text(habitType.displayName)
-                    .font(MPFont.labelMedium())
+            VStack(spacing: MPSpacing.md) {
+                Text("Build Your Daily Habits")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                // Verification badge
-                HStack(spacing: 4) {
-                    Image(systemName: verificationBadgeIcon)
-                        .font(.system(size: 10))
-                    Text(habitType.tier.description)
-                        .font(.system(size: 11, weight: .medium))
-                }
-                .foregroundColor(verificationBadgeColor)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(verificationBadgeColor.opacity(0.1))
-                .cornerRadius(MPRadius.sm)
+                Text("Here's your personalized routine")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
             }
+            .opacity(showContent ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Habit cards
+            VStack(spacing: MPSpacing.md) {
+                ForEach(Array(recommendedHabits.enumerated()), id: \.element) { index, habit in
+                    RecommendedHabitRow(
+                        habitType: habit,
+                        isSelected: data.selectedHabits.contains(habit)
+                    ) {
+                        if data.selectedHabits.contains(habit) {
+                            data.selectedHabits.remove(habit)
+                        } else {
+                            data.selectedHabits.insert(habit)
+                        }
+                    }
+                    .opacity(showContent ? 1 : 0)
+                    .offset(y: showContent ? 0 : 20)
+                    .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.1), value: showContent)
+                }
+            }
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer().frame(height: MPSpacing.lg)
+
+            Text("Tap to customize • Add more later")
+                .font(.system(size: 13))
+                .foregroundColor(MPColors.textTertiary)
+                .opacity(showContent ? 1 : 0)
 
             Spacer()
 
-            // Checkmark for included habits
-            Image(systemName: "checkmark.circle.fill")
-                .font(.system(size: 22))
-                .foregroundColor(MPColors.success)
+            MPButton(title: "Continue", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
         }
-        .padding(MPSpacing.lg)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.lg)
-        .overlay(
-            RoundedRectangle(cornerRadius: MPRadius.lg)
-                .stroke(isHighlighted ? MPColors.primary.opacity(0.3) : Color.clear, lineWidth: 2)
-        )
-        .mpShadow(.small)
+        .onAppear {
+            // Pre-select recommended habits
+            data.selectedHabits = Set(recommendedHabits)
+
+            withAnimation(.easeOut(duration: 0.5)) {
+                showContent = true
+            }
+        }
+    }
+}
+
+struct RecommendedHabitRow: View {
+    let habitType: HabitType
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: MPSpacing.lg) {
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? MPColors.primaryLight : MPColors.surfaceSecondary)
+                        .frame(width: 50, height: 50)
+
+                    Image(systemName: habitType.icon)
+                        .font(.system(size: 22))
+                        .foregroundColor(isSelected ? MPColors.primary : MPColors.textTertiary)
+                }
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(habitType.displayName)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    HStack(spacing: 4) {
+                        Image(systemName: verificationIcon)
+                            .font(.system(size: 10))
+                        Text(habitType.tier.description)
+                            .font(.system(size: 12))
+                    }
+                    .foregroundColor(verificationColor)
+                }
+
+                Spacer()
+
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 24))
+                    .foregroundColor(isSelected ? MPColors.success : MPColors.border)
+            }
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .overlay(
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .stroke(isSelected ? MPColors.primary.opacity(0.3) : Color.clear, lineWidth: 2)
+            )
+            .mpShadow(.small)
+        }
     }
 
-    private var verificationBadgeIcon: String {
+    private var verificationIcon: String {
         switch habitType.tier {
         case .aiVerified: return "sparkles"
         case .autoTracked: return "arrow.triangle.2.circlepath"
@@ -2189,7 +1922,7 @@ struct RecommendedHabitCard: View {
         }
     }
 
-    private var verificationBadgeColor: Color {
+    private var verificationColor: Color {
         switch habitType.tier {
         case .aiVerified: return MPColors.accent
         case .autoTracked: return MPColors.primary
@@ -2198,48 +1931,305 @@ struct RecommendedHabitCard: View {
     }
 }
 
-struct HabitSelectionRow: View {
-    let habitType: HabitType
-    let isSelected: Bool
-    let onTap: () -> Void
+// MARK: - Step 18: Social Proof Final
+
+struct SocialProofFinalStep: View {
+    let onContinue: () -> Void
+    @State private var showContent = false
 
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: MPSpacing.lg) {
-                ZStack {
-                    Circle()
-                        .fill(isSelected ? MPColors.successLight : MPColors.surfaceSecondary)
-                        .frame(width: 44, height: 44)
+        VStack(spacing: 0) {
+            Spacer().frame(height: MPSpacing.xxxl)
 
-                    Image(systemName: habitType.icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(isSelected ? MPColors.success : MPColors.textTertiary)
+            VStack(spacing: MPSpacing.lg) {
+                // User avatars stack
+                HStack(spacing: -10) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Circle()
+                            .fill([MPColors.primary, MPColors.accent, MPColors.success, MPColors.accentGold, Color.purple][index])
+                            .frame(width: 44, height: 44)
+                            .overlay(
+                                Text(["SM", "MJ", "RK", "DL", "MT"][index])
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundColor(.white.opacity(0.9))
+                            )
+                            .overlay(Circle().stroke(MPColors.background, lineWidth: 3))
+                    }
                 }
 
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(habitType.displayName)
-                        .font(MPFont.labelMedium())
-                        .foregroundColor(MPColors.textPrimary)
+                Text("Join 27,000+ morning achievers")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+            }
+            .opacity(showContent ? 1 : 0)
+            .scaleEffect(showContent ? 1 : 0.9)
 
-                    Text(habitType.tier.description)
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Star rating
+            VStack(spacing: MPSpacing.sm) {
+                HStack(spacing: 4) {
+                    ForEach(0..<5, id: \.self) { _ in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 24))
+                            .foregroundColor(MPColors.accentGold)
+                    }
                 }
+                Text("4.8 from 12,000+ reviews")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .opacity(showContent ? 1 : 0)
 
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Featured testimonial
+            TestimonialCard(
+                name: SampleTestimonials.all[3].name,
+                age: SampleTestimonials.all[3].age,
+                location: SampleTestimonials.all[3].location,
+                quote: SampleTestimonials.all[3].quote,
+                streakDays: SampleTestimonials.all[3].streakDays,
+                avatarIndex: 3
+            )
+            .padding(.horizontal, MPSpacing.xl)
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 30)
+
+            Spacer()
+
+            MPButton(title: "Get Started", style: .primary, icon: "arrow.right") {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                showContent = true
+            }
+        }
+    }
+}
+
+// MARK: - Step 19: Hard Paywall
+
+struct HardPaywallStep: View {
+    @ObservedObject var subscriptionManager: SubscriptionManager
+    let onSubscribe: () -> Void
+    let onSkip: () -> Void // TESTING ONLY - REMOVE BEFORE RELEASE
+
+    @State private var selectedPlan: PlanType = .yearly
+    @State private var isPurchasing = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    enum PlanType {
+        case monthly, yearly
+    }
+
+    var body: some View {
+        ZStack {
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: 0) {
+                    // Skip button - TESTING ONLY
+                    HStack {
+                        Spacer()
+                        Button {
+                            onSkip()
+                        } label: {
+                            Text("Skip")
+                                .font(.system(size: 14, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                                .padding(.horizontal, MPSpacing.md)
+                                .padding(.vertical, MPSpacing.sm)
+                        }
+                    }
+                    .padding(.horizontal, MPSpacing.lg)
+                    .padding(.top, MPSpacing.sm)
+
+                    Spacer().frame(height: MPSpacing.lg)
+
+                    // Header
+                    VStack(spacing: MPSpacing.lg) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [MPColors.accent, MPColors.accentGold],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 80, height: 80)
+                                .shadow(color: MPColors.accent.opacity(0.4), radius: 15, x: 0, y: 5)
+
+                            Image(systemName: "crown.fill")
+                                .font(.system(size: 36))
+                                .foregroundColor(.white)
+                        }
+
+                        VStack(spacing: MPSpacing.sm) {
+                            Text("Earn Your Morning")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(MPColors.textPrimary)
+
+                            Text("Unlock your full potential")
+                                .font(.system(size: 16))
+                                .foregroundColor(MPColors.textSecondary)
+                        }
+                    }
+
+                    Spacer().frame(height: MPSpacing.xxl)
+
+                    // Features
+                    VStack(spacing: 0) {
+                        PaywallFeatureRow(icon: "infinity", title: "Unlimited habits", subtitle: "Track everything")
+                        Divider().padding(.horizontal, MPSpacing.lg)
+                        PaywallFeatureRow(icon: "camera.viewfinder", title: "Unlimited AI verifications", subtitle: "No daily limits")
+                        Divider().padding(.horizontal, MPSpacing.lg)
+                        PaywallFeatureRow(icon: "flame.fill", title: "Streak recovery", subtitle: "1 free per month")
+                        Divider().padding(.horizontal, MPSpacing.lg)
+                        PaywallFeatureRow(icon: "chart.bar.fill", title: "Advanced analytics", subtitle: "Coming soon")
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .mpShadow(.small)
+                    .padding(.horizontal, MPSpacing.xl)
+
+                    Spacer().frame(height: MPSpacing.xxl)
+
+                    // Plan selection
+                    VStack(spacing: MPSpacing.md) {
+                        EnhancedPlanCard(
+                            isSelected: selectedPlan == .yearly,
+                            title: "Yearly",
+                            price: subscriptionManager.yearlyPrice,
+                            period: "/year",
+                            monthlyEquivalent: "Just $2.50/month",
+                            badge: "MOST POPULAR",
+                            isHighlighted: true
+                        ) {
+                            selectedPlan = .yearly
+                        }
+
+                        EnhancedPlanCard(
+                            isSelected: selectedPlan == .monthly,
+                            title: "Monthly",
+                            price: subscriptionManager.monthlyPrice,
+                            period: "/month",
+                            monthlyEquivalent: nil,
+                            badge: nil,
+                            isHighlighted: false
+                        ) {
+                            selectedPlan = .monthly
+                        }
+                    }
+                    .padding(.horizontal, MPSpacing.xl)
+
+                    Spacer().frame(height: 140)
+                }
+            }
+
+            // Bottom CTA
+            VStack {
                 Spacer()
 
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.title2)
-                    .foregroundColor(isSelected ? MPColors.success : MPColors.border)
+                VStack(spacing: MPSpacing.md) {
+                    Button {
+                        Task { await subscribe() }
+                    } label: {
+                        HStack {
+                            if isPurchasing {
+                                ProgressView().tint(.white)
+                            } else {
+                                Text("Subscribe Now")
+                                    .font(.system(size: 17, weight: .semibold))
+                            }
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                        .background(
+                            LinearGradient(
+                                colors: [MPColors.primary, MPColors.primaryDark],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(MPRadius.lg)
+                        .shadow(color: MPColors.primary.opacity(0.3), radius: 10, x: 0, y: 5)
+                    }
+                    .disabled(isPurchasing)
+
+                    Text("Billed immediately. Cancel anytime.")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
+
+                    TrustBadgeRow()
+
+                    HStack(spacing: MPSpacing.xl) {
+                        Button {
+                            Task { await subscriptionManager.restorePurchases() }
+                        } label: {
+                            Text("Restore Purchases")
+                                .font(.system(size: 13))
+                                .foregroundColor(MPColors.primary)
+                        }
+
+                        Text("•")
+                            .foregroundColor(MPColors.textMuted)
+
+                        Button {
+                            // Open terms
+                        } label: {
+                            Text("Terms")
+                                .font(.system(size: 13))
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.bottom, 30)
+                .padding(.top, MPSpacing.lg)
+                .background(
+                    LinearGradient(
+                        colors: [MPColors.background.opacity(0), MPColors.background],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                )
             }
-            .padding(MPSpacing.md)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.md)
-            .overlay(
-                RoundedRectangle(cornerRadius: MPRadius.md)
-                    .stroke(isSelected ? MPColors.success.opacity(0.3) : Color.clear, lineWidth: 1)
-            )
         }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
+        }
+    }
+
+    private func subscribe() async {
+        isPurchasing = true
+
+        do {
+            let transaction: StoreKit.Transaction?
+            if selectedPlan == .yearly {
+                transaction = try await subscriptionManager.purchaseYearly()
+            } else {
+                transaction = try await subscriptionManager.purchaseMonthly()
+            }
+
+            if transaction != nil {
+                onSubscribe()
+            }
+        } catch {
+            errorMessage = error.localizedDescription
+            showError = true
+        }
+
+        isPurchasing = false
     }
 }
 
@@ -2265,7 +2255,7 @@ struct OnboardingOptionButton: View {
                 }
 
                 Text(title)
-                    .font(MPFont.labelMedium())
+                    .font(.system(size: 16, weight: .medium))
                     .foregroundColor(MPColors.textPrimary)
 
                 Spacer()
@@ -2311,7 +2301,61 @@ struct OnboardingGridButton: View {
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
                     .minimumScaleFactor(0.75)
-                    .fixedSize(horizontal: false, vertical: true)
+            }
+            .frame(maxWidth: .infinity)
+            .frame(minHeight: 95)
+            .padding(.vertical, MPSpacing.md)
+            .padding(.horizontal, MPSpacing.sm)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .overlay(
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .stroke(isSelected ? MPColors.primary : Color.clear, lineWidth: 2)
+            )
+            .mpShadow(.small)
+        }
+    }
+}
+
+struct OnboardingGridButtonWithBadge: View {
+    let title: String
+    let icon: String
+    let isSelected: Bool
+    let badge: String?
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: MPSpacing.sm) {
+                ZStack(alignment: .topTrailing) {
+                    ZStack {
+                        Circle()
+                            .fill(isSelected ? MPColors.primaryLight : MPColors.surfaceSecondary)
+                            .frame(width: 44, height: 44)
+
+                        Image(systemName: icon)
+                            .font(.system(size: 18))
+                            .foregroundColor(isSelected ? MPColors.primary : MPColors.textTertiary)
+                    }
+
+                    if let badge = badge {
+                        Text(badge)
+                            .font(.system(size: 8, weight: .bold))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 4)
+                            .padding(.vertical, 2)
+                            .background(MPColors.accent)
+                            .cornerRadius(4)
+                            .offset(x: 10, y: -5)
+                    }
+                }
+
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(2)
+                    .minimumScaleFactor(0.75)
             }
             .frame(maxWidth: .infinity)
             .frame(minHeight: 95)

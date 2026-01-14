@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Combine
 
 @main
 struct MorningProofApp: App {
@@ -81,12 +82,18 @@ struct MainContentView: View {
 
 /// Wrapper to safely hold the MorningProofManager singleton
 /// @StateObject requires ObservableObject, so we wrap the singleton
+/// Forwards objectWillChange from the wrapped manager so SwiftUI updates properly
 @MainActor
 class ManagerWrapper: ObservableObject {
     let morningProofManager: MorningProofManager
+    private var cancellable: AnyCancellable?
 
     init() {
         self.morningProofManager = MorningProofManager.shared
+        // Forward objectWillChange from the manager to this wrapper
+        cancellable = morningProofManager.objectWillChange.sink { [weak self] _ in
+            self?.objectWillChange.send()
+        }
     }
 }
 
