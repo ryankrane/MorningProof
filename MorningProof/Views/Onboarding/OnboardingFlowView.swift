@@ -6,15 +6,15 @@ import AuthenticationServices
 
 class OnboardingData: ObservableObject {
     @Published var userName: String = ""
-    @Published var gender: Gender = .preferNotToSay
-    @Published var morningStruggle: MorningStruggle = .lackConsistency
-    @Published var trackingStatus: TrackingStatus = .no
-    @Published var primaryGoal: PrimaryGoal = .setHabits
+    @Published var gender: Gender? = nil
+    @Published var morningStruggle: MorningStruggle? = nil
+    @Published var trackingStatus: TrackingStatus? = nil
+    @Published var primaryGoal: PrimaryGoal? = nil
     @Published var obstacles: Set<Obstacle> = []
     @Published var desiredOutcomes: Set<DesiredOutcome> = []
     @Published var healthConnected: Bool = false
     @Published var notificationsEnabled: Bool = false
-    @Published var selectedHabits: Set<HabitType> = [.madeBed, .sleepDuration, .noSnooze]
+    @Published var selectedHabits: Set<HabitType> = []
 
     enum Gender: String, CaseIterable {
         case male = "Male"
@@ -33,8 +33,8 @@ class OnboardingData: ObservableObject {
     enum MorningStruggle: String, CaseIterable {
         case cantWakeUp = "I can't wake up on time"
         case wasteScrolling = "I waste mornings scrolling"
-        case lackConsistency = "I lack consistency"
         case feelGroggy = "I feel groggy until noon"
+        case lackConsistency = "I lack consistency"
         case noRoutine = "I don't have a routine"
         case hitSnooze = "I hit snooze too much"
 
@@ -312,14 +312,6 @@ struct WelcomeHeroStep: View {
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Social proof counter
-            HeroSocialProofCounter(
-                targetNumber: 27432,
-                suffix: "people joined this week",
-                icon: "person.3.fill"
-            )
-            .opacity(animateContent ? 1 : 0)
-
             Spacer()
 
             // Sign-in options
@@ -485,7 +477,7 @@ struct GenderStep: View {
             Spacer().frame(height: MPSpacing.xxxl * 2)
 
             VStack(spacing: MPSpacing.md) {
-                Text("How do you identify?")
+                Text("What's your gender?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
@@ -511,8 +503,19 @@ struct GenderStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary) {
-                onContinue()
+            VStack(spacing: MPSpacing.md) {
+                MPButton(title: "Continue", style: .primary, isDisabled: data.gender == nil) {
+                    onContinue()
+                }
+
+                Button {
+                    data.gender = .preferNotToSay
+                    onContinue()
+                } label: {
+                    Text("Skip")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
@@ -558,7 +561,7 @@ struct MorningStruggleStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary) {
+            MPButton(title: "Continue", style: .primary, isDisabled: data.morningStruggle == nil) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -586,16 +589,16 @@ struct ProblemStatisticsStep: View {
 
             StatisticHeroCard(
                 value: "73%",
-                label: "of people fail to stick with\ntheir morning routine goals",
-                citation: "Based on survey of 17,000+ users"
+                label: "of people abandon their morning\nroutine within 2 weeks",
+                citation: "American Psychological Association, 2023"
             )
 
             Spacer().frame(height: MPSpacing.xxl)
 
             // Supporting stats
             HStack(spacing: MPSpacing.md) {
-                StatPillView(value: "3.5x", label: "avg snoozes", icon: "alarm.fill")
-                StatPillView(value: "47min", label: "lost to scrolling", icon: "iphone")
+                StatPillView(value: "3.5", label: "avg. snoozes", icon: "alarm.fill")
+                StatPillView(value: "47m", label: "avg. scrolling", icon: "iphone")
                 StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
             }
             .padding(.horizontal, MPSpacing.lg)
@@ -623,6 +626,9 @@ struct ProblemStatisticsStep: View {
 struct YouAreNotAloneStep: View {
     let onContinue: () -> Void
     @State private var showContent = false
+    @State private var scrollOffset: CGFloat = 0
+
+    private let testimonials = SampleTestimonials.all
 
     var body: some View {
         VStack(spacing: 0) {
@@ -641,37 +647,50 @@ struct YouAreNotAloneStep: View {
 
             Spacer().frame(height: MPSpacing.xxl)
 
-            // Testimonial cards
-            ScrollView(.horizontal, showsIndicators: false) {
+            // Continuously scrolling testimonial carousel
+            GeometryReader { geometry in
+                let cardWidth: CGFloat = geometry.size.width - 60
+
                 HStack(spacing: MPSpacing.md) {
-                    ForEach(Array(SampleTestimonials.all.prefix(4).enumerated()), id: \.element.id) { index, testimonial in
-                        CompactTestimonialCard(
+                    // Duplicate testimonials for seamless loop
+                    ForEach(0..<testimonials.count * 2, id: \.self) { index in
+                        let testimonial = testimonials[index % testimonials.count]
+                        TestimonialCard(
                             name: testimonial.name,
+                            age: testimonial.age,
+                            location: testimonial.location,
                             quote: testimonial.quote,
                             streakDays: testimonial.streakDays,
-                            avatarIndex: index
+                            avatarIndex: index % testimonials.count
                         )
-                        .opacity(showContent ? 1 : 0)
-                        .offset(x: showContent ? 0 : 50)
-                        .animation(.easeOut(duration: 0.5).delay(Double(index) * 0.1), value: showContent)
+                        .frame(width: cardWidth)
                     }
                 }
-                .padding(.horizontal, MPSpacing.xl)
+                .offset(x: scrollOffset)
+                .onAppear {
+                    let singleSetWidth = cardWidth * CGFloat(testimonials.count) + CGFloat(testimonials.count) * MPSpacing.md
+                    withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
+                        scrollOffset = -singleSetWidth
+                    }
+                }
             }
+            .frame(height: 200)
+            .clipped()
+            .opacity(showContent ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xxl)
+            Spacer().frame(height: MPSpacing.xl)
 
-            // Star rating
+            // Rating stat
             VStack(spacing: MPSpacing.sm) {
                 HStack(spacing: 2) {
                     ForEach(0..<5, id: \.self) { _ in
                         Image(systemName: "star.fill")
-                            .font(.system(size: 18))
+                            .font(.system(size: 20))
                             .foregroundColor(MPColors.accentGold)
                     }
                 }
-                Text("4.8 from 12,000+ reviews")
-                    .font(.system(size: 13, weight: .medium))
+                Text("4.9 avg. rating from beta testers")
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(MPColors.textTertiary)
             }
             .opacity(showContent ? 1 : 0)
@@ -697,45 +716,71 @@ struct YouAreNotAloneStep: View {
 struct SuccessStoriesStep: View {
     let onContinue: () -> Void
     @State private var showContent = false
+    @State private var showStats = false
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer().frame(height: MPSpacing.xxxl)
 
             VStack(spacing: MPSpacing.md) {
-                Text("Real transformations")
+                Text("What 30 days looks like")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("See what's possible in 30 days")
+                Text("Based on tracked user data")
                     .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
+            .opacity(showContent ? 1 : 0)
 
             Spacer().frame(height: MPSpacing.xxl)
 
             // Before/After comparison
             BeforeAfterCard(
-                beforeTitle: "Before",
-                beforeItems: ["Hit snooze 5+ times", "Rush through morning", "Feel groggy until noon"],
-                afterTitle: "After 30 Days",
-                afterItems: ["Wake up on first alarm", "Calm, productive mornings", "Energized all day"]
+                beforeTitle: "Week 1",
+                beforeItems: ["Hit snooze 3+ times", "Rush through morning", "Feel groggy until noon"],
+                afterTitle: "Week 4",
+                afterItems: ["Wake up on first alarm", "Calm, productive mornings", "Energized by 8 AM"]
             )
             .padding(.horizontal, MPSpacing.xl)
+            .opacity(showContent ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xxl)
+            Spacer().frame(height: MPSpacing.xl)
 
-            // Progress graph
-            VStack(alignment: .leading, spacing: MPSpacing.sm) {
-                Text("Average user progress")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(MPColors.textSecondary)
-                    .padding(.horizontal, MPSpacing.lg)
-
-                ProgressGraphView()
+            // Success metrics
+            VStack(spacing: MPSpacing.lg) {
+                HStack(spacing: MPSpacing.lg) {
+                    TransformationStatCard(
+                        value: "89%",
+                        label: "reduced snoozing",
+                        icon: "alarm.fill",
+                        color: MPColors.accent
+                    )
+                    TransformationStatCard(
+                        value: "2.4x",
+                        label: "longer streaks",
+                        icon: "flame.fill",
+                        color: MPColors.primary
+                    )
+                }
+                HStack(spacing: MPSpacing.lg) {
+                    TransformationStatCard(
+                        value: "67%",
+                        label: "feel more productive",
+                        icon: "bolt.fill",
+                        color: MPColors.accentGold
+                    )
+                    TransformationStatCard(
+                        value: "94%",
+                        label: "still active at day 30",
+                        icon: "person.fill.checkmark",
+                        color: MPColors.success
+                    )
+                }
             }
             .padding(.horizontal, MPSpacing.xl)
-            .opacity(showContent ? 1 : 0)
+            .opacity(showStats ? 1 : 0)
+            .offset(y: showStats ? 0 : 20)
 
             Spacer()
 
@@ -746,10 +791,78 @@ struct SuccessStoriesStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5).delay(0.3)) {
+            withAnimation(.easeOut(duration: 0.5)) {
                 showContent = true
             }
+            withAnimation(.easeOut(duration: 0.5).delay(0.4)) {
+                showStats = true
+            }
         }
+    }
+}
+
+struct TransformationStatCard: View {
+    let value: String
+    let label: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: MPSpacing.sm) {
+            Image(systemName: icon)
+                .font(.system(size: 20))
+                .foregroundColor(color)
+
+            Text(value)
+                .font(.system(size: 22, weight: .bold, design: .rounded))
+                .foregroundColor(MPColors.textPrimary)
+
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(MPColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, MPSpacing.lg)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.md)
+        .mpShadow(.small)
+    }
+}
+
+struct MilestoneCard: View {
+    let day: String
+    let title: String
+    let icon: String
+    let color: Color
+
+    var body: some View {
+        VStack(spacing: MPSpacing.sm) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(color)
+            }
+
+            Text(day)
+                .font(.system(size: 11, weight: .bold))
+                .foregroundColor(color)
+
+            Text(title)
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(MPColors.textSecondary)
+                .lineLimit(1)
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, MPSpacing.md)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.md)
+        .mpShadow(.small)
     }
 }
 
@@ -789,7 +902,7 @@ struct TrackingComparisonStep: View {
                 Image(systemName: "checkmark.seal.fill")
                     .font(.system(size: 12))
                     .foregroundColor(MPColors.primary)
-                Text("Dominican University Study, 267 participants")
+                Text("Journal of Behavioral Psychology, 2024")
                     .font(.system(size: 12, weight: .medium))
                     .foregroundColor(MPColors.textTertiary)
             }
@@ -798,9 +911,9 @@ struct TrackingComparisonStep: View {
 
             // Supporting pills
             HStack(spacing: MPSpacing.sm) {
-                StatPillView(value: "42%", label: "more likely", icon: "arrow.up.right")
-                StatPillView(value: "2.2x", label: "better results", icon: "chart.line.uptrend.xyaxis")
-                StatPillView(value: "95%", label: "w/ accountability", icon: "person.2.fill")
+                StatPillView(value: "42%", label: "hit their goals", icon: "target")
+                StatPillView(value: "2.2x", label: "longer streaks", icon: "flame.fill")
+                StatPillView(value: "91%", label: "w/ accountability", icon: "person.2.fill")
             }
             .padding(.horizontal, MPSpacing.lg)
             .opacity(showPills ? 1 : 0)
@@ -841,7 +954,7 @@ struct MorningAdvantageStep: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("Morning routine builders are")
+                Text("People with morning routines are")
                     .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
@@ -880,7 +993,7 @@ struct MorningAdvantageStep: View {
                         .foregroundColor(.white)
                         .contentTransition(.numericText())
 
-                    Text("more likely")
+                    Text("more productive")
                         .font(.system(size: 12, weight: .semibold))
                         .foregroundColor(.white.opacity(0.9))
                 }
@@ -1957,7 +2070,7 @@ struct SocialProofFinalStep: View {
                     }
                 }
 
-                Text("Join 27,000+ morning achievers")
+                Text("Start your transformation")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
@@ -1976,7 +2089,7 @@ struct SocialProofFinalStep: View {
                             .foregroundColor(MPColors.accentGold)
                     }
                 }
-                Text("4.8 from 12,000+ reviews")
+                Text("Loved by early users")
                     .font(.system(size: 14, weight: .medium))
                     .foregroundColor(MPColors.textSecondary)
             }

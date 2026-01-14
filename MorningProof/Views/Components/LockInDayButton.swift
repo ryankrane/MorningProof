@@ -9,74 +9,108 @@ struct LockInDayButton: View {
     @State private var isHolding: Bool = false
     @State private var pulseScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.3
+    @State private var shimmerOffset: CGFloat = -1.0
 
-    private let holdDuration: Double = 0.75  // seconds
-    private let buttonSize: CGFloat = 80
-    private let ringLineWidth: CGFloat = 4
+    private let holdDuration: Double = 0.75
+    private let buttonWidth: CGFloat = 220
+    private let buttonHeight: CGFloat = 56
 
     // Gold gradient for enabled state
     private var goldGradient: LinearGradient {
         LinearGradient(
             colors: [MPColors.accentGold, MPColors.accent],
-            startPoint: .topLeading,
-            endPoint: .bottomTrailing
+            startPoint: .leading,
+            endPoint: .trailing
+        )
+    }
+
+    // Muted purple-gray for disabled state
+    private var disabledGradient: LinearGradient {
+        LinearGradient(
+            colors: [MPColors.surfaceSecondary, MPColors.border],
+            startPoint: .leading,
+            endPoint: .trailing
         )
     }
 
     var body: some View {
-        VStack(spacing: MPSpacing.sm) {
-            ZStack {
-                // Background circle
-                Circle()
-                    .fill(backgroundColor)
-                    .frame(width: buttonSize, height: buttonSize)
+        ZStack {
+            // Outer glow (enabled state only)
+            if isEnabled && !isLockedIn {
+                Capsule()
+                    .fill(MPColors.accentGold.opacity(glowOpacity * 0.5))
+                    .frame(width: buttonWidth + 20, height: buttonHeight + 16)
+                    .blur(radius: 20)
+            }
 
-                // Glow effect (enabled state only)
-                if isEnabled && !isLockedIn {
-                    Circle()
-                        .fill(MPColors.accentGold.opacity(glowOpacity))
-                        .frame(width: buttonSize + 20, height: buttonSize + 20)
-                        .blur(radius: 15)
+            // Background capsule
+            Capsule()
+                .fill(backgroundColor)
+                .frame(width: buttonWidth, height: buttonHeight)
+
+            // Progress fill (while holding) - fills from left
+            if isHolding && isEnabled && !isLockedIn {
+                GeometryReader { geo in
+                    Capsule()
+                        .fill(MPColors.accentGold.opacity(0.4))
+                        .frame(width: geo.size.width * holdProgress, height: buttonHeight)
                 }
+                .frame(width: buttonWidth, height: buttonHeight)
+                .clipShape(Capsule())
+            }
 
-                // Progress ring (while holding)
-                if isHolding && isEnabled && !isLockedIn {
-                    Circle()
-                        .trim(from: 0, to: holdProgress)
-                        .stroke(
-                            MPColors.accentGold,
-                            style: StrokeStyle(lineWidth: ringLineWidth, lineCap: .round)
+            // Shimmer effect (enabled state only)
+            if isEnabled && !isLockedIn && !isHolding {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.15), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
                         )
-                        .frame(width: buttonSize + ringLineWidth, height: buttonSize + ringLineWidth)
-                        .rotationEffect(.degrees(-90))
-                }
+                    )
+                    .frame(width: 60, height: buttonHeight)
+                    .offset(x: shimmerOffset * (buttonWidth / 2))
+                    .clipShape(Capsule().size(width: buttonWidth, height: buttonHeight))
+            }
 
+            // Border
+            Capsule()
+                .stroke(
+                    isHolding ? MPColors.accentGold : borderColor,
+                    lineWidth: isHolding ? 3 : 2
+                )
+                .frame(width: buttonWidth, height: buttonHeight)
+
+            // Content: Icon + Text
+            HStack(spacing: MPSpacing.md) {
                 // Lock icon
                 Image(systemName: isLockedIn ? "lock.fill" : "lock.open")
-                    .font(.system(size: 32, weight: .semibold))
+                    .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(iconColor)
-                    .rotationEffect(.degrees(isLockedIn ? -15 : 0))
-            }
-            .scaleEffect(isHolding ? 0.97 : pulseScale)
-            .animation(.easeInOut(duration: 0.15), value: isHolding)
+                    .rotationEffect(.degrees(isLockedIn ? -15 : 180))
 
-            // Label
-            Text(labelText)
-                .font(MPFont.labelMedium())
-                .foregroundColor(labelColor)
+                // Label text
+                Text(buttonText)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(iconColor)
+            }
         }
-        .opacity(isEnabled || isLockedIn ? 1.0 : 0.5)
+        .frame(width: buttonWidth, height: buttonHeight)
+        .scaleEffect(isHolding ? 0.98 : pulseScale)
+        .animation(.easeInOut(duration: 0.15), value: isHolding)
+        .opacity(isEnabled || isLockedIn ? 1.0 : 0.6)
         .gesture(
             isEnabled && !isLockedIn ? longPressGesture : nil
         )
         .onAppear {
             if isEnabled && !isLockedIn {
-                startIdlePulse()
+                startIdleAnimations()
             }
         }
         .onChange(of: isEnabled) { _, newValue in
             if newValue && !isLockedIn {
-                startIdlePulse()
+                startIdleAnimations()
             }
         }
     }
@@ -89,7 +123,17 @@ struct LockInDayButton: View {
         } else if isEnabled {
             return AnyShapeStyle(goldGradient)
         } else {
-            return AnyShapeStyle(MPColors.surfaceSecondary)
+            return AnyShapeStyle(disabledGradient)
+        }
+    }
+
+    private var borderColor: Color {
+        if isLockedIn {
+            return MPColors.accentGold
+        } else if isEnabled {
+            return MPColors.accentGold.opacity(0.6)
+        } else {
+            return MPColors.border
         }
     }
 
@@ -101,23 +145,13 @@ struct LockInDayButton: View {
         }
     }
 
-    private var labelText: String {
+    private var buttonText: String {
         if isLockedIn {
             return "Day Locked In"
         } else if isEnabled {
             return "Hold to Lock In"
         } else {
             return "Complete all habits"
-        }
-    }
-
-    private var labelColor: Color {
-        if isLockedIn {
-            return MPColors.accentGold
-        } else if isEnabled {
-            return MPColors.textPrimary
-        } else {
-            return MPColors.textMuted
         }
     }
 
@@ -149,12 +183,9 @@ struct LockInDayButton: View {
         isHolding = true
         HapticManager.shared.light()
 
-        // Animate progress ring
         withAnimation(.linear(duration: holdDuration)) {
             holdProgress = 1.0
         }
-
-        // Tick haptics during hold
         startHoldTicks()
     }
 
@@ -166,8 +197,6 @@ struct LockInDayButton: View {
 
         isHolding = false
         holdProgress = 0
-
-        // Trigger lock-in
         onLockIn()
     }
 
@@ -176,10 +205,10 @@ struct LockInDayButton: View {
         withAnimation(.easeOut(duration: 0.2)) {
             holdProgress = 0
         }
+        HapticManager.shared.light()
     }
 
     private func startHoldTicks() {
-        // Tick every 0.15s during hold
         let tickInterval = 0.15
         let tickCount = Int(holdDuration / tickInterval)
 
@@ -192,9 +221,9 @@ struct LockInDayButton: View {
         }
     }
 
-    // MARK: - Idle Animation
+    // MARK: - Idle Animations
 
-    private func startIdlePulse() {
+    private func startIdleAnimations() {
         // Scale pulse
         withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
             pulseScale = 1.02
@@ -202,7 +231,13 @@ struct LockInDayButton: View {
 
         // Glow pulse
         withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-            glowOpacity = 0.5
+            glowOpacity = 0.6
+        }
+
+        // Shimmer sweep
+        shimmerOffset = -1.0
+        withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
+            shimmerOffset = 1.0
         }
     }
 }

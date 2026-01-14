@@ -10,7 +10,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
     var description: String {
         switch self {
         case .aiVerified: return "AI Verified"
-        case .autoTracked: return "Auto-Tracked"
+        case .autoTracked: return "Apple HealthKit"
         case .honorSystem: return "Honor System"
         }
     }

@@ -7,6 +7,7 @@ struct DashboardView: View {
     @State private var showSleepInput = false
     @State private var showHabitEditor = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
+    @State private var isHoldingHabit: HabitType? = nil
 
     // Side menu state
     @State private var showSideMenu = false
@@ -340,6 +341,7 @@ struct DashboardView: View {
         let justCompleted = recentlyCompletedHabits.contains(config.habitType)
         let isFlashing = habitRowFlash[config.habitType] ?? false
         let glowIntensity = habitRowGlow[config.habitType] ?? 0
+        let progress = holdProgress[config.habitType] ?? 0
 
         return ZStack {
             HStack(spacing: MPSpacing.lg) {
@@ -366,8 +368,58 @@ struct DashboardView: View {
 
                 Spacer()
 
-                // Action / Status
-                actionButton(for: config, completion: completion, isCompleted: isCompleted)
+                // Action / Status indicator
+                if isCompleted {
+                    CheckmarkCircle(isCompleted: true, size: 28)
+                } else if config.habitType == .madeBed {
+                    Button {
+                        showBedCamera = true
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.sm)
+                    }
+                } else if config.habitType == .sleepDuration {
+                    if completion?.verificationData?.sleepHours == nil {
+                        Button {
+                            showSleepInput = true
+                        } label: {
+                            Text("Enter")
+                                .font(MPFont.labelSmall())
+                                .foregroundColor(MPColors.primary)
+                                .padding(.horizontal, MPSpacing.md)
+                                .padding(.vertical, MPSpacing.sm)
+                                .background(MPColors.surfaceSecondary)
+                                .cornerRadius(MPRadius.sm)
+                        }
+                    } else {
+                        let score = completion?.score ?? 0
+                        CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
+                    }
+                } else if config.habitType == .morningSteps {
+                    let score = completion?.score ?? 0
+                    CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
+                } else if config.habitType.requiresHoldToConfirm {
+                    // Hold progress indicator for honor system habits
+                    ZStack {
+                        Circle()
+                            .stroke(MPColors.border, lineWidth: 2)
+                            .frame(width: 28, height: 28)
+
+                        Circle()
+                            .trim(from: 0, to: progress)
+                            .stroke(MPColors.primary, style: StrokeStyle(lineWidth: 2, lineCap: .round))
+                            .frame(width: 28, height: 28)
+                            .rotationEffect(.degrees(-90))
+                    }
+                } else {
+                    Circle()
+                        .stroke(MPColors.border, lineWidth: 2)
+                        .frame(width: 28, height: 28)
+                }
             }
             .padding(MPSpacing.lg)
             .background(MPColors.surface)
@@ -385,6 +437,53 @@ struct DashboardView: View {
             .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
             .animation(.easeOut(duration: 0.15), value: isFlashing)
             .animation(.easeOut(duration: 0.3), value: glowIntensity)
+            // Make entire row tappable for honor system habits
+            .contentShape(Rectangle())
+            .gesture(
+                config.habitType.requiresHoldToConfirm && !isCompleted ?
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        // Only start if not already holding this habit
+                        if isHoldingHabit != config.habitType {
+                            isHoldingHabit = config.habitType
+                            HapticManager.shared.lightTap()
+
+                            // Animate progress ring
+                            withAnimation(.linear(duration: 1.0)) {
+                                holdProgress[config.habitType] = 1.0
+                            }
+
+                            // Schedule completion check
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                                // Only complete if still holding this habit
+                                if isHoldingHabit == config.habitType {
+                                    HapticManager.shared.success()
+                                    completeHabitWithCelebration(config.habitType)
+                                    holdProgress[config.habitType] = 0
+                                    isHoldingHabit = nil
+                                }
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        // Cancel if finger lifted before completion
+                        if isHoldingHabit == config.habitType {
+                            isHoldingHabit = nil
+                            withAnimation(.easeOut(duration: 0.2)) {
+                                holdProgress[config.habitType] = 0
+                            }
+                            HapticManager.shared.lightTap()
+                        }
+                    }
+                : nil
+            )
+            // Simple tap for non-hold habits that aren't special types
+            .onTapGesture {
+                if !isCompleted && !config.habitType.requiresHoldToConfirm &&
+                   config.habitType != .madeBed && config.habitType != .sleepDuration && config.habitType != .morningSteps {
+                    completeHabitWithCelebration(config.habitType)
+                }
+            }
 
             // Mini confetti overlay
             if showConfettiForHabit == config.habitType {
@@ -476,65 +575,6 @@ struct DashboardView: View {
         }
     }
 
-    @ViewBuilder
-    func actionButton(for config: HabitConfig, completion: HabitCompletion?, isCompleted: Bool) -> some View {
-        if isCompleted {
-            CheckmarkCircle(isCompleted: true, size: 28)
-        } else {
-            switch config.habitType {
-            case .madeBed:
-                Button {
-                    showBedCamera = true
-                } label: {
-                    Image(systemName: "camera.fill")
-                        .font(.body)
-                        .foregroundColor(.white)
-                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                        .background(MPColors.primary)
-                        .cornerRadius(MPRadius.sm)
-                }
-
-            case .sleepDuration:
-                if completion?.verificationData?.sleepHours == nil {
-                    Button {
-                        showSleepInput = true
-                    } label: {
-                        Text("Enter")
-                            .font(MPFont.labelSmall())
-                            .foregroundColor(MPColors.primary)
-                            .padding(.horizontal, MPSpacing.md)
-                            .padding(.vertical, MPSpacing.sm)
-                            .background(MPColors.surfaceSecondary)
-                            .cornerRadius(MPRadius.sm)
-                    }
-                } else {
-                    // Show progress
-                    let score = completion?.score ?? 0
-                    CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
-                }
-
-            case .morningSteps:
-                // Show progress
-                let score = completion?.score ?? 0
-                CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
-
-            default:
-                if config.habitType.requiresHoldToConfirm {
-                    HoldToConfirmButton(habitType: config.habitType) {
-                        completeHabitWithCelebration(config.habitType)
-                    }
-                } else {
-                    Button {
-                        completeHabitWithCelebration(config.habitType)
-                    } label: {
-                        Circle()
-                            .stroke(MPColors.border, lineWidth: 2)
-                            .frame(width: 28, height: 28)
-                    }
-                }
-            }
-        }
-    }
 }
 
 // MARK: - Supporting Views
