@@ -59,7 +59,11 @@ struct WeekProgressView: View {
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
             } else if let date = selectedDate {
                 // Day exists but no log (future or no data)
-                SelectedDayPlaceholder(date: date, isFuture: date > Date())
+                SelectedDayPlaceholder(
+                    date: date,
+                    isFuture: date > Date(),
+                    enabledHabits: manager.enabledHabits
+                )
                     .transition(.opacity.combined(with: .scale(scale: 0.95)))
             }
         }
@@ -272,16 +276,46 @@ struct HabitCompletionRow: View {
 struct SelectedDayPlaceholder: View {
     let date: Date
     let isFuture: Bool
+    let enabledHabits: [HabitConfig]
 
     var body: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.sm) {
-            Text(formattedDate)
-                .font(MPFont.labelMedium())
-                .foregroundColor(MPColors.textPrimary)
+        VStack(alignment: .leading, spacing: MPSpacing.md) {
+            // Header row
+            HStack {
+                Text(formattedDate)
+                    .font(MPFont.labelMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
-            Text(isFuture ? "Coming up" : "No data")
-                .font(MPFont.bodySmall())
-                .foregroundColor(MPColors.textTertiary)
+                Spacer()
+
+                if isFuture {
+                    Text("Upcoming")
+                        .font(MPFont.labelSmall())
+                        .foregroundColor(MPColors.primary)
+                        .padding(.horizontal, MPSpacing.sm)
+                        .padding(.vertical, MPSpacing.xs)
+                        .background(MPColors.primary.opacity(0.1))
+                        .cornerRadius(MPRadius.sm)
+                }
+            }
+
+            // Show scheduled habits for future days
+            if isFuture && !enabledHabits.isEmpty {
+                Text("\(enabledHabits.count) habits scheduled")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textSecondary)
+
+                // Habit list preview
+                VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                    ForEach(enabledHabits) { config in
+                        ScheduledHabitRow(config: config)
+                    }
+                }
+            } else if !isFuture {
+                Text("No data")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+            }
         }
         .padding(MPSpacing.md)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -293,6 +327,39 @@ struct SelectedDayPlaceholder: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "EEEE, MMM d"
         return formatter.string(from: date)
+    }
+}
+
+// MARK: - Scheduled Habit Row
+
+struct ScheduledHabitRow: View {
+    let config: HabitConfig
+
+    var body: some View {
+        HStack(spacing: MPSpacing.sm) {
+            // Habit icon in a subtle circle
+            ZStack {
+                Circle()
+                    .fill(MPColors.primary.opacity(0.1))
+                    .frame(width: 28, height: 28)
+
+                Image(systemName: config.habitType.icon)
+                    .font(.system(size: 12))
+                    .foregroundColor(MPColors.primary)
+            }
+
+            // Habit name
+            Text(config.habitType.displayName)
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textPrimary)
+
+            Spacer()
+
+            // Empty circle to indicate pending
+            Circle()
+                .stroke(MPColors.border, lineWidth: 1.5)
+                .frame(width: 16, height: 16)
+        }
     }
 }
 
