@@ -171,7 +171,7 @@ struct ConfettiPiece: View {
     }
 }
 
-// Full screen confetti for Perfect Morning (legacy - will be replaced by AllHabitsCompleteCelebrationView)
+// Full screen confetti for Perfect Morning celebration
 struct FullScreenConfettiView: View {
     @Binding var isShowing: Bool
 

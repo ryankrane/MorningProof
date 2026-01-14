@@ -150,7 +150,7 @@ class HapticManager {
         }
     }
 
-    // Custom pattern for perfect morning (legacy)
+    // Custom pattern for perfect morning celebration
     func perfectMorning() {
         let heavy = UIImpactFeedbackGenerator(style: .heavy)
         let medium = UIImpactFeedbackGenerator(style: .medium)

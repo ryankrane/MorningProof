@@ -129,7 +129,8 @@ class OnboardingData: ObservableObject {
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
     @StateObject private var onboardingData = OnboardingData()
-    @StateObject private var authManager = AuthenticationManager.shared
+    // Use computed property to avoid @MainActor singleton deadlock
+    private var authManager: AuthenticationManager { AuthenticationManager.shared }
     @State private var currentStep = 0
     @State private var isAnimatingTransition = false
 
@@ -274,7 +275,8 @@ struct OnboardingProgressBar: View {
 
 struct WelcomeStep: View {
     let onContinue: () -> Void
-    @StateObject private var authManager = AuthenticationManager.shared
+    // Use computed property to avoid @MainActor singleton deadlock
+    private var authManager: AuthenticationManager { AuthenticationManager.shared }
     @State private var animateIcon = false
     @State private var animateText = false
     @State private var showSignInOptions = false
@@ -1214,7 +1216,8 @@ struct HealthConnectStep: View {
     let onContinue: () -> Void
 
     @State private var isRequesting = false
-    private let healthKit = HealthKitManager.shared
+    // Use computed property to avoid @MainActor singleton deadlock
+    private var healthKit: HealthKitManager { HealthKitManager.shared }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1423,7 +1426,8 @@ struct NotificationStep: View {
     let onContinue: () -> Void
 
     @State private var isRequesting = false
-    private let notificationManager = NotificationManager.shared
+    // Use computed property to avoid @MainActor singleton deadlock
+    private var notificationManager: NotificationManager { NotificationManager.shared }
 
     var body: some View {
         VStack(spacing: 0) {

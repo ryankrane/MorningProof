@@ -13,7 +13,6 @@
 		0B895D680BA932C04ED15796 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B5D7D38090D80E9DF411AA /* HapticManager.swift */; };
 		0C04A4D7936746346CF4F462 /* LockInCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E061493F2CFA221111F36339 /* LockInCelebrationView.swift */; };
 		0D4E5B97C46B640D392EB520 /* Config.example in Resources */ = {isa = PBXBuildFile; fileRef = 395EC9D9A1933D5A7967F8DB /* Config.example */; };
-		118CF1DB9752772F23765E2A /* SwiftDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC6EAB062D1F811A41D2EF8 /* SwiftDataService.swift */; };
 		142A070DE67428B4847BAEF1 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7C2841126F9197EED1AA57 /* ResultView.swift */; };
 		14FC0ED912DFDF42657ACCEF /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */; };
 		1B6B655E576FBB7B40C3F2FF /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */; };
@@ -44,7 +43,6 @@
 		6FE2DF4394E7D7DDAB1FEFEC /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6CB434AF33E074D379634A1 /* StorageService.swift */; };
 		7BD498619EFA0FB8AF85197A /* MorningProofApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */; };
 		7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */; };
-		7E7A1FC3E2C7C3B4C0634645 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB46155EB4B97C82555CE15 /* SharedDataManager.swift */; };
 		833D5653CA9D048A825022F0 /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E5C947A53D3ED2E7E4429DC /* StatisticsView.swift */; };
 		8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7C96CFA7B8BB0B31A689B /* AppLockingSettingsView.swift */; };
 		8D47A4A0AA31EE1DE7B1FE8B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F3BC6C90412C82E51911D42 /* SettingsView.swift */; };
@@ -59,7 +57,6 @@
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
 		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
-		CD10621B534AEC0D3BFBBBB2 /* DataServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */; };
 		CE1EF895259597917931AAE6 /* SleepInputSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */; };
 		D3C793EA612FDC1D7559179C /* BedVerificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */; };
 		E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */; };
@@ -141,7 +138,6 @@
 		98F7C96CFA7B8BB0B31A689B /* AppLockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockingSettingsView.swift; sourceTree = "<group>"; };
 		99ADA9C532210DD45EDA8B43 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepInputSheet.swift; sourceTree = "<group>"; };
-		9AB46155EB4B97C82555CE15 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofApp.swift; sourceTree = "<group>"; };
 		AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		B502D69BDFD183D6AB140577 /* MigrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationManager.swift; sourceTree = "<group>"; };
@@ -154,9 +150,7 @@
 		D02803BF9F11FE07F6AAC89F /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
 		D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedVerificationViewModel.swift; sourceTree = "<group>"; };
 		D5E69D302A0B51B6FB192325 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
-		D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataServiceProtocol.swift; sourceTree = "<group>"; };
 		D7CD27C79BD82A277FDF593E /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		DAC6EAB062D1F811A41D2EF8 /* SwiftDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataService.swift; sourceTree = "<group>"; };
 		DACC698ADA5AC3BD5172F402 /* SDModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDModels.swift; sourceTree = "<group>"; };
 		DD60A520941A2DB8D2588F53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DE890A687A08557248003945 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
@@ -245,7 +239,6 @@
 				395EC9D9A1933D5A7967F8DB /* Config.example */,
 				DF851795EA491C844DB4CB0F /* Config.swift */,
 				8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */,
-				D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */,
 				88B5D7D38090D80E9DF411AA /* HapticManager.swift */,
 				45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */,
 				AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */,
@@ -253,10 +246,8 @@
 				B502D69BDFD183D6AB140577 /* MigrationManager.swift */,
 				B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */,
 				6711E8B3FC3C7118542CE8D8 /* NotificationManager.swift */,
-				9AB46155EB4B97C82555CE15 /* SharedDataManager.swift */,
 				F6CB434AF33E074D379634A1 /* StorageService.swift */,
 				F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */,
-				DAC6EAB062D1F811A41D2EF8 /* SwiftDataService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -513,7 +504,6 @@
 				54FA492C5A39656B4085053E /* Config.swift in Sources */,
 				33381EDF9123FB6FD1CD4D77 /* CrashReportingService.swift in Sources */,
 				20E3F4B5DF3D59985E89B25B /* DashboardView.swift in Sources */,
-				CD10621B534AEC0D3BFBBBB2 /* DataServiceProtocol.swift in Sources */,
 				1E8811D345916DD25650A347 /* Habit.swift in Sources */,
 				0B895D680BA932C04ED15796 /* HapticManager.swift in Sources */,
 				7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */,
@@ -542,7 +532,6 @@
 				142A070DE67428B4847BAEF1 /* ResultView.swift in Sources */,
 				4536987E4D02514E625C49EA /* SDModels.swift in Sources */,
 				8D47A4A0AA31EE1DE7B1FE8B /* SettingsView.swift in Sources */,
-				7E7A1FC3E2C7C3B4C0634645 /* SharedDataManager.swift in Sources */,
 				20BA3BC128BA29A942954BDD /* SideMenuView.swift in Sources */,
 				CE1EF895259597917931AAE6 /* SleepInputSheet.swift in Sources */,
 				833D5653CA9D048A825022F0 /* StatisticsView.swift in Sources */,
@@ -551,7 +540,6 @@
 				B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */,
 				E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */,
 				E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */,
-				118CF1DB9752772F23765E2A /* SwiftDataService.swift in Sources */,
 				3E47A6B089C95465AF967F56 /* TextEntryView.swift in Sources */,
 				ED80EC39FD2965B333865034 /* Theme.swift in Sources */,
 				AB85ACB26AA53D8DBDE100AA /* ThemeManager.swift in Sources */,

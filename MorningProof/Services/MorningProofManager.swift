@@ -17,8 +17,9 @@ final class MorningProofManager: ObservableObject, Sendable {
     @Published var lastPerfectMorningDate: Date?
 
     // MARK: - Dependencies
+    // Note: HealthKitManager accessed lazily to avoid @MainActor singleton deadlock
 
-    private let healthKit = HealthKitManager.shared
+    private var healthKit: HealthKitManager { HealthKitManager.shared }
     private let storageService = StorageService()
     private let apiService = ClaudeAPIService()
 
@@ -365,13 +366,6 @@ final class MorningProofManager: ObservableObject, Sendable {
         todayLog.lockedInAt = Date()
 
         saveCurrentState()
-
-        // Future: When Screen Time API is ready
-        // if settings.appLockingEnabled {
-        //     Task {
-        //         await ScreenTimeManager.shared.unlockApps(settings.lockedApps)
-        //     }
-        // }
     }
 
     func updateStreak() {
