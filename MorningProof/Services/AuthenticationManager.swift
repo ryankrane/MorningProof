@@ -5,7 +5,7 @@ import GoogleSignIn
 
 @MainActor
 class AuthenticationManager: NSObject, ObservableObject {
-    static let shared = AuthenticationManager()
+    nonisolated(unsafe) static let shared = AuthenticationManager()
 
     @Published var isAuthenticated = false
     @Published var currentUser: AuthUser?

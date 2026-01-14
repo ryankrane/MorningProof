@@ -17,7 +17,7 @@ settings:
   base:
     SWIFT_VERSION: "5.9"
     TARGETED_DEVICE_FAMILY: "1"
-    MARKETING_VERSION: "1.0.1"
+    MARKETING_VERSION: "1.0.2"
     CURRENT_PROJECT_VERSION: "1"
 
 targets:
@@ -35,8 +35,6 @@ targets:
         product: FirebaseAnalytics
       - package: GoogleSignIn
         product: GoogleSignIn
-      - target: MorningProofWidget
-        embed: true
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof
@@ -78,32 +76,6 @@ targets:
         CFBundleURLTypes:
           - CFBundleURLSchemes:
               - com.googleusercontent.apps.591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3
-
-  MorningProofWidget:
-    type: app-extension
-    platform: iOS
-    sources:
-      - path: MorningProofWidget
-    settings:
-      base:
-        PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.widget
-        INFOPLIST_FILE: MorningProofWidget/Info.plist
-        DEVELOPMENT_TEAM: P9ZXADV42A
-        CODE_SIGN_STYLE: Automatic
-        SKIP_INSTALL: YES
-    entitlements:
-      path: MorningProofWidget/MorningProofWidget.entitlements
-      properties:
-        com.apple.security.application-groups:
-          - group.com.rk.morningproof
-    info:
-      path: MorningProofWidget/Info.plist
-      properties:
-        CFBundleDisplayName: Morning Proof Widget
-        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-        CFBundleShortVersionString: $(MARKETING_VERSION)
-        NSExtension:
-          NSExtensionPointIdentifier: com.apple.widgetkit-extension
 
   MorningProofTests:
     type: bundle.unit-test

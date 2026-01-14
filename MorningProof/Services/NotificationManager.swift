@@ -3,7 +3,7 @@ import UserNotifications
 
 @MainActor
 class NotificationManager: ObservableObject {
-    static let shared = NotificationManager()
+    nonisolated(unsafe) static let shared = NotificationManager()
 
     @Published var isAuthorized = false
 

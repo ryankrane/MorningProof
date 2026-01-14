@@ -3,15 +3,15 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		0557C3B7F27FB0AA8E6A6078 /* ProgressHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */; };
 		07413D8B7ACA9D63E8F4F7E3 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0981D9827F6FBBF7C421AF40 /* HomeView.swift */; };
-		0A0322E0591EDC7E7043D6D9 /* MorningProofWidget.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 8713E960ACB37434232C7C72 /* MorningProofWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		0A3D6E8D94AB52F80409BACE /* FirebaseCrashlytics in Frameworks */ = {isa = PBXBuildFile; productRef = EBBDC128BC8C42A7843DDD53 /* FirebaseCrashlytics */; };
 		0B895D680BA932C04ED15796 /* HapticManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88B5D7D38090D80E9DF411AA /* HapticManager.swift */; };
+		0C04A4D7936746346CF4F462 /* LockInCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E061493F2CFA221111F36339 /* LockInCelebrationView.swift */; };
 		0D4E5B97C46B640D392EB520 /* Config.example in Resources */ = {isa = PBXBuildFile; fileRef = 395EC9D9A1933D5A7967F8DB /* Config.example */; };
 		118CF1DB9752772F23765E2A /* SwiftDataService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DAC6EAB062D1F811A41D2EF8 /* SwiftDataService.swift */; };
 		142A070DE67428B4847BAEF1 /* ResultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7C2841126F9197EED1AA57 /* ResultView.swift */; };
@@ -23,6 +23,7 @@
 		20E3F4B5DF3D59985E89B25B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC2AC488A4583BA62DC0C80A /* DashboardView.swift */; };
 		2133896093D678421C560CE5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 6468129FC9D767B07BAAB760 /* Assets.xcassets */; };
 		21922DF10EA344BDB9335FBA /* VerificationResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = CBAB7E9F4A2111F22E9C1132 /* VerificationResult.swift */; };
+		24824E01C210511608B1820F /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 40EF5CAA0D65467A9DCD850E /* Logger.swift */; };
 		27F4AAF3EF6A4876A508035D /* CameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0485A8D6D68343FC3E59BE20 /* CameraView.swift */; };
 		2A8447D7C9F7284723922D4D /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7CD27C79BD82A277FDF593E /* HistoryView.swift */; };
 		2B7E8106E35DF7FB2406B52B /* AppScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */; };
@@ -30,11 +31,12 @@
 		344291CEE140F868F09661A8 /* MigrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B502D69BDFD183D6AB140577 /* MigrationManager.swift */; };
 		3796BBBB023F2FDBDF2C4D09 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057E690E946F7B40FDCCDA21 /* OnboardingView.swift */; };
 		3E47A6B089C95465AF967F56 /* TextEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */; };
+		3EE5982C81661ADCA7FF8180 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 594D2249590A3D0670CB069C /* GoogleSignIn */; };
 		43FD81844A20AED0658247A2 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */; };
 		4536987E4D02514E625C49EA /* SDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACC698ADA5AC3BD5172F402 /* SDModels.swift */; };
 		49797C886BDE9E1940FB196E /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02803BF9F11FE07F6AAC89F /* PaywallView.swift */; };
-		4C849E19777E84F8722DBFC3 /* MorningProofUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0BB7F1EA34F60AFB06FE555E /* MorningProofUITests.swift */; };
-		519BBF0F167F731B7A5948D9 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B56830852B2722B2A4D5958D /* SharedDataManager.swift */; };
+		4A5710E479D06D630AA72C63 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */; };
+		4F8B9E2348E476753CB676DC /* AchievementUnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */; };
 		54FA492C5A39656B4085053E /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF851795EA491C844DB4CB0F /* Config.swift */; };
 		5644616FBAC2D42C2FDF6EA9 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970A6074B025718639B71CD8 /* CalendarView.swift */; };
 		6031A8E7FBCF73E867AFF486 /* WeekProgressView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09D1428911FA711F907BD661 /* WeekProgressView.swift */; };
@@ -43,31 +45,26 @@
 		7BD498619EFA0FB8AF85197A /* MorningProofApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */; };
 		7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */; };
 		7E7A1FC3E2C7C3B4C0634645 /* SharedDataManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9AB46155EB4B97C82555CE15 /* SharedDataManager.swift */; };
-		7E9F8A2B1C3D4E5F6A7B8C9D /* Logger.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A3B2C1D0E9F8A7B6C5D4E3F /* Logger.swift */; };
 		833D5653CA9D048A825022F0 /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E5C947A53D3ED2E7E4429DC /* StatisticsView.swift */; };
 		8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7C96CFA7B8BB0B31A689B /* AppLockingSettingsView.swift */; };
 		8D47A4A0AA31EE1DE7B1FE8B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F3BC6C90412C82E51911D42 /* SettingsView.swift */; };
 		8F393BE460FE423B9988B32F /* MPSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */; };
-		944F1899E418BED86F19C544 /* MorningProofWidgetBundle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5278A0D88B9F11414F0F9B7 /* MorningProofWidgetBundle.swift */; };
 		9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */; };
 		9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */; };
-		9E95E247966FD99813068489 /* MorningProofTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CAE49ACF8BBAF19284CCC85C /* MorningProofTests.swift */; };
-		A03FF6C90FE9AFF06D9A291B /* HabitsWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA847D8A193F4A32248395B3 /* HabitsWidget.swift */; };
 		A693DB546892E62EC3680F62 /* MPCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 269A2CFCAE1171B58D22D159 /* MPCard.swift */; };
-		A999E4ED4631257F8ECCE86A /* StreakWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E66DC7C495C19D6EFC7F0CF /* StreakWidget.swift */; };
+		A848848117EC771FADA59848 /* MorningProofTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 26DD32D63E8FE38ACE677138 /* MorningProofTests.swift */; };
 		A9F2EDAB691DC8E3E3CD7562 /* AuthenticationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5E69D302A0B51B6FB192325 /* AuthenticationManager.swift */; };
 		AB85ACB26AA53D8DBDE100AA /* ThemeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = EAD687A88A1B0CF71F2FE22E /* ThemeManager.swift */; };
 		ABBF0DBE58648518E50AD7F1 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DE890A687A08557248003945 /* MainTabView.swift */; };
 		AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0057056402FE468C2C62746B /* AnalyzingView.swift */; };
 		AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = ECA15CD82E35AFFFCE2A958F /* MPButton.swift */; };
-		B2C3D4E5F6A7B8C9D0E1F2A3 /* AchievementUnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3D4E5F6A7B8C9D0E1F2 /* AchievementUnlockCelebrationView.swift */; };
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
-		C3852E731ABDE35227F81FA6 /* MorningRoutineLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = 09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */; };
 		CD10621B534AEC0D3BFBBBB2 /* DataServiceProtocol.swift in Sources */ = {isa = PBXBuildFile; fileRef = D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */; };
 		CE1EF895259597917931AAE6 /* SleepInputSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */; };
 		D3C793EA612FDC1D7559179C /* BedVerificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */; };
 		E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */; };
 		E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */; };
+		E88801836A1DB6F71FAFD876 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */; };
 		E9A1FC8931F54A8A03C22729 /* WelcomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99ADA9C532210DD45EDA8B43 /* WelcomeView.swift */; };
 		ED80EC39FD2965B333865034 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BD685B51A8DBDF220310D798 /* Theme.swift */; };
 		EE04C57AB9C08DC671F8C253 /* MorningProofManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */; };
@@ -79,9 +76,7 @@
 		FBC53C28FE3C647ABD28D688 /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3671DB51C5213888E586A8D3 /* AchievementsView.swift */; };
 		FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD129FC6CB536710C7F464C /* UserSettings.swift */; };
 		FE0AF8A5837165E0CC89F30F /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6711E8B3FC3C7118542CE8D8 /* NotificationManager.swift */; };
-		GSIGN1N0BLDFILE012345678 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = GSIGN1N0PRODDEP012345678 /* GoogleSignIn */; };
-		LOCK1NBTN012345678901234 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NBTNREF012345678901 /* LockInDayButton.swift */; };
-		LOCK1NCEL012345678901234 /* LockInCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */; };
+		FEE0E45CB5F8F4BC268C66B5 /* MorningProofUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7281A4F93258C56469EB73AD /* MorningProofUITests.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -99,28 +94,7 @@
 			remoteGlobalIDString = 81A9B07749BFDE7F645FB8A6;
 			remoteInfo = MorningProof;
 		};
-		9081D43B84BF580480B0009D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 8D5F97C7D8727313505E8661 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = FDC6FF73FAA97B5C88C83C1A;
-			remoteInfo = MorningProofWidget;
-		};
 /* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		28F1741051B9F821E4A5FA11 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				0A0322E0591EDC7E7043D6D9 /* MorningProofWidget.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		0057056402FE468C2C62746B /* AnalyzingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzingView.swift; sourceTree = "<group>"; };
@@ -128,57 +102,53 @@
 		0485A8D6D68343FC3E59BE20 /* CameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraView.swift; sourceTree = "<group>"; };
 		057E690E946F7B40FDCCDA21 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		0981D9827F6FBBF7C421AF40 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
-		09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningRoutineLiveActivity.swift; sourceTree = "<group>"; };
 		09D1428911FA711F907BD661 /* WeekProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekProgressView.swift; sourceTree = "<group>"; };
-		0BB7F1EA34F60AFB06FE555E /* MorningProofUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofUITests.swift; sourceTree = "<group>"; };
 		0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
-		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
 		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
+		26DD32D63E8FE38ACE677138 /* MorningProofTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofTests.swift; sourceTree = "<group>"; };
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		3671DB51C5213888E586A8D3 /* AchievementsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementsView.swift; sourceTree = "<group>"; };
-		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.example; sourceTree = "<group>"; };
+		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
 		3C15180C19687B347FEEB70A /* StreakHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeroCard.swift; sourceTree = "<group>"; };
+		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		409E65E8F18D6482BECDE992 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
+		40EF5CAA0D65467A9DCD850E /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakRecoveryView.swift; sourceTree = "<group>"; };
 		45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitManager.swift; sourceTree = "<group>"; };
 		4721A0F6D815690A22663A52 /* MiniConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConfettiView.swift; sourceTree = "<group>"; };
 		4797CBFCF503EAAE33686D29 /* MorningProof.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MorningProof.entitlements; sourceTree = "<group>"; };
 		4C7C2841126F9197EED1AA57 /* ResultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultView.swift; sourceTree = "<group>"; };
-		5A3B2C1D0E9F8A7B6C5D4E3F /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		5CD129FC6CB536710C7F464C /* UserSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UserSettings.swift; sourceTree = "<group>"; };
 		5E13CCA5BD11D73F26A5DCFD /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
-		5E66DC7C495C19D6EFC7F0CF /* StreakWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakWidget.swift; sourceTree = "<group>"; };
 		603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPSectionHeader.swift; sourceTree = "<group>"; };
 		617CF4D8D07A725BD2CBF808 /* BedCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BedCameraView.swift; sourceTree = "<group>"; };
 		6468129FC9D767B07BAAB760 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		6711E8B3FC3C7118542CE8D8 /* NotificationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationManager.swift; sourceTree = "<group>"; };
 		6E5C947A53D3ED2E7E4429DC /* StatisticsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticsView.swift; sourceTree = "<group>"; };
 		6F3BC6C90412C82E51911D42 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		84F75F2173ADF5E5DCDD46D2 /* MorningProofWidget.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MorningProofWidget.entitlements; sourceTree = "<group>"; };
+		7281A4F93258C56469EB73AD /* MorningProofUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofUITests.swift; sourceTree = "<group>"; };
+		72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInDayButton.swift; sourceTree = "<group>"; };
 		8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingService.swift; sourceTree = "<group>"; };
-		8713E960ACB37434232C7C72 /* MorningProofWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MorningProofWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		88B5D7D38090D80E9DF411AA /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		970A6074B025718639B71CD8 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		98F7C96CFA7B8BB0B31A689B /* AppLockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockingSettingsView.swift; sourceTree = "<group>"; };
 		99ADA9C532210DD45EDA8B43 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
 		99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepInputSheet.swift; sourceTree = "<group>"; };
 		9AB46155EB4B97C82555CE15 /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
-		9B732995E257F685993AA0DE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofApp.swift; sourceTree = "<group>"; };
-		A1B2C3D4E5F6A7B8C9D0E1F2 /* AchievementUnlockCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementUnlockCelebrationView.swift; sourceTree = "<group>"; };
 		AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		B502D69BDFD183D6AB140577 /* MigrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationManager.swift; sourceTree = "<group>"; };
-		B56830852B2722B2A4D5958D /* SharedDataManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedDataManager.swift; sourceTree = "<group>"; };
 		B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofManager.swift; sourceTree = "<group>"; };
 		B9512DA434D53924F8D22A7D /* SideMenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SideMenuView.swift; sourceTree = "<group>"; };
 		BD685B51A8DBDF220310D798 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
-		CAE49ACF8BBAF19284CCC85C /* MorningProofTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofTests.swift; sourceTree = "<group>"; };
+		C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AchievementUnlockCelebrationView.swift; sourceTree = "<group>"; };
 		CBAB7E9F4A2111F22E9C1132 /* VerificationResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationResult.swift; sourceTree = "<group>"; };
 		CC2AC488A4583BA62DC0C80A /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		D02803BF9F11FE07F6AAC89F /* PaywallView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PaywallView.swift; sourceTree = "<group>"; };
@@ -186,22 +156,19 @@
 		D5E69D302A0B51B6FB192325 /* AuthenticationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthenticationManager.swift; sourceTree = "<group>"; };
 		D74A081C2AD90EEC65F07632 /* DataServiceProtocol.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataServiceProtocol.swift; sourceTree = "<group>"; };
 		D7CD27C79BD82A277FDF593E /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		DA847D8A193F4A32248395B3 /* HabitsWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HabitsWidget.swift; sourceTree = "<group>"; };
 		DAC6EAB062D1F811A41D2EF8 /* SwiftDataService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwiftDataService.swift; sourceTree = "<group>"; };
 		DACC698ADA5AC3BD5172F402 /* SDModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SDModels.swift; sourceTree = "<group>"; };
 		DD60A520941A2DB8D2588F53 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		DE890A687A08557248003945 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		DF851795EA491C844DB4CB0F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		E061493F2CFA221111F36339 /* LockInCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInCelebrationView.swift; sourceTree = "<group>"; };
 		E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingFlowView.swift; sourceTree = "<group>"; };
 		EAD687A88A1B0CF71F2FE22E /* ThemeManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThemeManager.swift; sourceTree = "<group>"; };
 		ECA15CD82E35AFFFCE2A958F /* MPButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPButton.swift; sourceTree = "<group>"; };
 		F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofSettingsView.swift; sourceTree = "<group>"; };
 		F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
-		F5278A0D88B9F11414F0F9B7 /* MorningProofWidgetBundle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofWidgetBundle.swift; sourceTree = "<group>"; };
 		F6CB434AF33E074D379634A1 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
-		LOCK1NBTNREF012345678901 /* LockInDayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInDayButton.swift; sourceTree = "<group>"; };
-		LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInCelebrationView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -211,7 +178,7 @@
 			files = (
 				0A3D6E8D94AB52F80409BACE /* FirebaseCrashlytics in Frameworks */,
 				F166A3343644A9AC4F21F125 /* FirebaseAnalytics in Frameworks */,
-				GSIGN1N0BLDFILE012345678 /* GoogleSignIn in Frameworks */,
+				3EE5982C81661ADCA7FF8180 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,7 +213,6 @@
 				85BE937BCA357F9916B8D0CF /* MorningProof */,
 				BBD2BA31B411CF895D0F9454 /* MorningProofTests */,
 				BB3DEDB15BF94066A00EF614 /* MorningProofUITests */,
-				E0AB5D319820DF97669A3414 /* MorningProofWidget */,
 				FB19F3A004E728EDBDAE044F /* Products */,
 			);
 			sourceTree = "<group>";
@@ -254,10 +220,10 @@
 		79087C5AF015EEBADE5D05B4 /* Components */ = {
 			isa = PBXGroup;
 			children = (
-				A1B2C3D4E5F6A7B8C9D0E1F2 /* AchievementUnlockCelebrationView.swift */,
-				LOCK1NBTNREF012345678901 /* LockInDayButton.swift */,
-				LOCK1NCELREF012345678901 /* LockInCelebrationView.swift */,
+				C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */,
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
+				E061493F2CFA221111F36339 /* LockInCelebrationView.swift */,
+				72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */,
 				4721A0F6D815690A22663A52 /* MiniConfettiView.swift */,
 				ECA15CD82E35AFFFCE2A958F /* MPButton.swift */,
 				269A2CFCAE1171B58D22D159 /* MPCard.swift */,
@@ -283,7 +249,7 @@
 				88B5D7D38090D80E9DF411AA /* HapticManager.swift */,
 				45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */,
 				AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */,
-				5A3B2C1D0E9F8A7B6C5D4E3F /* Logger.swift */,
+				40EF5CAA0D65467A9DCD850E /* Logger.swift */,
 				B502D69BDFD183D6AB140577 /* MigrationManager.swift */,
 				B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */,
 				6711E8B3FC3C7118542CE8D8 /* NotificationManager.swift */,
@@ -358,7 +324,7 @@
 		BB3DEDB15BF94066A00EF614 /* MorningProofUITests */ = {
 			isa = PBXGroup;
 			children = (
-				0BB7F1EA34F60AFB06FE555E /* MorningProofUITests.swift */,
+				7281A4F93258C56469EB73AD /* MorningProofUITests.swift */,
 			);
 			path = MorningProofUITests;
 			sourceTree = "<group>";
@@ -366,7 +332,7 @@
 		BBD2BA31B411CF895D0F9454 /* MorningProofTests */ = {
 			isa = PBXGroup;
 			children = (
-				CAE49ACF8BBAF19284CCC85C /* MorningProofTests.swift */,
+				26DD32D63E8FE38ACE677138 /* MorningProofTests.swift */,
 			);
 			path = MorningProofTests;
 			sourceTree = "<group>";
@@ -386,6 +352,7 @@
 				6468129FC9D767B07BAAB760 /* Assets.xcassets */,
 				DD60A520941A2DB8D2588F53 /* Info.plist */,
 				4797CBFCF503EAAE33686D29 /* MorningProof.entitlements */,
+				3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -398,27 +365,12 @@
 			path = App;
 			sourceTree = "<group>";
 		};
-		E0AB5D319820DF97669A3414 /* MorningProofWidget */ = {
-			isa = PBXGroup;
-			children = (
-				DA847D8A193F4A32248395B3 /* HabitsWidget.swift */,
-				9B732995E257F685993AA0DE /* Info.plist */,
-				84F75F2173ADF5E5DCDD46D2 /* MorningProofWidget.entitlements */,
-				F5278A0D88B9F11414F0F9B7 /* MorningProofWidgetBundle.swift */,
-				09A365484251ECC1645DD076 /* MorningRoutineLiveActivity.swift */,
-				B56830852B2722B2A4D5958D /* SharedDataManager.swift */,
-				5E66DC7C495C19D6EFC7F0CF /* StreakWidget.swift */,
-			);
-			path = MorningProofWidget;
-			sourceTree = "<group>";
-		};
 		FB19F3A004E728EDBDAE044F /* Products */ = {
 			isa = PBXGroup;
 			children = (
 				8A3458FD1116625E1A9A91CB /* MorningProof.app */,
 				15EC275316179F5B053E106D /* MorningProofTests.xctest */,
 				8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */,
-				8713E960ACB37434232C7C72 /* MorningProofWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -451,18 +403,16 @@
 				5F2FD0DB3426DEB21B60E863 /* Sources */,
 				3BE0E7233F35FEE598FFFF61 /* Resources */,
 				73E3AF7D46517FAEB9FEE6E4 /* Frameworks */,
-				28F1741051B9F821E4A5FA11 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				DB18347B38C8C301DC3CB446 /* PBXTargetDependency */,
 			);
 			name = MorningProof;
 			packageProductDependencies = (
 				EBBDC128BC8C42A7843DDD53 /* FirebaseCrashlytics */,
 				EF2862FACBA6297E47C7CCDC /* FirebaseAnalytics */,
-				GSIGN1N0PRODDEP012345678 /* GoogleSignIn */,
+				594D2249590A3D0670CB069C /* GoogleSignIn */,
 			);
 			productName = MorningProof;
 			productReference = 8A3458FD1116625E1A9A91CB /* MorningProof.app */;
@@ -486,23 +436,6 @@
 			productReference = 8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
 		};
-		FDC6FF73FAA97B5C88C83C1A /* MorningProofWidget */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 4C662C319C80970569FCE530 /* Build configuration list for PBXNativeTarget "MorningProofWidget" */;
-			buildPhases = (
-				9AC84227F68FD148B9E810F0 /* Sources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = MorningProofWidget;
-			packageProductDependencies = (
-			);
-			productName = MorningProofWidget;
-			productReference = 8713E960ACB37434232C7C72 /* MorningProofWidget.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -510,7 +443,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 2620;
+				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					81A9B07749BFDE7F645FB8A6 = {
 						DevelopmentTeam = P9ZXADV42A;
@@ -518,10 +451,6 @@
 					};
 					D18A4D56FB945AF2E8A5C10E = {
 						TestTargetID = 81A9B07749BFDE7F645FB8A6;
-					};
-					FDC6FF73FAA97B5C88C83C1A = {
-						DevelopmentTeam = P9ZXADV42A;
-						ProvisioningStyle = Automatic;
 					};
 				};
 			};
@@ -537,15 +466,15 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
-				GSIGN1N0PKG0REF012345678 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
 				81A9B07749BFDE7F645FB8A6 /* MorningProof */,
 				1AEF9319E66D9B5FEECB0E9F /* MorningProofTests */,
 				D18A4D56FB945AF2E8A5C10E /* MorningProofUITests */,
-				FDC6FF73FAA97B5C88C83C1A /* MorningProofWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -557,6 +486,7 @@
 			files = (
 				2133896093D678421C560CE5 /* Assets.xcassets in Resources */,
 				0D4E5B97C46B640D392EB520 /* Config.example in Resources */,
+				E88801836A1DB6F71FAFD876 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -568,10 +498,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				F9057F0A326F15BFE632754F /* Achievement.swift in Sources */,
-				B2C3D4E5F6A7B8C9D0E1F2A3 /* AchievementUnlockCelebrationView.swift in Sources */,
+				4F8B9E2348E476753CB676DC /* AchievementUnlockCelebrationView.swift in Sources */,
 				FBC53C28FE3C647ABD28D688 /* AchievementsView.swift in Sources */,
-				LOCK1NBTN012345678901234 /* LockInDayButton.swift in Sources */,
-				LOCK1NCEL012345678901234 /* LockInCelebrationView.swift in Sources */,
 				AFA8B849ADBDD3630E423726 /* AnalyzingView.swift in Sources */,
 				9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */,
 				8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */,
@@ -594,7 +522,9 @@
 				F69774C99B74F6A32D563AE4 /* ImagePicker.swift in Sources */,
 				1E513B3AF9042CDD59D744EC /* JournalEntryView.swift in Sources */,
 				43FD81844A20AED0658247A2 /* LiveActivityManager.swift in Sources */,
-				7E9F8A2B1C3D4E5F6A7B8C9D /* Logger.swift in Sources */,
+				0C04A4D7936746346CF4F462 /* LockInCelebrationView.swift in Sources */,
+				4A5710E479D06D630AA72C63 /* LockInDayButton.swift in Sources */,
+				24824E01C210511608B1820F /* Logger.swift in Sources */,
 				AFAB237BFE94B237C1FC5E83 /* MPButton.swift in Sources */,
 				A693DB546892E62EC3680F62 /* MPCard.swift in Sources */,
 				8F393BE460FE423B9988B32F /* MPSectionHeader.swift in Sources */,
@@ -636,19 +566,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9E95E247966FD99813068489 /* MorningProofTests.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		9AC84227F68FD148B9E810F0 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				A03FF6C90FE9AFF06D9A291B /* HabitsWidget.swift in Sources */,
-				944F1899E418BED86F19C544 /* MorningProofWidgetBundle.swift in Sources */,
-				C3852E731ABDE35227F81FA6 /* MorningRoutineLiveActivity.swift in Sources */,
-				519BBF0F167F731B7A5948D9 /* SharedDataManager.swift in Sources */,
-				A999E4ED4631257F8ECCE86A /* StreakWidget.swift in Sources */,
+				A848848117EC771FADA59848 /* MorningProofTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -656,7 +574,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				4C849E19777E84F8722DBFC3 /* MorningProofUITests.swift in Sources */,
+				FEE0E45CB5F8F4BC268C66B5 /* MorningProofUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -667,11 +585,6 @@
 			isa = PBXTargetDependency;
 			target = 81A9B07749BFDE7F645FB8A6 /* MorningProof */;
 			targetProxy = 6D2D7EDED402198DD076634A /* PBXContainerItemProxy */;
-		};
-		DB18347B38C8C301DC3CB446 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = FDC6FF73FAA97B5C88C83C1A /* MorningProofWidget */;
-			targetProxy = 9081D43B84BF580480B0009D /* PBXContainerItemProxy */;
 		};
 		FFEAB1C0E3BD0383AAEF1CA7 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -685,7 +598,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -720,7 +632,6 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -736,13 +647,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -754,7 +664,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
-				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -789,7 +698,6 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
-				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -799,12 +707,11 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.1;
+				MARKETING_VERSION = 1.0.2;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
@@ -826,7 +733,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rk.morningproof;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -863,7 +769,6 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.0.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.rk.morningproof;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -885,44 +790,6 @@
 				TEST_TARGET_NAME = MorningProof;
 			};
 			name = Debug;
-		};
-		628023C3D2FD38DF4CBDDAEA /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = MorningProofWidget/MorningProofWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = P9ZXADV42A;
-				INFOPLIST_FILE = MorningProofWidget/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.rk.morningproof.widget;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		64C181A3B51B20B3B5C2F046 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				CODE_SIGN_ENTITLEMENTS = MorningProofWidget/MorningProofWidget.entitlements;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = P9ZXADV42A;
-				INFOPLIST_FILE = MorningProofWidget/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.rk.morningproof.widget;
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Release;
 		};
 		BA7EE51A859763EE6526F195 /* Release */ = {
 			isa = XCBuildConfiguration;
@@ -977,15 +844,6 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
 		};
-		4C662C319C80970569FCE530 /* Build configuration list for PBXNativeTarget "MorningProofWidget" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				628023C3D2FD38DF4CBDDAEA /* Debug */,
-				64C181A3B51B20B3B5C2F046 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
-		};
 		4F78FAA3A73FB6A7BFD874AE /* Build configuration list for PBXNativeTarget "MorningProof" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -1007,6 +865,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.0.0;
+			};
+		};
 		E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -1015,17 +881,14 @@
 				minimumVersion = 11.0.0;
 			};
 		};
-		GSIGN1N0PKG0REF012345678 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 8.0.0;
-			};
-		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		594D2249590A3D0670CB069C /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
 		EBBDC128BC8C42A7843DDD53 /* FirebaseCrashlytics */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
@@ -1035,11 +898,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
 			productName = FirebaseAnalytics;
-		};
-		GSIGN1N0PRODDEP012345678 /* GoogleSignIn */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = GSIGN1N0PKG0REF012345678 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
-			productName = GoogleSignIn;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

@@ -1,10 +1,9 @@
 import Foundation
 import SwiftUI
-import WidgetKit
 
 @MainActor
 class MorningProofManager: ObservableObject {
-    static let shared = MorningProofManager()
+    nonisolated(unsafe) static let shared = MorningProofManager()
 
     // MARK: - Published Properties
 
@@ -258,36 +257,12 @@ class MorningProofManager: ObservableObject {
         storageService.saveHabitConfigs(habitConfigs)
         storageService.saveDailyLog(todayLog)
 
-        // Update widgets
-        updateWidgetData()
-        WidgetCenter.shared.reloadAllTimelines()
-
         // Update Live Activity
         Task {
             await updateLiveActivity()
         }
     }
 
-    private func updateWidgetData() {
-        let habitStatuses = enabledHabits.map { config -> SharedDataManager.HabitStatus in
-            let completion = todayLog.completions.first { $0.habitType == config.habitType }
-            return SharedDataManager.HabitStatus(
-                name: config.habitType.displayName,
-                icon: config.habitType.icon,
-                isCompleted: completion?.isCompleted ?? false
-            )
-        }
-
-        SharedDataManager.saveWidgetData(
-            currentStreak: currentStreak,
-            longestStreak: longestStreak,
-            completedHabits: completedCount,
-            totalHabits: totalEnabled,
-            cutoffMinutes: settings.morningCutoffMinutes,
-            lastPerfectMorning: lastPerfectMorningDate,
-            habitStatuses: habitStatuses
-        )
-    }
 
     private func updateLiveActivity() async {
         let lastCompleted = todayLog.completions

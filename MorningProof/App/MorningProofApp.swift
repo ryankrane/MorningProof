@@ -15,11 +15,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct MorningProofApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
 
-    @ObservedObject private var manager = MorningProofManager.shared
-    @ObservedObject private var notificationManager = NotificationManager.shared
-    @ObservedObject private var authManager = AuthenticationManager.shared
-    @ObservedObject private var themeManager = ThemeManager.shared
-
     let modelContainer: ModelContainer
 
     init() {
@@ -69,33 +64,47 @@ struct MorningProofApp: App {
 
     var body: some Scene {
         WindowGroup {
-            Group {
-                if manager.hasCompletedOnboarding {
-                    MainTabView(manager: manager)
-                } else {
-                    OnboardingFlowView(manager: manager)
-                }
-            }
-            .environmentObject(themeManager)
-            .preferredColorScheme(themeManager.preferredColorScheme)
-            .onOpenURL { url in
-                _ = authManager.handleGoogleURL(url)
-            }
-            .task {
-                // Run migration if needed
-                let context = modelContainer.mainContext
-                await MigrationManager.shared.migrateIfNeeded(modelContext: context)
-
-                // Check Apple credential state on launch
-                authManager.checkAppleCredentialState()
-
-                // Initialize notifications on app launch
-                await notificationManager.checkAuthorizationStatus()
-                if manager.settings.notificationsEnabled && notificationManager.isAuthorized {
-                    await notificationManager.updateNotificationSchedule(settings: manager.settings)
-                }
-            }
+            ContentView(modelContainer: modelContainer)
         }
         .modelContainer(modelContainer)
+    }
+}
+
+// Separate view to ensure @MainActor singletons are accessed on main thread
+struct ContentView: View {
+    let modelContainer: ModelContainer
+
+    @ObservedObject private var manager = MorningProofManager.shared
+    @ObservedObject private var notificationManager = NotificationManager.shared
+    @ObservedObject private var authManager = AuthenticationManager.shared
+    @ObservedObject private var themeManager = ThemeManager.shared
+
+    var body: some View {
+        Group {
+            if manager.hasCompletedOnboarding {
+                MainTabView(manager: manager)
+            } else {
+                OnboardingFlowView(manager: manager)
+            }
+        }
+        .environmentObject(themeManager)
+        .preferredColorScheme(themeManager.preferredColorScheme)
+        .onOpenURL { url in
+            _ = authManager.handleGoogleURL(url)
+        }
+        .task {
+            // Run migration if needed
+            let context = modelContainer.mainContext
+            await MigrationManager.shared.migrateIfNeeded(modelContext: context)
+
+            // Check Apple credential state on launch
+            authManager.checkAppleCredentialState()
+
+            // Initialize notifications on app launch
+            await notificationManager.checkAuthorizationStatus()
+            if manager.settings.notificationsEnabled && notificationManager.isAuthorized {
+                await notificationManager.updateNotificationSchedule(settings: manager.settings)
+            }
+        }
     }
 }

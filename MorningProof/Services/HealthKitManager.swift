@@ -3,7 +3,7 @@ import HealthKit
 
 @MainActor
 class HealthKitManager: ObservableObject {
-    static let shared = HealthKitManager()
+    nonisolated(unsafe) static let shared = HealthKitManager()
 
     private let healthStore = HKHealthStore()
 
