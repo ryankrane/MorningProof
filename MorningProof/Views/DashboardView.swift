@@ -408,35 +408,24 @@ struct DashboardView: View {
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
         // Make entire row tappable for hold-to-complete habits
         .contentShape(Rectangle())
-        .gesture(
-            isHoldType && !isCompleted ?
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    // Only start if not already holding this habit
-                    if isHoldingHabit != config.habitType {
-                        isHoldingHabit = config.habitType
-                        HapticManager.shared.lightTap()
+        .onLongPressGesture(
+            minimumDuration: 1.0,
+            pressing: { isPressing in
+                // Only handle for hold-to-complete habits that aren't completed
+                guard isHoldType && !isCompleted else { return }
 
-                        // Animate green fill across the row
-                        withAnimation(.linear(duration: 1.0)) {
-                            holdProgress[config.habitType] = 1.0
-                        }
+                if isPressing {
+                    // Started pressing
+                    isHoldingHabit = config.habitType
+                    HapticManager.shared.lightTap()
 
-                        // Schedule completion check
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                            // Only complete if still holding this habit
-                            if isHoldingHabit == config.habitType {
-                                HapticManager.shared.success()
-                                completeHabitWithCelebration(config.habitType)
-                                holdProgress[config.habitType] = 0
-                                isHoldingHabit = nil
-                            }
-                        }
+                    // Animate green fill across the row
+                    withAnimation(.linear(duration: 1.0)) {
+                        holdProgress[config.habitType] = 1.0
                     }
-                }
-                .onEnded { _ in
-                    // Cancel if finger lifted before completion - green backtracks
-                    if isHoldingHabit == config.habitType {
+                } else {
+                    // Released before completion - backtrack the green fill
+                    if isHoldingHabit == config.habitType && holdProgress[config.habitType] ?? 0 < 1.0 {
                         isHoldingHabit = nil
                         withAnimation(.easeOut(duration: 0.3)) {
                             holdProgress[config.habitType] = 0
@@ -444,7 +433,16 @@ struct DashboardView: View {
                         HapticManager.shared.lightTap()
                     }
                 }
-            : nil
+            },
+            perform: {
+                // Only complete for hold-to-complete habits that aren't completed
+                guard isHoldType && !isCompleted else { return }
+
+                HapticManager.shared.success()
+                completeHabitWithCelebration(config.habitType)
+                holdProgress[config.habitType] = 0
+                isHoldingHabit = nil
+            }
         )
         .overlay(
             // Mini confetti overlay
