@@ -264,9 +264,6 @@ struct WelcomeHeroStep: View {
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
     @State private var animateContent = false
     @State private var animateOrb = false
-    @State private var pulseRing1 = false
-    @State private var pulseRing2 = false
-    @State private var pulseRing3 = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -274,73 +271,31 @@ struct WelcomeHeroStep: View {
 
             // App branding
             VStack(spacing: MPSpacing.lg) {
-                // Animated glowing orb with sunrise
+                // Animated orb with sunrise
                 ZStack {
-                    // Outer pulsing ring 1 (slowest, largest)
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    MPColors.primary.opacity(0.4),
-                                    MPColors.primary.opacity(0.15),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 50,
-                                endRadius: 130
-                            )
-                        )
-                        .frame(width: 260, height: 260)
-                        .scaleEffect(pulseRing1 ? 1.12 : 0.95)
-                        .opacity(pulseRing1 ? 0.7 : 1.0)
-
-                    // Middle pulsing ring 2
+                    // Outer glow
                     Circle()
                         .fill(
                             RadialGradient(
                                 colors: [
                                     MPColors.primary.opacity(0.6),
-                                    MPColors.primary.opacity(0.25),
+                                    MPColors.primary.opacity(0.2),
                                     Color.clear
                                 ],
                                 center: .center,
-                                startRadius: 30,
-                                endRadius: 90
+                                startRadius: 0,
+                                endRadius: 100
                             )
                         )
-                        .frame(width: 180, height: 180)
-                        .scaleEffect(pulseRing2 ? 1.08 : 0.92)
-                        .opacity(pulseRing2 ? 0.8 : 1.0)
+                        .frame(width: 200, height: 200)
+                        .scaleEffect(animateOrb ? 1.1 : 1.0)
 
-                    // Inner core glow - brightest
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    MPColors.primary.opacity(0.85),
-                                    MPColors.primary.opacity(0.4),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 15,
-                                endRadius: 60
-                            )
-                        )
-                        .frame(width: 120, height: 120)
-                        .scaleEffect(pulseRing3 ? 1.05 : 0.95)
-
-                    // Sunrise icon - solid purple with stronger glow
                     Image(systemName: "sunrise.fill")
                         .font(.system(size: 60))
                         .foregroundColor(MPColors.primary)
-                        .shadow(color: MPColors.primary.opacity(0.8), radius: 15)
-                        .shadow(color: MPColors.primary.opacity(0.4), radius: 25)
                         .offset(y: animateOrb ? -4 : 4)
                 }
                 .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
-                .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: pulseRing1)
-                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: pulseRing2)
-                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseRing3)
 
                 VStack(spacing: MPSpacing.sm) {
                     Text("Earn Your Morning")
@@ -428,14 +383,6 @@ struct WelcomeHeroStep: View {
         }
         .onAppear {
             animateOrb = true
-            // Stagger the pulse animations for a flowing effect
-            pulseRing1 = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                pulseRing2 = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                pulseRing3 = true
-            }
             withAnimation(.easeOut(duration: 0.8)) {
                 animateContent = true
             }
