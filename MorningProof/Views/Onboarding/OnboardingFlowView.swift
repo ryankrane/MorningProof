@@ -281,59 +281,60 @@ struct WelcomeHeroStep: View {
                         .fill(
                             RadialGradient(
                                 colors: [
+                                    MPColors.primary.opacity(0.4),
                                     MPColors.primary.opacity(0.15),
-                                    MPColors.primary.opacity(0.05),
                                     Color.clear
                                 ],
                                 center: .center,
-                                startRadius: 60,
-                                endRadius: 120
+                                startRadius: 50,
+                                endRadius: 130
                             )
                         )
-                        .frame(width: 240, height: 240)
-                        .scaleEffect(pulseRing1 ? 1.15 : 0.95)
-                        .opacity(pulseRing1 ? 0.6 : 1.0)
+                        .frame(width: 260, height: 260)
+                        .scaleEffect(pulseRing1 ? 1.12 : 0.95)
+                        .opacity(pulseRing1 ? 0.7 : 1.0)
 
                     // Middle pulsing ring 2
                     Circle()
                         .fill(
                             RadialGradient(
                                 colors: [
+                                    MPColors.primary.opacity(0.6),
                                     MPColors.primary.opacity(0.25),
-                                    MPColors.primary.opacity(0.1),
                                     Color.clear
                                 ],
                                 center: .center,
-                                startRadius: 40,
+                                startRadius: 30,
                                 endRadius: 90
                             )
                         )
                         .frame(width: 180, height: 180)
-                        .scaleEffect(pulseRing2 ? 1.1 : 0.9)
-                        .opacity(pulseRing2 ? 0.7 : 1.0)
+                        .scaleEffect(pulseRing2 ? 1.08 : 0.92)
+                        .opacity(pulseRing2 ? 0.8 : 1.0)
 
-                    // Inner core glow
+                    // Inner core glow - brightest
                     Circle()
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    MPColors.primary.opacity(0.5),
-                                    MPColors.primary.opacity(0.25),
+                                    MPColors.primary.opacity(0.85),
+                                    MPColors.primary.opacity(0.4),
                                     Color.clear
                                 ],
                                 center: .center,
-                                startRadius: 20,
-                                endRadius: 70
+                                startRadius: 15,
+                                endRadius: 60
                             )
                         )
-                        .frame(width: 140, height: 140)
+                        .frame(width: 120, height: 120)
                         .scaleEffect(pulseRing3 ? 1.05 : 0.95)
 
-                    // Sunrise icon - solid purple
+                    // Sunrise icon - solid purple with stronger glow
                     Image(systemName: "sunrise.fill")
                         .font(.system(size: 60))
                         .foregroundColor(MPColors.primary)
-                        .shadow(color: MPColors.primary.opacity(0.5), radius: 10)
+                        .shadow(color: MPColors.primary.opacity(0.8), radius: 15)
+                        .shadow(color: MPColors.primary.opacity(0.4), radius: 25)
                         .offset(y: animateOrb ? -4 : 4)
                 }
                 .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
