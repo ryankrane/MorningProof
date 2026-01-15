@@ -67,7 +67,6 @@ class BedVerificationViewModel: ObservableObject {
                 errorMessage = error.localizedDescription
                 lastResult = VerificationResult(
                     isMade: false,
-                    score: 0,
                     feedback: "Error analyzing image: \(error.localizedDescription)"
                 )
                 currentScreen = .result

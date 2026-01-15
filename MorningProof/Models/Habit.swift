@@ -16,7 +16,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
     }
 }
 
-// Predefined habit types - Core 9 high-value habits
+// Predefined habit types - Core 10 high-value habits
 enum HabitType: String, Codable, CaseIterable, Identifiable {
     case madeBed = "made_bed"
     case sleepDuration = "sleep_duration"
@@ -27,6 +27,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     case morningStretch = "morning_stretch"
     case morningSteps = "morning_steps"
     case meditation = "meditation"
+    case hydration = "hydration"
 
     var id: String { rawValue }
 
@@ -41,6 +42,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningStretch: return "Morning Stretch"
         case .morningSteps: return "Morning Walk"
         case .meditation: return "Meditation"
+        case .hydration: return "Hydration"
         }
     }
 
@@ -55,14 +57,15 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningStretch: return "figure.flexibility"
         case .morningSteps: return "figure.walk"
         case .meditation: return "brain.head.profile"
+        case .hydration: return "drop.fill"
         }
     }
 
     var tier: HabitVerificationTier {
         switch self {
-        case .madeBed: return .aiVerified
+        case .madeBed, .sunlightExposure, .hydration: return .aiVerified
         case .morningSteps, .sleepDuration, .morningWorkout: return .autoTracked
-        case .coldShower, .noSnooze, .sunlightExposure, .morningStretch, .meditation: return .honorSystem
+        case .coldShower, .noSnooze, .morningStretch, .meditation: return .honorSystem
         }
     }
 
@@ -74,6 +77,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .sunlightExposure: return 10 // Minutes
         case .morningWorkout: return 20 // Minutes
         case .coldShower, .noSnooze, .morningStretch, .meditation: return 1 // Binary
+        case .hydration: return 1 // Binary - just verify water
         }
     }
 
@@ -105,6 +109,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningStretch: return "Stretch to wake up your body"
         case .morningSteps: return "Get moving with a morning walk"
         case .meditation: return "Start with a clear, calm mind"
+        case .hydration: return "Start your day hydrated with a glass of water"
         }
     }
 }
@@ -152,6 +157,8 @@ struct HabitCompletion: Codable, Identifiable {
         var stepCount: Int?
         var sleepHours: Double?
         var textEntry: String?
+        var workoutDetected: Bool?
+        var isFromHealthKit: Bool?  // Track if data came from HealthKit vs manual entry
     }
 
     init(habitType: HabitType, date: Date = Date()) {

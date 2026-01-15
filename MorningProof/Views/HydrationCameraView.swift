@@ -1,20 +1,20 @@
 import SwiftUI
 
-struct BedCameraView: View {
+struct HydrationCameraView: View {
     @ObservedObject var manager: MorningProofManager
     @Environment(\.dismiss) var dismiss
 
     @State private var showingCamera = false
     @State private var selectedImage: UIImage?
     @State private var isAnalyzing = false
-    @State private var result: VerificationResult?
+    @State private var result: HydrationVerificationResult?
     @State private var errorMessage: String?
 
     // Animation states for analyzing view
     @State private var scanRotation: Double = 0
     @State private var glowScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.4
-    @State private var bedIconScale: CGFloat = 1.0
+    @State private var dropIconScale: CGFloat = 1.0
     @State private var analysisProgress: CGFloat = 0
     @State private var dotCount: Int = 0
 
@@ -39,7 +39,7 @@ struct BedCameraView: View {
                     captureView
                 }
             }
-            .navigationTitle("Verify Bed")
+            .navigationTitle("Verify Hydration")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -75,7 +75,7 @@ struct BedCameraView: View {
 
                     MPButton(title: "Verify", style: .primary) {
                         Task {
-                            await verifyBed(image: image)
+                            await verifyHydration(image: image)
                         }
                     }
                 }
@@ -83,13 +83,18 @@ struct BedCameraView: View {
             } else {
                 VStack(spacing: MPSpacing.xl) {
                     VStack(spacing: MPSpacing.xl) {
-                        Image(systemName: "camera.viewfinder")
+                        Image(systemName: "drop.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(MPColors.border)
+                            .foregroundColor(MPColors.primary)
 
-                        Text("Take a photo of your made bed")
+                        Text("Take a photo of your water")
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textTertiary)
+
+                        Text("Show us your glass or water bottle!")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary.opacity(0.7))
+                            .multilineTextAlignment(.center)
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 260)
@@ -118,7 +123,7 @@ struct BedCameraView: View {
                 Circle()
                     .stroke(
                         LinearGradient(
-                            colors: [MPColors.accent.opacity(0.6), MPColors.accentGold.opacity(0.3)],
+                            colors: [MPColors.primary.opacity(0.6), MPColors.accent.opacity(0.3)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         ),
@@ -133,7 +138,7 @@ struct BedCameraView: View {
                     .trim(from: 0, to: 0.25)
                     .stroke(
                         LinearGradient(
-                            colors: [MPColors.accent, MPColors.accent.opacity(0)],
+                            colors: [MPColors.primary, MPColors.primary.opacity(0)],
                             startPoint: .leading,
                             endPoint: .trailing
                         ),
@@ -146,13 +151,13 @@ struct BedCameraView: View {
                 Circle()
                     .fill(MPColors.surface)
                     .frame(width: 130, height: 130)
-                    .shadow(color: MPColors.accent.opacity(0.3), radius: 20, x: 0, y: 5)
+                    .shadow(color: MPColors.primary.opacity(0.3), radius: 20, x: 0, y: 5)
 
-                // Bed icon with pulse
-                Image(systemName: "bed.double.fill")
+                // Drop icon with pulse
+                Image(systemName: "drop.fill")
                     .font(.system(size: MPIconSize.xxl))
-                    .foregroundColor(MPColors.primaryLight)
-                    .scaleEffect(bedIconScale)
+                    .foregroundColor(MPColors.primary)
+                    .scaleEffect(dropIconScale)
             }
 
             VStack(spacing: MPSpacing.md) {
@@ -161,7 +166,7 @@ struct BedCameraView: View {
                     .foregroundColor(MPColors.textPrimary)
                     .frame(width: 150, alignment: .leading)
 
-                Text("AI is checking if it's made")
+                Text("AI is checking for water")
                     .font(MPFont.bodyMedium())
                     .foregroundColor(MPColors.textTertiary)
             }
@@ -209,9 +214,9 @@ struct BedCameraView: View {
             glowOpacity = 0.7
         }
 
-        // Bed icon subtle pulse
+        // Drop icon subtle pulse
         withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-            bedIconScale = 1.05
+            dropIconScale = 1.05
         }
 
         // Progress bar (fake progress over ~3 seconds)
@@ -233,17 +238,17 @@ struct BedCameraView: View {
         scanRotation = 0
         glowScale = 1.0
         glowOpacity = 0.4
-        bedIconScale = 1.0
+        dropIconScale = 1.0
         analysisProgress = 0
         dotCount = 0
     }
 
-    func resultView(_ result: VerificationResult) -> some View {
+    func resultView(_ result: HydrationVerificationResult) -> some View {
         ZStack {
             VStack(spacing: MPSpacing.xxl) {
                 Spacer()
 
-                if result.isMade {
+                if result.isWater {
                     // Success - with sequenced animations
                     ZStack {
                         Circle()
@@ -257,7 +262,7 @@ struct BedCameraView: View {
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
                     .opacity(showCheckmark ? 1.0 : 0)
 
-                    Text("Bed Verified!")
+                    Text("Hydration Verified!")
                         .font(MPFont.headingMedium())
                         .foregroundColor(MPColors.textPrimary)
                         .offset(y: showTitle ? 0 : 20)
@@ -284,7 +289,7 @@ struct BedCameraView: View {
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
                     .opacity(showCheckmark ? 1.0 : 0)
 
-                    Text("Not Quite...")
+                    Text("Not Water...")
                         .font(MPFont.headingMedium())
                         .foregroundColor(MPColors.textPrimary)
                         .offset(y: showTitle ? 0 : 20)
@@ -302,7 +307,7 @@ struct BedCameraView: View {
                 Spacer()
 
                 VStack(spacing: MPSpacing.md) {
-                    if !result.isMade {
+                    if !result.isWater {
                         MPButton(title: "Try Again", style: .primary, icon: "camera.fill") {
                             resetResultAnimations()
                             self.result = nil
@@ -312,7 +317,7 @@ struct BedCameraView: View {
                         .opacity(showButton ? 1.0 : 0)
                     }
 
-                    MPButton(title: result.isMade ? "Done" : "Cancel", style: .secondary) {
+                    MPButton(title: result.isWater ? "Done" : "Cancel", style: .secondary) {
                         dismiss()
                     }
                     .offset(y: showButton ? 0 : 30)
@@ -323,19 +328,19 @@ struct BedCameraView: View {
             }
 
             // Confetti overlay for success
-            if showConfetti && result.isMade {
+            if showConfetti && result.isWater {
                 MiniConfettiView(particleCount: 30)
                     .allowsHitTesting(false)
             }
         }
         .onAppear {
-            startResultAnimations(isMade: result.isMade)
+            startResultAnimations(isWater: result.isWater)
         }
     }
 
-    private func startResultAnimations(isMade: Bool) {
+    private func startResultAnimations(isWater: Bool) {
         // Haptic feedback
-        if isMade {
+        if isWater {
             HapticManager.shared.success()
         } else {
             HapticManager.shared.warning()
@@ -357,7 +362,7 @@ struct BedCameraView: View {
         }
 
         // Step 4: Confetti burst (0.4s) - only for success
-        if isMade {
+        if isWater {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 showConfetti = true
                 HapticManager.shared.habitCompleted()
@@ -378,13 +383,13 @@ struct BedCameraView: View {
         showButton = false
     }
 
-    func verifyBed(image: UIImage) async {
+    func verifyHydration(image: UIImage) async {
         isAnalyzing = true
-        result = await manager.completeBedVerification(image: image)
+        result = await manager.completeHydrationVerification(image: image)
         isAnalyzing = false
     }
 }
 
 #Preview {
-    BedCameraView(manager: MorningProofManager.shared)
+    HydrationCameraView(manager: MorningProofManager.shared)
 }

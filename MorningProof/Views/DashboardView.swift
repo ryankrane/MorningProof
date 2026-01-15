@@ -4,6 +4,8 @@ struct DashboardView: View {
     @ObservedObject var manager: MorningProofManager
     @State private var showSettings = false
     @State private var showBedCamera = false
+    @State private var showSunlightCamera = false
+    @State private var showHydrationCamera = false
     @State private var showSleepInput = false
     @State private var showHabitEditor = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
@@ -115,6 +117,12 @@ struct DashboardView: View {
         .sheet(isPresented: $showBedCamera) {
             BedCameraView(manager: manager)
         }
+        .sheet(isPresented: $showSunlightCamera) {
+            SunlightCameraView(manager: manager)
+        }
+        .sheet(isPresented: $showHydrationCamera) {
+            HydrationCameraView(manager: manager)
+        }
         .sheet(isPresented: $showSleepInput) {
             SleepInputSheet(manager: manager)
         }
@@ -158,8 +166,8 @@ struct DashboardView: View {
 
         // Trigger confetti for each newly completed auto-tracked habit
         for habitType in newlyCompleted {
-            // Only celebrate auto-tracked habits here (steps and sleep)
-            if habitType == .morningSteps || habitType == .sleepDuration {
+            // Only celebrate auto-tracked habits here (steps, sleep, and workout)
+            if habitType == .morningSteps || habitType == .sleepDuration || habitType == .morningWorkout {
                 celebrateAutoCompletedHabit(habitType)
             }
         }
@@ -304,7 +312,7 @@ struct DashboardView: View {
 
     /// Determines if a habit is a "hold to complete" type (not a special input type)
     private func isHoldToCompleteHabit(_ habitType: HabitType) -> Bool {
-        habitType != .madeBed && habitType != .sleepDuration && habitType != .morningSteps
+        habitType != .madeBed && habitType != .sleepDuration && habitType != .morningSteps && habitType != .morningWorkout && habitType != .sunlightExposure && habitType != .hydration
     }
 
     func habitRow(for config: HabitConfig) -> some View {
@@ -321,26 +329,19 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.surface)
 
-            // Green fill progress overlay (fills from left to right)
-            if isHoldType && !isCompleted {
-                GeometryReader { geo in
-                    RoundedRectangle(cornerRadius: MPRadius.lg)
-                        .fill(MPColors.success.opacity(0.3))
-                        .frame(width: geo.size.width * progress)
-                }
+            // Green fill progress overlay (fills from left to right, or full for completed)
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .fill(isCompleted ? MPColors.success.opacity(0.4) : MPColors.success.opacity(0.3))
+                    .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
             }
 
             HStack(spacing: MPSpacing.lg) {
-                // Icon
-                ZStack {
-                    Circle()
-                        .fill(isCompleted ? MPColors.successLight : MPColors.surfaceSecondary)
-                        .frame(width: 44, height: 44)
-
-                    Image(systemName: config.habitType.icon)
-                        .font(.system(size: MPIconSize.sm))
-                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textTertiary)
-                }
+                // Icon (no circle background)
+                Image(systemName: config.habitType.icon)
+                    .font(.system(size: MPIconSize.md))
+                    .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
+                    .frame(width: 32)
 
                 // Info
                 VStack(alignment: .leading, spacing: MPSpacing.xs) {
@@ -354,10 +355,8 @@ struct DashboardView: View {
 
                 Spacer()
 
-                // Action / Status indicator (only for special types or completed)
-                if isCompleted {
-                    CheckmarkCircle(isCompleted: true, size: 28)
-                } else if config.habitType == .madeBed {
+                // Action buttons (only for special types that need them, when not completed)
+                if !isCompleted && config.habitType == .madeBed {
                     Button {
                         showBedCamera = true
                     } label: {
@@ -368,7 +367,29 @@ struct DashboardView: View {
                             .background(MPColors.primary)
                             .cornerRadius(MPRadius.sm)
                     }
-                } else if config.habitType == .sleepDuration {
+                } else if !isCompleted && config.habitType == .sunlightExposure {
+                    Button {
+                        showSunlightCamera = true
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.accentGold)
+                            .cornerRadius(MPRadius.sm)
+                    }
+                } else if !isCompleted && config.habitType == .hydration {
+                    Button {
+                        showHydrationCamera = true
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.sm)
+                    }
+                } else if !isCompleted && config.habitType == .sleepDuration {
                     if completion?.verificationData?.sleepHours == nil {
                         Button {
                             showSleepInput = true
@@ -382,14 +403,40 @@ struct DashboardView: View {
                                 .cornerRadius(MPRadius.sm)
                         }
                     } else {
-                        let score = completion?.score ?? 0
-                        CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
+                        HStack(spacing: MPSpacing.sm) {
+                            let score = completion?.score ?? 0
+                            CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
+
+                            // Edit button to allow manual override
+                            Button {
+                                showSleepInput = true
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(MPColors.textTertiary)
+                            }
+                        }
                     }
-                } else if config.habitType == .morningSteps {
+                } else if !isCompleted && config.habitType == .morningSteps {
                     let score = completion?.score ?? 0
                     CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
+                } else if !isCompleted && config.habitType == .morningWorkout {
+                    // Workout: show mark complete button if not auto-detected
+                    Button {
+                        HapticManager.shared.success()
+                        completeHabitWithCelebration(.morningWorkout)
+                        manager.completeManualWorkout()
+                    } label: {
+                        Text("Mark Complete")
+                            .font(MPFont.labelSmall())
+                            .foregroundColor(MPColors.primary)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.surfaceSecondary)
+                            .cornerRadius(MPRadius.sm)
+                    }
                 }
-                // No indicator for hold-to-complete habits - the green fill is the indicator
+                // No indicator for hold-to-complete habits or completed habits - the green fill is the indicator
             }
             .padding(MPSpacing.lg)
 
@@ -503,22 +550,79 @@ struct DashboardView: View {
 
             case .sleepDuration:
                 if let hours = completion.verificationData?.sleepHours {
-                    Text(String(format: "%.1f/\(config.goal)h sleep", hours))
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+                    let isFromHealth = completion.verificationData?.isFromHealthKit == true
+                    HStack(spacing: MPSpacing.xs) {
+                        Text(String(format: "%.1f/\(config.goal)h sleep", hours))
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        if isFromHealth {
+                            Text("from Health")
+                                .font(.system(size: 10))
+                                .foregroundColor(MPColors.textTertiary.opacity(0.7))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(MPColors.surfaceSecondary)
+                                .cornerRadius(4)
+                        }
+                    }
                 } else {
                     Text("Tap to enter sleep")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }
 
-            case .madeBed:
-                if completion.isCompleted, let score = completion.verificationData?.aiScore {
-                    Text("Score: \(score)/10")
+            case .morningWorkout:
+                if completion.isCompleted {
+                    let isFromHealth = completion.verificationData?.workoutDetected == true
+                    HStack(spacing: MPSpacing.xs) {
+                        Text("Completed")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.success)
+                        if isFromHealth {
+                            Text("from Health")
+                                .font(.system(size: 10))
+                                .foregroundColor(MPColors.textTertiary.opacity(0.7))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(MPColors.surfaceSecondary)
+                                .cornerRadius(4)
+                        }
+                    }
+                } else {
+                    Text("Tap to mark complete")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .madeBed:
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
                 } else {
                     Text("Take a photo to verify")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .sunlightExposure:
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
+                } else {
+                    Text("Take a photo outside")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .hydration:
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
+                } else {
+                    Text("Take a photo of your water")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }
@@ -529,7 +633,7 @@ struct DashboardView: View {
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.success)
                 } else {
-                    Text("Tap to complete")
+                    Text("Hold to complete")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }

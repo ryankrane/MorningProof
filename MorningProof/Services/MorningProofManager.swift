@@ -110,7 +110,7 @@ final class MorningProofManager: ObservableObject, Sendable {
             let steps = await healthKit.fetchStepsBeforeCutoff(cutoffMinutes: settings.morningCutoffMinutes)
             let stepGoal = habitConfigs.first { $0.habitType == .morningSteps }?.goal ?? 500
 
-            todayLog.completions[index].verificationData = HabitCompletion.VerificationData(stepCount: steps)
+            todayLog.completions[index].verificationData = HabitCompletion.VerificationData(stepCount: steps, isFromHealthKit: true)
             todayLog.completions[index].score = min(100, (steps * 100) / stepGoal)
             todayLog.completions[index].isCompleted = steps >= stepGoal
 
@@ -119,17 +119,41 @@ final class MorningProofManager: ObservableObject, Sendable {
             }
         }
 
-        // Update sleep duration
+        // Update sleep duration (only if not manually entered)
         if let index = todayLog.completions.firstIndex(where: { $0.habitType == .sleepDuration }) {
-            if let sleepData = healthKit.lastNightSleep {
+            // Don't override manual entries
+            let isManualEntry = todayLog.completions[index].verificationData?.isFromHealthKit == false
+
+            if !isManualEntry, let sleepData = healthKit.lastNightSleep {
                 let sleepGoal = Double(habitConfigs.first { $0.habitType == .sleepDuration }?.goal ?? 7)
 
-                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(sleepHours: sleepData.totalHours)
+                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(sleepHours: sleepData.totalHours, isFromHealthKit: true)
                 todayLog.completions[index].score = min(100, Int((sleepData.totalHours / sleepGoal) * 100))
                 todayLog.completions[index].isCompleted = sleepData.totalHours >= sleepGoal
 
                 if todayLog.completions[index].isCompleted && todayLog.completions[index].completedAt == nil {
                     todayLog.completions[index].completedAt = Date()
+                }
+            }
+        }
+
+        // Update morning workout (only if not manually completed)
+        if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) {
+            // Don't override if already manually completed
+            let isManuallyCompleted = todayLog.completions[index].isCompleted && todayLog.completions[index].verificationData?.workoutDetected != true
+
+            if !isManuallyCompleted {
+                let hasWorkout = await healthKit.checkMorningWorkout(cutoffMinutes: settings.morningCutoffMinutes)
+
+                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(workoutDetected: hasWorkout, isFromHealthKit: true)
+
+                if hasWorkout {
+                    todayLog.completions[index].isCompleted = true
+                    todayLog.completions[index].score = 100
+
+                    if todayLog.completions[index].completedAt == nil {
+                        todayLog.completions[index].completedAt = Date()
+                    }
                 }
             }
         }
@@ -164,9 +188,8 @@ final class MorningProofManager: ObservableObject, Sendable {
             if result.isMade {
                 todayLog.completions[index].isCompleted = true
                 todayLog.completions[index].completedAt = Date()
-                todayLog.completions[index].score = result.score * 10 // Convert 1-10 to percentage
+                todayLog.completions[index].score = 100 // Binary pass/fail
                 todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
-                    aiScore: result.score,
                     aiFeedback: result.feedback
                 )
 
@@ -177,6 +200,56 @@ final class MorningProofManager: ObservableObject, Sendable {
             return result
         } catch {
             MPLogger.error("Bed verification failed", error: error, category: MPLogger.api)
+            return nil
+        }
+    }
+
+    func completeSunlightVerification(image: UIImage) async -> SunlightVerificationResult? {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .sunlightExposure }) else { return nil }
+
+        do {
+            let result = try await apiService.verifySunlight(image: image)
+
+            if result.isOutside {
+                todayLog.completions[index].isCompleted = true
+                todayLog.completions[index].completedAt = Date()
+                todayLog.completions[index].score = 100 // Binary pass/fail
+                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
+                    aiFeedback: result.feedback
+                )
+
+                recalculateScore()
+                saveCurrentState()
+            }
+
+            return result
+        } catch {
+            MPLogger.error("Sunlight verification failed", error: error, category: MPLogger.api)
+            return nil
+        }
+    }
+
+    func completeHydrationVerification(image: UIImage) async -> HydrationVerificationResult? {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .hydration }) else { return nil }
+
+        do {
+            let result = try await apiService.verifyHydration(image: image)
+
+            if result.isWater {
+                todayLog.completions[index].isCompleted = true
+                todayLog.completions[index].completedAt = Date()
+                todayLog.completions[index].score = 100 // Binary - no score
+                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
+                    aiFeedback: result.feedback
+                )
+
+                recalculateScore()
+                saveCurrentState()
+            }
+
+            return result
+        } catch {
+            MPLogger.error("Hydration verification failed", error: error, category: MPLogger.api)
             return nil
         }
     }
@@ -199,13 +272,26 @@ final class MorningProofManager: ObservableObject, Sendable {
 
         let sleepGoal = Double(habitConfigs.first { $0.habitType == .sleepDuration }?.goal ?? 7)
 
-        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(sleepHours: hours)
+        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(sleepHours: hours, isFromHealthKit: false)
         todayLog.completions[index].score = min(100, Int((hours / sleepGoal) * 100))
         todayLog.completions[index].isCompleted = hours >= sleepGoal
 
         if todayLog.completions[index].isCompleted && todayLog.completions[index].completedAt == nil {
             todayLog.completions[index].completedAt = Date()
         }
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
+    /// Manually complete a workout when HealthKit doesn't detect it
+    func completeManualWorkout() {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) else { return }
+
+        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(workoutDetected: false, isFromHealthKit: false)
+        todayLog.completions[index].isCompleted = true
+        todayLog.completions[index].score = 100
+        todayLog.completions[index].completedAt = Date()
 
         recalculateScore()
         saveCurrentState()

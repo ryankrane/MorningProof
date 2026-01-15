@@ -193,3 +193,24 @@ targets:
         NSExtension:
           NSExtensionPointIdentifier: com.apple.shieldaction
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
+
+schemes:
+  MorningProof:
+    build:
+      targets:
+        MorningProof: all
+        MorningProofTests: [test]
+        MorningProofUITests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - MorningProofTests
+        - MorningProofUITests
+    profile:
+      config: Release
+    analyze:
+      config: Debug
+    archive:
+      config: Release

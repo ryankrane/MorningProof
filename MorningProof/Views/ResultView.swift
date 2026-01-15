@@ -84,28 +84,6 @@ struct SuccessContent: View {
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(Color(red: 0.35, green: 0.28, blue: 0.22))
 
-            // Score card
-            VStack(spacing: 12) {
-                Text("Score")
-                    .font(.subheadline)
-                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-
-                HStack(alignment: .firstTextBaseline, spacing: 2) {
-                    Text("\(result.score)")
-                        .font(.system(size: 52, weight: .bold, design: .rounded))
-                        .foregroundColor(scoreColor(result.score))
-                    Text("/10")
-                        .font(.title2)
-                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 24)
-            .background(Color.white)
-            .cornerRadius(20)
-            .shadow(color: Color.black.opacity(0.05), radius: 15, x: 0, y: 5)
-            .padding(.horizontal, 40)
-
             // Feedback
             Text(result.feedback)
                 .font(.body)
@@ -128,16 +106,6 @@ struct SuccessContent: View {
         }
         .onAppear {
             showAnimation = true
-        }
-    }
-
-    func scoreColor(_ score: Int) -> Color {
-        switch score {
-        case 9...10: return Color(red: 0.4, green: 0.7, blue: 0.4)
-        case 7...8: return Color(red: 0.5, green: 0.7, blue: 0.5)
-        case 5...6: return Color(red: 0.8, green: 0.7, blue: 0.4)
-        case 3...4: return Color(red: 0.85, green: 0.6, blue: 0.4)
-        default: return Color(red: 0.8, green: 0.5, blue: 0.45)
         }
     }
 }
@@ -178,7 +146,7 @@ struct FailureContent: View {
     ResultView()
         .environmentObject({
             let vm = BedVerificationViewModel()
-            vm.lastResult = VerificationResult(isMade: true, score: 8, feedback: "Great job! Your bed looks neat and tidy.")
+            vm.lastResult = VerificationResult(isMade: true, feedback: "Great job! Your bed looks neat and tidy.")
             return vm
         }())
 }
@@ -187,7 +155,7 @@ struct FailureContent: View {
     ResultView()
         .environmentObject({
             let vm = BedVerificationViewModel()
-            vm.lastResult = VerificationResult(isMade: false, score: 0, feedback: "The bed appears unmade. Try straightening the covers.")
+            vm.lastResult = VerificationResult(isMade: false, feedback: "The bed appears unmade. Try straightening the covers.")
             return vm
         }())
 }

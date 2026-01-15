@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -54,6 +54,8 @@
 		8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98F7C96CFA7B8BB0B31A689B /* AppLockingSettingsView.swift */; };
 		8D47A4A0AA31EE1DE7B1FE8B /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F3BC6C90412C82E51911D42 /* SettingsView.swift */; };
 		8F393BE460FE423B9988B32F /* MPSectionHeader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 603909AC06F05273C6FEE9B5 /* MPSectionHeader.swift */; };
+		90297901B1B67BBFEB073DF1 /* HydrationCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0C8717ECF8BFE828EE910478 /* HydrationCameraView.swift */; };
+		98658D813025CE4FFC90C33F /* SunlightCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5852861CDBB1C328CB76899 /* SunlightCameraView.swift */; };
 		990D0BE907087430C1A1B8A2 /* StatisticHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D2B6F9E3ABD69FDB322D6F /* StatisticHeroCard.swift */; };
 		9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */; };
 		9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */; };
@@ -154,6 +156,7 @@
 		057E690E946F7B40FDCCDA21 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		0981D9827F6FBBF7C421AF40 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		09D1428911FA711F907BD661 /* WeekProgressView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeekProgressView.swift; sourceTree = "<group>"; };
+		0C8717ECF8BFE828EE910478 /* HydrationCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HydrationCameraView.swift; sourceTree = "<group>"; };
 		0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
@@ -166,9 +169,9 @@
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		355EA2A6D57A916289BDA565 /* SocialProofCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialProofCounter.swift; sourceTree = "<group>"; };
-		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
+		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.example; sourceTree = "<group>"; };
 		3C15180C19687B347FEEB70A /* StreakHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeroCard.swift; sourceTree = "<group>"; };
-		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		409E65E8F18D6482BECDE992 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
 		40EF5CAA0D65467A9DCD850E /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		41C95CFD77942F5C4F16F3B0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -233,6 +236,7 @@
 		ECA15CD82E35AFFFCE2A958F /* MPButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPButton.swift; sourceTree = "<group>"; };
 		F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofSettingsView.swift; sourceTree = "<group>"; };
 		F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
+		F5852861CDBB1C328CB76899 /* SunlightCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunlightCameraView.swift; sourceTree = "<group>"; };
 		F6CB434AF33E074D379634A1 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -397,6 +401,7 @@
 				CC2AC488A4583BA62DC0C80A /* DashboardView.swift */,
 				D7CD27C79BD82A277FDF593E /* HistoryView.swift */,
 				0981D9827F6FBBF7C421AF40 /* HomeView.swift */,
+				0C8717ECF8BFE828EE910478 /* HydrationCameraView.swift */,
 				5E13CCA5BD11D73F26A5DCFD /* ImagePicker.swift */,
 				12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */,
 				DE890A687A08557248003945 /* MainTabView.swift */,
@@ -407,6 +412,7 @@
 				6F3BC6C90412C82E51911D42 /* SettingsView.swift */,
 				6E5C947A53D3ED2E7E4429DC /* StatisticsView.swift */,
 				42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */,
+				F5852861CDBB1C328CB76899 /* SunlightCameraView.swift */,
 				181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */,
 				99ADA9C532210DD45EDA8B43 /* WelcomeView.swift */,
 				C726AD18A47FD7501592EA32 /* Achievements */,
@@ -628,7 +634,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					347A91C2E9BBF24FD8E39715 = {
 						DevelopmentTeam = P9ZXADV42A;
@@ -665,7 +671,6 @@
 				E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -729,6 +734,7 @@
 				7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */,
 				2A8447D7C9F7284723922D4D /* HistoryView.swift in Sources */,
 				07413D8B7ACA9D63E8F4F7E3 /* HomeView.swift in Sources */,
+				90297901B1B67BBFEB073DF1 /* HydrationCameraView.swift in Sources */,
 				F69774C99B74F6A32D563AE4 /* ImagePicker.swift in Sources */,
 				1E513B3AF9042CDD59D744EC /* JournalEntryView.swift in Sources */,
 				43FD81844A20AED0658247A2 /* LiveActivityManager.swift in Sources */,
@@ -764,6 +770,7 @@
 				B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */,
 				E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */,
 				E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */,
+				98658D813025CE4FFC90C33F /* SunlightCameraView.swift in Sources */,
 				E9C2294E7A8FA2E784DC1CFC /* TestimonialCard.swift in Sources */,
 				3E47A6B089C95465AF967F56 /* TextEntryView.swift in Sources */,
 				ED80EC39FD2965B333865034 /* Theme.swift in Sources */,

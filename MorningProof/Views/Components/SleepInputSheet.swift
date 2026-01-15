@@ -7,10 +7,16 @@ struct SleepInputSheet: View {
     // Slider value in hours (4.0 to 12.0, step 0.25 = 15 min)
     @State private var sleepHours: Double = 8.0
     @State private var showConfetti = false
+    @State private var hasInitialized = false
 
     private let minHours: Double = 4.0
     private let maxHours: Double = 12.0
     private let sleepGoal: Double = 7.0
+
+    /// Check if current data came from HealthKit
+    private var isFromHealthKit: Bool {
+        manager.getCompletion(for: .sleepDuration)?.verificationData?.isFromHealthKit == true
+    }
 
     var body: some View {
         NavigationStack {
@@ -30,6 +36,17 @@ struct SleepInputSheet: View {
                         Text("Hours Slept Last Night")
                             .font(MPFont.headingSmall())
                             .foregroundColor(MPColors.textPrimary)
+
+                        // Show source indicator if editing existing data
+                        if isFromHealthKit {
+                            HStack(spacing: 4) {
+                                Image(systemName: "heart.fill")
+                                    .font(.system(size: 10))
+                                Text("Pre-filled from Apple Health")
+                                    .font(.system(size: 12))
+                            }
+                            .foregroundColor(MPColors.textTertiary)
+                        }
                     }
 
                     // Large time display
@@ -130,6 +147,15 @@ struct SleepInputSheet: View {
                         dismiss()
                     }
                     .foregroundColor(MPColors.textTertiary)
+                }
+            }
+            .onAppear {
+                // Pre-fill with existing data if available
+                guard !hasInitialized else { return }
+                hasInitialized = true
+
+                if let existingHours = manager.getCompletion(for: .sleepDuration)?.verificationData?.sleepHours {
+                    sleepHours = existingHours
                 }
             }
         }

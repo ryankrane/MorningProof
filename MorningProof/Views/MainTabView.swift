@@ -48,8 +48,14 @@ struct MainTabView: View {
 struct DashboardContentView: View {
     @ObservedObject var manager: MorningProofManager
     @State private var showBedCamera = false
+    @State private var showSunlightCamera = false
+    @State private var showHydrationCamera = false
     @State private var showSleepInput = false
     @State private var showHabitEditor = false
+
+    // Hold-to-complete state
+    @State private var holdProgress: [HabitType: CGFloat] = [:]
+    @State private var isHoldingHabit: HabitType? = nil
 
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
@@ -58,6 +64,8 @@ struct DashboardContentView: View {
     @State private var triggerStreakPulse = false
     @State private var flameFrame: CGRect = .zero
     @State private var showLockInCelebration = false
+    @State private var habitRowFlash: [HabitType: Bool] = [:]
+    @State private var habitRowGlow: [HabitType: CGFloat] = [:]
 
     var body: some View {
         NavigationStack {
@@ -112,6 +120,12 @@ struct DashboardContentView: View {
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showBedCamera) {
                 BedCameraView(manager: manager)
+            }
+            .sheet(isPresented: $showSunlightCamera) {
+                SunlightCameraView(manager: manager)
+            }
+            .sheet(isPresented: $showHydrationCamera) {
+                HydrationCameraView(manager: manager)
             }
             .sheet(isPresented: $showSleepInput) {
                 SleepInputSheet(manager: manager)
@@ -195,12 +209,32 @@ struct DashboardContentView: View {
         showLockInCelebration = true
     }
 
+    /// Determines if a habit is a "hold to complete" type (not a special input type)
+    private func isHoldToCompleteHabit(_ habitType: HabitType) -> Bool {
+        habitType != .madeBed && habitType != .sleepDuration && habitType != .morningSteps && habitType != .morningWorkout && habitType != .sunlightExposure && habitType != .hydration
+    }
+
     func habitRow(for config: HabitConfig) -> some View {
         let completion = manager.getCompletion(for: config.habitType)
         let isCompleted = completion?.isCompleted ?? false
         let justCompleted = recentlyCompletedHabits.contains(config.habitType)
+        let isFlashing = habitRowFlash[config.habitType] ?? false
+        let glowIntensity = habitRowGlow[config.habitType] ?? 0
+        let progress = holdProgress[config.habitType] ?? 0
+        let isHoldType = isHoldToCompleteHabit(config.habitType)
 
         return ZStack {
+            // Base background
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.surface)
+
+            // Green fill progress overlay (fills from left to right, or full for completed)
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .fill(isCompleted ? MPColors.success.opacity(0.4) : MPColors.success.opacity(0.3))
+                    .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
+            }
+
             HStack(spacing: MPSpacing.lg) {
                 // Icon
                 ZStack {
@@ -227,29 +261,96 @@ struct DashboardContentView: View {
                 actionButton(for: config, completion: completion, isCompleted: isCompleted)
             }
             .padding(MPSpacing.lg)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
-            .mpShadow(.small)
-            .scaleEffect(justCompleted ? 1.03 : 1.0)
-            .animation(.spring(response: 0.3, dampingFraction: 0.6), value: justCompleted)
+
+            // Flash overlay for completion celebration
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
 
             if showConfettiForHabit == config.habitType {
                 MiniConfettiView()
                     .allowsHitTesting(false)
             }
         }
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+        // Enhanced glow shadow when completing
+        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+        // Enhanced scale effect
+        .scaleEffect(justCompleted ? 1.05 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+        .animation(.easeOut(duration: 0.15), value: isFlashing)
+        .animation(.easeOut(duration: 0.3), value: glowIntensity)
+        // Make entire row tappable for hold-to-complete habits
+        .contentShape(Rectangle())
+        .onLongPressGesture(
+            minimumDuration: 1.0,
+            pressing: { isPressing in
+                // Only handle for hold-to-complete habits that aren't completed
+                guard isHoldType && !isCompleted else { return }
+
+                if isPressing {
+                    // Started pressing
+                    isHoldingHabit = config.habitType
+                    HapticManager.shared.lightTap()
+
+                    // Animate green fill across the row
+                    withAnimation(.linear(duration: 1.0)) {
+                        holdProgress[config.habitType] = 1.0
+                    }
+                } else {
+                    // Released before completion - backtrack the green fill
+                    if isHoldingHabit == config.habitType && holdProgress[config.habitType] ?? 0 < 1.0 {
+                        isHoldingHabit = nil
+                        withAnimation(.easeOut(duration: 0.3)) {
+                            holdProgress[config.habitType] = 0
+                        }
+                        HapticManager.shared.lightTap()
+                    }
+                }
+            },
+            perform: {
+                // Only complete for hold-to-complete habits that aren't completed
+                guard isHoldType && !isCompleted else { return }
+
+                HapticManager.shared.success()
+                completeHabitWithCelebration(config.habitType)
+                holdProgress[config.habitType] = 0
+                isHoldingHabit = nil
+            }
+        )
     }
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
+        // Add to recently completed for scale animation
         recentlyCompletedHabits.insert(habitType)
+
+        // Trigger flash effect
+        habitRowFlash[habitType] = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            habitRowFlash[habitType] = false
+        }
+
+        // Trigger glow effect
+        habitRowGlow[habitType] = 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            habitRowGlow[habitType] = 0
+        }
+
+        // Show confetti
         showConfettiForHabit = habitType
-        HapticManager.shared.habitCompleted()
+
+        // Enhanced haptic feedback
+        HapticManager.shared.habitCompletedEnhanced()
+
+        // Complete the habit
         manager.completeHabit(habitType)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+        // Clear confetti after animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             showConfettiForHabit = nil
         }
 
+        // Remove from recently completed after animation settles
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedHabits.remove(habitType)
         }
@@ -277,12 +378,45 @@ struct DashboardContentView: View {
                 }
 
             case .madeBed:
-                if completion.isCompleted, let score = completion.verificationData?.aiScore {
-                    Text("Score: \(score)/10")
+                if completion.isCompleted {
+                    Text("Verified")
                         .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.success)
                 } else {
                     Text("Take a photo to verify")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .sunlightExposure:
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
+                } else {
+                    Text("Take a photo outside")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .hydration:
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
+                } else {
+                    Text("Take a photo of your water")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .morningWorkout:
+                if completion.isCompleted {
+                    Text("Completed")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.success)
+                } else {
+                    Text("Tap to mark complete")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }
@@ -293,7 +427,7 @@ struct DashboardContentView: View {
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.success)
                 } else {
-                    Text("Tap to complete")
+                    Text("Hold to complete")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }
@@ -310,6 +444,30 @@ struct DashboardContentView: View {
             case .madeBed:
                 Button {
                     showBedCamera = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.body)
+                        .foregroundColor(.white)
+                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                        .background(MPColors.primary)
+                        .cornerRadius(MPRadius.sm)
+                }
+
+            case .sunlightExposure:
+                Button {
+                    showSunlightCamera = true
+                } label: {
+                    Image(systemName: "camera.fill")
+                        .font(.body)
+                        .foregroundColor(.white)
+                        .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                        .background(MPColors.accentGold)
+                        .cornerRadius(MPRadius.sm)
+                }
+
+            case .hydration:
+                Button {
+                    showHydrationCamera = true
                 } label: {
                     Image(systemName: "camera.fill")
                         .font(.body)
@@ -337,15 +495,30 @@ struct DashboardContentView: View {
                     CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
                 }
 
-            case .morningSteps, .morningWorkout:
+            case .morningSteps:
                 let score = completion?.score ?? 0
                 CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
 
+            case .morningWorkout:
+                // Workout: show mark complete button if not auto-detected
+                Button {
+                    HapticManager.shared.success()
+                    completeHabitWithCelebration(.morningWorkout)
+                    manager.completeManualWorkout()
+                } label: {
+                    Text("Mark Complete")
+                        .font(MPFont.labelSmall())
+                        .foregroundColor(MPColors.primary)
+                        .padding(.horizontal, MPSpacing.md)
+                        .padding(.vertical, MPSpacing.sm)
+                        .background(MPColors.surfaceSecondary)
+                        .cornerRadius(MPRadius.sm)
+                }
+
             default:
-                // All other habits show empty circle - tap row to complete
-                Circle()
-                    .stroke(MPColors.border, lineWidth: 2)
-                    .frame(width: 28, height: 28)
+                // Hold-to-complete habits don't need an action button
+                // The green fill serves as the indicator
+                EmptyView()
             }
         }
     }
