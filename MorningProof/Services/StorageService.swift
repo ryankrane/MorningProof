@@ -11,6 +11,9 @@ class StorageService {
     private let mpHabitConfigsKey = "morningproof_habit_configs"
     private let mpDailyLogPrefix = "morningproof_daily_"
     private let mpOnboardingKey = "morningproof_onboarding_completed"
+    private let mpReachedPaywallKey = "morningproof_reached_paywall"
+    private let mpOnboardingUserNameKey = "morningproof_onboarding_username"
+    private let mpOnboardingHabitsKey = "morningproof_onboarding_habits"
 
     private let defaults = UserDefaults.standard
 
@@ -133,6 +136,39 @@ class StorageService {
 
     func setOnboardingCompleted(_ completed: Bool) {
         defaults.set(completed, forKey: mpOnboardingKey)
+        // Clear paywall state when onboarding is completed
+        if completed {
+            defaults.removeObject(forKey: mpReachedPaywallKey)
+            defaults.removeObject(forKey: mpOnboardingUserNameKey)
+            defaults.removeObject(forKey: mpOnboardingHabitsKey)
+        }
+    }
+
+    // MARK: - Paywall Persistence
+
+    func hasReachedPaywall() -> Bool {
+        defaults.bool(forKey: mpReachedPaywallKey)
+    }
+
+    func setReachedPaywall(_ reached: Bool) {
+        defaults.set(reached, forKey: mpReachedPaywallKey)
+    }
+
+    func saveOnboardingProgress(userName: String, selectedHabits: Set<HabitType>) {
+        defaults.set(userName, forKey: mpOnboardingUserNameKey)
+        let habitStrings = selectedHabits.map { $0.rawValue }
+        defaults.set(habitStrings, forKey: mpOnboardingHabitsKey)
+    }
+
+    func loadOnboardingUserName() -> String {
+        defaults.string(forKey: mpOnboardingUserNameKey) ?? ""
+    }
+
+    func loadOnboardingHabits() -> Set<HabitType> {
+        guard let habitStrings = defaults.stringArray(forKey: mpOnboardingHabitsKey) else {
+            return []
+        }
+        return Set(habitStrings.compactMap { HabitType(rawValue: $0) })
     }
 
     // MARK: - Reset
@@ -148,6 +184,9 @@ class StorageService {
         defaults.removeObject(forKey: mpSettingsKey)
         defaults.removeObject(forKey: mpHabitConfigsKey)
         defaults.removeObject(forKey: mpOnboardingKey)
+        defaults.removeObject(forKey: mpReachedPaywallKey)
+        defaults.removeObject(forKey: mpOnboardingUserNameKey)
+        defaults.removeObject(forKey: mpOnboardingHabitsKey)
 
         // Remove daily logs for the past 30 days
         let calendar = Calendar.current

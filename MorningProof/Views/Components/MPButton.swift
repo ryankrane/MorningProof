@@ -29,6 +29,7 @@ struct MPButton: View {
 
     enum MPButtonStyle {
         case primary
+        case dark      // Black button with white text (paywall style)
         case secondary
         case tertiary
         case destructive
@@ -81,9 +82,9 @@ struct MPButton: View {
                     .stroke(borderColor, lineWidth: style == .secondary ? 1.5 : 0)
             )
             .shadow(
-                color: style == .primary ? MPColors.primary.opacity(0.25) : Color.clear,
-                radius: style == .primary ? 8 : 0,
-                y: style == .primary ? 4 : 0
+                color: (style == .primary || style == .dark) ? Color.black.opacity(0.15) : Color.clear,
+                radius: (style == .primary || style == .dark) ? 8 : 0,
+                y: (style == .primary || style == .dark) ? 4 : 0
             )
         }
         .disabled(isDisabled || isLoading)
@@ -101,6 +102,7 @@ struct MPButton: View {
     private var foregroundColor: Color {
         switch style {
         case .primary: return .white
+        case .dark: return .white
         case .secondary: return MPColors.primary
         case .tertiary: return MPColors.textSecondary
         case .destructive: return MPColors.error
@@ -110,6 +112,7 @@ struct MPButton: View {
     private var backgroundColor: Color {
         switch style {
         case .primary: return MPColors.primary
+        case .dark: return MPColors.textPrimary
         case .secondary: return MPColors.surface
         case .tertiary: return Color.clear
         case .destructive: return MPColors.surface
@@ -118,9 +121,11 @@ struct MPButton: View {
 
     private var borderColor: Color {
         switch style {
+        case .primary: return Color.clear
+        case .dark: return Color.clear
         case .secondary: return MPColors.border
+        case .tertiary: return Color.clear
         case .destructive: return MPColors.error.opacity(0.3)
-        default: return Color.clear
         }
     }
 }

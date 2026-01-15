@@ -41,6 +41,7 @@
 		49797C886BDE9E1940FB196E /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02803BF9F11FE07F6AAC89F /* PaywallView.swift */; };
 		4A5710E479D06D630AA72C63 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */; };
 		4F8B9E2348E476753CB676DC /* AchievementUnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */; };
+		504E25162F18859F00BE5195 /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = 504E25152F18859F00BE5195 /* SuperwallKit */; };
 		54FA492C5A39656B4085053E /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF851795EA491C844DB4CB0F /* Config.swift */; };
 		5644616FBAC2D42C2FDF6EA9 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 970A6074B025718639B71CD8 /* CalendarView.swift */; };
 		58B87CCD34BE42C6B2DA85CE /* DeviceActivityMonitorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 846D7C7ABD3D2D7763D6088F /* DeviceActivityMonitorExtension.swift */; };
@@ -162,7 +163,7 @@
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
-		1978F38BCF48CC0BCFF76C24 /* MorningProofActivityMonitor.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningProofActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		1978F38BCF48CC0BCFF76C24 /* MorningProofActivityMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MorningProofActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		23D2B6F9E3ABD69FDB322D6F /* StatisticHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticHeroCard.swift; sourceTree = "<group>"; };
 		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
 		26DD32D63E8FE38ACE677138 /* MorningProofTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofTests.swift; sourceTree = "<group>"; };
@@ -249,6 +250,7 @@
 				0A3D6E8D94AB52F80409BACE /* FirebaseCrashlytics in Frameworks */,
 				F166A3343644A9AC4F21F125 /* FirebaseAnalytics in Frameworks */,
 				3EE5982C81661ADCA7FF8180 /* GoogleSignIn in Frameworks */,
+				504E25162F18859F00BE5195 /* SuperwallKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -321,7 +323,15 @@
 				60E7838E3DAEAD2FA8B9993E /* ShieldActionExtension */,
 				3C1D00109C3D1801D1FCD0D4 /* ShieldConfigurationExtension */,
 				FB19F3A004E728EDBDAE044F /* Products */,
+				504E25142F18859F00BE5195 /* Frameworks */,
 			);
+			sourceTree = "<group>";
+		};
+		504E25142F18859F00BE5195 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 		60E7838E3DAEAD2FA8B9993E /* ShieldActionExtension */ = {
@@ -604,6 +614,7 @@
 				EBBDC128BC8C42A7843DDD53 /* FirebaseCrashlytics */,
 				EF2862FACBA6297E47C7CCDC /* FirebaseAnalytics */,
 				594D2249590A3D0670CB069C /* GoogleSignIn */,
+				504E25152F18859F00BE5195 /* SuperwallKit */,
 			);
 			productName = MorningProof;
 			productReference = 8A3458FD1116625E1A9A91CB /* MorningProof.app */;
@@ -641,7 +652,6 @@
 						ProvisioningStyle = Automatic;
 					};
 					446B0031243A29314E4C75C6 = {
-						DevelopmentTeam = P9ZXADV42A;
 						ProvisioningStyle = Automatic;
 					};
 					60037D091A3DA18B72580DC8 = {
@@ -670,6 +680,7 @@
 			packageReferences = (
 				E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 				5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				504E25132F18838400BE5195 /* XCRemoteSwiftPackageReference "Superwall-iOS" */,
 			);
 			projectDirPath = "";
 			projectRoot = "";
@@ -1259,6 +1270,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		504E25132F18838400BE5195 /* XCRemoteSwiftPackageReference "Superwall-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/superwall/Superwall-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.12.4;
+			};
+		};
 		5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
@@ -1278,6 +1297,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		504E25152F18859F00BE5195 /* SuperwallKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 504E25132F18838400BE5195 /* XCRemoteSwiftPackageReference "Superwall-iOS" */;
+			productName = SuperwallKit;
+		};
 		594D2249590A3D0670CB069C /* GoogleSignIn */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;

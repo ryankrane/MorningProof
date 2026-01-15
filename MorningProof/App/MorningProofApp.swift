@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import SuperwallKit
 
 @main
 struct MorningProofApp: App {
@@ -33,6 +34,10 @@ struct MorningProofApp: App {
             )
             print("🚨 MorningProofApp: Using in-memory fallback container")
         }
+
+        // Configure Superwall for paywalls
+        Superwall.configure(apiKey: "pk_gy44ZZ9bIK5RvZTC9n_RZ")
+
         print("🚀 MorningProofApp: init complete")
     }
 
