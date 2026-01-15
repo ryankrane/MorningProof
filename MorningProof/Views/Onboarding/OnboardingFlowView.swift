@@ -2,6 +2,7 @@ import SwiftUI
 import StoreKit
 import AuthenticationServices
 import FamilyControls
+import SuperwallKit
 
 // MARK: - Onboarding Data Model
 
@@ -135,6 +136,7 @@ struct OnboardingFlowView: View {
     @State private var currentStep = 0
 
     private let totalSteps = 20
+    private let paywallStep = 19
 
     var body: some View {
         ZStack {
@@ -155,7 +157,7 @@ struct OnboardingFlowView: View {
                         switch currentStep {
                         // Phase 1: Hook & Personalization
                         case 0: WelcomeHeroStep(onContinue: nextStep)
-                        case 1: NameStep(data: onboardingData, onContinue: nextStep)
+                        case 1: NameStep(data: onboardingData, onContinue: nextStep, onSkip: completeOnboarding)
                         case 2: GenderStep(data: onboardingData, onContinue: nextStep)
                         case 3: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
 
@@ -203,8 +205,10 @@ struct OnboardingFlowView: View {
             }
         }
 
+        let newStep = currentStep + 1
+
         withAnimation(.easeInOut(duration: 0.3)) {
-            currentStep += 1
+            currentStep = newStep
         }
     }
 
@@ -397,11 +401,13 @@ struct WelcomeHeroStep: View {
 struct NameStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
+    let onSkip: () -> Void
     @FocusState private var isNameFocused: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                Spacer().frame(height: MPSpacing.xxxl * 2)
 
             VStack(spacing: MPSpacing.lg) {
                 Image(systemName: "person.circle.fill")
@@ -457,8 +463,21 @@ struct NameStep: View {
                         .foregroundColor(MPColors.textTertiary)
                 }
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, 50)
+            }
+
+            // Skip button in top right
+            Button {
+                isNameFocused = false
+                onSkip()
+            } label: {
+                Text("Skip")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(MPColors.textTertiary)
+            }
+            .padding(.top, MPSpacing.lg)
+            .padding(.trailing, MPSpacing.xl)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -2344,227 +2363,115 @@ struct SocialProofFinalStep: View {
     }
 }
 
-// MARK: - Step 19: Hard Paywall
+// MARK: - Step 19: Hard Paywall (Superwall)
 
 struct HardPaywallStep: View {
     @ObservedObject var subscriptionManager: SubscriptionManager
     let onSubscribe: () -> Void
     let onSkip: () -> Void // TESTING ONLY - REMOVE BEFORE RELEASE
 
-    @State private var selectedPlan: PlanType = .yearly
-    @State private var isPurchasing = false
-    @State private var showError = false
-    @State private var errorMessage = ""
-
-    enum PlanType {
-        case monthly, yearly
-    }
+    @State private var hasShownPaywall = false
 
     var body: some View {
         ZStack {
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: 0) {
-                    // Skip button - TESTING ONLY
-                    HStack {
-                        Spacer()
-                        Button {
-                            onSkip()
-                        } label: {
-                            Text("Skip")
-                                .font(.system(size: 14, weight: .medium))
-                                .foregroundColor(MPColors.textTertiary)
-                                .padding(.horizontal, MPSpacing.md)
-                                .padding(.vertical, MPSpacing.sm)
-                        }
-                    }
-                    .padding(.horizontal, MPSpacing.lg)
-                    .padding(.top, MPSpacing.sm)
+            MPColors.background
+                .ignoresSafeArea()
 
-                    Spacer().frame(height: MPSpacing.lg)
-
-                    // Header
-                    VStack(spacing: MPSpacing.lg) {
-                        ZStack {
-                            Circle()
-                                .fill(
-                                    LinearGradient(
-                                        colors: [MPColors.accent, MPColors.accentGold],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                                .frame(width: 80, height: 80)
-                                .shadow(color: MPColors.accent.opacity(0.4), radius: 15, x: 0, y: 5)
-
-                            Image(systemName: "crown.fill")
-                                .font(.system(size: 36))
-                                .foregroundColor(.white)
-                        }
-
-                        VStack(spacing: MPSpacing.sm) {
-                            Text("Earn Your Morning")
-                                .font(.system(size: 28, weight: .bold, design: .rounded))
-                                .foregroundColor(MPColors.textPrimary)
-
-                            Text("Unlock your full potential")
-                                .font(.system(size: 16))
-                                .foregroundColor(MPColors.textSecondary)
-                        }
-                    }
-
-                    Spacer().frame(height: MPSpacing.xxl)
-
-                    // Features
-                    VStack(spacing: 0) {
-                        PaywallFeatureRow(icon: "infinity", title: "Unlimited habits", subtitle: "Track everything")
-                        Divider().padding(.horizontal, MPSpacing.lg)
-                        PaywallFeatureRow(icon: "camera.viewfinder", title: "Unlimited AI verifications", subtitle: "No daily limits")
-                        Divider().padding(.horizontal, MPSpacing.lg)
-                        PaywallFeatureRow(icon: "flame.fill", title: "Streak recovery", subtitle: "1 free per month")
-                        Divider().padding(.horizontal, MPSpacing.lg)
-                        PaywallFeatureRow(icon: "chart.bar.fill", title: "Advanced analytics", subtitle: "Coming soon")
-                    }
-                    .padding(.vertical, MPSpacing.sm)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.lg)
-                    .mpShadow(.small)
-                    .padding(.horizontal, MPSpacing.xl)
-
-                    Spacer().frame(height: MPSpacing.xxl)
-
-                    // Plan selection
-                    VStack(spacing: MPSpacing.md) {
-                        EnhancedPlanCard(
-                            isSelected: selectedPlan == .yearly,
-                            title: "Yearly",
-                            price: subscriptionManager.yearlyPrice,
-                            period: "/year",
-                            monthlyEquivalent: "Just $2.50/month",
-                            badge: "MOST POPULAR",
-                            isHighlighted: true
-                        ) {
-                            selectedPlan = .yearly
-                        }
-
-                        EnhancedPlanCard(
-                            isSelected: selectedPlan == .monthly,
-                            title: "Monthly",
-                            price: subscriptionManager.monthlyPrice,
-                            period: "/month",
-                            monthlyEquivalent: nil,
-                            badge: nil,
-                            isHighlighted: false
-                        ) {
-                            selectedPlan = .monthly
-                        }
-                    }
-                    .padding(.horizontal, MPSpacing.xl)
-
-                    Spacer().frame(height: 140)
-                }
-            }
-
-            // Bottom CTA
-            VStack {
+            VStack(spacing: MPSpacing.lg) {
                 Spacer()
 
-                VStack(spacing: MPSpacing.md) {
-                    Button {
-                        Task { await subscribe() }
-                    } label: {
-                        HStack {
-                            if isPurchasing {
-                                ProgressView().tint(.white)
-                            } else {
-                                Text("Subscribe Now")
-                                    .font(.system(size: 17, weight: .semibold))
-                            }
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 54)
-                        .background(
-                            LinearGradient(
-                                colors: [MPColors.primary, MPColors.primaryDark],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(MPRadius.lg)
-                        .shadow(color: MPColors.primary.opacity(0.3), radius: 10, x: 0, y: 5)
-                    }
-                    .disabled(isPurchasing)
+                ProgressView()
+                    .scaleEffect(1.2)
 
-                    Text("Billed immediately. Cancel anytime.")
-                        .font(.system(size: 12))
+                Text("Loading...")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+
+                Spacer()
+
+                // Skip button - TESTING ONLY - REMOVE BEFORE RELEASE
+                Button {
+                    onSkip()
+                } label: {
+                    Text("Skip (Testing Only)")
+                        .font(.system(size: 14, weight: .medium))
                         .foregroundColor(MPColors.textTertiary)
-
-                    TrustBadgeRow()
-
-                    HStack(spacing: MPSpacing.xl) {
-                        Button {
-                            Task { await subscriptionManager.restorePurchases() }
-                        } label: {
-                            Text("Restore Purchases")
-                                .font(.system(size: 13))
-                                .foregroundColor(MPColors.primary)
-                        }
-
-                        Text("•")
-                            .foregroundColor(MPColors.textMuted)
-
-                        Button {
-                            // Open terms
-                        } label: {
-                            Text("Terms")
-                                .font(.system(size: 13))
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-                    }
                 }
-                .padding(.horizontal, MPSpacing.xl)
-                .padding(.bottom, 30)
-                .padding(.top, MPSpacing.lg)
-                .background(
-                    LinearGradient(
-                        colors: [MPColors.background.opacity(0), MPColors.background],
-                        startPoint: .top,
-                        endPoint: .center
-                    )
-                )
+                .padding(.bottom, MPSpacing.xxl)
             }
         }
-        .alert("Error", isPresented: $showError) {
-            Button("OK", role: .cancel) {}
-        } message: {
-            Text(errorMessage)
+        .onAppear {
+            showSuperwallPaywall()
         }
     }
 
-    private func subscribe() async {
-        isPurchasing = true
+    private func showSuperwallPaywall() {
+        guard !hasShownPaywall else { return }
+        hasShownPaywall = true
 
-        do {
-            let transaction: StoreKit.Transaction?
-            if selectedPlan == .yearly {
-                transaction = try await subscriptionManager.purchaseYearly()
-            } else {
-                transaction = try await subscriptionManager.purchaseMonthly()
+        let handler = PaywallPresentationHandler()
+        handler.onDismiss { [self] info, result in
+            switch result {
+            case .purchased:
+                // User subscribed - complete onboarding
+                Task { @MainActor in
+                    await subscriptionManager.updateSubscriptionStatus()
+                    onSubscribe()
+                }
+            case .restored:
+                // User restored - complete onboarding
+                Task { @MainActor in
+                    await subscriptionManager.updateSubscriptionStatus()
+                    onSubscribe()
+                }
+            case .declined:
+                // User closed without purchasing - show paywall again
+                hasShownPaywall = false
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    showSuperwallPaywall()
+                }
             }
-
-            if transaction != nil {
-                onSubscribe()
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
         }
 
-        isPurchasing = false
+        Superwall.shared.register(placement: "onboarding_paywall", handler: handler)
     }
 }
 
 // MARK: - Reusable Components
+
+struct OnboardingFeatureRow: View {
+    let title: String
+    let subtitle: String
+    var icon: String = "checkmark"
+
+    var body: some View {
+        HStack(alignment: .top, spacing: MPSpacing.lg) {
+            // Gold circle with checkmark
+            ZStack {
+                Circle()
+                    .fill(MPColors.accent)
+                    .frame(width: 28, height: 28)
+
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .bold))
+                    .foregroundColor(.white)
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(title)
+                    .font(.system(size: 17, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text(subtitle)
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer()
+        }
+    }
+}
 
 struct OnboardingOptionButton: View {
     let title: String
