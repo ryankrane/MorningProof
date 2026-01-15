@@ -12,6 +12,9 @@ packages:
   GoogleSignIn:
     url: https://github.com/google/GoogleSignIn-iOS
     from: "8.0.0"
+  Superwall:
+    url: https://github.com/superwall/Superwall-iOS
+    from: "3.0.0"
 
 settings:
   base:
@@ -36,6 +39,8 @@ targets:
         product: FirebaseAnalytics
       - package: GoogleSignIn
         product: GoogleSignIn
+      - package: Superwall
+        product: SuperwallKit
       - target: MorningProofActivityMonitor
       - target: MorningProofShieldConfig
       - target: MorningProofShieldAction

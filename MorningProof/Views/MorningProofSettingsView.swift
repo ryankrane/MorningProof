@@ -102,7 +102,7 @@ struct MorningProofSettingsView: View {
                 Text("This will delete all your habits, streaks, and settings. This cannot be undone.")
             }
             .sheet(isPresented: $showPaywall) {
-                PaywallView(subscriptionManager: subscriptionManager)
+                PaywallView()
             }
         }
     }

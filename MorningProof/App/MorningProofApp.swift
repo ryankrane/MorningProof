@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import SuperwallKit
 
 @main
 struct MorningProofApp: App {
@@ -8,6 +9,11 @@ struct MorningProofApp: App {
 
     init() {
         print("🚀 MorningProofApp: init starting...")
+
+        // Configure Superwall early
+        SuperwallService.shared.configure()
+        print("🚀 MorningProofApp: Superwall configured")
+
         do {
             print("🚀 MorningProofApp: Creating model container...")
             container = try ModelContainer(for:
