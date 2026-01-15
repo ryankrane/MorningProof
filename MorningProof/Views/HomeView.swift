@@ -185,10 +185,10 @@ struct HomeView: View {
     var streakColor: Color {
         switch viewModel.streakData.currentStreak {
         case 0: return MPColors.textMuted
-        case 1...6: return MPColors.accent
+        case 1...6: return MPColors.flameOrange  // Consistent flame color
         case 7...13: return Color(red: 0.95, green: 0.5, blue: 0.2)
         case 14...29: return MPColors.warning
-        case 30...89: return MPColors.accentGold
+        case 30...89: return Color(red: 1.0, green: 0.84, blue: 0.0)  // Consistent gold
         default: return Color(red: 0.9, green: 0.7, blue: 0.1)
         }
     }

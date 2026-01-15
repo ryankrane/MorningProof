@@ -471,10 +471,13 @@ struct DashboardView: View {
                         holdProgress[config.habitType] = 1.0
                     }
                 } else {
-                    // Released before completion - backtrack the green fill
-                    if isHoldingHabit == config.habitType && holdProgress[config.habitType] ?? 0 < 1.0 {
+                    // Released before completion - smoothly unwind the green fill
+                    let currentProgress = holdProgress[config.habitType] ?? 0
+                    if isHoldingHabit == config.habitType && currentProgress < 1.0 {
                         isHoldingHabit = nil
-                        withAnimation(.easeOut(duration: 0.3)) {
+                        // Animate back proportionally - takes longer if more progress was made
+                        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
+                        withAnimation(.easeOut(duration: unwindDuration)) {
                             holdProgress[config.habitType] = 0
                         }
                         HapticManager.shared.lightTap()

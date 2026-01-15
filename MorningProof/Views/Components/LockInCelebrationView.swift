@@ -51,13 +51,9 @@ struct LockInCelebrationView: View {
         var opacity: Double
     }
 
-    // Flame gradient matching StreakHeroCard
+    // Flame gradient matching StreakHeroCard - consistent in dark mode
     private var flameGradient: LinearGradient {
-        LinearGradient(
-            colors: [MPColors.accent, MPColors.error],
-            startPoint: .bottom,
-            endPoint: .top
-        )
+        MPColors.flameGradient
     }
 
     var body: some View {
@@ -91,9 +87,9 @@ struct LockInCelebrationView: View {
             // Flying flame
             if flameOpacity > 0 {
                 ZStack {
-                    // Intense glow behind flame
+                    // Intense glow behind flame - consistent color
                     Circle()
-                        .fill(MPColors.accent.opacity(flameGlowOpacity * 0.6))
+                        .fill(MPColors.flameOrange.opacity(flameGlowOpacity * 0.6))
                         .frame(width: 80, height: 80)
                         .blur(radius: 25)
 
@@ -101,8 +97,8 @@ struct LockInCelebrationView: View {
                     Image(systemName: "flame.fill")
                         .font(.system(size: flameSize, weight: .bold))
                         .foregroundStyle(flameGradient)
-                        .shadow(color: MPColors.accent, radius: 15)
-                        .shadow(color: MPColors.error.opacity(0.8), radius: 8)
+                        .shadow(color: MPColors.flameOrange, radius: 15)
+                        .shadow(color: MPColors.flameRed.opacity(0.8), radius: 8)
                 }
                 .scaleEffect(flameScale)
                 .rotationEffect(.degrees(flameRotation))
@@ -135,10 +131,11 @@ struct LockInCelebrationView: View {
     }
 
     // Button center calculation for capsule shape
+    // buttonPosition is the frame origin (top-left), so we add half dimensions to get center
     private var buttonCenter: CGPoint {
         CGPoint(
             x: buttonPosition.x + buttonWidth / 2,
-            y: buttonPosition.y + buttonHeight / 2
+            y: buttonPosition.y + buttonHeight / 2 - 8  // Offset to account for visual center
         )
     }
 

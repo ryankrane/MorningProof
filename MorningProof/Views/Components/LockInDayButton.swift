@@ -10,6 +10,8 @@ struct LockInDayButton: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.3
     @State private var shimmerOffset: CGFloat = -1.0
+    @State private var lockedShimmerOffset: CGFloat = -1.0
+    @State private var lockedGlowPulse: CGFloat = 0.4
 
     private let holdDuration: Double = 0.75
     private let buttonWidth: CGFloat = 220
@@ -33,14 +35,34 @@ struct LockInDayButton: View {
         )
     }
 
+    // Shiny gold gradient for locked state - more vibrant and celebratory
+    private var lockedGoldGradient: LinearGradient {
+        LinearGradient(
+            colors: [
+                Color(red: 1.0, green: 0.84, blue: 0.0),      // Bright gold
+                MPColors.accentGold,                          // Standard gold
+                Color(red: 1.0, green: 0.75, blue: 0.2),      // Warm gold
+                MPColors.accentGold
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
     var body: some View {
         ZStack {
-            // Outer glow (enabled state only)
+            // Outer glow (enabled state or locked state)
             if isEnabled && !isLockedIn {
                 Capsule()
                     .fill(MPColors.accentGold.opacity(glowOpacity * 0.5))
                     .frame(width: buttonWidth + 20, height: buttonHeight + 16)
                     .blur(radius: 20)
+            } else if isLockedIn {
+                // Golden glow for locked state - pulsing celebration effect
+                Capsule()
+                    .fill(Color(red: 1.0, green: 0.84, blue: 0.0).opacity(lockedGlowPulse))
+                    .frame(width: buttonWidth + 24, height: buttonHeight + 20)
+                    .blur(radius: 25)
             }
 
             // Background capsule
@@ -59,7 +81,7 @@ struct LockInDayButton: View {
                 .clipShape(Capsule())
             }
 
-            // Shimmer effect (enabled state only)
+            // Shimmer effect (enabled state)
             if isEnabled && !isLockedIn && !isHolding {
                 Capsule()
                     .fill(
@@ -71,6 +93,21 @@ struct LockInDayButton: View {
                     )
                     .frame(width: 60, height: buttonHeight)
                     .offset(x: shimmerOffset * (buttonWidth / 2))
+                    .clipShape(Capsule().size(width: buttonWidth, height: buttonHeight))
+            }
+
+            // Celebratory shimmer for locked state - more prominent shine
+            if isLockedIn {
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [.clear, .white.opacity(0.35), .white.opacity(0.5), .white.opacity(0.35), .clear],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .frame(width: 80, height: buttonHeight)
+                    .offset(x: lockedShimmerOffset * (buttonWidth / 2))
                     .clipShape(Capsule().size(width: buttonWidth, height: buttonHeight))
             }
 
@@ -108,10 +145,18 @@ struct LockInDayButton: View {
             if isEnabled && !isLockedIn {
                 startIdleAnimations()
             }
+            if isLockedIn {
+                startLockedAnimations()
+            }
         }
         .onChange(of: isEnabled) { _, newValue in
             if newValue && !isLockedIn {
                 startIdleAnimations()
+            }
+        }
+        .onChange(of: isLockedIn) { _, newValue in
+            if newValue {
+                startLockedAnimations()
             }
         }
     }
@@ -120,7 +165,7 @@ struct LockInDayButton: View {
 
     private var backgroundColor: some ShapeStyle {
         if isLockedIn {
-            return AnyShapeStyle(MPColors.accentGold)
+            return AnyShapeStyle(lockedGoldGradient)
         } else if isEnabled {
             return AnyShapeStyle(goldGradient)
         } else {
@@ -239,6 +284,19 @@ struct LockInDayButton: View {
         shimmerOffset = -1.0
         withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
             shimmerOffset = 1.0
+        }
+    }
+
+    private func startLockedAnimations() {
+        // Celebratory glow pulse - subtle breathing effect
+        withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
+            lockedGlowPulse = 0.7
+        }
+
+        // Slower, more elegant shimmer for locked state
+        lockedShimmerOffset = -1.5
+        withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
+            lockedShimmerOffset = 1.5
         }
     }
 }

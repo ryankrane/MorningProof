@@ -37,6 +37,11 @@ enum MPColors {
     static let accentLight = Color("AccentLight")
     static let accentGold = Color("AccentGold")
 
+    // Flame colors - static, don't change with dark mode
+    static let flameOrange = Color(red: 1.0, green: 0.55, blue: 0.0)      // Bright orange
+    static let flameRed = Color(red: 0.95, green: 0.25, blue: 0.15)       // Fire red
+    static let flameYellow = Color(red: 1.0, green: 0.8, blue: 0.2)       // Hot yellow
+
     // Semantic
     static let success = Color("Success")
     static let successLight = Color("SuccessLight")
@@ -61,6 +66,13 @@ enum MPColors {
         colors: [accent, accentGold],
         startPoint: .topLeading,
         endPoint: .bottomTrailing
+    )
+
+    // Flame gradient - consistent in light and dark mode
+    static let flameGradient = LinearGradient(
+        colors: [flameOrange, flameRed],
+        startPoint: .bottom,
+        endPoint: .top
     )
 }
 

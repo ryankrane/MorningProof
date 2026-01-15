@@ -35,8 +35,6 @@ struct TestimonialCard: View {
                 .lineSpacing(6)
                 .fixedSize(horizontal: false, vertical: true)
 
-            Spacer()
-
             // User info row
             HStack(spacing: MPSpacing.md) {
                 // Avatar
@@ -67,20 +65,19 @@ struct TestimonialCard: View {
                 HStack(spacing: 4) {
                     Image(systemName: "flame.fill")
                         .font(.system(size: 13))
-                        .foregroundColor(MPColors.accent)
+                        .foregroundColor(MPColors.flameOrange)
 
                     Text("\(streakDays) days")
                         .font(.system(size: 13, weight: .semibold))
-                        .foregroundColor(MPColors.accent)
+                        .foregroundColor(MPColors.flameOrange)
                 }
                 .padding(.horizontal, MPSpacing.md)
                 .padding(.vertical, MPSpacing.sm)
-                .background(MPColors.accentLight.opacity(0.3))
+                .background(MPColors.flameOrange.opacity(0.15))
                 .cornerRadius(MPRadius.full)
             }
         }
         .padding(MPSpacing.xl)
-        .frame(minHeight: 220)
         .background(MPColors.surface)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)
@@ -145,7 +142,7 @@ struct CompactTestimonialCard: View {
                     Text("\(streakDays)")
                         .font(.system(size: 10, weight: .semibold))
                 }
-                .foregroundColor(MPColors.accent)
+                .foregroundColor(MPColors.flameOrange)
             }
         }
         .padding(MPSpacing.md)
@@ -201,7 +198,7 @@ enum SampleTestimonials {
             name: "Michelle T.",
             age: 26,
             location: "Miami, FL",
-            quote: "The photo verification seemed gimmicky at first. Now I actually look forward to making my bed.",
+            quote: "The daily photo check-in is surprisingly rewarding. It keeps me accountable and I love seeing my streak grow!",
             streakDays: 39
         )
     ]

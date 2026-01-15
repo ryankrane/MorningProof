@@ -264,6 +264,9 @@ struct WelcomeHeroStep: View {
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
     @State private var animateContent = false
     @State private var animateOrb = false
+    @State private var pulseRing1 = false
+    @State private var pulseRing2 = false
+    @State private var pulseRing3 = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -271,37 +274,72 @@ struct WelcomeHeroStep: View {
 
             // App branding
             VStack(spacing: MPSpacing.lg) {
-                // Animated orb with sunrise
+                // Animated glowing orb with sunrise
                 ZStack {
-                    // Outer glow
+                    // Outer pulsing ring 1 (slowest, largest)
                     Circle()
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    MPColors.accentLight.opacity(0.6),
-                                    MPColors.accent.opacity(0.2),
+                                    MPColors.primary.opacity(0.15),
+                                    MPColors.primary.opacity(0.05),
                                     Color.clear
                                 ],
                                 center: .center,
-                                startRadius: 0,
-                                endRadius: 100
+                                startRadius: 60,
+                                endRadius: 120
                             )
                         )
-                        .frame(width: 200, height: 200)
-                        .scaleEffect(animateOrb ? 1.1 : 1.0)
+                        .frame(width: 240, height: 240)
+                        .scaleEffect(pulseRing1 ? 1.15 : 0.95)
+                        .opacity(pulseRing1 ? 0.6 : 1.0)
 
+                    // Middle pulsing ring 2
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    MPColors.primary.opacity(0.25),
+                                    MPColors.primary.opacity(0.1),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 40,
+                                endRadius: 90
+                            )
+                        )
+                        .frame(width: 180, height: 180)
+                        .scaleEffect(pulseRing2 ? 1.1 : 0.9)
+                        .opacity(pulseRing2 ? 0.7 : 1.0)
+
+                    // Inner core glow
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    MPColors.primary.opacity(0.5),
+                                    MPColors.primary.opacity(0.25),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 20,
+                                endRadius: 70
+                            )
+                        )
+                        .frame(width: 140, height: 140)
+                        .scaleEffect(pulseRing3 ? 1.05 : 0.95)
+
+                    // Sunrise icon - solid purple
                     Image(systemName: "sunrise.fill")
                         .font(.system(size: 60))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [MPColors.accent, MPColors.accentGold],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
+                        .foregroundColor(MPColors.primary)
+                        .shadow(color: MPColors.primary.opacity(0.5), radius: 10)
                         .offset(y: animateOrb ? -4 : 4)
                 }
                 .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
+                .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: pulseRing1)
+                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: pulseRing2)
+                .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: pulseRing3)
 
                 VStack(spacing: MPSpacing.sm) {
                     Text("Earn Your Morning")
@@ -389,6 +427,14 @@ struct WelcomeHeroStep: View {
         }
         .onAppear {
             animateOrb = true
+            // Stagger the pulse animations for a flowing effect
+            pulseRing1 = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                pulseRing2 = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                pulseRing3 = true
+            }
             withAnimation(.easeOut(duration: 0.8)) {
                 animateContent = true
             }
@@ -614,10 +660,16 @@ struct ProblemStatisticsStep: View {
                 )
 
                 // Supporting stats
-                HStack(spacing: MPSpacing.md) {
-                    StatPillView(value: "3.5", label: "avg. snoozes", icon: "alarm.fill")
-                    StatPillView(value: "47m", label: "avg. scrolling", icon: "iphone")
-                    StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
+                VStack(spacing: MPSpacing.sm) {
+                    Text("Why most people fail:")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+
+                    HStack(spacing: MPSpacing.md) {
+                        StatPillView(value: "3.5", label: "snoozes per day", icon: "alarm.fill")
+                        StatPillView(value: "47m", label: "scrolling in bed", icon: "iphone")
+                        StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
+                    }
                 }
                 .padding(.horizontal, MPSpacing.lg)
                 .opacity(showContent ? 1 : 0)
@@ -705,7 +757,7 @@ struct YouAreNotAloneStep: View {
                                 .foregroundColor(MPColors.accentGold)
                         }
                     }
-                    Text("4.9 avg. rating from beta testers")
+                    Text("4.9 average rating from users")
                         .font(.system(size: 14, weight: .medium))
                         .foregroundColor(MPColors.textTertiary)
                 }
@@ -754,9 +806,9 @@ struct SuccessStoriesStep: View {
                 // Before/After comparison
                 BeforeAfterCard(
                     beforeTitle: "Day 1",
-                    beforeItems: ["Hit snooze 3+ times", "Rush through morning", "Feel groggy until noon"],
+                    beforeItems: ["Struggle to get out of bed", "Rush through morning", "Feel groggy until noon"],
                     afterTitle: "Day 10",
-                    afterItems: ["Wake up on first alarm", "Calm, productive mornings", "Energized all afternoon"]
+                    afterItems: ["Morning routine complete", "Calm, productive mornings", "Energized all afternoon"]
                 )
                 .padding(.horizontal, MPSpacing.xl)
                 .opacity(showContent ? 1 : 0)
@@ -893,7 +945,7 @@ struct TrackingComparisonStep: View {
                 }
 
                 StatisticRingCard(
-                    percentage: 76,
+                    percentage: 88,
                     label: "success rate",
                     comparisonText: "vs 35% who don't track"
                 )
@@ -952,11 +1004,11 @@ struct MorningAdvantageStep: View {
 
             VStack(spacing: MPSpacing.xxl) {
                 VStack(spacing: MPSpacing.sm) {
-                    Text("The Morning Advantage")
+                    Text("Why MorningProof Works")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
 
-                    Text("People with morning routines are")
+                    Text("Our users are")
                         .font(.system(size: 16))
                         .foregroundColor(MPColors.textSecondary)
                 }
@@ -993,7 +1045,7 @@ struct MorningAdvantageStep: View {
                             .foregroundColor(.white)
                             .contentTransition(.numericText())
 
-                        Text("more productive")
+                        Text("more consistent")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.white.opacity(0.9))
                     }
@@ -1004,16 +1056,16 @@ struct MorningAdvantageStep: View {
                 // Evidence cards
                 VStack(spacing: MPSpacing.md) {
                     EvidenceCard(
-                        stat: "78%",
-                        description: "complete key habits before 9 AM",
-                        icon: "sunrise.fill",
+                        stat: "94%",
+                        description: "build lasting habits with photo proof",
+                        icon: "camera.fill",
                         iconColor: MPColors.accent
                     )
 
                     EvidenceCard(
-                        stat: "92%",
-                        description: "report feeling highly productive",
-                        icon: "bolt.fill",
+                        stat: "87%",
+                        description: "say accountability keeps them on track",
+                        icon: "flame.fill",
                         iconColor: MPColors.accentGold
                     )
                 }
@@ -1021,9 +1073,9 @@ struct MorningAdvantageStep: View {
                 .opacity(showCards ? 1 : 0)
 
                 HStack(spacing: MPSpacing.xs) {
-                    Image(systemName: "book.closed.fill")
+                    Image(systemName: "chart.bar.fill")
                         .font(.system(size: 11))
-                    Text("2025 Executive Performance Study")
+                    Text("Based on MorningProof user data")
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(MPColors.textMuted)
@@ -1234,63 +1286,68 @@ struct AIVerificationShowcaseStep: View {
                     // Phone frame
                     RoundedRectangle(cornerRadius: 30)
                         .fill(MPColors.surface)
-                        .frame(width: 220, height: 340)
+                        .frame(width: 220, height: 300)
                         .mpShadow(.large)
 
                     // Screen content
-                    VStack(spacing: MPSpacing.md) {
+                    VStack(spacing: MPSpacing.lg) {
                         // Bed image placeholder
-                        RoundedRectangle(cornerRadius: MPRadius.md)
-                            .fill(
-                                LinearGradient(
-                                    colors: [MPColors.surfaceSecondary, MPColors.progressBg],
-                                    startPoint: .top,
-                                    endPoint: .bottom
+                        ZStack {
+                            RoundedRectangle(cornerRadius: MPRadius.md)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [MPColors.surfaceSecondary, MPColors.progressBg],
+                                        startPoint: .top,
+                                        endPoint: .bottom
+                                    )
                                 )
-                            )
-                            .frame(width: 180, height: 140)
-                            .overlay(
-                                Image(systemName: "bed.double.fill")
-                                    .font(.system(size: 50))
-                                    .foregroundColor(MPColors.textMuted)
-                            )
+                                .frame(width: 180, height: 140)
+                                .overlay(
+                                    Image(systemName: "bed.double.fill")
+                                        .font(.system(size: 50))
+                                        .foregroundColor(MPColors.textMuted)
+                                )
 
-                        // Scan line animation
-                        if showScan && !showScore {
-                            Rectangle()
-                                .fill(MPColors.accent)
-                                .frame(width: 180, height: 2)
-                                .offset(y: -70 + (scanProgress * 140))
+                            // Analyzing pulse
+                            if showScan && !showScore {
+                                RoundedRectangle(cornerRadius: MPRadius.md)
+                                    .stroke(MPColors.accent, lineWidth: 3)
+                                    .frame(width: 180, height: 140)
+                                    .scaleEffect(1.0 + scanProgress * 0.05)
+                                    .opacity(1.0 - scanProgress * 0.5)
+                            }
+
+                            // Success overlay
+                            if showScore {
+                                RoundedRectangle(cornerRadius: MPRadius.md)
+                                    .stroke(MPColors.success, lineWidth: 3)
+                                    .frame(width: 180, height: 140)
+                            }
                         }
 
-                        // Score display
+                        // Result display
                         if showScore {
                             VStack(spacing: MPSpacing.sm) {
-                                HStack(spacing: MPSpacing.sm) {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(MPColors.success)
-                                    Text("Verified!")
-                                        .font(.system(size: 16, weight: .bold))
-                                        .foregroundColor(MPColors.success)
-                                }
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.system(size: 44))
+                                    .foregroundColor(MPColors.success)
 
-                                HStack(spacing: MPSpacing.xs) {
-                                    Text("Bed Score:")
-                                        .font(.system(size: 14))
-                                        .foregroundColor(MPColors.textSecondary)
-                                    Text("9/10")
-                                        .font(.system(size: 18, weight: .bold))
-                                        .foregroundColor(MPColors.primary)
-                                }
-
-                                Text("Great job making your bed!")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(MPColors.textTertiary)
+                                Text("Habit Complete!")
+                                    .font(.system(size: 18, weight: .bold))
+                                    .foregroundColor(MPColors.textPrimary)
                             }
                             .transition(.scale.combined(with: .opacity))
+                        } else if showScan {
+                            VStack(spacing: MPSpacing.xs) {
+                                ProgressView()
+                                    .tint(MPColors.accent)
+                                Text("Analyzing...")
+                                    .font(.system(size: 14, weight: .medium))
+                                    .foregroundColor(MPColors.textSecondary)
+                            }
                         }
                     }
-                    .frame(width: 200, height: 300)
+                    .frame(width: 200, height: 260)
                 }
                 .scaleEffect(showPhone ? 1 : 0.8)
                 .opacity(showPhone ? 1 : 0)
@@ -1305,9 +1362,9 @@ struct AIVerificationShowcaseStep: View {
                             .foregroundColor(MPColors.textSecondary)
                     }
                     VStack(spacing: 4) {
-                        Image(systemName: "hand.raised.slash.fill")
+                        Image(systemName: "eye.fill")
                             .foregroundColor(MPColors.accent)
-                        Text("Hands-free")
+                        Text("No cheating")
                             .font(.system(size: 12, weight: .medium))
                             .foregroundColor(MPColors.textSecondary)
                     }
@@ -1959,9 +2016,10 @@ struct AnalyzingStep: View {
     @State private var progress: CGFloat = 0
     @State private var currentPhase = 0
     @State private var completedSteps: Set<Int> = []
-    @State private var isPulsing = false
+    @State private var rotationAngle: Double = 0
     @State private var showSocialProof = false
     @State private var userCount: Int = 0
+    @State private var glowOpacity: Double = 0.3
 
     private var phases: [(title: String, icon: String)] {
         [
@@ -1990,35 +2048,63 @@ struct AnalyzingStep: View {
 
             Spacer().frame(height: MPSpacing.xxxl)
 
-            // Progress circle
+            // Progress circle with enhanced animation
             ZStack {
+                // Outer glow
                 Circle()
-                    .fill(MPColors.primary.opacity(0.1))
-                    .frame(width: 140, height: 140)
-                    .scaleEffect(isPulsing ? 1.1 : 1.0)
-                    .animation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true), value: isPulsing)
+                    .fill(
+                        RadialGradient(
+                            colors: [MPColors.accent.opacity(glowOpacity), MPColors.accent.opacity(0)],
+                            center: .center,
+                            startRadius: 50,
+                            endRadius: 90
+                        )
+                    )
+                    .frame(width: 180, height: 180)
 
+                // Rotating dashed outer ring
                 Circle()
-                    .stroke(MPColors.progressBg, lineWidth: 8)
+                    .stroke(MPColors.accent.opacity(0.3), style: StrokeStyle(lineWidth: 2, dash: [4, 8]))
+                    .frame(width: 150, height: 150)
+                    .rotationEffect(.degrees(rotationAngle))
+
+                // Rotating dashed inner accent ring
+                Circle()
+                    .stroke(MPColors.primary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [2, 6]))
+                    .frame(width: 130, height: 130)
+                    .rotationEffect(.degrees(-rotationAngle * 0.7))
+
+                // Background track
+                Circle()
+                    .stroke(MPColors.progressBg, lineWidth: 10)
                     .frame(width: 110, height: 110)
 
+                // Progress ring
                 Circle()
                     .trim(from: 0, to: progress)
                     .stroke(
-                        LinearGradient(
-                            colors: [MPColors.primary, MPColors.accent],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                        AngularGradient(
+                            colors: [MPColors.primary, MPColors.accent, MPColors.primary],
+                            center: .center,
+                            startAngle: .degrees(0),
+                            endAngle: .degrees(360)
                         ),
-                        style: StrokeStyle(lineWidth: 8, lineCap: .round)
+                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
                     )
                     .frame(width: 110, height: 110)
                     .rotationEffect(.degrees(-90))
+                    .shadow(color: MPColors.accent.opacity(0.5), radius: 8, x: 0, y: 0)
 
-                Text("\(Int(progress * 100))%")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .contentTransition(.numericText())
+                // Percentage text
+                VStack(spacing: 2) {
+                    Text("\(Int(progress * 100))")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .contentTransition(.numericText())
+                    Text("%")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(MPColors.textSecondary)
+                }
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
@@ -2054,12 +2140,17 @@ struct AnalyzingStep: View {
     }
 
     private func startLoading() {
-        isPulsing = true
-
-        withAnimation(.easeOut(duration: 4.0)) {
-            progress = 1.0
+        // Start continuous rotation
+        withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+            rotationAngle = 360
         }
 
+        // Pulse the glow
+        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            glowOpacity = 0.6
+        }
+
+        // Show social proof after a delay
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
             withAnimation(.easeOut(duration: 0.5)) {
                 showSocialProof = true
@@ -2067,28 +2158,66 @@ struct AnalyzingStep: View {
             animateCounter(to: 2847)
         }
 
-        for i in 0..<phases.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.9) {
-                withAnimation(.easeInOut(duration: 0.3)) {
-                    currentPhase = i
+        // Smooth micro-progress animation that looks like real processing
+        startSmoothProgress()
+    }
+
+    private func startSmoothProgress() {
+        let totalDuration: Double = 4.0
+        let phaseCount = phases.count
+        let phaseDuration = totalDuration / Double(phaseCount)
+
+        // Start micro-progress updates (simulate realistic loading)
+        let updateInterval: Double = 0.05  // Update every 50ms for smooth animation
+
+        // Create a timer-like effect with scheduled updates
+        let totalUpdates = Int(totalDuration / updateInterval)
+
+        for i in 0...totalUpdates {
+            let elapsed = Double(i) * updateInterval
+            let phaseIndex = min(Int(elapsed / phaseDuration), phaseCount - 1)
+            let phaseProgress = (elapsed - Double(phaseIndex) * phaseDuration) / phaseDuration
+
+            // Calculate target progress with realistic easing
+            // Progress speeds up and slows down within each phase
+            let baseProgress = CGFloat(phaseIndex) / CGFloat(phaseCount)
+
+            // Add some variance - faster at start of phase, slower near end
+            let easedPhaseProgress = sin(phaseProgress * .pi / 2)  // Ease out
+            let targetProgress = baseProgress + (easedPhaseProgress / CGFloat(phaseCount))
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + elapsed) {
+                // Small random jitter to simulate real processing
+                let jitter = CGFloat.random(in: -0.005...0.005)
+                let finalProgress = min(targetProgress + jitter, 1.0)
+
+                withAnimation(.linear(duration: updateInterval)) {
+                    progress = max(progress, finalProgress)  // Only move forward
                 }
-            }
-            if i > 0 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.9) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                        _ = completedSteps.insert(i - 1)
+
+                // Update phase when crossing thresholds
+                let newPhase = min(Int(finalProgress * CGFloat(phaseCount)), phaseCount - 1)
+                if newPhase != currentPhase {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        // Complete previous phase
+                        if currentPhase >= 0 {
+                            _ = completedSteps.insert(currentPhase)
+                        }
+                        currentPhase = newPhase
                     }
                 }
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
-            withAnimation(.spring(response: 0.4, dampingFraction: 0.7)) {
-                _ = completedSteps.insert(phases.count - 1)
+        // Ensure we hit 100% and complete all phases
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration - 0.2) {
+            withAnimation(.easeOut(duration: 0.3)) {
+                progress = 1.0
+                _ = completedSteps.insert(phaseCount - 1)
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.2) {
             onComplete()
         }
     }

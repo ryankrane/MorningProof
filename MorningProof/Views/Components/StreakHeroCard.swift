@@ -43,13 +43,13 @@ struct StreakHeroCard: View {
         }
     }
 
-    /// Glow color shifts from orange to gold as streak increases
+    /// Glow color shifts from orange to gold as streak increases (consistent in dark mode)
     var glowColor: Color {
         guard currentStreak > 0 else { return .clear }
         switch currentStreak {
-        case 1...6: return MPColors.accent // Orange
+        case 1...6: return MPColors.flameOrange  // Orange - consistent
         case 7...29: return Color(red: 1.0, green: 0.7, blue: 0.2) // Orange-gold
-        default: return MPColors.accentGold // Pure gold
+        default: return Color(red: 1.0, green: 0.84, blue: 0.0) // Pure gold - consistent
         }
     }
 
@@ -226,13 +226,16 @@ struct StreakHeroCard: View {
     }
 
     var flameGradient: LinearGradient {
-        LinearGradient(
-            colors: currentStreak > 0
-                ? [MPColors.accent, MPColors.error]
-                : [MPColors.textMuted, MPColors.textMuted.opacity(0.5)],
-            startPoint: .bottom,
-            endPoint: .top
-        )
+        if currentStreak > 0 {
+            // Use consistent flame colors that don't change in dark mode
+            return MPColors.flameGradient
+        } else {
+            return LinearGradient(
+                colors: [MPColors.textMuted, MPColors.textMuted.opacity(0.5)],
+                startPoint: .bottom,
+                endPoint: .top
+            )
+        }
     }
 }
 
