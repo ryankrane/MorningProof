@@ -321,6 +321,38 @@ class SubscriptionManager: ObservableObject {
         products.first { $0.id == ProductID.yearlyPremium.rawValue }?.displayPrice ?? "$29.99"
     }
 
+    /// Raw decimal price for yearly subscription (for calculations)
+    var yearlyPriceDecimal: Decimal? {
+        products.first { $0.id == ProductID.yearlyPremium.rawValue }?.price
+    }
+
+    /// Raw decimal price for monthly subscription (for calculations)
+    var monthlyPriceDecimal: Decimal? {
+        products.first { $0.id == ProductID.monthlyPremium.rawValue }?.price
+    }
+
+    /// Monthly equivalent price for yearly plan (e.g., "$2.50/mo")
+    var yearlyMonthlyEquivalent: String {
+        guard let yearly = yearlyPriceDecimal else {
+            return "$2.50/mo"
+        }
+        let monthly = yearly / 12
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .currency
+        formatter.currencyCode = Locale.current.currency?.identifier ?? "USD"
+        formatter.maximumFractionDigits = 2
+
+        if let formatted = formatter.string(from: NSDecimalNumber(decimal: monthly)) {
+            return "\(formatted)/mo"
+        }
+        return "$2.50/mo"
+    }
+
+    /// Whether products have finished loading
+    var hasLoadedProducts: Bool {
+        !products.isEmpty
+    }
+
     var yearlySavings: String {
         // Calculate savings vs monthly
         guard let monthly = products.first(where: { $0.id == ProductID.monthlyPremium.rawValue }),
