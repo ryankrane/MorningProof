@@ -773,13 +773,6 @@ struct StatsTabView: View {
         NavigationStack {
             ScrollView(showsIndicators: false) {
                 VStack(spacing: MPSpacing.xl) {
-                    // Quick Stats Summary
-                    QuickStatsCard(
-                        currentStreak: manager.currentStreak,
-                        thisWeekRate: calculateThisWeekRate(),
-                        perfectDaysThisWeek: calculatePerfectDaysThisWeek()
-                    )
-
                     // This Week section with trend
                     VStack(alignment: .leading, spacing: MPSpacing.md) {
                         HStack {

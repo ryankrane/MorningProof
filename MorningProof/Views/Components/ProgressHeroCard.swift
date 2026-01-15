@@ -122,9 +122,11 @@ struct HabitBreakdownCard: View {
                 .foregroundColor(MPColors.textTertiary)
 
             ForEach(manager.enabledHabits) { config in
+                let stats = calculateStats(for: config.habitType)
                 HabitProgressRow(
                     habitType: config.habitType,
-                    completionRate: calculateRate(for: config.habitType)
+                    completionRate: stats.rate,
+                    hasData: stats.hasData
                 )
             }
         }
@@ -134,7 +136,7 @@ struct HabitBreakdownCard: View {
         .mpShadow(.small)
     }
 
-    private func calculateRate(for habitType: HabitType) -> Double {
+    private func calculateStats(for habitType: HabitType) -> (rate: Double, hasData: Bool) {
         let today = calendar.startOfDay(for: Date())
         let last30 = (0..<30).compactMap { calendar.date(byAdding: .day, value: -$0, to: today) }
 
@@ -151,7 +153,9 @@ struct HabitBreakdownCard: View {
             }
         }
 
-        return total > 0 ? Double(completed) / Double(total) * 100 : 0
+        let hasData = total > 0
+        let rate = hasData ? Double(completed) / Double(total) * 100 : 0
+        return (rate, hasData)
     }
 }
 
@@ -160,6 +164,7 @@ struct HabitBreakdownCard: View {
 struct HabitProgressRow: View {
     let habitType: HabitType
     let completionRate: Double
+    var hasData: Bool = true
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
@@ -200,6 +205,10 @@ struct HabitProgressRow: View {
     }
 
     private var progressColor: Color {
+        // Show grey if no data (new user hasn't done any habits yet)
+        if !hasData {
+            return MPColors.textMuted
+        }
         if completionRate >= 80 {
             return MPColors.success
         } else if completionRate >= 50 {
