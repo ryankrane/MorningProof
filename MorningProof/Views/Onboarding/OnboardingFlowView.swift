@@ -2402,36 +2402,30 @@ struct AnalyzingStep: View {
     }
 
     private func startSmoothProgress() {
-        let totalDuration: Double = 8.0
         let phaseCount = phases.count
 
-        // Start micro-progress updates with smooth animation
-        let updateInterval: Double = 0.03  // Update every 30ms for smoother animation
+        // Phase 1: Fast progress 0-70% in ~2 seconds
+        // Phase 2: Sporadic progress 70-93% in ~2 seconds (realistic processing feel)
+        // Phase 3: Slow crawl 93-100% in ~3 seconds (builds anticipation)
 
-        // Create a timer-like effect with scheduled updates
-        let totalUpdates = Int(totalDuration / updateInterval)
+        // PHASE 1: Fast initial progress (0% to 70% in 2 seconds)
+        let phase1Duration: Double = 2.0
+        let phase1Steps = 40
+        let phase1Interval = phase1Duration / Double(phase1Steps)
 
-        for i in 0...totalUpdates {
-            let elapsed = Double(i) * updateInterval
-            let linearProgress = elapsed / totalDuration
-
-            // Use ease-out cubic curve: fast start, slow finish
-            // Formula: 1 - (1 - t)^3
-            let easedProgress = 1.0 - pow(1.0 - linearProgress, 3)
-
-            // Calculate which phase we're in based on eased progress
-            let phaseIndex = min(Int(easedProgress * Double(phaseCount)), phaseCount - 1)
+        for i in 0...phase1Steps {
+            let targetProgress = 0.70 * (Double(i) / Double(phase1Steps))
+            let elapsed = Double(i) * phase1Interval
 
             DispatchQueue.main.asyncAfter(deadline: .now() + elapsed) {
-                // Smooth animation for progress updates
-                withAnimation(.easeOut(duration: updateInterval * 2)) {
-                    progress = max(progress, CGFloat(easedProgress))
+                withAnimation(.easeOut(duration: phase1Interval)) {
+                    progress = CGFloat(targetProgress)
                 }
 
-                // Update phase smoothly when crossing thresholds
+                // Update phases during fast progress
+                let phaseIndex = min(Int(targetProgress * Double(phaseCount)), phaseCount - 1)
                 if phaseIndex != currentPhase {
-                    withAnimation(.easeInOut(duration: 0.4)) {
-                        // Complete previous phase
+                    withAnimation(.easeInOut(duration: 0.3)) {
                         if currentPhase >= 0 {
                             _ = completedSteps.insert(currentPhase)
                         }
@@ -2441,20 +2435,77 @@ struct AnalyzingStep: View {
             }
         }
 
-        // Ensure we hit 100% and complete all phases with smooth animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration - 0.3) {
-            withAnimation(.easeOut(duration: 0.8)) {
-                progress = 1.0
+        // PHASE 2: Sporadic progress (70% to 93% in 2 seconds)
+        // Creates realistic "processing" feel with variable increments and micro-pauses
+        let phase2Start: Double = 2.0
+        let sporadicIncrements: [(delay: Double, progress: Double)] = [
+            (0.0, 0.72),
+            (0.15, 0.74),
+            (0.35, 0.76),   // small pause before
+            (0.50, 0.78),
+            (0.55, 0.79),   // quick burst
+            (0.70, 0.81),
+            (0.95, 0.83),   // longer pause before
+            (1.10, 0.85),
+            (1.20, 0.86),
+            (1.35, 0.88),
+            (1.55, 0.89),   // pause
+            (1.70, 0.91),
+            (1.85, 0.92),
+            (2.00, 0.93),
+        ]
+
+        for increment in sporadicIncrements {
+            DispatchQueue.main.asyncAfter(deadline: .now() + phase2Start + increment.delay) {
+                withAnimation(.easeOut(duration: 0.12)) {
+                    progress = CGFloat(increment.progress)
+                }
+
+                // Update phases during sporadic progress
+                let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
+                if phaseIndex != currentPhase {
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        if currentPhase >= 0 {
+                            _ = completedSteps.insert(currentPhase)
+                        }
+                        currentPhase = phaseIndex
+                    }
+                }
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
+        // PHASE 3: Slow crawl (93% to 100% in 3 seconds)
+        // Dramatic slowdown that builds anticipation
+        let phase3Start: Double = 4.0
+        let phase3Duration: Double = 3.0
+        let crawlSteps: [(delay: Double, progress: Double)] = [
+            (0.0, 0.93),
+            (0.4, 0.94),
+            (0.8, 0.95),
+            (1.3, 0.96),
+            (1.8, 0.97),
+            (2.2, 0.98),
+            (2.6, 0.99),
+            (3.0, 1.00),
+        ]
+
+        for step in crawlSteps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + step.delay) {
+                withAnimation(.easeOut(duration: 0.35)) {
+                    progress = CGFloat(step.progress)
+                }
+            }
+        }
+
+        // Complete final phase
+        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + phase3Duration) {
             withAnimation(.easeInOut(duration: 0.3)) {
                 _ = completedSteps.insert(phaseCount - 1)
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.5) {
+        // Transition to next screen
+        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + phase3Duration + 0.5) {
             onComplete()
         }
     }
