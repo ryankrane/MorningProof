@@ -6,6 +6,7 @@ struct OnboardingView: View {
     @State private var userName = ""
     @State private var selectedHabits: Set<HabitType> = [.madeBed, .sleepDuration, .coldShower, .noSnooze]
     @State private var cutoffMinutes = 540  // 9:00 AM
+    @State private var showCutoffTimePicker = false
     @State private var isRequestingHealth = false
     @State private var healthAuthorized = false
     @FocusState private var isNameFieldFocused: Bool
@@ -108,25 +109,29 @@ struct OnboardingView: View {
 
             // Time settings
             VStack(spacing: MPSpacing.lg) {
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Morning Cutoff")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Deadline to complete habits")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Picker("Cutoff", selection: $cutoffMinutes) {
-                        ForEach(MorningProofSettings.cutoffTimeOptions, id: \.minutes) { option in
-                            Text(option.label).tag(option.minutes)
+                Button {
+                    showCutoffTimePicker = true
+                } label: {
+                    HStack {
+                        VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                            Text("Morning Cutoff")
+                                .font(MPFont.labelMedium())
+                                .foregroundColor(MPColors.textPrimary)
+                            Text("Deadline to complete habits")
+                                .font(MPFont.bodySmall())
+                                .foregroundColor(MPColors.textTertiary)
                         }
+
+                        Spacer()
+
+                        Text(TimeOptions.formatTime(cutoffMinutes))
+                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                            .foregroundColor(MPColors.primary)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.primaryLight)
+                            .cornerRadius(MPRadius.md)
                     }
-                    .pickerStyle(.menu)
-                    .tint(MPColors.primary)
                 }
             }
             .padding(MPSpacing.lg)
@@ -134,6 +139,15 @@ struct OnboardingView: View {
             .cornerRadius(MPRadius.lg)
             .mpShadow(.small)
             .padding(.horizontal, MPSpacing.xxxl)
+            .sheet(isPresented: $showCutoffTimePicker) {
+                TimeWheelPicker(
+                    selectedMinutes: $cutoffMinutes,
+                    title: "Morning Cutoff Time",
+                    subtitle: "Complete your habits by this time to lock in your day",
+                    timeOptions: TimeOptions.cutoffTime
+                )
+                .presentationDetents([.medium])
+            }
 
             Spacer()
 

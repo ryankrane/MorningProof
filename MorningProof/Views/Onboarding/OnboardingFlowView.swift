@@ -1654,6 +1654,7 @@ struct AppLockingOnboardingStep: View {
     @State private var blockingStartMinutes: Int = 360  // 6 AM default suggestion
     @State private var showAuthorizationError = false
     @State private var isRequestingAuth = false
+    @State private var showTimePicker = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1802,32 +1803,45 @@ struct AppLockingOnboardingStep: View {
             }
 
             // Blocking start time
-            HStack {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text("Block apps starting at")
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(MPColors.textPrimary)
+            Button {
+                showTimePicker = true
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Block apps starting at")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MPColors.textPrimary)
 
-                    Text("When should blocking begin?")
-                        .font(.system(size: 13))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-
-                Spacer()
-
-                Picker("Time", selection: $blockingStartMinutes) {
-                    ForEach(blockingStartTimeOptions, id: \.minutes) { option in
-                        Text(option.label).tag(option.minutes)
+                        Text("When should blocking begin?")
+                            .font(.system(size: 13))
+                            .foregroundColor(MPColors.textTertiary)
                     }
+
+                    Spacer()
+
+                    Text(TimeOptions.formatTime(blockingStartMinutes))
+                        .font(.system(size: 17, weight: .medium, design: .rounded))
+                        .foregroundColor(MPColors.primary)
+                        .padding(.horizontal, MPSpacing.md)
+                        .padding(.vertical, MPSpacing.sm)
+                        .background(MPColors.primaryLight)
+                        .cornerRadius(MPRadius.md)
                 }
-                .pickerStyle(.menu)
-                .tint(MPColors.primary)
             }
             .padding(MPSpacing.lg)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
         }
         .padding(.horizontal, MPSpacing.xl)
+        .sheet(isPresented: $showTimePicker) {
+            TimeWheelPicker(
+                selectedMinutes: $blockingStartMinutes,
+                title: "Block Apps Starting At",
+                subtitle: "Apps will be blocked until you complete your morning habits",
+                timeOptions: TimeOptions.blockingStartTime
+            )
+            .presentationDetents([.medium])
+        }
     }
 
     private func benefitRow(icon: String, text: String) -> some View {
@@ -1837,16 +1851,6 @@ struct AppLockingOnboardingStep: View {
             Text(text)
                 .font(.system(size: 15))
                 .foregroundColor(MPColors.textPrimary)
-        }
-    }
-
-    private var blockingStartTimeOptions: [(minutes: Int, label: String)] {
-        stride(from: 240, through: 600, by: 30).map { mins in
-            let hour = mins / 60
-            let minute = mins % 60
-            let period = hour >= 12 ? "PM" : "AM"
-            let displayHour = hour > 12 ? hour - 12 : (hour == 0 ? 12 : hour)
-            return (mins, String(format: "%d:%02d %@", displayHour, minute, period))
         }
     }
 
@@ -2518,40 +2522,6 @@ struct HardPaywallStep: View {
 }
 
 // MARK: - Reusable Components
-
-struct OnboardingFeatureRow: View {
-    let title: String
-    let subtitle: String
-    var icon: String = "checkmark"
-
-    var body: some View {
-        HStack(alignment: .top, spacing: MPSpacing.lg) {
-            // Gold circle with checkmark
-            ZStack {
-                Circle()
-                    .fill(MPColors.accent)
-                    .frame(width: 28, height: 28)
-
-                Image(systemName: icon)
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(.white)
-            }
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text(title)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text(subtitle)
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer()
-        }
-    }
-}
 
 struct OnboardingOptionButton: View {
     let title: String

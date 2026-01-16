@@ -36,6 +36,10 @@ struct MorningProofSettingsView: View {
     // Test celebration
     @State private var showTestCelebration = false
 
+    // Time picker sheets
+    @State private var showCutoffTimePicker = false
+    @State private var showReminderTimePicker = false
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -221,32 +225,45 @@ struct MorningProofSettingsView: View {
         settingsSection(title: "Morning Routine", icon: "sunrise.fill") {
             VStack(spacing: 0) {
                 // Cutoff time
-                HStack {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: MPIconSize.sm))
-                        .foregroundColor(MPColors.primary)
-                        .frame(width: 30)
+                Button {
+                    showCutoffTimePicker = true
+                } label: {
+                    HStack {
+                        Image(systemName: "clock.fill")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 30)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Cutoff Time")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Complete habits by this time")
-                            .font(MPFont.labelTiny())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Picker("Cutoff", selection: $cutoffMinutes) {
-                        ForEach(MorningProofSettings.cutoffTimeOptions, id: \.minutes) { option in
-                            Text(option.label).tag(option.minutes)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Cutoff Time")
+                                .font(MPFont.bodyMedium())
+                                .foregroundColor(MPColors.textPrimary)
+                            Text("Complete habits by this time")
+                                .font(MPFont.labelTiny())
+                                .foregroundColor(MPColors.textTertiary)
                         }
+
+                        Spacer()
+
+                        Text(TimeOptions.formatTime(cutoffMinutes))
+                            .font(.system(size: 17, weight: .medium, design: .rounded))
+                            .foregroundColor(MPColors.primary)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.primaryLight)
+                            .cornerRadius(MPRadius.md)
                     }
-                    .pickerStyle(.menu)
-                    .tint(MPColors.primary)
                 }
                 .padding(.vertical, MPSpacing.sm)
+                .sheet(isPresented: $showCutoffTimePicker) {
+                    TimeWheelPicker(
+                        selectedMinutes: $cutoffMinutes,
+                        title: "Morning Cutoff Time",
+                        subtitle: "Complete your habits by this time to lock in your day",
+                        timeOptions: TimeOptions.cutoffTime
+                    )
+                    .presentationDetents([.medium])
+                }
 
                 Divider()
                     .padding(.leading, 46)
@@ -404,25 +421,38 @@ struct MorningProofSettingsView: View {
                     Divider()
 
                     // Morning reminder time
-                    HStack {
-                        VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                            Text("Morning Reminder")
-                                .font(MPFont.labelMedium())
-                                .foregroundColor(MPColors.textPrimary)
-                            Text("Wake up notification")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Picker("Time", selection: $morningReminderTime) {
-                            ForEach(NotificationManager.reminderTimeOptions, id: \.minutes) { option in
-                                Text(option.label).tag(option.minutes)
+                    Button {
+                        showReminderTimePicker = true
+                    } label: {
+                        HStack {
+                            VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                                Text("Morning Reminder")
+                                    .font(MPFont.labelMedium())
+                                    .foregroundColor(MPColors.textPrimary)
+                                Text("Wake up notification")
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.textTertiary)
                             }
+
+                            Spacer()
+
+                            Text(TimeOptions.formatTime(morningReminderTime))
+                                .font(.system(size: 17, weight: .medium, design: .rounded))
+                                .foregroundColor(MPColors.primary)
+                                .padding(.horizontal, MPSpacing.md)
+                                .padding(.vertical, MPSpacing.sm)
+                                .background(MPColors.primaryLight)
+                                .cornerRadius(MPRadius.md)
                         }
-                        .pickerStyle(.menu)
-                        .tint(MPColors.primary)
+                    }
+                    .sheet(isPresented: $showReminderTimePicker) {
+                        TimeWheelPicker(
+                            selectedMinutes: $morningReminderTime,
+                            title: "Morning Reminder",
+                            subtitle: "When should we remind you to start your morning routine?",
+                            timeOptions: TimeOptions.reminderTime
+                        )
+                        .presentationDetents([.medium])
                     }
 
                     Divider()
@@ -626,6 +656,54 @@ struct MorningProofSettingsView: View {
                         .foregroundColor(MPColors.textTertiary)
                 }
                 .padding(.vertical, MPSpacing.sm)
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Privacy Policy link
+                Link(destination: URL(string: "https://ryankrane.github.io/morningproof-legal/privacy.html")!) {
+                    HStack {
+                        Image(systemName: "hand.raised.fill")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 30)
+
+                        Text("Privacy Policy")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Spacer()
+
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                }
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Terms of Service link
+                Link(destination: URL(string: "https://ryankrane.github.io/morningproof-legal/terms.html")!) {
+                    HStack {
+                        Image(systemName: "doc.text.fill")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 30)
+
+                        Text("Terms of Service")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Spacer()
+
+                        Image(systemName: "arrow.up.right")
+                            .font(.caption)
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                }
 
                 Divider()
                     .padding(.leading, 46)

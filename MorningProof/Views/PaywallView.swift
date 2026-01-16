@@ -196,6 +196,16 @@ struct PaywallView: View {
                 .foregroundColor(MPColors.textTertiary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, MPSpacing.xl)
+
+            HStack(spacing: MPSpacing.lg) {
+                Link("Privacy Policy", destination: URL(string: "https://ryankrane.github.io/morningproof-legal/privacy.html")!)
+                    .font(MPFont.labelTiny())
+                    .foregroundColor(MPColors.textTertiary)
+
+                Link("Terms of Service", destination: URL(string: "https://ryankrane.github.io/morningproof-legal/terms.html")!)
+                    .font(MPFont.labelTiny())
+                    .foregroundColor(MPColors.textTertiary)
+            }
         }
     }
 

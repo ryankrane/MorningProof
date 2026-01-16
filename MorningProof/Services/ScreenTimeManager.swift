@@ -147,6 +147,14 @@ final class ScreenTimeManager: ObservableObject {
 
             // Sync blocking start time to App Group for extension access
             AppLockingDataStore.blockingStartMinutes = startMinutes
+            AppLockingDataStore.appLockingEnabled = true
+
+            // If we're already in the blocking window, apply shields immediately
+            // This handles the case where user enables app locking after the start time has passed
+            if AppLockingDataStore.shouldApplyShields() && !AppLockingDataStore.hasLockedInToday {
+                applyShields()
+                MPLogger.info("Applied shields immediately (already in blocking window)", category: MPLogger.screenTime)
+            }
 
             MPLogger.info("Started morning blocking schedule (\(startHour):\(String(format: "%02d", startMinute)) - \(cutoffHour):\(String(format: "%02d", cutoffMinute)))", category: MPLogger.screenTime)
         } catch {

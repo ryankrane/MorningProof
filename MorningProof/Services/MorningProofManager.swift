@@ -61,6 +61,22 @@ final class MorningProofManager: ObservableObject, Sendable {
 
         // Check for emergency unlock (user bypassed app blocking)
         checkForEmergencyUnlock()
+
+        // Ensure shields are applied if we're in the blocking window
+        ensureShieldsAppliedIfNeeded()
+    }
+
+    /// Ensures app shields are applied if the user is in the blocking window.
+    /// This handles edge cases like app being force-quit during blocking.
+    private func ensureShieldsAppliedIfNeeded() {
+        guard settings.appLockingEnabled else { return }
+        guard AppLockingDataStore.shouldApplyShields() else { return }
+        guard !AppLockingDataStore.hasLockedInToday else { return }
+
+        // We're in the blocking window but shields might not be applied
+        // (e.g., app was force-quit, or device was restarted)
+        ScreenTimeManager.shared.applyShields()
+        MPLogger.info("Applied shields on app launch (in blocking window)", category: MPLogger.screenTime)
     }
 
     /// Checks if the user performed an emergency unlock (bypassed app blocking).
