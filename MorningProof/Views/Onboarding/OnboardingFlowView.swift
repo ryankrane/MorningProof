@@ -135,8 +135,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 19
-    private let paywallStep = 18
+    private let totalSteps = 18
+    private let paywallStep = 17
 
     var body: some View {
         ZStack {
@@ -179,8 +179,7 @@ struct OnboardingFlowView: View {
                         case 14: OptionalRatingStep(onContinue: nextStep)
                         case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
                         case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                        case 17: SocialProofFinalStep(onContinue: nextStep)
-                        case 18: HardPaywallStep(
+                        case 17: HardPaywallStep(
                             subscriptionManager: subscriptionManager,
                             onSubscribe: completeOnboarding,
                             onSkip: completeOnboarding // Testing only - remove before release
@@ -2131,7 +2130,7 @@ struct AnalyzingStep: View {
         }
 
         // Show social proof after a delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
             withAnimation(.easeOut(duration: 0.5)) {
                 showSocialProof = true
             }
@@ -2143,7 +2142,7 @@ struct AnalyzingStep: View {
     }
 
     private func startSmoothProgress() {
-        let totalDuration: Double = 4.0
+        let totalDuration: Double = 8.0
         let phaseCount = phases.count
         let phaseDuration = totalDuration / Double(phaseCount)
 
@@ -2307,7 +2306,7 @@ struct YourHabitsStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+            MPButton(title: "Let's Get Started", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
