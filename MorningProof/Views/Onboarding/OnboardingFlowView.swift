@@ -9,7 +9,7 @@ import SuperwallKit
 class OnboardingData: ObservableObject {
     @Published var userName: String = ""
     @Published var gender: Gender? = nil
-    @Published var morningStruggle: MorningStruggle? = nil
+    @Published var morningStruggles: Set<MorningStruggle> = []
     @Published var trackingStatus: TrackingStatus? = nil
     @Published var primaryGoal: PrimaryGoal? = nil
     @Published var obstacles: Set<Obstacle> = []
@@ -554,7 +554,7 @@ struct MorningStruggleStep: View {
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
 
-                Text("We'll help you overcome it")
+                Text("Select all that apply")
                     .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
@@ -566,9 +566,13 @@ struct MorningStruggleStep: View {
                     OnboardingGridButton(
                         title: struggle.rawValue,
                         icon: struggle.icon,
-                        isSelected: data.morningStruggle == struggle
+                        isSelected: data.morningStruggles.contains(struggle)
                     ) {
-                        data.morningStruggle = struggle
+                        if data.morningStruggles.contains(struggle) {
+                            data.morningStruggles.remove(struggle)
+                        } else {
+                            data.morningStruggles.insert(struggle)
+                        }
                     }
                 }
             }
@@ -576,7 +580,7 @@ struct MorningStruggleStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary, isDisabled: data.morningStruggle == nil) {
+            MPButton(title: "Continue", style: .primary, isDisabled: data.morningStruggles.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -894,8 +898,7 @@ struct TrackingComparisonStep: View {
 
                 StatisticRingCard(
                     percentage: 88,
-                    label: "success rate",
-                    comparisonText: "vs 35% who don't track"
+                    label: "build lasting habits"
                 )
                 .padding(.horizontal, MPSpacing.xxl)
 
@@ -911,9 +914,9 @@ struct TrackingComparisonStep: View {
 
                 // Supporting pills
                 HStack(spacing: MPSpacing.sm) {
-                    StatPillView(value: "42%", label: "hit their goals", icon: "target")
-                    StatPillView(value: "3.1x", label: "better follow-through", icon: "checkmark.circle.fill")
-                    StatPillView(value: "91%", label: "w/ accountability", icon: "person.2.fill")
+                    StatPillView(value: "10 days", label: "to transform", icon: "bolt.fill")
+                    StatPillView(value: "35 days", label: "avg streak", icon: "flame.fill")
+                    StatPillView(value: "96%", label: "recommend it", icon: "hand.thumbsup.fill")
                 }
                 .padding(.horizontal, MPSpacing.lg)
                 .opacity(showPills ? 1 : 0)
