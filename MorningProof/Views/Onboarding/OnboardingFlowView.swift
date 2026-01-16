@@ -157,7 +157,7 @@ struct OnboardingFlowView: View {
                         switch currentStep {
                         // Phase 1: Hook & Personalization
                         case 0: WelcomeHeroStep(onContinue: nextStep)
-                        case 1: NameStep(data: onboardingData, onContinue: nextStep, onSkip: completeOnboarding)
+                        case 1: NameStep(data: onboardingData, onContinue: nextStep)
                         case 2: GenderStep(data: onboardingData, onContinue: nextStep)
                         case 3: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
 
@@ -178,11 +178,10 @@ struct OnboardingFlowView: View {
                         // Phase 4: Habits & Paywall
                         case 14: OptionalRatingStep(onContinue: nextStep)
                         case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep, onSkip: completeOnboarding)  // onSkip is testing only - remove before release
+                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
                         case 17: HardPaywallStep(
                             subscriptionManager: subscriptionManager,
-                            onSubscribe: completeOnboarding,
-                            onSkip: completeOnboarding // Testing only - remove before release
+                            onSubscribe: completeOnboarding
                         )
 
                         default: EmptyView()
@@ -388,13 +387,11 @@ struct WelcomeHeroStep: View {
 struct NameStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
-    let onSkip: () -> Void
     @FocusState private var isNameFocused: Bool
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 0) {
-                Spacer()
+        VStack(spacing: 0) {
+            Spacer()
 
             VStack(spacing: MPSpacing.lg) {
                 Image(systemName: "person.circle.fill")
@@ -450,21 +447,8 @@ struct NameStep: View {
                         .foregroundColor(MPColors.textTertiary)
                 }
             }
-                .padding(.horizontal, MPSpacing.xxxl)
-                .padding(.bottom, 50)
-            }
-
-            // Skip button in top right
-            Button {
-                isNameFocused = false
-                onSkip()
-            } label: {
-                Text("Skip")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(MPColors.textTertiary)
-            }
-            .padding(.top, MPSpacing.lg)
-            .padding(.trailing, MPSpacing.xl)
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -2530,26 +2514,24 @@ struct AnalyzingPhaseRow: View {
 struct YourHabitsStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
-    let onSkip: () -> Void  // Testing only - remove before release
     @State private var showContent = false
 
     private let recommendedHabits: [HabitType] = [.madeBed, .morningWorkout, .sleepDuration, .coldShower]
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 0) {
-                Spacer()
+        VStack(spacing: 0) {
+            Spacer()
 
-                VStack(spacing: MPSpacing.md) {
-                    Text("Build Your Daily Habits")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.md) {
+                Text("Build Your Daily Habits")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
 
-                    Text("Here's your personalized routine")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                .opacity(showContent ? 1 : 0)
+                Text("Here's your personalized routine")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .opacity(showContent ? 1 : 0)
 
             Spacer().frame(height: MPSpacing.xxl)
 
@@ -2582,23 +2564,11 @@ struct YourHabitsStep: View {
 
             Spacer()
 
-                MPButton(title: "Let's Get Started", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
-                    onContinue()
-                }
-                .padding(.horizontal, MPSpacing.xxxl)
-                .padding(.bottom, 50)
+            MPButton(title: "Let's Get Started", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+                onContinue()
             }
-
-            // Skip button - Testing only, remove before release
-            Button {
-                onSkip()
-            } label: {
-                Text("Skip")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(MPColors.textTertiary)
-            }
-            .padding(.top, MPSpacing.lg)
-            .padding(.trailing, MPSpacing.xl)
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
         }
         .onAppear {
             // Pre-select recommended habits
@@ -2761,9 +2731,14 @@ struct SocialProofFinalStep: View {
 struct HardPaywallStep: View {
     @ObservedObject var subscriptionManager: SubscriptionManager
     let onSubscribe: () -> Void
-    let onSkip: () -> Void // TESTING ONLY - REMOVE BEFORE RELEASE
 
     @State private var hasShownPaywall = false
+
+    /// Detects if app is running from TestFlight
+    private var isTestFlight: Bool {
+        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
+        return receiptURL.lastPathComponent == "sandboxReceipt"
+    }
 
     var body: some View {
         ZStack {
@@ -2781,19 +2756,16 @@ struct HardPaywallStep: View {
                     .foregroundColor(MPColors.textSecondary)
 
                 Spacer()
-
-                // Skip button - TESTING ONLY - REMOVE BEFORE RELEASE
-                Button {
-                    onSkip()
-                } label: {
-                    Text("Skip (Testing Only)")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-                .padding(.bottom, MPSpacing.xxl)
             }
         }
         .onAppear {
+            // Auto-skip paywall for TestFlight builds
+            if isTestFlight {
+                print("📱 TestFlight detected - skipping paywall")
+                onSubscribe()
+                return
+            }
+
             showSuperwallPaywall()
         }
     }
@@ -2803,26 +2775,38 @@ struct HardPaywallStep: View {
         hasShownPaywall = true
 
         let handler = PaywallPresentationHandler()
-        handler.onDismiss { [self] info, result in
-            switch result {
-            case .purchased:
-                // User subscribed - complete onboarding
-                Task { @MainActor in
+
+        handler.onDismiss { info, result in
+            Task { @MainActor in
+                switch result {
+                case .purchased:
                     await subscriptionManager.updateSubscriptionStatus()
                     onSubscribe()
-                }
-            case .restored:
-                // User restored - complete onboarding
-                Task { @MainActor in
+                case .restored:
                     await subscriptionManager.updateSubscriptionStatus()
                     onSubscribe()
-                }
-            case .declined:
-                // User closed without purchasing - show paywall again
-                hasShownPaywall = false
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                case .declined:
+                    // User closed without purchasing - show paywall again
+                    hasShownPaywall = false
+                    try? await Task.sleep(nanoseconds: 500_000_000)
                     showSuperwallPaywall()
                 }
+            }
+        }
+
+        handler.onSkip { reason in
+            Task { @MainActor in
+                // Paywall was skipped by Superwall (no products, not in experiment, etc.)
+                // Complete onboarding anyway
+                onSubscribe()
+            }
+        }
+
+        handler.onError { error in
+            Task { @MainActor in
+                print("⚠️ Superwall error: \(error)")
+                // On error, complete onboarding anyway
+                onSubscribe()
             }
         }
 

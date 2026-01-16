@@ -157,7 +157,7 @@ struct PaywallView: View {
                         ProgressView()
                             .tint(.white)
                     } else {
-                        Text("Start 7-Day Free Trial")
+                        Text("Subscribe")
                             .fontWeight(.semibold)
                     }
                 }
@@ -171,7 +171,7 @@ struct PaywallView: View {
             }
             .disabled(isPurchasing)
 
-            Text("Then \(selectedPlan == .yearly ? subscriptionManager.yearlyPrice : subscriptionManager.monthlyPrice)\(selectedPlan == .yearly ? "/year" : "/month")")
+            Text("\(selectedPlan == .yearly ? subscriptionManager.yearlyPrice : subscriptionManager.monthlyPrice)\(selectedPlan == .yearly ? "/year" : "/month")")
                 .font(MPFont.bodySmall())
                 .foregroundColor(MPColors.textTertiary)
         }

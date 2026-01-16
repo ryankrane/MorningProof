@@ -18,41 +18,17 @@ class SubscriptionManager: ObservableObject {
     @Published private(set) var subscriptionStatus: SubscriptionStatus = .none
     @Published private(set) var isLoading = false
 
-    // Trial tracking
-    @Published var trialStartDate: Date?
-    @Published var trialEndDate: Date?
     @Published var freeRecoveriesUsedThisMonth: Int = 0
 
     // MARK: - Subscription Status
     enum SubscriptionStatus: Equatable {
         case none
-        case trial(daysRemaining: Int)
         case premium
-        case expired
     }
 
     // MARK: - Premium Features
     var isPremium: Bool {
-        switch subscriptionStatus {
-        case .premium, .trial:
-            return true
-        case .none, .expired:
-            return false
-        }
-    }
-
-    var isInTrial: Bool {
-        if case .trial = subscriptionStatus {
-            return true
-        }
-        return false
-    }
-
-    var trialDaysRemaining: Int {
-        if case .trial(let days) = subscriptionStatus {
-            return days
-        }
-        return 0
+        subscriptionStatus == .premium
     }
 
     // MARK: - Feature Limits (Free Tier)
@@ -69,8 +45,6 @@ class SubscriptionManager: ObservableObject {
     private let userDefaults = UserDefaults.standard
 
     // UserDefaults Keys
-    private let trialStartKey = "morningproof_trial_start"
-    private let trialEndKey = "morningproof_trial_end"
     private let aiVerificationsKey = "morningproof_ai_verifications_count"
     private let aiVerificationsMonthKey = "morningproof_ai_verifications_month"
     private let freeRecoveriesKey = "morningproof_free_recoveries_used"
@@ -79,7 +53,6 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Initialization
 
     init() {
-        loadTrialData()
         loadUsageData()
 
         updateListenerTask = listenForTransactions()
@@ -184,43 +157,9 @@ class SubscriptionManager: ObservableObject {
 
         if hasActiveSubscription {
             subscriptionStatus = .premium
-        } else if let trialEnd = trialEndDate {
-            let now = Date()
-            if now < trialEnd {
-                let daysRemaining = Calendar.current.dateComponents([.day], from: now, to: trialEnd).day ?? 0
-                subscriptionStatus = .trial(daysRemaining: max(0, daysRemaining))
-            } else {
-                subscriptionStatus = .expired
-            }
         } else {
-            // Check if this is a new user - start trial
-            if trialStartDate == nil {
-                startTrial()
-            } else {
-                subscriptionStatus = .none
-            }
+            subscriptionStatus = .none
         }
-    }
-
-    // MARK: - Trial Management
-
-    func startTrial() {
-        let now = Date()
-        guard let trialEnd = Calendar.current.date(byAdding: .day, value: 7, to: now) else { return }
-
-        trialStartDate = now
-        trialEndDate = trialEnd
-
-        userDefaults.set(now, forKey: trialStartKey)
-        userDefaults.set(trialEnd, forKey: trialEndKey)
-
-        let daysRemaining = 7
-        subscriptionStatus = .trial(daysRemaining: daysRemaining)
-    }
-
-    private func loadTrialData() {
-        trialStartDate = userDefaults.object(forKey: trialStartKey) as? Date
-        trialEndDate = userDefaults.object(forKey: trialEndKey) as? Date
     }
 
     // MARK: - Usage Tracking
