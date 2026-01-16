@@ -53,17 +53,47 @@ struct MorningRoutineSettingsSheet: View {
             .onAppear {
                 loadSettings()
             }
-            .alert(
-                showingHabitInfo?.displayName ?? "",
-                isPresented: Binding(
-                    get: { showingHabitInfo != nil },
-                    set: { if !$0 { showingHabitInfo = nil } }
-                )
-            ) {
-                Button("Got it", role: .cancel) { }
-            } message: {
-                Text(showingHabitInfo?.howItWorksDetailed ?? "")
+            .overlay {
+                // Custom popup overlay
+                if let habitInfo = showingHabitInfo {
+                    ZStack {
+                        // Dimmed background - tap to dismiss
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                showingHabitInfo = nil
+                            }
+
+                        // Popup card
+                        VStack(spacing: MPSpacing.md) {
+                            // Header with icon and title
+                            HStack(spacing: MPSpacing.sm) {
+                                Image(systemName: habitInfo.icon)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(MPColors.primary)
+
+                                Text(habitInfo.displayName)
+                                    .font(MPFont.labelLarge())
+                                    .foregroundColor(MPColors.textPrimary)
+                            }
+
+                            // Description
+                            Text(habitInfo.howItWorksDetailed)
+                                .font(MPFont.bodyMedium())
+                                .foregroundColor(MPColors.textSecondary)
+                                .multilineTextAlignment(.center)
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                        .padding(MPSpacing.xl)
+                        .background(MPColors.surface)
+                        .cornerRadius(MPRadius.lg)
+                        .mpShadow(.medium)
+                        .padding(.horizontal, MPSpacing.xxl)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    }
+                }
             }
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingHabitInfo)
         }
     }
 
@@ -110,12 +140,15 @@ struct MorningRoutineSettingsSheet: View {
     // MARK: - Habits Section
 
     var habitsSection: some View {
-        sectionContainer(title: "Habits", icon: "checkmark.circle.fill") {
+        // Sort habits by verification tier so similar habits are grouped together
+        let sortedConfigs = manager.habitConfigs.sorted { $0.habitType.tier.rawValue < $1.habitType.tier.rawValue }
+
+        return sectionContainer(title: "Habits", icon: "checkmark.circle.fill") {
             VStack(spacing: 0) {
-                ForEach(manager.habitConfigs) { config in
+                ForEach(sortedConfigs) { config in
                     habitToggleRow(config: config)
 
-                    if config.id != manager.habitConfigs.last?.id {
+                    if config.id != sortedConfigs.last?.id {
                         Divider()
                             .padding(.leading, 46)
                     }

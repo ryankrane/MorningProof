@@ -1,6 +1,21 @@
 import Foundation
 import SwiftData
 
+// Functional category for grouping habits in settings
+enum HabitCategory: String, CaseIterable {
+    case wakeUp = "Wake Up"
+    case movement = "Movement"
+    case wellness = "Wellness"
+
+    var icon: String {
+        switch self {
+        case .wakeUp: return "sunrise.fill"
+        case .movement: return "figure.run"
+        case .wellness: return "heart.fill"
+        }
+    }
+}
+
 // Verification tier determines how the habit is confirmed
 enum HabitVerificationTier: Int, Codable, CaseIterable {
     case aiVerified = 1      // Requires AI analysis (e.g., bed photo)
@@ -12,6 +27,22 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
         case .aiVerified: return "AI Verified"
         case .autoTracked: return "Apple Health"
         case .honorSystem: return "Honor System"
+        }
+    }
+
+    var sectionTitle: String {
+        switch self {
+        case .aiVerified: return "Photo Verified"
+        case .autoTracked: return "Apple Health"
+        case .honorSystem: return "Hold to Confirm"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .aiVerified: return "camera.fill"
+        case .autoTracked: return "heart.fill"
+        case .honorSystem: return "hand.tap.fill"
         }
     }
 }
@@ -66,6 +97,14 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .madeBed, .sunlightExposure, .hydration: return .aiVerified
         case .morningSteps, .sleepDuration, .morningWorkout: return .autoTracked
         case .coldShower, .noSnooze, .morningStretch, .meditation: return .honorSystem
+        }
+    }
+
+    var category: HabitCategory {
+        switch self {
+        case .noSnooze, .madeBed, .sleepDuration: return .wakeUp
+        case .morningStretch, .morningWorkout, .morningSteps: return .movement
+        case .meditation, .coldShower, .sunlightExposure, .hydration: return .wellness
         }
     }
 
