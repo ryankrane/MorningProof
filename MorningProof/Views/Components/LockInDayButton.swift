@@ -10,8 +10,9 @@ struct LockInDayButton: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.3
     @State private var shimmerOffset: CGFloat = -1.0
-    @State private var lockedShimmerOffset: CGFloat = -1.0
     @State private var lockedGlowPulse: CGFloat = 0.4
+    @State private var holdStartTime: Date?
+    @State private var holdTimer: Timer?
 
     private let holdDuration: Double = 0.75
     private let buttonWidth: CGFloat = 220
@@ -96,20 +97,6 @@ struct LockInDayButton: View {
                     .clipShape(Capsule().size(width: buttonWidth, height: buttonHeight))
             }
 
-            // Celebratory shimmer for locked state - more prominent shine
-            if isLockedIn {
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [.clear, .white.opacity(0.35), .white.opacity(0.5), .white.opacity(0.35), .clear],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-                    .frame(width: 80, height: buttonHeight)
-                    .offset(x: lockedShimmerOffset * (buttonWidth / 2))
-                    .clipShape(Capsule().size(width: buttonWidth, height: buttonHeight))
-            }
 
             // Border
             Capsule()
@@ -126,7 +113,6 @@ struct LockInDayButton: View {
                     .font(.system(size: 22, weight: .semibold))
                     .foregroundStyle(iconColor)
                     .scaleEffect(x: isLockedIn ? 1 : -1, y: 1)
-                    .rotationEffect(.degrees(isLockedIn ? -15 : 0))
 
                 // Label text
                 Text(buttonText)
@@ -139,7 +125,7 @@ struct LockInDayButton: View {
         .animation(.easeInOut(duration: 0.15), value: isHolding)
         .opacity(isEnabled || isLockedIn ? 1.0 : 0.6)
         .gesture(
-            isEnabled && !isLockedIn ? longPressGesture : nil
+            isEnabled && !isLockedIn ? holdGesture : nil
         )
         .onAppear {
             if isEnabled && !isLockedIn {
@@ -203,68 +189,95 @@ struct LockInDayButton: View {
 
     // MARK: - Gestures
 
-    private var longPressGesture: some Gesture {
-        LongPressGesture(minimumDuration: holdDuration)
+    private var holdGesture: some Gesture {
+        DragGesture(minimumDistance: 0)
             .onChanged { _ in
                 if !isHolding {
                     startHold()
                 }
             }
             .onEnded { _ in
-                completeHold()
+                endHold()
             }
-            .simultaneously(with:
-                DragGesture(minimumDistance: 0)
-                    .onEnded { _ in
-                        if isHolding && holdProgress < 1.0 {
-                            cancelHold()
-                        }
-                    }
-            )
     }
 
     // MARK: - Hold Logic
 
     private func startHold() {
         isHolding = true
+        holdProgress = 0
+        holdStartTime = Date()
+
+        // Initial haptic
         HapticManager.shared.light()
 
+        // Animate progress
         withAnimation(.linear(duration: holdDuration)) {
             holdProgress = 1.0
         }
-        startHoldTicks()
+
+        // Start timer for haptic ticks and completion check
+        let tickInterval = 0.1
+        holdTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { timer in
+            guard isHolding, let startTime = holdStartTime else {
+                timer.invalidate()
+                return
+            }
+
+            let elapsed = Date().timeIntervalSince(startTime)
+
+            // Haptic tick every ~0.15s
+            if Int(elapsed / 0.15) > Int((elapsed - tickInterval) / 0.15) {
+                HapticManager.shared.light()
+            }
+
+            // Check if hold duration is complete
+            if elapsed >= holdDuration {
+                timer.invalidate()
+                completeHold()
+            }
+        }
+    }
+
+    private func endHold() {
+        holdTimer?.invalidate()
+        holdTimer = nil
+
+        if isHolding {
+            // Check if hold was long enough
+            if let startTime = holdStartTime {
+                let elapsed = Date().timeIntervalSince(startTime)
+                if elapsed >= holdDuration {
+                    completeHold()
+                    return
+                }
+            }
+            // Not long enough - cancel with haptic
+            cancelHold()
+        }
     }
 
     private func completeHold() {
-        guard isHolding && holdProgress >= 0.95 else {
-            cancelHold()
-            return
-        }
+        guard isHolding else { return }
 
         isHolding = false
         holdProgress = 0
+        holdStartTime = nil
+        HapticManager.shared.success()
         onLockIn()
     }
 
     private func cancelHold() {
         isHolding = false
+        holdStartTime = nil
+
+        // Animate progress back to 0
         withAnimation(.easeOut(duration: 0.2)) {
             holdProgress = 0
         }
+
+        // Haptic feedback on cancel
         HapticManager.shared.light()
-    }
-
-    private func startHoldTicks() {
-        let tickInterval = 0.15
-        let tickCount = Int(holdDuration / tickInterval)
-
-        for i in 1..<tickCount {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * tickInterval) {
-                if isHolding {
-                    HapticManager.shared.light()
-                }
-            }
-        }
     }
 
     // MARK: - Idle Animations
@@ -291,12 +304,6 @@ struct LockInDayButton: View {
         // Celebratory glow pulse - subtle breathing effect
         withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
             lockedGlowPulse = 0.7
-        }
-
-        // Slower, more elegant shimmer for locked state
-        lockedShimmerOffset = -1.5
-        withAnimation(.linear(duration: 3.0).repeatForever(autoreverses: false)) {
-            lockedShimmerOffset = 1.5
         }
     }
 }

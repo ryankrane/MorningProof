@@ -10,6 +10,8 @@ struct DashboardView: View {
     @State private var showHabitEditor = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
     @State private var isHoldingHabit: HabitType? = nil
+    @State private var holdStartTime: [HabitType: Date] = [:]
+    @State private var holdTimers: [HabitType: Timer] = [:]
 
     // Side menu state
     @State private var showSideMenu = false
@@ -455,44 +457,18 @@ struct DashboardView: View {
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
         // Make entire row tappable for hold-to-complete habits
         .contentShape(Rectangle())
-        .onLongPressGesture(
-            minimumDuration: 1.0,
-            pressing: { isPressing in
-                // Only handle for hold-to-complete habits that aren't completed
-                guard isHoldType && !isCompleted else { return }
-
-                if isPressing {
-                    // Started pressing
-                    isHoldingHabit = config.habitType
-                    HapticManager.shared.lightTap()
-
-                    // Animate green fill across the row
-                    withAnimation(.linear(duration: 1.0)) {
-                        holdProgress[config.habitType] = 1.0
-                    }
-                } else {
-                    // Released before completion - smoothly unwind the green fill
-                    let currentProgress = holdProgress[config.habitType] ?? 0
-                    if isHoldingHabit == config.habitType && currentProgress < 1.0 {
-                        isHoldingHabit = nil
-                        // Animate back proportionally - takes longer if more progress was made
-                        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
-                        withAnimation(.easeOut(duration: unwindDuration)) {
-                            holdProgress[config.habitType] = 0
-                        }
-                        HapticManager.shared.lightTap()
+        .gesture(
+            isHoldType && !isCompleted ?
+            DragGesture(minimumDistance: 0)
+                .onChanged { _ in
+                    if isHoldingHabit != config.habitType {
+                        startHabitHold(config.habitType)
                     }
                 }
-            },
-            perform: {
-                // Only complete for hold-to-complete habits that aren't completed
-                guard isHoldType && !isCompleted else { return }
-
-                HapticManager.shared.success()
-                completeHabitWithCelebration(config.habitType)
-                holdProgress[config.habitType] = 0
-                isHoldingHabit = nil
-            }
+                .onEnded { _ in
+                    endHabitHold(config.habitType, isCompleted: isCompleted)
+                }
+            : nil
         )
         .overlay(
             // Mini confetti overlay
@@ -539,6 +515,95 @@ struct DashboardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedHabits.remove(habitType)
         }
+    }
+
+    // MARK: - Habit Hold Gesture Handling
+
+    private let habitHoldDuration: Double = 1.0
+
+    private func startHabitHold(_ habitType: HabitType) {
+        isHoldingHabit = habitType
+        holdProgress[habitType] = 0
+        holdStartTime[habitType] = Date()
+
+        // Initial haptic feedback
+        HapticManager.shared.lightTap()
+
+        // Animate progress
+        withAnimation(.linear(duration: habitHoldDuration)) {
+            holdProgress[habitType] = 1.0
+        }
+
+        // Start timer for haptic ticks and completion check
+        let tickInterval = 0.1
+        let timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [self] t in
+            guard isHoldingHabit == habitType, let startTime = holdStartTime[habitType] else {
+                t.invalidate()
+                holdTimers[habitType] = nil
+                return
+            }
+
+            let elapsed = Date().timeIntervalSince(startTime)
+
+            // Haptic tick every ~0.2s
+            if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {
+                HapticManager.shared.lightTap()
+            }
+
+            // Check if hold duration is complete
+            if elapsed >= habitHoldDuration {
+                t.invalidate()
+                holdTimers[habitType] = nil
+                completeHabitHold(habitType)
+            }
+        }
+        holdTimers[habitType] = timer
+    }
+
+    private func endHabitHold(_ habitType: HabitType, isCompleted: Bool) {
+        // Cancel the timer
+        holdTimers[habitType]?.invalidate()
+        holdTimers[habitType] = nil
+
+        guard isHoldingHabit == habitType else { return }
+
+        // Check if hold was long enough
+        if let startTime = holdStartTime[habitType] {
+            let elapsed = Date().timeIntervalSince(startTime)
+            if elapsed >= habitHoldDuration {
+                completeHabitHold(habitType)
+                return
+            }
+        }
+
+        // Not long enough - cancel with haptic and animate back
+        cancelHabitHold(habitType)
+    }
+
+    private func completeHabitHold(_ habitType: HabitType) {
+        guard isHoldingHabit == habitType else { return }
+
+        isHoldingHabit = nil
+        holdStartTime[habitType] = nil
+        holdProgress[habitType] = 0
+
+        // Complete the habit with celebration
+        completeHabitWithCelebration(habitType)
+    }
+
+    private func cancelHabitHold(_ habitType: HabitType) {
+        isHoldingHabit = nil
+        holdStartTime[habitType] = nil
+
+        // Animate progress back to 0
+        let currentProgress = holdProgress[habitType] ?? 0
+        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
+        withAnimation(.easeOut(duration: unwindDuration)) {
+            holdProgress[habitType] = 0
+        }
+
+        // Haptic feedback on cancel
+        HapticManager.shared.lightTap()
     }
 
     @ViewBuilder
