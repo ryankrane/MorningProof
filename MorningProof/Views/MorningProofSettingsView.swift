@@ -612,7 +612,7 @@ struct MorningProofSettingsView: View {
                 aboutRow(
                     icon: "hammer.fill",
                     iconColor: MPColors.primary,
-                    title: "MorningProof",
+                    title: "Morning Proof",
                     trailing: AnyView(
                         Text("Version 1.0")
                             .font(MPFont.labelSmall())

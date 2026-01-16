@@ -126,7 +126,8 @@ struct HabitBreakdownCard: View {
                 HabitProgressRow(
                     habitType: config.habitType,
                     completionRate: stats.rate,
-                    hasData: stats.hasData
+                    hasData: stats.hasData,
+                    missedDays: stats.missedDays
                 )
             }
         }
@@ -136,7 +137,7 @@ struct HabitBreakdownCard: View {
         .mpShadow(.small)
     }
 
-    private func calculateStats(for habitType: HabitType) -> (rate: Double, hasData: Bool) {
+    private func calculateStats(for habitType: HabitType) -> (rate: Double, hasData: Bool, missedDays: Int) {
         let today = calendar.startOfDay(for: Date())
         let last30 = (0..<30).compactMap { calendar.date(byAdding: .day, value: -$0, to: today) }
 
@@ -155,7 +156,8 @@ struct HabitBreakdownCard: View {
 
         let hasData = total > 0
         let rate = hasData ? Double(completed) / Double(total) * 100 : 0
-        return (rate, hasData)
+        let missedDays = total - completed
+        return (rate, hasData, missedDays)
     }
 }
 
@@ -165,6 +167,7 @@ struct HabitProgressRow: View {
     let habitType: HabitType
     let completionRate: Double
     var hasData: Bool = true
+    var missedDays: Int = 0
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
@@ -209,12 +212,17 @@ struct HabitProgressRow: View {
         if !hasData {
             return MPColors.textMuted
         }
+        // 3-tier system: green (80%+), yellow (20-79%), red (<20%)
+        // But only show red if user has missed at least 2 days (to be fair to new users)
         if completionRate >= 80 {
             return MPColors.success
-        } else if completionRate >= 50 {
+        } else if completionRate >= 20 {
             return MPColors.warning
-        } else {
+        } else if missedDays >= 2 {
             return MPColors.error
+        } else {
+            // Less than 20% but fewer than 2 missed days - show grey instead of red
+            return MPColors.textMuted
         }
     }
 }

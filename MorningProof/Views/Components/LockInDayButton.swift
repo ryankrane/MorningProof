@@ -27,10 +27,10 @@ struct LockInDayButton: View {
         )
     }
 
-    // Muted purple-gray for disabled state
+    // Subtle purple for disabled state - matches app purple but transparent to show "locked"
     private var disabledGradient: LinearGradient {
         LinearGradient(
-            colors: [MPColors.surfaceSecondary, MPColors.border],
+            colors: [Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.15), Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.1)],
             startPoint: .leading,
             endPoint: .trailing
         )
@@ -165,7 +165,7 @@ struct LockInDayButton: View {
         } else if isEnabled {
             return MPColors.accentGold.opacity(0.6)
         } else {
-            return MPColors.border
+            return Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.3)
         }
     }
 
@@ -173,7 +173,7 @@ struct LockInDayButton: View {
         if isLockedIn || isEnabled {
             return .white
         } else {
-            return MPColors.textMuted
+            return Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.5)
         }
     }
 

@@ -358,7 +358,7 @@ struct Achievement: Identifiable, Codable, Hashable {
         Achievement(
             id: "anniversary",
             title: "Anniversary",
-            description: "Complete on your MorningProof anniversary",
+            description: "Complete on your Morning Proof anniversary",
             icon: "gift.fill",
             category: .hidden,
             type: .anniversary,

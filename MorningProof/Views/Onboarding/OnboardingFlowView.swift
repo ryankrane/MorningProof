@@ -394,7 +394,7 @@ struct NameStep: View {
     var body: some View {
         ZStack(alignment: .topTrailing) {
             VStack(spacing: 0) {
-                Spacer().frame(height: MPSpacing.xxxl * 2)
+                Spacer()
 
             VStack(spacing: MPSpacing.lg) {
                 Image(systemName: "person.circle.fill")
@@ -482,7 +482,7 @@ struct GenderStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer()
 
             VStack(spacing: MPSpacing.md) {
                 Text("What's your gender?")
@@ -539,7 +539,7 @@ struct MorningStruggleStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer()
 
             VStack(spacing: MPSpacing.md) {
                 Text("What's your biggest\nmorning struggle?")
@@ -948,7 +948,7 @@ struct MorningAdvantageStep: View {
 
             VStack(spacing: MPSpacing.xxl) {
                 VStack(spacing: MPSpacing.sm) {
-                    Text("Why MorningProof Works")
+                    Text("Why Morning Proof Works")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
 
@@ -1019,7 +1019,7 @@ struct MorningAdvantageStep: View {
                 HStack(spacing: MPSpacing.xs) {
                     Image(systemName: "chart.bar.fill")
                         .font(.system(size: 11))
-                    Text("Based on MorningProof user data")
+                    Text("Based on Morning Proof user data")
                         .font(.system(size: 11, weight: .medium))
                 }
                 .foregroundColor(MPColors.textMuted)
@@ -1097,7 +1097,7 @@ struct HowItWorksStep: View {
 
             VStack(spacing: MPSpacing.xxl) {
                 VStack(spacing: MPSpacing.md) {
-                    Text("MorningProof is different")
+                    Text("Morning Proof is different")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
 
@@ -1360,7 +1360,7 @@ struct DesiredOutcomeStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer()
 
             VStack(spacing: MPSpacing.md) {
                 Image(systemName: "star.fill")
@@ -1417,7 +1417,7 @@ struct ObstaclesStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer()
 
             VStack(spacing: MPSpacing.md) {
                 Text("What's stopping you from\nreaching your goals?")
@@ -1494,7 +1494,7 @@ struct PermissionsStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer()
 
             VStack(spacing: MPSpacing.md) {
                 Text("Supercharge your tracking")
@@ -2012,7 +2012,7 @@ struct AnalyzingStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl * 2)
+            Spacer()
 
             VStack(spacing: MPSpacing.sm) {
                 Text("Creating Your Routine")

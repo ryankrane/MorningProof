@@ -545,13 +545,8 @@ struct DashboardView: View {
         // Initial haptic feedback
         HapticManager.shared.lightTap()
 
-        // Animate progress
-        withAnimation(.linear(duration: habitHoldDuration)) {
-            holdProgress[habitType] = 1.0
-        }
-
-        // Start timer for haptic ticks and completion check
-        let tickInterval = 0.1
+        // Start timer to update progress incrementally (not withAnimation which sets target immediately)
+        let tickInterval = 0.02
         let timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [self] t in
             guard isHoldingHabit == habitType, let startTime = holdStartTime[habitType] else {
                 t.invalidate()
@@ -560,6 +555,10 @@ struct DashboardView: View {
             }
 
             let elapsed = Date().timeIntervalSince(startTime)
+            let newProgress = min(elapsed / habitHoldDuration, 1.0)
+
+            // Update progress directly - state reflects actual visual progress
+            holdProgress[habitType] = CGFloat(newProgress)
 
             // Haptic tick every ~0.2s
             if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {
