@@ -20,25 +20,23 @@ struct MorningProofSettingsView: View {
     // Notification settings
     @State private var notificationsEnabled = true
     @State private var morningReminderTime: Int = 420
-    @State private var countdownWarning15 = true
-    @State private var countdownWarning5 = true
-    @State private var countdownWarning1 = true
 
     // App Locking settings
     @State private var appLockingEnabled = false
     @State private var blockingStartMinutes: Int = 0
 
     // Goals settings
-    @State private var weeklyPerfectMorningsGoal: Int = 5
     @State private var customSleepGoal: Double = 7.0
     @State private var customStepGoal: Int = 500
 
     // Test celebration
     @State private var showTestCelebration = false
 
-    // Time picker sheets
+    // Picker sheets
     @State private var showCutoffTimePicker = false
     @State private var showReminderTimePicker = false
+    @State private var showSleepGoalPicker = false
+    @State private var showStepGoalPicker = false
 
     var body: some View {
         NavigationStack {
@@ -224,7 +222,7 @@ struct MorningProofSettingsView: View {
     var morningRoutineSection: some View {
         settingsSection(title: "Morning Routine", icon: "sunrise.fill") {
             VStack(spacing: 0) {
-                // Cutoff time
+                // Habit deadline
                 Button {
                     showCutoffTimePicker = true
                 } label: {
@@ -235,7 +233,7 @@ struct MorningProofSettingsView: View {
                             .frame(width: 30)
 
                         VStack(alignment: .leading, spacing: 2) {
-                            Text("Cutoff Time")
+                            Text("Habit Deadline")
                                 .font(MPFont.bodyMedium())
                                 .foregroundColor(MPColors.textPrimary)
                             Text("Complete habits by this time")
@@ -246,11 +244,11 @@ struct MorningProofSettingsView: View {
                         Spacer()
 
                         Text(TimeOptions.formatTime(cutoffMinutes))
-                            .font(.system(size: 17, weight: .medium, design: .rounded))
-                            .foregroundColor(MPColors.primary)
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
                             .padding(.horizontal, MPSpacing.md)
                             .padding(.vertical, MPSpacing.sm)
-                            .background(MPColors.primaryLight)
+                            .background(MPColors.primary)
                             .cornerRadius(MPRadius.md)
                     }
                 }
@@ -258,7 +256,7 @@ struct MorningProofSettingsView: View {
                 .sheet(isPresented: $showCutoffTimePicker) {
                     TimeWheelPicker(
                         selectedMinutes: $cutoffMinutes,
-                        title: "Morning Cutoff Time",
+                        title: "Habit Deadline",
                         subtitle: "Complete your habits by this time to lock in your day",
                         timeOptions: TimeOptions.cutoffTime
                     )
@@ -343,16 +341,12 @@ struct MorningProofSettingsView: View {
         // Notifications
         notificationsEnabled = manager.settings.notificationsEnabled
         morningReminderTime = manager.settings.morningReminderTime
-        countdownWarning15 = manager.settings.countdownWarnings.contains(15)
-        countdownWarning5 = manager.settings.countdownWarnings.contains(5)
-        countdownWarning1 = manager.settings.countdownWarnings.contains(1)
 
         // App Locking
         appLockingEnabled = manager.settings.appLockingEnabled
         blockingStartMinutes = manager.settings.blockingStartMinutes
 
         // Goals
-        weeklyPerfectMorningsGoal = manager.settings.weeklyPerfectMorningsGoal
         customSleepGoal = manager.settings.customSleepGoal
         customStepGoal = manager.settings.customStepGoal
     }
@@ -364,19 +358,14 @@ struct MorningProofSettingsView: View {
         // Notifications
         manager.settings.notificationsEnabled = notificationsEnabled
         manager.settings.morningReminderTime = morningReminderTime
-
-        var warnings: [Int] = []
-        if countdownWarning15 { warnings.append(15) }
-        if countdownWarning5 { warnings.append(5) }
-        if countdownWarning1 { warnings.append(1) }
-        manager.settings.countdownWarnings = warnings
+        // Always enable 15-minute countdown warning when notifications are on
+        manager.settings.countdownWarnings = notificationsEnabled ? [15] : []
 
         // App Locking
         manager.settings.appLockingEnabled = appLockingEnabled
         manager.settings.blockingStartMinutes = blockingStartMinutes
 
         // Goals
-        manager.settings.weeklyPerfectMorningsGoal = weeklyPerfectMorningsGoal
         manager.settings.customSleepGoal = customSleepGoal
         manager.settings.customStepGoal = customStepGoal
 
@@ -399,7 +388,7 @@ struct MorningProofSettingsView: View {
                         Text("Enable Notifications")
                             .font(MPFont.labelMedium())
                             .foregroundColor(MPColors.textPrimary)
-                        Text("Get reminders and countdown alerts")
+                        Text("Get daily reminders and deadline alerts")
                             .font(MPFont.bodySmall())
                             .foregroundColor(MPColors.textTertiary)
                     }
@@ -429,7 +418,7 @@ struct MorningProofSettingsView: View {
                                 Text("Morning Reminder")
                                     .font(MPFont.labelMedium())
                                     .foregroundColor(MPColors.textPrimary)
-                                Text("Wake up notification")
+                                Text("Daily reminder to start your habits")
                                     .font(MPFont.bodySmall())
                                     .foregroundColor(MPColors.textTertiary)
                             }
@@ -437,11 +426,11 @@ struct MorningProofSettingsView: View {
                             Spacer()
 
                             Text(TimeOptions.formatTime(morningReminderTime))
-                                .font(.system(size: 17, weight: .medium, design: .rounded))
-                                .foregroundColor(MPColors.primary)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white)
                                 .padding(.horizontal, MPSpacing.md)
                                 .padding(.vertical, MPSpacing.sm)
-                                .background(MPColors.primaryLight)
+                                .background(MPColors.primary)
                                 .cornerRadius(MPRadius.md)
                         }
                     }
@@ -449,42 +438,13 @@ struct MorningProofSettingsView: View {
                         TimeWheelPicker(
                             selectedMinutes: $morningReminderTime,
                             title: "Morning Reminder",
-                            subtitle: "When should we remind you to start your morning routine?",
+                            subtitle: "When should we remind you to start your habits?",
                             timeOptions: TimeOptions.reminderTime
                         )
                         .presentationDetents([.medium])
                     }
-
-                    Divider()
-
-                    // Countdown warnings
-                    VStack(alignment: .leading, spacing: MPSpacing.md) {
-                        Text("Countdown Warnings")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        HStack(spacing: MPSpacing.md) {
-                            warningToggle(minutes: 15, isOn: $countdownWarning15)
-                            warningToggle(minutes: 5, isOn: $countdownWarning5)
-                            warningToggle(minutes: 1, isOn: $countdownWarning1)
-                        }
-                    }
                 }
             }
-        }
-    }
-
-    func warningToggle(minutes: Int, isOn: Binding<Bool>) -> some View {
-        Button {
-            isOn.wrappedValue.toggle()
-        } label: {
-            Text("\(minutes) min")
-                .font(MPFont.labelSmall())
-                .foregroundColor(isOn.wrappedValue ? .white : MPColors.textSecondary)
-                .padding(.horizontal, MPSpacing.md)
-                .padding(.vertical, MPSpacing.sm)
-                .background(isOn.wrappedValue ? MPColors.primary : MPColors.surfaceSecondary)
-                .cornerRadius(MPRadius.full)
         }
     }
 
@@ -556,80 +516,90 @@ struct MorningProofSettingsView: View {
 
     var goalsSection: some View {
         settingsSection(title: "Goals", icon: "target") {
-            VStack(spacing: MPSpacing.lg) {
-                // Weekly perfect mornings
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Weekly Goal")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Perfect mornings per week")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Stepper("\(weeklyPerfectMorningsGoal)/7", value: $weeklyPerfectMorningsGoal, in: 1...7)
-                        .labelsHidden()
-                        .fixedSize()
-
-                    Text("\(weeklyPerfectMorningsGoal)/7")
-                        .font(MPFont.labelMedium())
-                        .foregroundColor(MPColors.primary)
-                        .frame(width: 40)
-                }
-
-                Divider()
-
+            VStack(spacing: 0) {
                 // Sleep goal
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Sleep Goal")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Target hours of sleep")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
+                Button {
+                    showSleepGoalPicker = true
+                } label: {
+                    HStack {
+                        Image(systemName: "moon.zzz.fill")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 30)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Sleep Goal")
+                                .font(MPFont.bodyMedium())
+                                .foregroundColor(MPColors.textPrimary)
+                            Text("Target hours of sleep")
+                                .font(MPFont.labelTiny())
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+
+                        Spacer()
+
+                        Text(formatSleepGoal(customSleepGoal))
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.md)
                     }
-
-                    Spacer()
-
-                    Text(String(format: "%.1fh", customSleepGoal))
-                        .font(MPFont.labelMedium())
-                        .foregroundColor(MPColors.primary)
-                        .frame(width: 50)
-
-                    Slider(value: $customSleepGoal, in: 5...10, step: 0.5)
-                        .tint(MPColors.primary)
-                        .frame(width: 100)
+                }
+                .padding(.vertical, MPSpacing.sm)
+                .sheet(isPresented: $showSleepGoalPicker) {
+                    SleepGoalPicker(sleepGoal: $customSleepGoal)
+                        .presentationDetents([.medium])
                 }
 
                 Divider()
+                    .padding(.leading, 46)
 
                 // Step goal
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Step Goal")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Morning steps target")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
+                Button {
+                    showStepGoalPicker = true
+                } label: {
+                    HStack {
+                        Image(systemName: "figure.walk")
+                            .font(.system(size: MPIconSize.sm))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 30)
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Step Goal")
+                                .font(MPFont.bodyMedium())
+                                .foregroundColor(MPColors.textPrimary)
+                            Text("Morning steps target")
+                                .font(MPFont.labelTiny())
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+
+                        Spacer()
+
+                        Text("\(customStepGoal)")
+                            .font(.system(size: 15, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+                            .padding(.horizontal, MPSpacing.md)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.md)
                     }
-
-                    Spacer()
-
-                    Stepper("", value: $customStepGoal, in: 100...5000, step: 100)
-                        .labelsHidden()
-                        .fixedSize()
-
-                    Text("\(customStepGoal)")
-                        .font(MPFont.labelMedium())
-                        .foregroundColor(MPColors.primary)
-                        .frame(width: 50)
+                }
+                .padding(.vertical, MPSpacing.sm)
+                .sheet(isPresented: $showStepGoalPicker) {
+                    StepGoalPicker(stepGoal: $customStepGoal)
+                        .presentationDetents([.medium])
                 }
             }
+        }
+    }
+
+    private func formatSleepGoal(_ hours: Double) -> String {
+        if hours == floor(hours) {
+            return "\(Int(hours))h"
+        } else {
+            return String(format: "%.1fh", hours)
         }
     }
 
@@ -639,46 +609,32 @@ struct MorningProofSettingsView: View {
         settingsSection(title: "About", icon: "info.circle.fill") {
             VStack(spacing: 0) {
                 // App info row
-                HStack {
-                    Image(systemName: "app.fill")
-                        .font(.system(size: MPIconSize.sm))
-                        .foregroundColor(MPColors.primary)
-                        .frame(width: 30)
-
-                    Text("Morning Proof")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Spacer()
-
-                    Text("Version 1.0")
-                        .font(MPFont.labelSmall())
-                        .foregroundColor(MPColors.textTertiary)
-                }
-                .padding(.vertical, MPSpacing.sm)
+                aboutRow(
+                    icon: "app.fill",
+                    iconColor: MPColors.primary,
+                    title: "Morning Proof",
+                    trailing: AnyView(
+                        Text("Version 1.0")
+                            .font(MPFont.labelSmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    )
+                )
 
                 Divider()
                     .padding(.leading, 46)
 
                 // Privacy Policy link
                 Link(destination: URL(string: "https://ryankrane.github.io/morningproof-legal/privacy.html")!) {
-                    HStack {
-                        Image(systemName: "hand.raised.fill")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.primary)
-                            .frame(width: 30)
-
-                        Text("Privacy Policy")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Spacer()
-
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption)
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .padding(.vertical, MPSpacing.sm)
+                    aboutRow(
+                        icon: "hand.raised.fill",
+                        iconColor: MPColors.primary,
+                        title: "Privacy Policy",
+                        trailing: AnyView(
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                        )
+                    )
                 }
 
                 Divider()
@@ -686,23 +642,16 @@ struct MorningProofSettingsView: View {
 
                 // Terms of Service link
                 Link(destination: URL(string: "https://ryankrane.github.io/morningproof-legal/terms.html")!) {
-                    HStack {
-                        Image(systemName: "doc.text.fill")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.primary)
-                            .frame(width: 30)
-
-                        Text("Terms of Service")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Spacer()
-
-                        Image(systemName: "arrow.up.right")
-                            .font(.caption)
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .padding(.vertical, MPSpacing.sm)
+                    aboutRow(
+                        icon: "doc.text.fill",
+                        iconColor: MPColors.primary,
+                        title: "Terms of Service",
+                        trailing: AnyView(
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                        )
+                    )
                 }
 
                 Divider()
@@ -712,23 +661,16 @@ struct MorningProofSettingsView: View {
                 Button {
                     showTestCelebration = true
                 } label: {
-                    HStack {
-                        Image(systemName: "flame.fill")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.accent)
-                            .frame(width: 30)
-
-                        Text("Test Celebration")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Spacer()
-
-                        Image(systemName: "chevron.right")
-                            .font(.caption)
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-                    .padding(.vertical, MPSpacing.sm)
+                    aboutRow(
+                        icon: "flame.fill",
+                        iconColor: MPColors.accent,
+                        title: "Test Celebration",
+                        trailing: AnyView(
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                        )
+                    )
                 }
                 .buttonStyle(PlainButtonStyle())
 
@@ -739,23 +681,35 @@ struct MorningProofSettingsView: View {
                 Button {
                     showResetConfirmation = true
                 } label: {
-                    HStack {
-                        Image(systemName: "arrow.counterclockwise")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.error)
-                            .frame(width: 30)
-
-                        Text("Reset All Data")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.error)
-
-                        Spacer()
-                    }
-                    .padding(.vertical, MPSpacing.sm)
+                    aboutRow(
+                        icon: "arrow.counterclockwise",
+                        iconColor: MPColors.error,
+                        title: "Reset All Data",
+                        titleColor: MPColors.error,
+                        trailing: AnyView(EmptyView())
+                    )
                 }
                 .buttonStyle(PlainButtonStyle())
             }
         }
+    }
+
+    private func aboutRow(icon: String, iconColor: Color, title: String, titleColor: Color? = nil, trailing: AnyView) -> some View {
+        HStack(spacing: MPSpacing.md) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(iconColor)
+                .frame(width: 30, alignment: .center)
+
+            Text(title)
+                .font(MPFont.bodyMedium())
+                .foregroundColor(titleColor ?? MPColors.textPrimary)
+
+            Spacer()
+
+            trailing
+        }
+        .padding(.vertical, MPSpacing.md)
     }
 
     // MARK: - Helpers

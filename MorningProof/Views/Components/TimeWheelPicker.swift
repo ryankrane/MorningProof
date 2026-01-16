@@ -285,6 +285,211 @@ struct TimeOptions {
     }
 }
 
+// MARK: - Sleep Goal Picker
+
+struct SleepGoalPicker: View {
+    @Binding var sleepGoal: Double
+    @Environment(\.dismiss) var dismiss
+
+    @State private var selectedHours: Int = 7
+    @State private var selectedMinutes: Int = 0
+
+    private let hours = Array(5...10)
+    private let minutes = [0, 30]
+
+    init(sleepGoal: Binding<Double>) {
+        self._sleepGoal = sleepGoal
+        let totalMinutes = Int(sleepGoal.wrappedValue * 60)
+        _selectedHours = State(initialValue: totalMinutes / 60)
+        _selectedMinutes = State(initialValue: (totalMinutes % 60) >= 30 ? 30 : 0)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: MPSpacing.xs) {
+                    Text("Sleep Goal")
+                        .font(MPFont.headingSmall())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("How many hours of sleep do you want each night?")
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, MPSpacing.xl)
+                .padding(.bottom, MPSpacing.lg)
+                .padding(.horizontal, MPSpacing.xl)
+
+                // Wheel pickers
+                HStack(spacing: 0) {
+                    Picker("Hours", selection: $selectedHours) {
+                        ForEach(hours, id: \.self) { hour in
+                            Text("\(hour)")
+                                .font(.system(size: 22, weight: .medium, design: .rounded))
+                                .tag(hour)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: 80)
+                    .clipped()
+
+                    Text("h")
+                        .font(.system(size: 22, weight: .medium, design: .rounded))
+                        .foregroundColor(MPColors.textSecondary)
+
+                    Picker("Minutes", selection: $selectedMinutes) {
+                        ForEach(minutes, id: \.self) { minute in
+                            Text(String(format: "%02d", minute))
+                                .font(.system(size: 22, weight: .medium, design: .rounded))
+                                .tag(minute)
+                        }
+                    }
+                    .pickerStyle(.wheel)
+                    .frame(width: 80)
+                    .clipped()
+
+                    Text("m")
+                        .font(.system(size: 22, weight: .medium, design: .rounded))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .frame(height: 180)
+
+                // Current selection display
+                Text(formattedGoal)
+                    .font(.system(size: 48, weight: .semibold, design: .rounded))
+                    .foregroundColor(MPColors.primary)
+                    .padding(.vertical, MPSpacing.xl)
+
+                Spacer()
+
+                // Confirm button
+                Button {
+                    sleepGoal = Double(selectedHours) + Double(selectedMinutes) / 60.0
+                    dismiss()
+                } label: {
+                    Text("Set Goal")
+                        .font(MPFont.labelLarge())
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: MPButtonHeight.lg)
+                        .background(MPColors.primary)
+                        .cornerRadius(MPRadius.lg)
+                }
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.bottom, MPSpacing.xxxl)
+            }
+            .background(MPColors.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(MPColors.textSecondary)
+                }
+            }
+        }
+    }
+
+    private var formattedGoal: String {
+        if selectedMinutes == 0 {
+            return "\(selectedHours)h"
+        } else {
+            return "\(selectedHours)h \(selectedMinutes)m"
+        }
+    }
+}
+
+// MARK: - Step Goal Picker
+
+struct StepGoalPicker: View {
+    @Binding var stepGoal: Int
+    @Environment(\.dismiss) var dismiss
+
+    @State private var selectedSteps: Int = 500
+
+    private let stepOptions = Array(stride(from: 100, through: 5000, by: 100))
+
+    init(stepGoal: Binding<Int>) {
+        self._stepGoal = stepGoal
+        _selectedSteps = State(initialValue: stepGoal.wrappedValue)
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                // Header
+                VStack(spacing: MPSpacing.xs) {
+                    Text("Step Goal")
+                        .font(MPFont.headingSmall())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("How many steps do you want to hit each morning?")
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, MPSpacing.xl)
+                .padding(.bottom, MPSpacing.lg)
+                .padding(.horizontal, MPSpacing.xl)
+
+                // Wheel picker
+                Picker("Steps", selection: $selectedSteps) {
+                    ForEach(stepOptions, id: \.self) { steps in
+                        Text("\(steps)")
+                            .font(.system(size: 22, weight: .medium, design: .rounded))
+                            .tag(steps)
+                    }
+                }
+                .pickerStyle(.wheel)
+                .frame(height: 180)
+
+                // Current selection display
+                HStack(spacing: 4) {
+                    Text("\(selectedSteps)")
+                        .font(.system(size: 48, weight: .semibold, design: .rounded))
+                        .foregroundColor(MPColors.primary)
+
+                    Text("steps")
+                        .font(.system(size: 24, weight: .medium, design: .rounded))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .padding(.vertical, MPSpacing.xl)
+
+                Spacer()
+
+                // Confirm button
+                Button {
+                    stepGoal = selectedSteps
+                    dismiss()
+                } label: {
+                    Text("Set Goal")
+                        .font(MPFont.labelLarge())
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: MPButtonHeight.lg)
+                        .background(MPColors.primary)
+                        .cornerRadius(MPRadius.lg)
+                }
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.bottom, MPSpacing.xxxl)
+            }
+            .background(MPColors.background)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                    .foregroundColor(MPColors.textSecondary)
+                }
+            }
+        }
+    }
+}
+
 #Preview("Time Wheel Picker") {
     struct PreviewWrapper: View {
         @State var minutes = 360  // 6 AM
