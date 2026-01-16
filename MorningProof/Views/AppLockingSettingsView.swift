@@ -23,14 +23,6 @@ struct AppLockingSettingsView: View {
 
                 ScrollView {
                     VStack(spacing: MPSpacing.xl) {
-                        // Debug: Show auth state at top
-                        Text("Auth Check: \(isAuthorized ? "AUTHORIZED" : "NOT AUTHORIZED")")
-                            .font(.caption)
-                            .foregroundColor(isAuthorized ? .green : .red)
-                            .padding(4)
-                            .background(isAuthorized ? Color.green.opacity(0.2) : Color.red.opacity(0.2))
-                            .cornerRadius(4)
-
                         // Header explanation
                         headerSection
 
@@ -49,9 +41,6 @@ struct AppLockingSettingsView: View {
 
                             // How it works
                             howItWorksSection
-
-                            // Debug section (temporary)
-                            debugSection
                         }
                     }
                     .padding(.horizontal, MPSpacing.xl)
@@ -445,75 +434,6 @@ struct AppLockingSettingsView: View {
                     .font(MPFont.bodySmall())
                     .foregroundColor(MPColors.textTertiary)
             }
-        }
-    }
-
-    // MARK: - Debug Section
-
-    var debugSection: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.md) {
-            Text("DEBUG INFO")
-                .font(MPFont.labelSmall())
-                .foregroundColor(.red)
-                .tracking(0.5)
-                .padding(.leading, MPSpacing.xs)
-
-            VStack(alignment: .leading, spacing: MPSpacing.sm) {
-                debugRow("Authorization", "\(screenTimeManager.authorizationStatus)")
-                debugRow("Is Authorized", screenTimeManager.isAuthorized ? "YES" : "NO")
-                debugRow("Selected Apps", "\(screenTimeManager.selectedApps.applicationTokens.count)")
-                debugRow("Selected Categories", "\(screenTimeManager.selectedApps.categoryTokens.count)")
-                debugRow("Has Selected Apps", screenTimeManager.hasSelectedApps ? "YES" : "NO")
-                debugRow("Is Monitoring", screenTimeManager.isMonitoring ? "YES" : "NO")
-
-                Divider().padding(.vertical, MPSpacing.xs)
-
-                debugRow("App Locking Enabled (DataStore)", AppLockingDataStore.appLockingEnabled ? "YES" : "NO")
-                debugRow("Blocking Start Minutes", "\(AppLockingDataStore.blockingStartMinutes)")
-                debugRow("Has Locked In Today", AppLockingDataStore.hasLockedInToday ? "YES" : "NO")
-                debugRow("Should Apply Shields", AppLockingDataStore.shouldApplyShields() ? "YES" : "NO")
-
-                Divider().padding(.vertical, MPSpacing.xs)
-
-                let now = Date()
-                let calendar = Calendar.current
-                let components = calendar.dateComponents([.hour, .minute], from: now)
-                let currentMinutes = (components.hour ?? 0) * 60 + (components.minute ?? 0)
-                debugRow("Current Time (minutes)", "\(currentMinutes)")
-
-                Button("Reset Lock State (Testing)") {
-                    // Reset lock state only - doesn't touch Screen Time authorization
-                    AppLockingDataStore.isDayLockedIn = false
-                    AppLockingDataStore.wasEmergencyUnlock = false
-                    AppLockingDataStore.lastLockInDate = nil
-
-                    // Also reset in main manager
-                    manager.todayLog.isDayLockedIn = false
-                    manager.saveCurrentState()
-                }
-                .font(MPFont.labelSmall())
-                .foregroundColor(.white)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, MPSpacing.sm)
-                .background(Color.orange)
-                .cornerRadius(MPRadius.md)
-                .padding(.top, MPSpacing.sm)
-            }
-            .padding(MPSpacing.lg)
-            .background(Color.red.opacity(0.1))
-            .cornerRadius(MPRadius.lg)
-        }
-    }
-
-    func debugRow(_ label: String, _ value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(MPFont.bodySmall())
-                .foregroundColor(MPColors.textSecondary)
-            Spacer()
-            Text(value)
-                .font(MPFont.labelSmall())
-                .foregroundColor(MPColors.textPrimary)
         }
     }
 

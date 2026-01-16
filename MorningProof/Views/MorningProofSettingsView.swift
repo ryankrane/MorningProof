@@ -610,9 +610,9 @@ struct MorningProofSettingsView: View {
             VStack(spacing: 0) {
                 // App info row
                 aboutRow(
-                    icon: "app.fill",
+                    icon: "hammer.fill",
                     iconColor: MPColors.primary,
-                    title: "Morning Proof",
+                    title: "MorningProof",
                     trailing: AnyView(
                         Text("Version 1.0")
                             .font(MPFont.labelSmall())

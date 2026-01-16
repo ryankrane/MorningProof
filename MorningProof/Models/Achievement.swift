@@ -131,7 +131,7 @@ struct Achievement: Identifiable, Codable, Hashable {
         lhs.id == rhs.id
     }
 
-    // MARK: - All Achievements (18 Total)
+    // MARK: - All Achievements (21 Total)
     static let allAchievements: [Achievement] = {
         var achievements: [Achievement] = []
         achievements.append(contentsOf: streakAchievements)
@@ -142,7 +142,7 @@ struct Achievement: Identifiable, Codable, Hashable {
         return achievements
     }()
 
-    // MARK: - Streak Achievements (5)
+    // MARK: - Streak Achievements (6)
     static let streakAchievements: [Achievement] = [
         Achievement(
             id: "streak_7",
@@ -175,6 +175,16 @@ struct Achievement: Identifiable, Codable, Hashable {
             requirement: 30
         ),
         Achievement(
+            id: "streak_60",
+            title: "Two Months Strong",
+            description: "60 days of consistency",
+            icon: "star.fill",
+            category: .streak,
+            type: .streak,
+            tier: .silver,
+            requirement: 60
+        ),
+        Achievement(
             id: "streak_90",
             title: "Quarterly Champion",
             description: "90 days of unbroken commitment",
@@ -196,8 +206,18 @@ struct Achievement: Identifiable, Codable, Hashable {
         ),
     ]
 
-    // MARK: - Lifetime Achievements (4)
+    // MARK: - Lifetime Achievements (6)
     static let lifetimeAchievements: [Achievement] = [
+        Achievement(
+            id: "total_25",
+            title: "First Steps",
+            description: "25 total completions",
+            icon: "figure.walk",
+            category: .lifetime,
+            type: .totalCompletions,
+            tier: .bronze,
+            requirement: 25
+        ),
         Achievement(
             id: "total_50",
             title: "Fifty Strong",
@@ -227,6 +247,16 @@ struct Achievement: Identifiable, Codable, Hashable {
             type: .totalCompletions,
             tier: .gold,
             requirement: 365
+        ),
+        Achievement(
+            id: "total_500",
+            title: "High Five Hundred",
+            description: "500 completions - halfway to a thousand",
+            icon: "hand.raised.fill",
+            category: .lifetime,
+            type: .totalCompletions,
+            tier: .gold,
+            requirement: 500
         ),
         Achievement(
             id: "total_1000",

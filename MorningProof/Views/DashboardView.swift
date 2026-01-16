@@ -334,16 +334,21 @@ struct DashboardView: View {
             // Green fill progress overlay (fills from left to right, or full for completed)
             GeometryReader { geo in
                 RoundedRectangle(cornerRadius: MPRadius.lg)
-                    .fill(isCompleted ? MPColors.success.opacity(0.4) : MPColors.success.opacity(0.3))
+                    .fill(isCompleted ? MPColors.successLight : MPColors.success.opacity(0.25))
                     .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
             }
 
             HStack(spacing: MPSpacing.lg) {
-                // Icon (no circle background)
-                Image(systemName: config.habitType.icon)
-                    .font(.system(size: MPIconSize.md))
-                    .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
-                    .frame(width: 32)
+                // Icon with circular background
+                ZStack {
+                    Circle()
+                        .fill(isCompleted ? MPColors.success.opacity(0.15) : MPColors.surfaceSecondary)
+                        .frame(width: 40, height: 40)
+                    Image(systemName: config.habitType.icon)
+                        .font(.system(size: MPIconSize.md))
+                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
+                }
+                .frame(width: 40)
 
                 // Info
                 VStack(alignment: .leading, spacing: MPSpacing.xs) {
@@ -438,7 +443,18 @@ struct DashboardView: View {
                             .cornerRadius(MPRadius.sm)
                     }
                 }
-                // No indicator for hold-to-complete habits or completed habits - the green fill is the indicator
+
+                // Checkmark indicator for completed habits
+                if isCompleted {
+                    ZStack {
+                        Circle()
+                            .fill(MPColors.success)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
             }
             .padding(MPSpacing.lg)
 

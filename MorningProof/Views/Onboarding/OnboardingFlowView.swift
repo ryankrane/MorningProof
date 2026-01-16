@@ -135,8 +135,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 20
-    private let paywallStep = 19
+    private let totalSteps = 19
+    private let paywallStep = 18
 
     var body: some View {
         ZStack {
@@ -174,14 +174,13 @@ struct OnboardingFlowView: View {
                         case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
                         case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
                         case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
-                        case 14: AppLockingOnboardingStep(data: onboardingData, onContinue: nextStep, onSkip: nextStep)
 
                         // Phase 4: Habits & Paywall
-                        case 15: OptionalRatingStep(onContinue: nextStep)
-                        case 16: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                        case 17: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                        case 18: SocialProofFinalStep(onContinue: nextStep)
-                        case 19: HardPaywallStep(
+                        case 14: OptionalRatingStep(onContinue: nextStep)
+                        case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
+                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                        case 17: SocialProofFinalStep(onContinue: nextStep)
+                        case 18: HardPaywallStep(
                             subscriptionManager: subscriptionManager,
                             onSubscribe: completeOnboarding,
                             onSkip: completeOnboarding // Testing only - remove before release
@@ -242,13 +241,7 @@ struct OnboardingProgressBar: View {
                     .frame(height: 4)
 
                 RoundedRectangle(cornerRadius: 3)
-                    .fill(
-                        LinearGradient(
-                            colors: [MPColors.primary, MPColors.accent],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .fill(MPColors.primary)
                     .frame(width: geometry.size.width * progress, height: 4)
                     .animation(.easeInOut(duration: 0.3), value: progress)
             }
@@ -1493,8 +1486,11 @@ struct PermissionsStep: View {
 
     @State private var isRequestingHealth = false
     @State private var isRequestingNotifications = false
+    @State private var isRequestingScreenTime = false
+    @State private var screenTimeEnabled = false
     private var healthKit: HealthKitManager { HealthKitManager.shared }
     private var notificationManager: NotificationManager { NotificationManager.shared }
+    @StateObject private var screenTimeManager = ScreenTimeManager.shared
 
     var body: some View {
         VStack(spacing: 0) {
@@ -1536,6 +1532,18 @@ struct PermissionsStep: View {
                 ) {
                     requestNotifications()
                 }
+
+                // App Locking permission card
+                PermissionCard(
+                    icon: "lock.shield.fill",
+                    iconColor: MPColors.accentGold,
+                    title: "App Locking",
+                    description: "Block distracting apps",
+                    isEnabled: screenTimeEnabled,
+                    isLoading: isRequestingScreenTime
+                ) {
+                    requestScreenTimeAccess()
+                }
             }
             .padding(.horizontal, MPSpacing.xl)
 
@@ -1573,6 +1581,23 @@ struct PermissionsStep: View {
             await MainActor.run {
                 isRequestingNotifications = false
                 data.notificationsEnabled = granted
+            }
+        }
+    }
+
+    private func requestScreenTimeAccess() {
+        isRequestingScreenTime = true
+        Task {
+            do {
+                try await screenTimeManager.requestAuthorization()
+                await MainActor.run {
+                    isRequestingScreenTime = false
+                    screenTimeEnabled = screenTimeManager.isAuthorized
+                }
+            } catch {
+                await MainActor.run {
+                    isRequestingScreenTime = false
+                }
             }
         }
     }
@@ -2164,9 +2189,9 @@ struct AnalyzingStep: View {
             }
         }
 
-        // Ensure we hit 100% and complete all phases
+        // Ensure we hit 100% and complete all phases with smooth animation
         DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration - 0.2) {
-            withAnimation(.easeOut(duration: 0.3)) {
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                 progress = 1.0
                 _ = completedSteps.insert(phaseCount - 1)
             }
@@ -2234,7 +2259,7 @@ struct YourHabitsStep: View {
     let onContinue: () -> Void
     @State private var showContent = false
 
-    private let recommendedHabits: [HabitType] = [.madeBed, .morningSteps, .sleepDuration, .noSnooze]
+    private let recommendedHabits: [HabitType] = [.madeBed, .morningSteps, .sleepDuration, .coldShower]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -2275,7 +2300,7 @@ struct YourHabitsStep: View {
 
             Spacer().frame(height: MPSpacing.lg)
 
-            Text("Tap to customize • Add more later")
+            Text("Add more later")
                 .font(.system(size: 13))
                 .foregroundColor(MPColors.textTertiary)
                 .opacity(showContent ? 1 : 0)
