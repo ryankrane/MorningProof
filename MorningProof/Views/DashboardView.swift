@@ -12,7 +12,6 @@ struct DashboardView: View {
     @State private var isHoldingHabit: HabitType? = nil
     @State private var holdStartTime: [HabitType: Date] = [:]
     @State private var holdTimers: [HabitType: Timer] = [:]
-    @State private var pendingHoldHabit: HabitType? = nil  // Tracks pending hold before delay
 
     // Side menu state
     @State private var showSideMenu = false
@@ -466,30 +465,25 @@ struct DashboardView: View {
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
         // Make entire row tappable for hold-to-complete habits
         .contentShape(Rectangle())
-        // Use simultaneousGesture so ScrollView can still detect scrolling
-        .simultaneousGesture(
+        // LongPressGesture allows scrolling during the initial 0.15s
+        // If user moves finger (scrolls), the gesture fails and ScrollView takes over
+        // If user holds still, gesture succeeds and transitions to DragGesture phase
+        .gesture(
             isHoldType && !isCompleted ?
-            DragGesture(minimumDistance: 0)
-                .onChanged { _ in
-                    // Only set up pending hold if not already holding or pending
-                    if isHoldingHabit != config.habitType && pendingHoldHabit != config.habitType {
-                        pendingHoldHabit = config.habitType
-                        // Short delay before starting hold - allows scroll detection
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                            // Only start if still pending (not cancelled by scroll/release)
-                            if pendingHoldHabit == config.habitType {
-                                pendingHoldHabit = nil
-                                startHabitHold(config.habitType)
-                            }
+            LongPressGesture(minimumDuration: 0.15)
+                .sequenced(before: DragGesture(minimumDistance: 0))
+                .onChanged { value in
+                    // Check if we've entered the drag phase (long press succeeded)
+                    if case .second(true, _) = value {
+                        // Start hold if not already started
+                        if isHoldingHabit != config.habitType {
+                            startHabitHold(config.habitType)
                         }
                     }
                 }
                 .onEnded { _ in
-                    // Cancel pending hold if user released quickly (was scrolling)
-                    if pendingHoldHabit == config.habitType {
-                        pendingHoldHabit = nil
-                    } else if isHoldingHabit == config.habitType {
-                        // Hold was actually started, end it normally
+                    // Gesture ended (finger lifted) - end hold if active
+                    if isHoldingHabit == config.habitType {
                         endHabitHold(config.habitType, isCompleted: isCompleted)
                     }
                 }
