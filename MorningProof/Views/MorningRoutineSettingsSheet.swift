@@ -104,7 +104,7 @@ struct MorningRoutineSettingsSheet: View {
             Button {
                 showCutoffTimePicker = true
             } label: {
-                HStack {
+                HStack(alignment: .center) {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Habit Deadline")
                             .font(MPFont.bodyMedium())
@@ -124,6 +124,7 @@ struct MorningRoutineSettingsSheet: View {
                         .background(MPColors.primary)
                         .cornerRadius(MPRadius.md)
                 }
+                .padding(.vertical, MPSpacing.xs)
             }
             .sheet(isPresented: $showCutoffTimePicker) {
                 TimeWheelPicker(
@@ -160,13 +161,13 @@ struct MorningRoutineSettingsSheet: View {
     // MARK: - Goals Section
 
     var goalsSection: some View {
-        sectionContainer(title: "Goals", icon: "target") {
+        sectionContainer(title: "Habit Goals", icon: "target") {
             VStack(spacing: 0) {
                 // Sleep goal
                 Button {
                     showSleepGoalPicker = true
                 } label: {
-                    HStack {
+                    HStack(alignment: .center) {
                         Image(systemName: "moon.zzz.fill")
                             .font(.system(size: MPIconSize.sm))
                             .foregroundColor(MPColors.primary)
@@ -191,8 +192,8 @@ struct MorningRoutineSettingsSheet: View {
                             .background(MPColors.primary)
                             .cornerRadius(MPRadius.md)
                     }
+                    .padding(.vertical, MPSpacing.xs)
                 }
-                .padding(.vertical, MPSpacing.sm)
                 .sheet(isPresented: $showSleepGoalPicker) {
                     SleepGoalPicker(sleepGoal: $customSleepGoal)
                         .presentationDetents([.medium])
@@ -205,7 +206,7 @@ struct MorningRoutineSettingsSheet: View {
                 Button {
                     showStepGoalPicker = true
                 } label: {
-                    HStack {
+                    HStack(alignment: .center) {
                         Image(systemName: "figure.walk")
                             .font(.system(size: MPIconSize.sm))
                             .foregroundColor(MPColors.primary)
@@ -230,8 +231,8 @@ struct MorningRoutineSettingsSheet: View {
                             .background(MPColors.primary)
                             .cornerRadius(MPRadius.md)
                     }
+                    .padding(.vertical, MPSpacing.xs)
                 }
-                .padding(.vertical, MPSpacing.sm)
                 .sheet(isPresented: $showStepGoalPicker) {
                     StepGoalPicker(stepGoal: $customStepGoal)
                         .presentationDetents([.medium])
@@ -258,7 +259,8 @@ struct MorningRoutineSettingsSheet: View {
             VStack {
                 content()
             }
-            .padding(MPSpacing.lg)
+            .padding(.horizontal, MPSpacing.lg)
+            .padding(.vertical, MPSpacing.md)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
             .mpShadow(.small)

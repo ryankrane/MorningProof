@@ -1335,6 +1335,8 @@ private struct CartoonBedIllustration: View {
         Image("BedIllustration")
             .resizable()
             .aspectRatio(contentMode: .fit)
+            .scaleEffect(1.25)
+            .clipped()
     }
 }
 
@@ -2402,59 +2404,57 @@ struct AnalyzingStep: View {
     private func startSmoothProgress() {
         let totalDuration: Double = 8.0
         let phaseCount = phases.count
-        let phaseDuration = totalDuration / Double(phaseCount)
 
-        // Start micro-progress updates (simulate realistic loading)
-        let updateInterval: Double = 0.05  // Update every 50ms for smooth animation
+        // Start micro-progress updates with smooth animation
+        let updateInterval: Double = 0.03  // Update every 30ms for smoother animation
 
         // Create a timer-like effect with scheduled updates
         let totalUpdates = Int(totalDuration / updateInterval)
 
         for i in 0...totalUpdates {
             let elapsed = Double(i) * updateInterval
-            let phaseIndex = min(Int(elapsed / phaseDuration), phaseCount - 1)
-            let phaseProgress = (elapsed - Double(phaseIndex) * phaseDuration) / phaseDuration
+            let linearProgress = elapsed / totalDuration
 
-            // Calculate target progress with realistic easing
-            // Progress speeds up and slows down within each phase
-            let baseProgress = CGFloat(phaseIndex) / CGFloat(phaseCount)
+            // Use ease-out cubic curve: fast start, slow finish
+            // Formula: 1 - (1 - t)^3
+            let easedProgress = 1.0 - pow(1.0 - linearProgress, 3)
 
-            // Add some variance - faster at start of phase, slower near end
-            let easedPhaseProgress = sin(phaseProgress * .pi / 2)  // Ease out
-            let targetProgress = baseProgress + (easedPhaseProgress / CGFloat(phaseCount))
+            // Calculate which phase we're in based on eased progress
+            let phaseIndex = min(Int(easedProgress * Double(phaseCount)), phaseCount - 1)
 
             DispatchQueue.main.asyncAfter(deadline: .now() + elapsed) {
-                // Small random jitter to simulate real processing
-                let jitter = CGFloat.random(in: -0.005...0.005)
-                let finalProgress = min(targetProgress + jitter, 1.0)
-
-                withAnimation(.linear(duration: updateInterval)) {
-                    progress = max(progress, finalProgress)  // Only move forward
+                // Smooth animation for progress updates
+                withAnimation(.easeOut(duration: updateInterval * 2)) {
+                    progress = max(progress, CGFloat(easedProgress))
                 }
 
-                // Update phase when crossing thresholds
-                let newPhase = min(Int(finalProgress * CGFloat(phaseCount)), phaseCount - 1)
-                if newPhase != currentPhase {
-                    withAnimation(.easeInOut(duration: 0.3)) {
+                // Update phase smoothly when crossing thresholds
+                if phaseIndex != currentPhase {
+                    withAnimation(.easeInOut(duration: 0.4)) {
                         // Complete previous phase
                         if currentPhase >= 0 {
                             _ = completedSteps.insert(currentPhase)
                         }
-                        currentPhase = newPhase
+                        currentPhase = phaseIndex
                     }
                 }
             }
         }
 
         // Ensure we hit 100% and complete all phases with smooth animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration - 0.2) {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration - 0.3) {
+            withAnimation(.easeOut(duration: 0.8)) {
                 progress = 1.0
+            }
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration) {
+            withAnimation(.easeInOut(duration: 0.3)) {
                 _ = completedSteps.insert(phaseCount - 1)
             }
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.2) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.5) {
             onComplete()
         }
     }

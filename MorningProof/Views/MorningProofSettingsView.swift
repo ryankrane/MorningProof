@@ -593,6 +593,7 @@ struct MorningProofSettingsView: View {
                 }
                 .buttonStyle(PlainButtonStyle())
             }
+            .padding(.vertical, -MPSpacing.xs)
         }
     }
 
@@ -611,7 +612,7 @@ struct MorningProofSettingsView: View {
 
             trailing
         }
-        .padding(.vertical, MPSpacing.md)
+        .padding(.vertical, MPSpacing.sm)
     }
 
     // MARK: - Helpers
