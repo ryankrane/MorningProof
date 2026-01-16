@@ -69,5 +69,14 @@ The Screen Time (Family Controls) feature is temporarily disabled while waiting 
 7. Run `xcodegen generate` to regenerate the project
 
 ## TODO: Pre-Release Checklist
-- [ ] **REMOVE SKIP BUTTON** in `HardPaywallStep.swift` before App Store release - it's for testing only!
-- [ ] Re-enable Screen Time feature once all bundle IDs are approved for Family Controls
+When ready for App Store release (after Family Controls approval), do ALL of these together:
+
+### Remove Testing Skip Buttons
+These skip buttons allow testers to bypass the paywall. **REMOVE ALL before App Store release:**
+- [ ] **NameStep** (step 1): Remove `onSkip` parameter and the skip button in top-right
+- [ ] **YourHabitsStep** (step 16): Remove `onSkip` parameter and the skip button in top-right
+- [ ] **HardPaywallStep** (step 17): Remove `onSkip` parameter from the call site
+- [ ] In `OnboardingFlowView.swift` switch statement: Remove the `onSkip: completeOnboarding` from steps 1, 16, and 17
+
+### Re-enable Screen Time Feature
+- [ ] Re-enable Screen Time feature once all bundle IDs are approved for Family Controls (see section above)

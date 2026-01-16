@@ -178,7 +178,7 @@ struct OnboardingFlowView: View {
                         // Phase 4: Habits & Paywall
                         case 14: OptionalRatingStep(onContinue: nextStep)
                         case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep, onSkip: completeOnboarding)  // onSkip is testing only - remove before release
                         case 17: HardPaywallStep(
                             subscriptionManager: subscriptionManager,
                             onSubscribe: completeOnboarding,
@@ -2529,24 +2529,26 @@ struct AnalyzingPhaseRow: View {
 struct YourHabitsStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
+    let onSkip: () -> Void  // Testing only - remove before release
     @State private var showContent = false
 
     private let recommendedHabits: [HabitType] = [.madeBed, .morningWorkout, .sleepDuration, .coldShower]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        ZStack(alignment: .topTrailing) {
+            VStack(spacing: 0) {
+                Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                Text("Build Your Daily Habits")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+                VStack(spacing: MPSpacing.md) {
+                    Text("Build Your Daily Habits")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-                Text("Here's your personalized routine")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .opacity(showContent ? 1 : 0)
+                    Text("Here's your personalized routine")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .opacity(showContent ? 1 : 0)
 
             Spacer().frame(height: MPSpacing.xxl)
 
@@ -2579,11 +2581,23 @@ struct YourHabitsStep: View {
 
             Spacer()
 
-            MPButton(title: "Let's Get Started", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
-                onContinue()
+                MPButton(title: "Let's Get Started", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+                    onContinue()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, 50)
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
+
+            // Skip button - Testing only, remove before release
+            Button {
+                onSkip()
+            } label: {
+                Text("Skip")
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(MPColors.textTertiary)
+            }
+            .padding(.top, MPSpacing.lg)
+            .padding(.trailing, MPSpacing.xl)
         }
         .onAppear {
             // Pre-select recommended habits

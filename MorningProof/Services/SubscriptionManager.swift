@@ -314,7 +314,7 @@ class SubscriptionManager: ObservableObject {
     // MARK: - Price Helpers
 
     var monthlyPrice: String {
-        products.first { $0.id == ProductID.monthlyPremium.rawValue }?.displayPrice ?? "$4.99"
+        products.first { $0.id == ProductID.monthlyPremium.rawValue }?.displayPrice ?? "$6.99"
     }
 
     var yearlyPrice: String {
