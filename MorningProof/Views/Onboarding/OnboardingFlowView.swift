@@ -1234,37 +1234,31 @@ struct AIVerificationShowcaseStep: View {
 
                     // Screen content
                     VStack(spacing: MPSpacing.lg) {
-                        // Bed image placeholder
+                        // Stylized bed illustration with AI scanning
                         ZStack {
+                            // Background
                             RoundedRectangle(cornerRadius: MPRadius.md)
                                 .fill(
                                     LinearGradient(
-                                        colors: [MPColors.surfaceSecondary, MPColors.progressBg],
+                                        colors: [Color(hex: "E8F0FE"), Color(hex: "D4E4FA")],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
                                 )
                                 .frame(width: 180, height: 140)
-                                .overlay(
-                                    Image(systemName: "bed.double.fill")
-                                        .font(.system(size: 50))
-                                        .foregroundColor(MPColors.textMuted)
+
+                            // Cartoon bed illustration
+                            CartoonBedIllustration()
+                                .frame(width: 160, height: 110)
+
+                            // AI scanning overlay
+                            if showScan || showScore {
+                                AIScanningOverlay(
+                                    isScanning: showScan && !showScore,
+                                    isComplete: showScore,
+                                    scanProgress: scanProgress
                                 )
-
-                            // Analyzing pulse
-                            if showScan && !showScore {
-                                RoundedRectangle(cornerRadius: MPRadius.md)
-                                    .stroke(MPColors.accent, lineWidth: 3)
-                                    .frame(width: 180, height: 140)
-                                    .scaleEffect(1.0 + scanProgress * 0.05)
-                                    .opacity(1.0 - scanProgress * 0.5)
-                            }
-
-                            // Success overlay
-                            if showScore {
-                                RoundedRectangle(cornerRadius: MPRadius.md)
-                                    .stroke(MPColors.success, lineWidth: 3)
-                                    .frame(width: 180, height: 140)
+                                .frame(width: 180, height: 140)
                             }
                         }
 
@@ -1343,6 +1337,350 @@ struct AIVerificationShowcaseStep: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                     showScore = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Cartoon Bed Illustration
+
+private struct CartoonBedIllustration: View {
+    var body: some View {
+        GeometryReader { geometry in
+            let width = geometry.size.width
+            let height = geometry.size.height
+
+            ZStack {
+                // Bed frame / base
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(Color(hex: "8B7355"))
+                    .frame(width: width * 0.85, height: height * 0.15)
+                    .position(x: width * 0.5, y: height * 0.88)
+
+                // Bed legs
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color(hex: "6B5344"))
+                    .frame(width: 8, height: 12)
+                    .position(x: width * 0.15, y: height * 0.95)
+
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color(hex: "6B5344"))
+                    .frame(width: 8, height: 12)
+                    .position(x: width * 0.85, y: height * 0.95)
+
+                // Mattress
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.white)
+                    .frame(width: width * 0.8, height: height * 0.35)
+                    .position(x: width * 0.5, y: height * 0.65)
+
+                // Blanket / comforter (neatly made)
+                BlanketShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "7CB9E8"), Color(hex: "5B9BD5")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: width * 0.82, height: height * 0.38)
+                    .position(x: width * 0.5, y: height * 0.6)
+
+                // Blanket fold line
+                Path { path in
+                    path.move(to: CGPoint(x: width * 0.12, y: height * 0.48))
+                    path.addQuadCurve(
+                        to: CGPoint(x: width * 0.88, y: height * 0.48),
+                        control: CGPoint(x: width * 0.5, y: height * 0.44)
+                    )
+                }
+                .stroke(Color(hex: "4A8AC4"), lineWidth: 2)
+
+                // Pillow
+                PillowShape()
+                    .fill(Color.white)
+                    .frame(width: width * 0.65, height: height * 0.22)
+                    .position(x: width * 0.5, y: height * 0.32)
+                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
+
+                // Pillow indent/details
+                Ellipse()
+                    .fill(Color(hex: "F5F5F5"))
+                    .frame(width: width * 0.35, height: height * 0.08)
+                    .position(x: width * 0.5, y: height * 0.33)
+
+                // Headboard
+                HeadboardShape()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(hex: "A08060"), Color(hex: "8B7355")],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(width: width * 0.9, height: height * 0.3)
+                    .position(x: width * 0.5, y: height * 0.12)
+            }
+        }
+    }
+}
+
+private struct BlanketShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let cornerRadius: CGFloat = 8
+
+        path.move(to: CGPoint(x: cornerRadius, y: 0))
+        // Top edge with slight wave
+        path.addQuadCurve(
+            to: CGPoint(x: rect.width - cornerRadius, y: 0),
+            control: CGPoint(x: rect.width / 2, y: -5)
+        )
+        path.addArc(
+            center: CGPoint(x: rect.width - cornerRadius, y: cornerRadius),
+            radius: cornerRadius,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(0),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height - cornerRadius))
+        path.addArc(
+            center: CGPoint(x: rect.width - cornerRadius, y: rect.height - cornerRadius),
+            radius: cornerRadius,
+            startAngle: .degrees(0),
+            endAngle: .degrees(90),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: cornerRadius, y: rect.height))
+        path.addArc(
+            center: CGPoint(x: cornerRadius, y: rect.height - cornerRadius),
+            radius: cornerRadius,
+            startAngle: .degrees(90),
+            endAngle: .degrees(180),
+            clockwise: false
+        )
+        path.addLine(to: CGPoint(x: 0, y: cornerRadius))
+        path.addArc(
+            center: CGPoint(x: cornerRadius, y: cornerRadius),
+            radius: cornerRadius,
+            startAngle: .degrees(180),
+            endAngle: .degrees(270),
+            clockwise: false
+        )
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+private struct PillowShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        // Rounded puffy pillow shape
+        path.addRoundedRect(
+            in: rect.insetBy(dx: 2, dy: 2),
+            cornerSize: CGSize(width: rect.width * 0.3, height: rect.height * 0.4)
+        )
+        return path
+    }
+}
+
+private struct HeadboardShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        // Curved headboard
+        path.move(to: CGPoint(x: 0, y: rect.height))
+        path.addLine(to: CGPoint(x: 0, y: rect.height * 0.4))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.width, y: rect.height * 0.4),
+            control: CGPoint(x: rect.width / 2, y: 0)
+        )
+        path.addLine(to: CGPoint(x: rect.width, y: rect.height))
+        path.closeSubpath()
+
+        return path
+    }
+}
+
+// MARK: - AI Scanning Overlay
+
+private struct AIScanningOverlay: View {
+    let isScanning: Bool
+    let isComplete: Bool
+    let scanProgress: CGFloat
+
+    @State private var scanLineOffset: CGFloat = -1
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Corner brackets (viewfinder style)
+                CornerBrackets(
+                    color: isComplete ? MPColors.success : MPColors.accent,
+                    isComplete: isComplete
+                )
+
+                // Scanning line
+                if isScanning {
+                    Rectangle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    MPColors.accent.opacity(0),
+                                    MPColors.accent.opacity(0.8),
+                                    MPColors.accent.opacity(0)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(height: 3)
+                        .offset(y: geometry.size.height * scanLineOffset)
+                }
+
+                // Analysis points
+                if isScanning || isComplete {
+                    AnalysisPoints(isComplete: isComplete, scanProgress: scanProgress)
+                }
+
+                // Pulsing border during scan
+                if isScanning {
+                    RoundedRectangle(cornerRadius: MPRadius.md)
+                        .stroke(MPColors.accent.opacity(0.5), lineWidth: 2)
+                        .scaleEffect(1.0 + scanProgress * 0.03)
+                        .opacity(1.0 - scanProgress * 0.5)
+                }
+            }
+        }
+        .onAppear {
+            if isScanning {
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                    scanLineOffset = 1
+                }
+            }
+        }
+        .onChange(of: isScanning) { _, newValue in
+            if newValue {
+                scanLineOffset = -1
+                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+                    scanLineOffset = 1
+                }
+            }
+        }
+    }
+}
+
+private struct CornerBrackets: View {
+    let color: Color
+    let isComplete: Bool
+
+    var body: some View {
+        GeometryReader { geometry in
+            let bracketSize: CGFloat = 20
+            let bracketWidth: CGFloat = 3
+
+            ZStack {
+                // Top-left
+                CornerBracket(size: bracketSize, lineWidth: bracketWidth, color: color)
+                    .position(x: bracketSize / 2 + 8, y: bracketSize / 2 + 8)
+
+                // Top-right
+                CornerBracket(size: bracketSize, lineWidth: bracketWidth, color: color)
+                    .rotationEffect(.degrees(90))
+                    .position(x: geometry.size.width - bracketSize / 2 - 8, y: bracketSize / 2 + 8)
+
+                // Bottom-left
+                CornerBracket(size: bracketSize, lineWidth: bracketWidth, color: color)
+                    .rotationEffect(.degrees(-90))
+                    .position(x: bracketSize / 2 + 8, y: geometry.size.height - bracketSize / 2 - 8)
+
+                // Bottom-right
+                CornerBracket(size: bracketSize, lineWidth: bracketWidth, color: color)
+                    .rotationEffect(.degrees(180))
+                    .position(x: geometry.size.width - bracketSize / 2 - 8, y: geometry.size.height - bracketSize / 2 - 8)
+            }
+        }
+    }
+}
+
+private struct CornerBracket: View {
+    let size: CGFloat
+    let lineWidth: CGFloat
+    let color: Color
+
+    var body: some View {
+        Path { path in
+            path.move(to: CGPoint(x: 0, y: size))
+            path.addLine(to: CGPoint(x: 0, y: 0))
+            path.addLine(to: CGPoint(x: size, y: 0))
+        }
+        .stroke(color, style: StrokeStyle(lineWidth: lineWidth, lineCap: .round, lineJoin: .round))
+        .frame(width: size, height: size)
+    }
+}
+
+private struct AnalysisPoints: View {
+    let isComplete: Bool
+    let scanProgress: CGFloat
+
+    var body: some View {
+        GeometryReader { geometry in
+            // Small dots at key analysis points
+            ZStack {
+                // Pillow area
+                AnalysisPoint(isComplete: isComplete)
+                    .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.25)
+                    .opacity(scanProgress > 0.3 ? 1 : 0)
+
+                // Blanket center
+                AnalysisPoint(isComplete: isComplete)
+                    .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.55)
+                    .opacity(scanProgress > 0.5 ? 1 : 0)
+
+                // Left edge
+                AnalysisPoint(isComplete: isComplete)
+                    .position(x: geometry.size.width * 0.25, y: geometry.size.height * 0.6)
+                    .opacity(scanProgress > 0.7 ? 1 : 0)
+
+                // Right edge
+                AnalysisPoint(isComplete: isComplete)
+                    .position(x: geometry.size.width * 0.75, y: geometry.size.height * 0.6)
+                    .opacity(scanProgress > 0.9 ? 1 : 0)
+            }
+        }
+    }
+}
+
+private struct AnalysisPoint: View {
+    let isComplete: Bool
+
+    @State private var isPulsing = false
+
+    var body: some View {
+        ZStack {
+            // Outer pulse
+            Circle()
+                .fill((isComplete ? MPColors.success : MPColors.accent).opacity(0.3))
+                .frame(width: isPulsing ? 16 : 8, height: isPulsing ? 16 : 8)
+
+            // Inner dot
+            Circle()
+                .fill(isComplete ? MPColors.success : MPColors.accent)
+                .frame(width: 6, height: 6)
+        }
+        .onAppear {
+            if !isComplete {
+                withAnimation(.easeInOut(duration: 0.6).repeatForever(autoreverses: true)) {
+                    isPulsing = true
+                }
+            }
+        }
+        .onChange(of: isComplete) { _, newValue in
+            if newValue {
+                withAnimation(.none) {
+                    isPulsing = false
                 }
             }
         }
@@ -2258,7 +2596,7 @@ struct YourHabitsStep: View {
     let onContinue: () -> Void
     @State private var showContent = false
 
-    private let recommendedHabits: [HabitType] = [.madeBed, .morningSteps, .sleepDuration, .coldShower]
+    private let recommendedHabits: [HabitType] = [.madeBed, .morningWorkout, .sleepDuration, .coldShower]
 
     var body: some View {
         VStack(spacing: 0) {

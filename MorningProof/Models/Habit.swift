@@ -4,13 +4,13 @@ import SwiftData
 // Verification tier determines how the habit is confirmed
 enum HabitVerificationTier: Int, Codable, CaseIterable {
     case aiVerified = 1      // Requires AI analysis (e.g., bed photo)
-    case autoTracked = 2     // Auto-tracked via HealthKit
+    case autoTracked = 2     // Auto-tracked via Apple Health
     case honorSystem = 3     // Manual confirmation with friction
 
     var description: String {
         switch self {
         case .aiVerified: return "AI Verified"
-        case .autoTracked: return "Apple HealthKit"
+        case .autoTracked: return "Apple Health"
         case .honorSystem: return "Honor System"
         }
     }
