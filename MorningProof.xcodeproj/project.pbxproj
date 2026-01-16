@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -117,7 +117,7 @@
 		0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClaudeAPIService.swift; sourceTree = "<group>"; };
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
-		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
 		23D2B6F9E3ABD69FDB322D6F /* StatisticHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StatisticHeroCard.swift; sourceTree = "<group>"; };
 		269A2CFCAE1171B58D22D159 /* MPCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MPCard.swift; sourceTree = "<group>"; };
@@ -125,9 +125,9 @@
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
 		355EA2A6D57A916289BDA565 /* SocialProofCounter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialProofCounter.swift; sourceTree = "<group>"; };
-		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
+		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.example; sourceTree = "<group>"; };
 		3C15180C19687B347FEEB70A /* StreakHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeroCard.swift; sourceTree = "<group>"; };
-		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		409E65E8F18D6482BECDE992 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
 		40EF5CAA0D65467A9DCD850E /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakRecoveryView.swift; sourceTree = "<group>"; };
@@ -151,8 +151,8 @@
 		7F9DB6D41429EBB072A2745C /* EnhancedPlanCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPlanCard.swift; sourceTree = "<group>"; };
 		8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingService.swift; sourceTree = "<group>"; };
 		88B5D7D38090D80E9DF411AA /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		970A6074B025718639B71CD8 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		98F7C96CFA7B8BB0B31A689B /* AppLockingSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockingSettingsView.swift; sourceTree = "<group>"; };
 		99ADA9C532210DD45EDA8B43 /* WelcomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeView.swift; sourceTree = "<group>"; };
@@ -497,7 +497,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					81A9B07749BFDE7F645FB8A6 = {
 						DevelopmentTeam = P9ZXADV42A;
@@ -523,7 +523,6 @@
 				5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				3A409E8FBDDDC00071BCA0A0 /* XCRemoteSwiftPackageReference "Superwall-iOS" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -696,6 +695,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -711,12 +711,13 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -762,6 +763,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -771,11 +773,12 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.2;
+				MARKETING_VERSION = 1.0.3;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
