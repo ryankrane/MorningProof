@@ -2474,19 +2474,19 @@ struct AnalyzingStep: View {
             }
         }
 
-        // PHASE 3: Slow crawl (93% to 100% in 3 seconds)
-        // Dramatic slowdown that builds anticipation
+        // PHASE 3: Slow crawl then quick finish (93% to 100% in ~3 seconds)
+        // Builds tension slowly to 97%, then quick satisfying burst to 100%
         let phase3Start: Double = 4.0
         let phase3Duration: Double = 3.0
         let crawlSteps: [(delay: Double, progress: Double)] = [
             (0.0, 0.93),
-            (0.4, 0.94),
-            (0.8, 0.95),
-            (1.3, 0.96),
-            (1.8, 0.97),
-            (2.2, 0.98),
-            (2.6, 0.99),
-            (3.0, 1.00),
+            (0.5, 0.94),    // slow crawl
+            (1.0, 0.95),    // slow crawl
+            (1.6, 0.96),    // slow crawl
+            (2.2, 0.97),    // tension peaks
+            (2.5, 0.98),    // quick burst
+            (2.7, 0.99),    // quick burst
+            (2.9, 1.00),    // done!
         ]
 
         for step in crawlSteps {
