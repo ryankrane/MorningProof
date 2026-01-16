@@ -192,6 +192,7 @@ struct OnboardingFlowView: View {
                 .animation(.easeInOut(duration: 0.3), value: currentStep)
             }
         }
+        .preferredColorScheme(.dark)
     }
 
     private func nextStep() {
@@ -1269,7 +1270,7 @@ struct AIVerificationShowcaseStep: View {
                                     .font(.system(size: 44))
                                     .foregroundColor(MPColors.success)
 
-                                Text("Habit Complete!")
+                                Text("Bed Made!")
                                     .font(.system(size: 18, weight: .bold))
                                     .foregroundColor(MPColors.textPrimary)
                             }
@@ -2636,7 +2637,7 @@ struct RecommendedHabitRow: View {
                     Text(habitType.howItWorksShort)
                         .font(.system(size: 13))
                         .foregroundColor(MPColors.textSecondary)
-                        .lineLimit(1)
+                        .lineLimit(2)
                 }
 
                 Spacer()
