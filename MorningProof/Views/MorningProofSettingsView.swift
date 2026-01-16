@@ -37,6 +37,12 @@ struct MorningProofSettingsView: View {
     @State private var showReminderTimePicker = false
     @State private var showSleepGoalPicker = false
     @State private var showStepGoalPicker = false
+    @State private var showMorningRoutineSheet = false
+
+    // Info alert
+    @State private var showingInfoAlert = false
+    @State private var infoAlertTitle = ""
+    @State private var infoAlertMessage = ""
 
     var body: some View {
         NavigationStack {
@@ -49,17 +55,14 @@ struct MorningProofSettingsView: View {
                         // MARK: - Header with Greeting & Theme
                         headerSection
 
-                        // MARK: - Morning Routine (Schedule + Habits combined)
+                        // MARK: - Morning Routine (clickable summary)
                         morningRoutineSection
+
+                        // MARK: - App Locking (moved up)
+                        appLockingSection
 
                         // MARK: - Notifications
                         notificationsSection
-
-                        // MARK: - App Locking
-                        appLockingSection
-
-                        // MARK: - Goals
-                        goalsSection
 
                         // MARK: - About
                         aboutSection
@@ -103,8 +106,16 @@ struct MorningProofSettingsView: View {
             } message: {
                 Text("This will delete all your habits, streaks, and settings. This cannot be undone.")
             }
+            .alert(infoAlertTitle, isPresented: $showingInfoAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(infoAlertMessage)
+            }
             .sheet(isPresented: $showPaywall) {
                 PaywallView(subscriptionManager: subscriptionManager)
+            }
+            .sheet(isPresented: $showMorningRoutineSheet) {
+                MorningRoutineSettingsSheet(manager: manager)
             }
         }
     }
@@ -217,69 +228,39 @@ struct MorningProofSettingsView: View {
         .cornerRadius(MPRadius.md)
     }
 
-    // MARK: - Morning Routine Section (Combined Schedule + Habits)
+    // MARK: - Morning Routine Section (Clickable Summary)
+
+    private var enabledHabitCount: Int {
+        manager.habitConfigs.filter { $0.isEnabled }.count
+    }
 
     var morningRoutineSection: some View {
-        settingsSection(title: "Morning Routine", icon: "sunrise.fill") {
-            VStack(spacing: 0) {
-                // Habit deadline
-                Button {
-                    showCutoffTimePicker = true
-                } label: {
-                    HStack {
-                        Image(systemName: "clock.fill")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.primary)
-                            .frame(width: 30)
+        settingsSection(title: "Morning Routine", icon: "sunrise.fill", infoText: "Configure your daily habits, goals, and completion deadline") {
+            Button {
+                showMorningRoutineSheet = true
+            } label: {
+                HStack {
+                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                        Text("Complete by \(TimeOptions.formatTime(cutoffMinutes))")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
 
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Habit Deadline")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.textPrimary)
-                            Text("Complete habits by this time")
-                                .font(MPFont.labelTiny())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Text(TimeOptions.formatTime(cutoffMinutes))
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, MPSpacing.md)
-                            .padding(.vertical, MPSpacing.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.md)
+                        Text("\(enabledHabitCount) habits enabled")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
                     }
-                }
-                .padding(.vertical, MPSpacing.sm)
-                .sheet(isPresented: $showCutoffTimePicker) {
-                    TimeWheelPicker(
-                        selectedMinutes: $cutoffMinutes,
-                        title: "Habit Deadline",
-                        subtitle: "Complete your habits by this time to lock in your day",
-                        timeOptions: TimeOptions.cutoffTime
-                    )
-                    .presentationDetents([.medium])
-                }
 
-                Divider()
-                    .padding(.leading, 46)
+                    Spacer()
 
-                // Habits
-                ForEach(manager.habitConfigs) { config in
-                    habitToggleRow(config: config)
-
-                    if config.id != manager.habitConfigs.last?.id {
-                        Divider()
-                            .padding(.leading, 46)
-                    }
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
                 }
             }
         }
     }
 
-    func settingsSection<Content: View>(title: String, icon: String? = nil, @ViewBuilder content: () -> Content) -> some View {
+    func settingsSection<Content: View>(title: String, icon: String? = nil, infoText: String? = nil, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
             HStack(spacing: MPSpacing.sm) {
                 if let icon = icon {
@@ -291,6 +272,18 @@ struct MorningProofSettingsView: View {
                     .font(MPFont.labelSmall())
                     .foregroundColor(MPColors.textTertiary)
                     .tracking(0.5)
+
+                if let infoText = infoText {
+                    Button {
+                        infoAlertTitle = title
+                        infoAlertMessage = infoText
+                        showingInfoAlert = true
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 14))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
             }
             .padding(.leading, MPSpacing.xs)
 
@@ -380,7 +373,7 @@ struct MorningProofSettingsView: View {
     // MARK: - Notifications Section
 
     var notificationsSection: some View {
-        settingsSection(title: "Notifications", icon: "bell.fill") {
+        settingsSection(title: "Notifications", icon: "bell.fill", infoText: "Get reminded to complete your habits each morning") {
             VStack(spacing: MPSpacing.lg) {
                 // Enable toggle
                 HStack {
@@ -451,7 +444,7 @@ struct MorningProofSettingsView: View {
     // MARK: - App Locking Section
 
     var appLockingSection: some View {
-        settingsSection(title: "App Locking", icon: "lock.fill") {
+        settingsSection(title: "App Locking", icon: "lock.fill", infoText: "Block distracting apps until you complete your morning routine") {
             VStack(spacing: MPSpacing.lg) {
                 // Enable toggle
                 HStack {
@@ -509,97 +502,6 @@ struct MorningProofSettingsView: View {
         }
         .sheet(isPresented: $showAppLockingSheet) {
             AppLockingSettingsView()
-        }
-    }
-
-    // MARK: - Goals Section
-
-    var goalsSection: some View {
-        settingsSection(title: "Goals", icon: "target") {
-            VStack(spacing: 0) {
-                // Sleep goal
-                Button {
-                    showSleepGoalPicker = true
-                } label: {
-                    HStack {
-                        Image(systemName: "moon.zzz.fill")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.primary)
-                            .frame(width: 30)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Sleep Goal")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.textPrimary)
-                            Text("Target hours of sleep")
-                                .font(MPFont.labelTiny())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Text(formatSleepGoal(customSleepGoal))
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, MPSpacing.md)
-                            .padding(.vertical, MPSpacing.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.md)
-                    }
-                }
-                .padding(.vertical, MPSpacing.sm)
-                .sheet(isPresented: $showSleepGoalPicker) {
-                    SleepGoalPicker(sleepGoal: $customSleepGoal)
-                        .presentationDetents([.medium])
-                }
-
-                Divider()
-                    .padding(.leading, 46)
-
-                // Step goal
-                Button {
-                    showStepGoalPicker = true
-                } label: {
-                    HStack {
-                        Image(systemName: "figure.walk")
-                            .font(.system(size: MPIconSize.sm))
-                            .foregroundColor(MPColors.primary)
-                            .frame(width: 30)
-
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Step Goal")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.textPrimary)
-                            Text("Morning steps target")
-                                .font(MPFont.labelTiny())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Text("\(customStepGoal)")
-                            .font(.system(size: 15, weight: .semibold, design: .rounded))
-                            .foregroundColor(.white)
-                            .padding(.horizontal, MPSpacing.md)
-                            .padding(.vertical, MPSpacing.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.md)
-                    }
-                }
-                .padding(.vertical, MPSpacing.sm)
-                .sheet(isPresented: $showStepGoalPicker) {
-                    StepGoalPicker(stepGoal: $customStepGoal)
-                        .presentationDetents([.medium])
-                }
-            }
-        }
-    }
-
-    private func formatSleepGoal(_ hours: Double) -> String {
-        if hours == floor(hours) {
-            return "\(Int(hours))h"
-        } else {
-            return String(format: "%.1fh", hours)
         }
     }
 

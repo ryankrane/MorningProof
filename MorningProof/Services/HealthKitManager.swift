@@ -34,6 +34,9 @@ final class HealthKitManager: ObservableObject, Sendable {
         if let sleepType = HKCategoryType.categoryType(forIdentifier: .sleepAnalysis) {
             types.insert(sleepType)
         }
+        if let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) {
+            types.insert(energyType)
+        }
         let workoutType = HKObjectType.workoutType()
         types.insert(workoutType)
         return types
@@ -245,9 +248,79 @@ final class HealthKitManager: ObservableObject, Sendable {
         }
     }
 
-    // MARK: - Morning Workout Check
+    // MARK: - Active Energy Check
 
+    func fetchActiveEnergyBeforeCutoff(cutoffMinutes: Int) async -> Double {
+        guard let energyType = HKQuantityType.quantityType(forIdentifier: .activeEnergyBurned) else { return 0 }
+
+        let calendar = Calendar.current
+        let now = Date()
+        let startOfDay = calendar.startOfDay(for: now)
+
+        var cutoffComponents = calendar.dateComponents([.year, .month, .day], from: now)
+        cutoffComponents.hour = cutoffMinutes / 60
+        cutoffComponents.minute = cutoffMinutes % 60
+
+        guard let cutoffTime = calendar.date(from: cutoffComponents) else { return 0 }
+
+        let endTime = min(now, cutoffTime)
+        let predicate = HKQuery.predicateForSamples(withStart: startOfDay, end: endTime, options: .strictStartDate)
+
+        do {
+            let energy = try await withCheckedThrowingContinuation { (continuation: CheckedContinuation<Double, Error>) in
+                let query = HKStatisticsQuery(
+                    quantityType: energyType,
+                    quantitySamplePredicate: predicate,
+                    options: .cumulativeSum
+                ) { _, result, error in
+                    if let error = error {
+                        continuation.resume(throwing: error)
+                        return
+                    }
+
+                    let kcal = result?.sumQuantity()?.doubleValue(for: .kilocalorie()) ?? 0
+                    continuation.resume(returning: kcal)
+                }
+
+                healthStore.execute(query)
+            }
+
+            return energy
+        } catch {
+            MPLogger.error("Failed to fetch active energy before cutoff", error: error, category: MPLogger.healthKit)
+            return 0
+        }
+    }
+
+    // MARK: - Morning Workout Check (with Loose Standards)
+
+    /// Checks if user has done a workout using loose standards:
+    /// 1. Any formal HKWorkout record, OR
+    /// 2. 1000+ steps before cutoff (indicates active morning), OR
+    /// 3. 100+ kcal active energy burned (indicates exercise)
     func checkMorningWorkout(cutoffMinutes: Int) async -> Bool {
+        // 1. Check for formal workout
+        if await checkFormalWorkout(cutoffMinutes: cutoffMinutes) {
+            return true
+        }
+
+        // 2. Check for high step count (> 1000 steps indicates active morning)
+        let steps = await fetchStepsBeforeCutoff(cutoffMinutes: cutoffMinutes)
+        if steps > 1000 {
+            return true
+        }
+
+        // 3. Check for active energy burned (> 100 kcal indicates exercise)
+        let energy = await fetchActiveEnergyBeforeCutoff(cutoffMinutes: cutoffMinutes)
+        if energy > 100 {
+            return true
+        }
+
+        return false
+    }
+
+    /// Checks specifically for formal HKWorkout records
+    private func checkFormalWorkout(cutoffMinutes: Int) async -> Bool {
         let calendar = Calendar.current
         let now = Date()
         let startOfDay = calendar.startOfDay(for: now)
@@ -282,7 +355,7 @@ final class HealthKitManager: ObservableObject, Sendable {
 
             return hasWorkout
         } catch {
-            MPLogger.error("Failed to check morning workout", error: error, category: MPLogger.healthKit)
+            MPLogger.error("Failed to check formal workout", error: error, category: MPLogger.healthKit)
             return false
         }
     }

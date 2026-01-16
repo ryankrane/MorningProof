@@ -1347,82 +1347,9 @@ struct AIVerificationShowcaseStep: View {
 
 private struct CartoonBedIllustration: View {
     var body: some View {
-        GeometryReader { geometry in
-            let width = geometry.size.width
-            let height = geometry.size.height
-
-            ZStack {
-                // Bed frame / base
-                RoundedRectangle(cornerRadius: 6)
-                    .fill(Color(hex: "8B7355"))
-                    .frame(width: width * 0.85, height: height * 0.15)
-                    .position(x: width * 0.5, y: height * 0.88)
-
-                // Bed legs
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color(hex: "6B5344"))
-                    .frame(width: 8, height: 12)
-                    .position(x: width * 0.15, y: height * 0.95)
-
-                RoundedRectangle(cornerRadius: 3)
-                    .fill(Color(hex: "6B5344"))
-                    .frame(width: 8, height: 12)
-                    .position(x: width * 0.85, y: height * 0.95)
-
-                // Mattress
-                RoundedRectangle(cornerRadius: 8)
-                    .fill(Color.white)
-                    .frame(width: width * 0.8, height: height * 0.35)
-                    .position(x: width * 0.5, y: height * 0.65)
-
-                // Blanket / comforter (neatly made)
-                BlanketShape()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "7CB9E8"), Color(hex: "5B9BD5")],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: width * 0.82, height: height * 0.38)
-                    .position(x: width * 0.5, y: height * 0.6)
-
-                // Blanket fold line
-                Path { path in
-                    path.move(to: CGPoint(x: width * 0.12, y: height * 0.48))
-                    path.addQuadCurve(
-                        to: CGPoint(x: width * 0.88, y: height * 0.48),
-                        control: CGPoint(x: width * 0.5, y: height * 0.44)
-                    )
-                }
-                .stroke(Color(hex: "4A8AC4"), lineWidth: 2)
-
-                // Pillow
-                PillowShape()
-                    .fill(Color.white)
-                    .frame(width: width * 0.65, height: height * 0.22)
-                    .position(x: width * 0.5, y: height * 0.32)
-                    .shadow(color: Color.black.opacity(0.05), radius: 2, x: 0, y: 2)
-
-                // Pillow indent/details
-                Ellipse()
-                    .fill(Color(hex: "F5F5F5"))
-                    .frame(width: width * 0.35, height: height * 0.08)
-                    .position(x: width * 0.5, y: height * 0.33)
-
-                // Headboard
-                HeadboardShape()
-                    .fill(
-                        LinearGradient(
-                            colors: [Color(hex: "A08060"), Color(hex: "8B7355")],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
-                    .frame(width: width * 0.9, height: height * 0.3)
-                    .position(x: width * 0.5, y: height * 0.12)
-            }
-        }
+        Image("BedIllustration")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
     }
 }
 
@@ -2292,6 +2219,9 @@ struct OptionalRatingStep: View {
                         .foregroundColor(MPColors.accentGold)
                 }
             }
+            .onTapGesture {
+                requestReview()
+            }
 
             Spacer()
 
@@ -2600,7 +2530,7 @@ struct YourHabitsStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer()
 
             VStack(spacing: MPSpacing.md) {
                 Text("Build Your Daily Habits")
@@ -2684,13 +2614,10 @@ struct RecommendedHabitRow: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(MPColors.textPrimary)
 
-                    HStack(spacing: 4) {
-                        Image(systemName: verificationIcon)
-                            .font(.system(size: 10))
-                        Text(habitType.tier.description)
-                            .font(.system(size: 12))
-                    }
-                    .foregroundColor(verificationColor)
+                    Text(habitType.howItWorksShort)
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textSecondary)
+                        .lineLimit(1)
                 }
 
                 Spacer()

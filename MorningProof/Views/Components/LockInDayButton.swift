@@ -18,13 +18,9 @@ struct LockInDayButton: View {
     private let buttonWidth: CGFloat = 220
     private let buttonHeight: CGFloat = 56
 
-    // Gold gradient for enabled state
-    private var goldGradient: LinearGradient {
-        LinearGradient(
-            colors: [MPColors.accentGold, MPColors.accent],
-            startPoint: .leading,
-            endPoint: .trailing
-        )
+    // Transparent gold for enabled state - clear with subtle gold tint
+    private var enabledBackground: some ShapeStyle {
+        MPColors.accentGold.opacity(0.15)
     }
 
     // Subtle purple for disabled state - matches app purple but transparent to show "locked"
@@ -98,11 +94,11 @@ struct LockInDayButton: View {
             }
 
 
-            // Border
+            // Border - thicker for enabled state to stand out
             Capsule()
                 .stroke(
                     isHolding ? MPColors.accentGold : borderColor,
-                    lineWidth: isHolding ? 3 : 2
+                    lineWidth: isHolding ? 3 : (isEnabled && !isLockedIn ? 2.5 : 2)
                 )
                 .frame(width: buttonWidth, height: buttonHeight)
 
@@ -153,7 +149,7 @@ struct LockInDayButton: View {
         if isLockedIn {
             return AnyShapeStyle(lockedGoldGradient)
         } else if isEnabled {
-            return AnyShapeStyle(goldGradient)
+            return AnyShapeStyle(enabledBackground)
         } else {
             return AnyShapeStyle(disabledGradient)
         }
@@ -163,15 +159,17 @@ struct LockInDayButton: View {
         if isLockedIn {
             return MPColors.accentGold
         } else if isEnabled {
-            return MPColors.accentGold.opacity(0.6)
+            return MPColors.accentGold  // Strong gold border for enabled state
         } else {
             return Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.3)
         }
     }
 
     private var iconColor: Color {
-        if isLockedIn || isEnabled {
+        if isLockedIn {
             return .white
+        } else if isEnabled {
+            return MPColors.accentGold  // Gold text/icon on transparent background
         } else {
             return Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.5)
         }

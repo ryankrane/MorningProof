@@ -213,8 +213,15 @@ struct DashboardContentView: View {
     }
 
     /// Determines if a habit is a "hold to complete" type (not a special input type)
+    /// Only habits with special input UIs (camera, sheets, auto-progress) are excluded
     private func isHoldToCompleteHabit(_ habitType: HabitType) -> Bool {
-        habitType != .madeBed && habitType != .sleepDuration && habitType != .morningSteps && habitType != .morningWorkout && habitType != .sunlightExposure && habitType != .hydration
+        // These habits have special input types and don't use hold-to-complete:
+        // - madeBed, sunlightExposure, hydration: camera verification
+        // - sleepDuration: sleep input sheet
+        // - morningSteps: auto-tracked with circular progress
+        // Everything else uses hold-to-complete for manual confirmation
+        let specialInputHabits: Set<HabitType> = [.madeBed, .sleepDuration, .morningSteps, .sunlightExposure, .hydration]
+        return !specialInputHabits.contains(habitType)
     }
 
     func habitRow(for config: HabitConfig) -> some View {
@@ -408,8 +415,12 @@ struct DashboardContentView: View {
         // Enhanced haptic feedback
         HapticManager.shared.habitCompletedEnhanced()
 
-        // Complete the habit
-        manager.completeHabit(habitType)
+        // Complete the habit (workout has special handling for manual completion)
+        if habitType == .morningWorkout {
+            manager.completeManualWorkout()
+        } else {
+            manager.completeHabit(habitType)
+        }
 
         // Clear confetti after animation
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
@@ -482,7 +493,7 @@ struct DashboardContentView: View {
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.success)
                 } else {
-                    Text("Tap to mark complete")
+                    Text("Hold to complete")
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }
@@ -564,22 +575,6 @@ struct DashboardContentView: View {
             case .morningSteps:
                 let score = completion?.score ?? 0
                 CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
-
-            case .morningWorkout:
-                // Workout: show mark complete button if not auto-detected
-                Button {
-                    HapticManager.shared.success()
-                    completeHabitWithCelebration(.morningWorkout)
-                    manager.completeManualWorkout()
-                } label: {
-                    Text("Mark Complete")
-                        .font(MPFont.labelSmall())
-                        .foregroundColor(MPColors.primary)
-                        .padding(.horizontal, MPSpacing.md)
-                        .padding(.vertical, MPSpacing.sm)
-                        .background(MPColors.surfaceSecondary)
-                        .cornerRadius(MPRadius.sm)
-                }
 
             default:
                 // Hold-to-complete habits don't need an action button

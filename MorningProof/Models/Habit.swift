@@ -112,6 +112,38 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .hydration: return "Start your day hydrated with a glass of water"
         }
     }
+
+    /// Short, exciting explanation for onboarding
+    var howItWorksShort: String {
+        switch self {
+        case .madeBed: return "Snap a photo — AI verifies it's made"
+        case .sunlightExposure: return "Take a photo outside — AI verifies the daylight"
+        case .hydration: return "Snap your water — AI confirms you're hydrated"
+        case .sleepDuration: return "Syncs automatically from Apple Health"
+        case .morningSteps: return "Syncs your steps from Apple Health"
+        case .morningWorkout: return "Detected automatically from Apple Health"
+        case .coldShower: return "Hold to confirm you took the plunge"
+        case .noSnooze: return "Hold to confirm you didn't snooze"
+        case .morningStretch: return "Hold to confirm you stretched"
+        case .meditation: return "Hold to confirm you meditated"
+        }
+    }
+
+    /// Detailed explanation for settings (includes fallbacks)
+    var howItWorksDetailed: String {
+        switch self {
+        case .madeBed: return "Snap a photo of your bed. We'll check if it's made — sheets smooth, pillows in place."
+        case .sunlightExposure: return "Take a photo outside or by a window. We'll verify you got some natural light."
+        case .hydration: return "Snap a photo of your glass of water. We'll confirm you're starting hydrated."
+        case .sleepDuration: return "Syncs automatically from Apple Health. No Apple Watch? You can enter manually."
+        case .morningSteps: return "Steps sync from Apple Health. If unavailable, hold to confirm you walked."
+        case .morningWorkout: return "Detected from Apple Health (workout, 1000+ steps, or 100+ calories). No data? Hold to confirm."
+        case .coldShower: return "Hold to confirm you took a cold shower this morning."
+        case .noSnooze: return "Hold to confirm you got up without hitting snooze."
+        case .morningStretch: return "Hold to confirm you did your morning stretch."
+        case .meditation: return "Hold to confirm you completed your meditation."
+        }
+    }
 }
 
 // User's habit configuration

@@ -4,13 +4,13 @@ struct SleepInputSheet: View {
     @ObservedObject var manager: MorningProofManager
     @Environment(\.dismiss) var dismiss
 
-    // Slider value in hours (4.0 to 12.0, step 0.25 = 15 min)
+    // Slider value in hours (5.5 to 10.0, step 0.25 = 15 min)
     @State private var sleepHours: Double = 8.0
     @State private var showConfetti = false
     @State private var hasInitialized = false
 
-    private let minHours: Double = 4.0
-    private let maxHours: Double = 12.0
+    private let minHours: Double = 5.5
+    private let maxHours: Double = 10.0
     private let sleepGoal: Double = 7.0
 
     /// Check if current data came from HealthKit
@@ -76,7 +76,7 @@ struct SleepInputSheet: View {
                     // Slider
                     VStack(spacing: MPSpacing.lg) {
                         HStack {
-                            Text("\(Int(minHours))h")
+                            Text("5.5h")
                                 .font(MPFont.labelSmall())
                                 .foregroundColor(MPColors.textTertiary)
 
@@ -87,7 +87,7 @@ struct SleepInputSheet: View {
                             )
                             .tint(sleepColor)
 
-                            Text("\(Int(maxHours))h")
+                            Text("10h+")
                                 .font(MPFont.labelSmall())
                                 .foregroundColor(MPColors.textTertiary)
                         }
