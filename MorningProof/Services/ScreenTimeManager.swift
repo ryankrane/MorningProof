@@ -1,4 +1,10 @@
 import Foundation
+
+// MARK: - TEMPORARILY DISABLED
+// Waiting for Family Controls approval for all bundle IDs.
+// To re-enable: Remove the `#if false` blocks and uncomment the imports.
+
+#if false
 import FamilyControls
 import ManagedSettings
 import DeviceActivity
@@ -227,3 +233,42 @@ final class ScreenTimeManager: ObservableObject {
     }
 }
 
+#else
+
+// MARK: - Stub Implementation (Feature Disabled)
+
+/// Stub ScreenTimeManager while Family Controls approval is pending.
+/// This allows the app to compile and run without Screen Time features.
+@MainActor
+final class ScreenTimeManager: ObservableObject {
+    static let shared = ScreenTimeManager()
+
+    @Published var isMonitoring = false
+
+    var hasSelectedApps: Bool { false }
+    var isAuthorized: Bool { false }
+
+    private init() {}
+
+    func requestAuthorization() async throws {
+        // No-op: Feature disabled
+    }
+
+    func startMorningBlockingSchedule(startMinutes: Int, cutoffMinutes: Int) throws {
+        // No-op: Feature disabled
+    }
+
+    func stopMonitoring() {
+        // No-op: Feature disabled
+    }
+
+    func applyShields() {
+        // No-op: Feature disabled
+    }
+
+    func removeShields() {
+        // No-op: Feature disabled
+    }
+}
+
+#endif

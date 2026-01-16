@@ -59,11 +59,12 @@ final class MorningProofManager: ObservableObject, Sendable {
         loadStreakData()
         checkAndUpdateStreakOnLoad()
 
+        // TEMPORARILY DISABLED - Waiting for Family Controls approval
         // Check for emergency unlock (user bypassed app blocking)
-        checkForEmergencyUnlock()
+        // checkForEmergencyUnlock()
 
         // Ensure shields are applied if we're in the blocking window
-        ensureShieldsAppliedIfNeeded()
+        // ensureShieldsAppliedIfNeeded()
     }
 
     /// Ensures app shields are applied if the user is in the blocking window.
@@ -494,10 +495,11 @@ final class MorningProofManager: ObservableObject, Sendable {
         // Sync lock status to App Group for extensions
         AppLockingDataStore.isDayLockedIn = true
 
+        // TEMPORARILY DISABLED - Waiting for Family Controls approval
         // Remove app shields if app locking is enabled
-        if settings.appLockingEnabled {
-            ScreenTimeManager.shared.removeShields()
-        }
+        // if settings.appLockingEnabled {
+        //     ScreenTimeManager.shared.removeShields()
+        // }
 
         saveCurrentState()
     }

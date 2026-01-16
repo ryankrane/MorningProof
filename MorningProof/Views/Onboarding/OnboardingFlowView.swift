@@ -1,7 +1,7 @@
 import SwiftUI
 import StoreKit
 import AuthenticationServices
-import FamilyControls
+// import FamilyControls  // TEMPORARILY DISABLED - Waiting for Family Controls approval
 import SuperwallKit
 
 // MARK: - Onboarding Data Model
@@ -1930,7 +1930,11 @@ struct PermissionCard: View {
 }
 
 // MARK: - Step 15: App Locking Setup
+// TEMPORARILY DISABLED - Waiting for Family Controls approval
+// This step is not currently in the onboarding flow (not referenced in the switch statement)
+// To re-enable: Remove the #if false block
 
+#if false
 struct AppLockingOnboardingStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
@@ -2176,6 +2180,7 @@ struct AppLockingOnboardingStep: View {
         onContinue()
     }
 }
+#endif
 
 // MARK: - Step 16: Optional Rating
 

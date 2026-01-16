@@ -58,8 +58,8 @@ struct MorningProofSettingsView: View {
                         // MARK: - Morning Routine (clickable summary)
                         morningRoutineSection
 
-                        // MARK: - App Locking (moved up)
-                        appLockingSection
+                        // MARK: - App Locking (TEMPORARILY DISABLED - waiting for Family Controls approval)
+                        // appLockingSection
 
                         // MARK: - Notifications
                         notificationsSection

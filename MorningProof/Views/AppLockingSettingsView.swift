@@ -1,4 +1,10 @@
 import SwiftUI
+
+// MARK: - TEMPORARILY DISABLED
+// Waiting for Family Controls approval for all bundle IDs.
+// To re-enable: Remove the `#if false` blocks and uncomment the import.
+
+#if false
 import FamilyControls
 
 struct AppLockingSettingsView: View {
@@ -456,3 +462,43 @@ struct AppLockingSettingsView: View {
 #Preview {
     AppLockingSettingsView()
 }
+
+#else
+
+// MARK: - Stub View (Feature Disabled)
+
+/// Stub AppLockingSettingsView while Family Controls approval is pending.
+/// This view should never be shown since the app locking section is hidden.
+struct AppLockingSettingsView: View {
+    @Environment(\.dismiss) var dismiss
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 20) {
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: 60))
+                    .foregroundColor(.gray)
+
+                Text("App Locking Coming Soon")
+                    .font(.headline)
+
+                Text("This feature is currently being reviewed by Apple and will be available in a future update.")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal)
+            }
+            .navigationTitle("App Locking")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+#endif

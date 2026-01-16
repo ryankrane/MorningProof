@@ -57,5 +57,17 @@ Shared data between app and extensions uses App Group: `group.com.rk.morningproo
 - xcodegen may clear entitlements files - add `properties:` section in project.yml to preserve them
 - When defining local model types in Views (like `Achievement`), watch for naming conflicts with types in Models folder
 
+## TEMPORARILY DISABLED: Screen Time / App Blocking Feature
+The Screen Time (Family Controls) feature is temporarily disabled while waiting for Apple to approve all bundle IDs. To re-enable once approved:
+
+1. **project.yml**: Uncomment the extension targets and `family-controls` entitlement (search for "TEMPORARILY DISABLED")
+2. **ScreenTimeManager.swift**: Change `#if false` to `#if true` at the top
+3. **AppLockingSettingsView.swift**: Change `#if false` to `#if true` at the top
+4. **OnboardingFlowView.swift**: Uncomment `import FamilyControls` and change `#if false` to `#if true` for `AppLockingOnboardingStep`
+5. **MorningProofSettingsView.swift**: Uncomment `appLockingSection` in the body
+6. **MorningProofManager.swift**: Uncomment `checkForEmergencyUnlock()` and `ensureShieldsAppliedIfNeeded()` calls
+7. Run `xcodegen generate` to regenerate the project
+
 ## TODO: Pre-Release Checklist
 - [ ] **REMOVE SKIP BUTTON** in `HardPaywallStep.swift` before App Store release - it's for testing only!
+- [ ] Re-enable Screen Time feature once all bundle IDs are approved for Family Controls
