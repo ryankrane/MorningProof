@@ -693,6 +693,66 @@ final class MorningProofManager: ObservableObject, Sendable {
         return max(0, cutoff.timeIntervalSince(Date()))
     }
 
+    /// Public accessor for the cutoff time
+    var cutoffTime: Date {
+        getCutoffTime()
+    }
+
+    /// True if past cutoff AND has incomplete habits that have been completed before (not first-time users)
+    var hasOverdueHabits: Bool {
+        guard isPastCutoff else { return false }
+
+        // Check predefined habits
+        for completion in todayLog.completions where !completion.isCompleted {
+            if hasHabitEverBeenCompleted(completion.habitType) {
+                return true
+            }
+        }
+
+        // Check custom habits
+        for completion in todayCustomCompletions where !completion.isCompleted {
+            if hasCustomHabitEverBeenCompleted(completion.customHabitId) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    /// Returns true if this habit has ever been completed in any past day
+    func hasHabitEverBeenCompleted(_ habitType: HabitType) -> Bool {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Check last 30 days (enough to detect first-time users)
+        for i in 1...30 {  // Start at 1 to skip today
+            guard let date = calendar.date(byAdding: .day, value: -i, to: today),
+                  let log = getDailyLog(for: date) else { continue }
+
+            if log.completions.contains(where: { $0.habitType == habitType && $0.isCompleted }) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /// Returns true if this custom habit has ever been completed in any past day
+    func hasCustomHabitEverBeenCompleted(_ customHabitId: UUID) -> Bool {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // Check last 30 days (enough to detect first-time users)
+        for i in 1...30 {  // Start at 1 to skip today
+            guard let date = calendar.date(byAdding: .day, value: -i, to: today),
+                  let completions = storageService.loadCustomCompletions(for: date) else { continue }
+
+            if completions.contains(where: { $0.customHabitId == customHabitId && $0.isCompleted }) {
+                return true
+            }
+        }
+        return false
+    }
+
     func getCompletion(for habitType: HabitType) -> HabitCompletion? {
         todayLog.completions.first { $0.habitType == habitType }
     }

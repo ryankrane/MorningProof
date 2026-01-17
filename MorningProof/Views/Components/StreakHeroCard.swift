@@ -7,6 +7,7 @@ struct StreakHeroCard: View {
     let isPerfectMorning: Bool
     let timeUntilCutoff: TimeInterval?  // nil or <= 0 means cutoff has passed
     let cutoffTimeFormatted: String  // e.g. "9:00 AM"
+    let hasOverdueHabits: Bool  // True if past cutoff with incomplete habits (that have been completed before)
     @Binding var triggerPulse: Bool  // External trigger for flame pulse (when flying flame arrives)
     @Binding var flameFrame: CGRect  // For lock-in celebration to target the flame
 
@@ -136,6 +137,14 @@ struct StreakHeroCard: View {
                                     .font(.system(size: 12, weight: .medium))
                                     .foregroundColor(MPColors.textTertiary)
                             }
+                        } else if hasOverdueHabits {
+                            // Show LATE badge when past cutoff with incomplete habits
+                            HStack(spacing: 4) {
+                                Image(systemName: "exclamationmark.circle.fill")
+                                Text("LATE")
+                            }
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(MPColors.error)
                         }
                     }
 
@@ -259,9 +268,11 @@ struct StreakHeroCard: View {
 
 #Preview {
     VStack(spacing: MPSpacing.xl) {
-        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 8 * 3600 + 37 * 60, cutoffTimeFormatted: "9:00 AM", triggerPulse: .constant(false), flameFrame: .constant(.zero))
-        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", triggerPulse: .constant(false), flameFrame: .constant(.zero))
-        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 30 * 60, cutoffTimeFormatted: "9:00 AM", triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 8 * 3600 + 37 * 60, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 30 * 60, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        // Late state preview
+        StreakHeroCard(currentStreak: 5, completedToday: 2, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: true, triggerPulse: .constant(false), flameFrame: .constant(.zero))
     }
     .padding()
     .background(MPColors.background)

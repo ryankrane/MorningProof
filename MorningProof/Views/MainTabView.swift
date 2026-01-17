@@ -94,6 +94,7 @@ struct DashboardContentView: View {
                             isPerfectMorning: manager.isPerfectMorning,
                             timeUntilCutoff: manager.isPastCutoff ? nil : manager.timeUntilCutoff,
                             cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
+                            hasOverdueHabits: manager.hasOverdueHabits,
                             triggerPulse: $triggerStreakPulse,
                             flameFrame: $flameFrame
                         )
