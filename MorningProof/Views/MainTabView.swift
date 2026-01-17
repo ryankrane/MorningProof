@@ -59,14 +59,9 @@ struct DashboardContentView: View {
     @State private var showHydrationCamera = false
     @State private var showSleepInput = false
 
-    // Hold-to-complete state
+    // Hold-to-complete state (progress tracked for UI, logic handled by HoldToCompleteModifier)
     @State private var holdProgress: [HabitType: CGFloat] = [:]
-    @State private var isHoldingHabit: HabitType? = nil
-    @State private var holdStartTime: [HabitType: Date] = [:]
-    @State private var holdTimers: [HabitType: Timer] = [:]
-    @State private var holdGestureStartLocation: [HabitType: CGPoint] = [:]
     private let habitHoldDuration: Double = 1.0
-    private let holdMovementThreshold: CGFloat = 10.0
 
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
@@ -289,129 +284,23 @@ struct DashboardContentView: View {
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
         // Make entire row tappable for hold-to-complete habits
         .contentShape(Rectangle())
-        // simultaneousGesture allows ScrollView to also receive touch events
-        // Movement detection cancels hold if user starts scrolling
-        .simultaneousGesture(
-            isHoldType && !isCompleted ?
-            LongPressGesture(minimumDuration: 0.15)
-                .sequenced(before: DragGesture(minimumDistance: 0))
-                .onChanged { value in
-                    // Check if we've entered the drag phase (long press succeeded)
-                    if case .second(true, let drag) = value {
-                        // Start hold if not already started
-                        if isHoldingHabit != config.habitType {
-                            startHabitHold(config.habitType)
-                            // Store the start location for movement detection
-                            if let drag = drag {
-                                holdGestureStartLocation[config.habitType] = drag.startLocation
-                            }
-                        } else if let drag = drag, let startLocation = holdGestureStartLocation[config.habitType] {
-                            // Check if user has moved too far (trying to scroll)
-                            let distance = sqrt(pow(drag.location.x - startLocation.x, 2) + pow(drag.location.y - startLocation.y, 2))
-                            if distance > holdMovementThreshold {
-                                // User is scrolling, cancel the hold
-                                cancelHabitHold(config.habitType)
-                                holdGestureStartLocation[config.habitType] = nil
-                            }
-                        }
-                    }
-                }
-                .onEnded { _ in
-                    // Gesture ended (finger lifted) - end hold if active
-                    if isHoldingHabit == config.habitType {
-                        endHabitHold(config.habitType)
-                    }
-                    holdGestureStartLocation[config.habitType] = nil
-                }
-            : nil
+        // UIKit-based hold gesture that properly coordinates with ScrollView
+        // Uses UILongPressGestureRecognizer with cancelsTouchesInView=false
+        // and shouldRequireFailureOf for pan gestures to give scrolling priority
+        .holdToComplete(
+            isEnabled: isHoldType && !isCompleted,
+            progress: Binding(
+                get: { holdProgress[config.habitType] ?? 0 },
+                set: { holdProgress[config.habitType] = $0 }
+            ),
+            holdDuration: habitHoldDuration,
+            onCompleted: {
+                completeHabitWithCelebration(config.habitType)
+            }
         )
     }
 
-    // MARK: - Habit Hold Gesture Handling
-
-    private func startHabitHold(_ habitType: HabitType) {
-        isHoldingHabit = habitType
-        holdProgress[habitType] = 0
-        holdStartTime[habitType] = Date()
-
-        // Initial haptic feedback
-        HapticManager.shared.lightTap()
-
-        // Start timer to update progress incrementally
-        let tickInterval = 0.02
-        let timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [self] t in
-            guard isHoldingHabit == habitType, let startTime = holdStartTime[habitType] else {
-                t.invalidate()
-                holdTimers[habitType] = nil
-                return
-            }
-
-            let elapsed = Date().timeIntervalSince(startTime)
-            let newProgress = min(elapsed / habitHoldDuration, 1.0)
-
-            // Update progress directly (no withAnimation - the state reflects actual progress)
-            holdProgress[habitType] = CGFloat(newProgress)
-
-            // Haptic tick every ~0.2s
-            if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {
-                HapticManager.shared.lightTap()
-            }
-
-            // Check if hold duration is complete
-            if elapsed >= habitHoldDuration {
-                t.invalidate()
-                holdTimers[habitType] = nil
-                completeHabitHold(habitType)
-            }
-        }
-        holdTimers[habitType] = timer
-    }
-
-    private func endHabitHold(_ habitType: HabitType) {
-        // Cancel the timer
-        holdTimers[habitType]?.invalidate()
-        holdTimers[habitType] = nil
-
-        guard isHoldingHabit == habitType else { return }
-
-        // Check if hold was long enough
-        if let startTime = holdStartTime[habitType] {
-            let elapsed = Date().timeIntervalSince(startTime)
-            if elapsed >= habitHoldDuration {
-                completeHabitHold(habitType)
-                return
-            }
-        }
-
-        // Not long enough - cancel with haptic and animate back
-        cancelHabitHold(habitType)
-    }
-
-    private func completeHabitHold(_ habitType: HabitType) {
-        guard isHoldingHabit == habitType else { return }
-
-        isHoldingHabit = nil
-        holdStartTime[habitType] = nil
-        holdProgress[habitType] = 0
-
-        // Complete the habit with celebration
-        completeHabitWithCelebration(habitType)
-    }
-
-    private func cancelHabitHold(_ habitType: HabitType) {
-        isHoldingHabit = nil
-        holdStartTime[habitType] = nil
-
-        // Animate progress back to 0 - duration proportional to current progress
-        let currentProgress = holdProgress[habitType] ?? 0
-        let unwindDuration = Double(currentProgress) * 0.4 + 0.1
-        withAnimation(.easeOut(duration: unwindDuration)) {
-            holdProgress[habitType] = 0
-        }
-
-        // Haptic feedback on cancel
-        HapticManager.shared.lightTap()
-    }
+    // MARK: - Habit Completion Celebration
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
         // Add to recently completed for scale animation
