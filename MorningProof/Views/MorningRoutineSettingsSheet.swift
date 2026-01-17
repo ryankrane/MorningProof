@@ -191,7 +191,12 @@ struct MorningRoutineSettingsSheet: View {
             Button {
                 showCutoffTimePicker = true
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .firstTextBaseline, spacing: MPSpacing.lg) {
+                    Image(systemName: "clock.fill")
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(MPColors.primary)
+                        .frame(width: 30)
+
                     VStack(alignment: .leading, spacing: 2) {
                         Text("Habit Deadline")
                             .font(MPFont.bodyMedium())

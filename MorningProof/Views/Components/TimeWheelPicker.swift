@@ -410,7 +410,7 @@ struct StepGoalPicker: View {
 
     @State private var selectedSteps: Int = 500
 
-    private let stepOptions = Array(stride(from: 100, through: 5000, by: 100))
+    private let stepOptions = Array(stride(from: 100, through: 5000, by: 50))
 
     init(stepGoal: Binding<Int>) {
         self._stepGoal = stepGoal

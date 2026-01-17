@@ -12,6 +12,7 @@ struct DashboardView: View {
     @State private var isHoldingHabit: HabitType? = nil
     @State private var holdStartTime: [HabitType: Date] = [:]
     @State private var holdTimers: [HabitType: Timer] = [:]
+    @State private var holdGestureStartLocation: [HabitType: CGPoint] = [:]
 
     // Custom habit states
     @State private var customHabitCameraTarget: CustomHabit? = nil
@@ -19,6 +20,7 @@ struct DashboardView: View {
     @State private var isHoldingCustomHabit: UUID? = nil
     @State private var customHoldStartTime: [UUID: Date] = [:]
     @State private var customHoldTimers: [UUID: Timer] = [:]
+    @State private var customHoldGestureStartLocation: [UUID: CGPoint] = [:]
     @State private var recentlyCompletedCustomHabits: Set<UUID> = []
     @State private var customHabitRowFlash: [UUID: Bool] = [:]
     @State private var customHabitRowGlow: [UUID: CGFloat] = [:]
@@ -484,19 +486,30 @@ struct DashboardView: View {
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
         // Make entire row tappable for hold-to-complete habits
         .contentShape(Rectangle())
-        // LongPressGesture allows scrolling during the initial 0.15s
-        // If user moves finger (scrolls), the gesture fails and ScrollView takes over
-        // If user holds still, gesture succeeds and transitions to DragGesture phase
-        .gesture(
+        // simultaneousGesture allows ScrollView to also receive touch events
+        // Movement detection cancels hold if user starts scrolling
+        .simultaneousGesture(
             isHoldType && !isCompleted ?
             LongPressGesture(minimumDuration: 0.15)
                 .sequenced(before: DragGesture(minimumDistance: 0))
                 .onChanged { value in
                     // Check if we've entered the drag phase (long press succeeded)
-                    if case .second(true, _) = value {
+                    if case .second(true, let drag) = value {
                         // Start hold if not already started
                         if isHoldingHabit != config.habitType {
                             startHabitHold(config.habitType)
+                            // Store the start location for movement detection
+                            if let drag = drag {
+                                holdGestureStartLocation[config.habitType] = drag.startLocation
+                            }
+                        } else if let drag = drag, let startLocation = holdGestureStartLocation[config.habitType] {
+                            // Check if user has moved too far (trying to scroll)
+                            let distance = sqrt(pow(drag.location.x - startLocation.x, 2) + pow(drag.location.y - startLocation.y, 2))
+                            if distance > holdMovementThreshold {
+                                // User is scrolling, cancel the hold
+                                cancelHabitHold(config.habitType)
+                                holdGestureStartLocation[config.habitType] = nil
+                            }
                         }
                     }
                 }
@@ -505,6 +518,7 @@ struct DashboardView: View {
                     if isHoldingHabit == config.habitType {
                         endHabitHold(config.habitType, isCompleted: isCompleted)
                     }
+                    holdGestureStartLocation[config.habitType] = nil
                 }
             : nil
         )
@@ -609,14 +623,28 @@ struct DashboardView: View {
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
         // Make entire row tappable for hold-to-complete habits
         .contentShape(Rectangle())
-        .gesture(
+        // simultaneousGesture allows ScrollView to also receive touch events
+        // Movement detection cancels hold if user starts scrolling
+        .simultaneousGesture(
             isHoldType && !isCompleted ?
             LongPressGesture(minimumDuration: 0.15)
                 .sequenced(before: DragGesture(minimumDistance: 0))
                 .onChanged { value in
-                    if case .second(true, _) = value {
+                    if case .second(true, let drag) = value {
                         if isHoldingCustomHabit != customHabit.id {
                             startCustomHabitHold(customHabit.id)
+                            // Store the start location for movement detection
+                            if let drag = drag {
+                                customHoldGestureStartLocation[customHabit.id] = drag.startLocation
+                            }
+                        } else if let drag = drag, let startLocation = customHoldGestureStartLocation[customHabit.id] {
+                            // Check if user has moved too far (trying to scroll)
+                            let distance = sqrt(pow(drag.location.x - startLocation.x, 2) + pow(drag.location.y - startLocation.y, 2))
+                            if distance > holdMovementThreshold {
+                                // User is scrolling, cancel the hold
+                                cancelCustomHabitHold(customHabit.id)
+                                customHoldGestureStartLocation[customHabit.id] = nil
+                            }
                         }
                     }
                 }
@@ -624,6 +652,7 @@ struct DashboardView: View {
                     if isHoldingCustomHabit == customHabit.id {
                         endCustomHabitHold(customHabit.id)
                     }
+                    customHoldGestureStartLocation[customHabit.id] = nil
                 }
             : nil
         )
@@ -796,6 +825,7 @@ struct DashboardView: View {
     // MARK: - Habit Hold Gesture Handling
 
     private let habitHoldDuration: Double = 1.0
+    private let holdMovementThreshold: CGFloat = 10.0
 
     private func startHabitHold(_ habitType: HabitType) {
         isHoldingHabit = habitType
