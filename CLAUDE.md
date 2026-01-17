@@ -6,6 +6,9 @@ First-time app developer, but fast learner. When explaining things, include big-
 ## Claude Instructions
 When you learn something important about this project (gotchas, patterns, decisions, or context that would help future sessions), add it to this file. Keep it concise.
 
+## Design Quality Principle
+Every feature and UI element must feel well thought out. The app should feel polished and premium, not cheaply made. This doesn't mean overcomplicating things - it means taking an extra moment to consider the best approach and cool ideas before implementing. Go above and beyond, but keep solutions simple and elegant.
+
 ## What This App Does
 Morning habit tracking app that uses photo verification (AI checks if you made your bed) to build streaks and accountability.
 
@@ -83,7 +86,7 @@ Shared data between app and extensions uses App Group: `group.com.rk.morningproo
 - When defining local model types in Views (like `Achievement`), watch for naming conflicts with types in Models folder
 - **Onboarding animations**: Don't use `.animation()` on a ZStack/Group containing a switch statement for step transitions - it causes views to overlap. Use `.id(currentStep)` instead to force SwiftUI to replace the view entirely
 - **StoreKit async sequences**: Calling `Transaction.currentEntitlements` immediately at app launch can cause freezing in simulator. Added a 2-second delay before Superwall sync in `MorningProofApp.swift` to avoid startup issues
-- **Hold-to-complete gestures in ScrollView**: `LongPressGesture` blocks ScrollView scrolling even with `.simultaneousGesture()`. The fix is to use a `ButtonStyle` with `configuration.isPressed` instead - Button styles integrate properly with UIKit's gesture system and don't block scroll. See `HoldToCompleteButtonStyle.swift`
+- **Hold-to-complete gestures in ScrollView**: SwiftUI gestures (`LongPressGesture`, `DragGesture`) block ScrollView scrolling because they don't have access to UIKit's gesture recognizer properties. The fix is to use a UIKit-based `UILongPressGestureRecognizer` via `UIViewRepresentable` with: (1) `cancelsTouchesInView = false` to allow touches to pass to ScrollView, (2) `allowableMovement = 10` to fail when scrolling, (3) `shouldRequireFailureOf` returning true for `UIPanGestureRecognizer` to give scrolling priority. See `HoldGestureView.swift`
 
 ## TEMPORARILY DISABLED: Screen Time / App Blocking Feature
 The Screen Time (Family Controls) feature is temporarily disabled while waiting for Apple to approve all bundle IDs. To re-enable once approved:
