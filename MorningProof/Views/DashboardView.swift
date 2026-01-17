@@ -9,18 +9,10 @@ struct DashboardView: View {
     @State private var showSleepInput = false
     @State private var showHabitEditor = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
-    @State private var isHoldingHabit: HabitType? = nil
-    @State private var holdStartTime: [HabitType: Date] = [:]
-    @State private var holdTimers: [HabitType: Timer] = [:]
-    @State private var holdGestureStartLocation: [HabitType: CGPoint] = [:]
 
     // Custom habit states
     @State private var customHabitCameraTarget: CustomHabit? = nil
     @State private var customHoldProgress: [UUID: CGFloat] = [:]
-    @State private var isHoldingCustomHabit: UUID? = nil
-    @State private var customHoldStartTime: [UUID: Date] = [:]
-    @State private var customHoldTimers: [UUID: Timer] = [:]
-    @State private var customHoldGestureStartLocation: [UUID: CGPoint] = [:]
     @State private var recentlyCompletedCustomHabits: Set<UUID> = []
     @State private var customHabitRowFlash: [UUID: Bool] = [:]
     @State private var customHabitRowGlow: [UUID: CGFloat] = [:]
@@ -354,7 +346,54 @@ struct DashboardView: View {
         let progress = holdProgress[config.habitType] ?? 0
         let isHoldType = isHoldToCompleteHabit(config.habitType)
 
-        return ZStack {
+        return habitRowContent(
+            config: config,
+            completion: completion,
+            isCompleted: isCompleted,
+            progress: progress
+        )
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+        // Enhanced glow shadow when completing
+        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+        // Enhanced scale effect (1.05 instead of 1.03)
+        .scaleEffect(justCompleted ? 1.05 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+        .animation(.easeOut(duration: 0.15), value: isFlashing)
+        .animation(.easeOut(duration: 0.3), value: glowIntensity)
+        // Use ButtonStyle-based hold for hold-type habits (doesn't block scroll)
+        .modifier(HoldToCompleteModifier(
+            isEnabled: isHoldType && !isCompleted,
+            progress: Binding(
+                get: { holdProgress[config.habitType] ?? 0 },
+                set: { holdProgress[config.habitType] = $0 }
+            ),
+            onCompleted: {
+                completeHabitWithCelebration(config.habitType)
+            }
+        ))
+        .overlay(
+            // Mini confetti overlay
+            Group {
+                if showConfettiForHabit == config.habitType {
+                    MiniConfettiView()
+                        .allowsHitTesting(false)
+                }
+            }
+        )
+    }
+
+    /// The visual content of a habit row (extracted for use with HoldToCompleteModifier)
+    @ViewBuilder
+    private func habitRowContent(
+        config: HabitConfig,
+        completion: HabitCompletion?,
+        isCompleted: Bool,
+        progress: CGFloat
+    ) -> some View {
+        let isFlashing = habitRowFlash[config.habitType] ?? false
+
+        ZStack {
             // Base background
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.surface)
@@ -475,62 +514,6 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
         }
-        .cornerRadius(MPRadius.lg)
-        .mpShadow(.small)
-        // Enhanced glow shadow when completing
-        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
-        // Enhanced scale effect (1.05 instead of 1.03)
-        .scaleEffect(justCompleted ? 1.05 : 1.0)
-        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
-        .animation(.easeOut(duration: 0.15), value: isFlashing)
-        .animation(.easeOut(duration: 0.3), value: glowIntensity)
-        // Make entire row tappable for hold-to-complete habits
-        .contentShape(Rectangle())
-        // simultaneousGesture allows ScrollView to also receive touch events
-        // Movement detection cancels hold if user starts scrolling
-        .simultaneousGesture(
-            isHoldType && !isCompleted ?
-            LongPressGesture(minimumDuration: 0.15)
-                .sequenced(before: DragGesture(minimumDistance: 0))
-                .onChanged { value in
-                    // Check if we've entered the drag phase (long press succeeded)
-                    if case .second(true, let drag) = value {
-                        // Start hold if not already started
-                        if isHoldingHabit != config.habitType {
-                            startHabitHold(config.habitType)
-                            // Store the start location for movement detection
-                            if let drag = drag {
-                                holdGestureStartLocation[config.habitType] = drag.startLocation
-                            }
-                        } else if let drag = drag, let startLocation = holdGestureStartLocation[config.habitType] {
-                            // Check if user has moved too far (trying to scroll)
-                            let distance = sqrt(pow(drag.location.x - startLocation.x, 2) + pow(drag.location.y - startLocation.y, 2))
-                            if distance > holdMovementThreshold {
-                                // User is scrolling, cancel the hold
-                                cancelHabitHold(config.habitType)
-                                holdGestureStartLocation[config.habitType] = nil
-                            }
-                        }
-                    }
-                }
-                .onEnded { _ in
-                    // Gesture ended (finger lifted) - end hold if active
-                    if isHoldingHabit == config.habitType {
-                        endHabitHold(config.habitType, isCompleted: isCompleted)
-                    }
-                    holdGestureStartLocation[config.habitType] = nil
-                }
-            : nil
-        )
-        .overlay(
-            // Mini confetti overlay
-            Group {
-                if showConfettiForHabit == config.habitType {
-                    MiniConfettiView()
-                        .allowsHitTesting(false)
-                }
-            }
-        )
     }
 
     // MARK: - Custom Habit Row
@@ -539,12 +522,58 @@ struct DashboardView: View {
         let completion = manager.getCustomCompletion(for: customHabit.id)
         let isCompleted = completion?.isCompleted ?? false
         let justCompleted = recentlyCompletedCustomHabits.contains(customHabit.id)
-        let isFlashing = customHabitRowFlash[customHabit.id] ?? false
         let glowIntensity = customHabitRowGlow[customHabit.id] ?? 0
         let progress = customHoldProgress[customHabit.id] ?? 0
         let isHoldType = customHabit.verificationType == .honorSystem
 
-        return ZStack {
+        return customHabitRowContent(
+            customHabit: customHabit,
+            completion: completion,
+            isCompleted: isCompleted,
+            progress: progress
+        )
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+        // Enhanced glow shadow when completing
+        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+        // Enhanced scale effect (1.05 instead of 1.03)
+        .scaleEffect(justCompleted ? 1.05 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+        .animation(.easeOut(duration: 0.15), value: customHabitRowFlash[customHabit.id] ?? false)
+        .animation(.easeOut(duration: 0.3), value: glowIntensity)
+        // Use ButtonStyle-based hold for hold-type habits (doesn't block scroll)
+        .modifier(HoldToCompleteModifier(
+            isEnabled: isHoldType && !isCompleted,
+            progress: Binding(
+                get: { customHoldProgress[customHabit.id] ?? 0 },
+                set: { customHoldProgress[customHabit.id] = $0 }
+            ),
+            onCompleted: {
+                completeCustomHabitWithCelebration(customHabit.id)
+            }
+        ))
+        .overlay(
+            // Mini confetti overlay
+            Group {
+                if showConfettiForCustomHabit == customHabit.id {
+                    MiniConfettiView()
+                        .allowsHitTesting(false)
+                }
+            }
+        )
+    }
+
+    /// The visual content of a custom habit row (extracted for use with HoldToCompleteModifier)
+    @ViewBuilder
+    private func customHabitRowContent(
+        customHabit: CustomHabit,
+        completion: CustomHabitCompletion?,
+        isCompleted: Bool,
+        progress: CGFloat
+    ) -> some View {
+        let isFlashing = customHabitRowFlash[customHabit.id] ?? false
+
+        ZStack {
             // Base background
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.surface)
@@ -612,59 +641,6 @@ struct DashboardView: View {
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
         }
-        .cornerRadius(MPRadius.lg)
-        .mpShadow(.small)
-        // Enhanced glow shadow when completing
-        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
-        // Enhanced scale effect (1.05 instead of 1.03)
-        .scaleEffect(justCompleted ? 1.05 : 1.0)
-        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
-        .animation(.easeOut(duration: 0.15), value: isFlashing)
-        .animation(.easeOut(duration: 0.3), value: glowIntensity)
-        // Make entire row tappable for hold-to-complete habits
-        .contentShape(Rectangle())
-        // simultaneousGesture allows ScrollView to also receive touch events
-        // Movement detection cancels hold if user starts scrolling
-        .simultaneousGesture(
-            isHoldType && !isCompleted ?
-            LongPressGesture(minimumDuration: 0.15)
-                .sequenced(before: DragGesture(minimumDistance: 0))
-                .onChanged { value in
-                    if case .second(true, let drag) = value {
-                        if isHoldingCustomHabit != customHabit.id {
-                            startCustomHabitHold(customHabit.id)
-                            // Store the start location for movement detection
-                            if let drag = drag {
-                                customHoldGestureStartLocation[customHabit.id] = drag.startLocation
-                            }
-                        } else if let drag = drag, let startLocation = customHoldGestureStartLocation[customHabit.id] {
-                            // Check if user has moved too far (trying to scroll)
-                            let distance = sqrt(pow(drag.location.x - startLocation.x, 2) + pow(drag.location.y - startLocation.y, 2))
-                            if distance > holdMovementThreshold {
-                                // User is scrolling, cancel the hold
-                                cancelCustomHabitHold(customHabit.id)
-                                customHoldGestureStartLocation[customHabit.id] = nil
-                            }
-                        }
-                    }
-                }
-                .onEnded { _ in
-                    if isHoldingCustomHabit == customHabit.id {
-                        endCustomHabitHold(customHabit.id)
-                    }
-                    customHoldGestureStartLocation[customHabit.id] = nil
-                }
-            : nil
-        )
-        .overlay(
-            // Mini confetti overlay
-            Group {
-                if showConfettiForCustomHabit == customHabit.id {
-                    MiniConfettiView()
-                        .allowsHitTesting(false)
-                }
-            }
-        )
     }
 
     @ViewBuilder
@@ -680,79 +656,7 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Custom Habit Hold Gesture Handling
-
-    private func startCustomHabitHold(_ habitId: UUID) {
-        isHoldingCustomHabit = habitId
-        customHoldProgress[habitId] = 0
-        customHoldStartTime[habitId] = Date()
-
-        HapticManager.shared.lightTap()
-
-        let tickInterval = 0.02
-        let timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [self] t in
-            guard isHoldingCustomHabit == habitId, let startTime = customHoldStartTime[habitId] else {
-                t.invalidate()
-                customHoldTimers[habitId] = nil
-                return
-            }
-
-            let elapsed = Date().timeIntervalSince(startTime)
-            let newProgress = min(elapsed / habitHoldDuration, 1.0)
-            customHoldProgress[habitId] = CGFloat(newProgress)
-
-            if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {
-                HapticManager.shared.lightTap()
-            }
-
-            if elapsed >= habitHoldDuration {
-                t.invalidate()
-                customHoldTimers[habitId] = nil
-                completeCustomHabitHold(habitId)
-            }
-        }
-        customHoldTimers[habitId] = timer
-    }
-
-    private func endCustomHabitHold(_ habitId: UUID) {
-        customHoldTimers[habitId]?.invalidate()
-        customHoldTimers[habitId] = nil
-
-        guard isHoldingCustomHabit == habitId else { return }
-
-        if let startTime = customHoldStartTime[habitId] {
-            let elapsed = Date().timeIntervalSince(startTime)
-            if elapsed >= habitHoldDuration {
-                completeCustomHabitHold(habitId)
-                return
-            }
-        }
-
-        cancelCustomHabitHold(habitId)
-    }
-
-    private func completeCustomHabitHold(_ habitId: UUID) {
-        guard isHoldingCustomHabit == habitId else { return }
-
-        isHoldingCustomHabit = nil
-        customHoldStartTime[habitId] = nil
-        customHoldProgress[habitId] = 0
-
-        completeCustomHabitWithCelebration(habitId)
-    }
-
-    private func cancelCustomHabitHold(_ habitId: UUID) {
-        isHoldingCustomHabit = nil
-        customHoldStartTime[habitId] = nil
-
-        let currentProgress = customHoldProgress[habitId] ?? 0
-        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
-        withAnimation(.easeOut(duration: unwindDuration)) {
-            customHoldProgress[habitId] = 0
-        }
-
-        HapticManager.shared.lightTap()
-    }
+    // MARK: - Habit Completion Celebrations
 
     private func completeCustomHabitWithCelebration(_ habitId: UUID) {
         recentlyCompletedCustomHabits.insert(habitId)
@@ -820,95 +724,6 @@ struct DashboardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedHabits.remove(habitType)
         }
-    }
-
-    // MARK: - Habit Hold Gesture Handling
-
-    private let habitHoldDuration: Double = 1.0
-    private let holdMovementThreshold: CGFloat = 10.0
-
-    private func startHabitHold(_ habitType: HabitType) {
-        isHoldingHabit = habitType
-        holdProgress[habitType] = 0
-        holdStartTime[habitType] = Date()
-
-        // Initial haptic feedback
-        HapticManager.shared.lightTap()
-
-        // Start timer to update progress incrementally (not withAnimation which sets target immediately)
-        let tickInterval = 0.02
-        let timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [self] t in
-            guard isHoldingHabit == habitType, let startTime = holdStartTime[habitType] else {
-                t.invalidate()
-                holdTimers[habitType] = nil
-                return
-            }
-
-            let elapsed = Date().timeIntervalSince(startTime)
-            let newProgress = min(elapsed / habitHoldDuration, 1.0)
-
-            // Update progress directly - state reflects actual visual progress
-            holdProgress[habitType] = CGFloat(newProgress)
-
-            // Haptic tick every ~0.2s
-            if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {
-                HapticManager.shared.lightTap()
-            }
-
-            // Check if hold duration is complete
-            if elapsed >= habitHoldDuration {
-                t.invalidate()
-                holdTimers[habitType] = nil
-                completeHabitHold(habitType)
-            }
-        }
-        holdTimers[habitType] = timer
-    }
-
-    private func endHabitHold(_ habitType: HabitType, isCompleted: Bool) {
-        // Cancel the timer
-        holdTimers[habitType]?.invalidate()
-        holdTimers[habitType] = nil
-
-        guard isHoldingHabit == habitType else { return }
-
-        // Check if hold was long enough
-        if let startTime = holdStartTime[habitType] {
-            let elapsed = Date().timeIntervalSince(startTime)
-            if elapsed >= habitHoldDuration {
-                completeHabitHold(habitType)
-                return
-            }
-        }
-
-        // Not long enough - cancel with haptic and animate back
-        cancelHabitHold(habitType)
-    }
-
-    private func completeHabitHold(_ habitType: HabitType) {
-        guard isHoldingHabit == habitType else { return }
-
-        isHoldingHabit = nil
-        holdStartTime[habitType] = nil
-        holdProgress[habitType] = 0
-
-        // Complete the habit with celebration
-        completeHabitWithCelebration(habitType)
-    }
-
-    private func cancelHabitHold(_ habitType: HabitType) {
-        isHoldingHabit = nil
-        holdStartTime[habitType] = nil
-
-        // Animate progress back to 0
-        let currentProgress = holdProgress[habitType] ?? 0
-        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
-        withAnimation(.easeOut(duration: unwindDuration)) {
-            holdProgress[habitType] = 0
-        }
-
-        // Haptic feedback on cancel
-        HapticManager.shared.lightTap()
     }
 
     @ViewBuilder
