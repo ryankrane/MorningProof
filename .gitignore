@@ -35,5 +35,5 @@ ehthumbs.db
 Thumbs.db
 
 # Secrets - NEVER commit API keys
-MorningProof/Services/Config.swift
-Config.swift
+Secrets.swift
+MorningProof/Services/Secrets.swift
