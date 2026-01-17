@@ -84,18 +84,11 @@ struct MorningProofSettingsView: View {
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
-                        saveSettings()
-                        dismiss()
-                    }
-                    .fontWeight(.semibold)
-                    .foregroundColor(MPColors.primary)
-                }
-            }
             .onAppear {
                 loadSettings()
+            }
+            .onDisappear {
+                saveSettings()
             }
             .alert("Reset All Data?", isPresented: $showResetConfirmation) {
                 Button("Cancel", role: .cancel) { }

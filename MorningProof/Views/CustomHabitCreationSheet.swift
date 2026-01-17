@@ -83,6 +83,7 @@ struct CustomHabitCreationSheet: View {
                 }
             }
         }
+        .swipeBack { dismiss() }
     }
 
     // MARK: - Icon and Name Section

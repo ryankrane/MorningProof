@@ -15,6 +15,7 @@ struct StreakHeroCard: View {
     @State private var showPerfectBadge = false
     @State private var glowPulse: CGFloat = 0.0
     @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
+    @State private var displayedStreak: Double = 0  // For smooth speedometer-style animation
 
     // Milestone targets
     private let milestones = [7, 14, 21, 30, 60, 90, 180, 365]
@@ -67,15 +68,23 @@ struct StreakHeroCard: View {
         return CGFloat(progress) / CGFloat(range)
     }
 
-    /// Formats the countdown interval into a readable string
-    private func countdownText(for interval: TimeInterval) -> String {
+    /// Formats the countdown interval into a compact string
+    /// - >= 1 hour: "3h 45m"
+    /// - < 1 hour: "45 min"
+    /// - < 1 minute: "45 sec" or "1 second"
+    private func compactCountdownText(for interval: TimeInterval) -> String {
         let hours = Int(interval) / 3600
         let minutes = (Int(interval) % 3600) / 60
+        let seconds = Int(interval) % 60
 
         if hours > 0 {
-            return "\(hours)h \(minutes)m until \(cutoffTimeFormatted)"
+            return "\(hours)h \(minutes)m"
+        } else if minutes > 0 {
+            return "\(minutes) min"
+        } else if seconds == 1 {
+            return "1 second"
         } else {
-            return "\(minutes)m until \(cutoffTimeFormatted)"
+            return "\(seconds) sec"
         }
     }
 
@@ -105,14 +114,29 @@ struct StreakHeroCard: View {
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
-                        Text("\(currentStreak)")
+                        Text("\(Int(displayedStreak))")
                             .font(MPFont.displayMedium())
                             .foregroundColor(MPColors.textPrimary)
                             .scaleEffect(streakNumberScale)
+                            .contentTransition(.numericText())
 
                         Text("day streak")
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textTertiary)
+
+                        Spacer()
+
+                        // Countdown timer - parallel to streak
+                        if let interval = timeUntilCutoff, interval > 0 {
+                            HStack(spacing: 4) {
+                                Image(systemName: "timer")
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(MPColors.textTertiary)
+                                Text(compactCountdownText(for: interval))
+                                    .font(.system(size: 12, weight: .medium))
+                                    .foregroundColor(MPColors.textTertiary)
+                            }
+                        }
                     }
 
                     // Progress to next milestone
@@ -128,8 +152,6 @@ struct StreakHeroCard: View {
                         }
                     }
                 }
-
-                Spacer()
             }
 
             // Perfect Morning status or progress
@@ -156,23 +178,19 @@ struct StreakHeroCard: View {
 
                 Spacer()
             }
-
-            // Countdown to cutoff (only shown before cutoff)
-            if let interval = timeUntilCutoff, interval > 0 {
-                HStack(spacing: MPSpacing.xs) {
-                    Text("🕐")
-                        .font(.system(size: 12))
-                    Text(countdownText(for: interval))
-                        .font(MPFont.labelSmall())
-                        .foregroundColor(MPColors.textTertiary)
-                }
-            }
         }
         .padding(MPSpacing.xl)
         .background(MPColors.surface)
         .cornerRadius(MPRadius.xl)
         .mpShadow(.large)
         .onAppear {
+            // Speedometer-style sweep animation for streak number
+            // Uses easeOut so it accelerates quickly then settles smoothly (like a speedometer needle)
+            let duration = min(0.8, 0.3 + Double(currentStreak) * 0.015) // Scales with streak, max 0.8s
+            withAnimation(.easeOut(duration: duration)) {
+                displayedStreak = Double(currentStreak)
+            }
+
             // Animate streak number scaling in
             withAnimation(.spring(response: 0.5, dampingFraction: 0.6).delay(0.1)) {
                 streakNumberScale = 1.0

@@ -18,13 +18,18 @@ struct CameraView: View {
                     Button {
                         viewModel.goHome()
                     } label: {
-                        Image(systemName: "xmark")
-                            .font(.title2)
-                            .foregroundColor(Color(red: 0.5, green: 0.4, blue: 0.35))
-                            .frame(width: 44, height: 44)
-                            .background(Color.white)
-                            .cornerRadius(12)
-                            .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
+                        HStack(spacing: 4) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 16, weight: .semibold))
+                            Text("Cancel")
+                                .font(.system(size: 16, weight: .medium))
+                        }
+                        .foregroundColor(Color(red: 0.5, green: 0.4, blue: 0.35))
+                        .padding(.horizontal, 12)
+                        .frame(height: 44)
+                        .background(Color.white)
+                        .cornerRadius(12)
+                        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
                     }
                     Spacer()
                 }
@@ -137,6 +142,7 @@ struct CameraView: View {
         .sheet(isPresented: $showingImagePicker) {
             ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
         }
+        .swipeBack { viewModel.goHome() }
     }
 }
 

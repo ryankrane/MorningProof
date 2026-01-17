@@ -578,11 +578,31 @@ final class MorningProofManager: ObservableObject, Sendable {
     }
 
     func resetAllData() {
+        // Reset all settings to defaults
         settings = MorningProofSettings()
         habitConfigs = HabitConfig.defaultConfigs
         todayLog = createDailyLog(for: Date())
         hasCompletedOnboarding = false
+
+        // Reset streak data
+        currentStreak = 0
+        longestStreak = 0
+        lastPerfectMorningDate = nil
+
+        // Reset custom habits
+        customHabits = []
+        customHabitConfigs = []
+        todayCustomCompletions = []
+
+        // Clear all persisted data
         storageService.resetMorningProofData()
+
+        // Clear App Group data (for extensions)
+        AppLockingDataStore.isDayLockedIn = false
+        AppLockingDataStore.morningCutoffMinutes = 540
+        AppLockingDataStore.blockingStartMinutes = 0
+        AppLockingDataStore.appLockingEnabled = false
+        AppLockingDataStore.wasEmergencyUnlock = false
     }
 
     // MARK: - Computed Properties
@@ -686,6 +706,7 @@ final class MorningProofManager: ObservableObject, Sendable {
 
             lastPerfectMorningDate = today
             longestStreak = max(longestStreak, currentStreak)
+            settings.totalPerfectMornings += 1
             saveStreakData()
         }
     }

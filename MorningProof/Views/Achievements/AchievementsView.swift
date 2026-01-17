@@ -204,14 +204,29 @@ struct AchievementsView: View {
                 }
             }
         }
-        .sheet(isPresented: $showDetail) {
-            if let achievement = selectedAchievement {
-                AchievementDetailSheet(achievement: achievement)
-                    .presentationDetents([.medium])
-                    .presentationDragIndicator(.visible)
-                    .presentationBackground(.ultraThinMaterial)
+        .overlay {
+            // Achievement detail overlay popup (like info popups)
+            if let achievement = selectedAchievement, showDetail {
+                ZStack {
+                    // Dimmed background - tap to dismiss
+                    Color.black.opacity(0.6)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showDetail = false
+                            selectedAchievement = nil
+                        }
+
+                    // Achievement detail card with liquid glass effect
+                    AchievementDetailCard(achievement: achievement) {
+                        showDetail = false
+                        selectedAchievement = nil
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.9)))
+                }
             }
         }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showDetail)
+        .swipeBack { dismiss() }
     }
 }
 
@@ -225,12 +240,13 @@ struct AchievementsHeader: View {
     var body: some View {
         HStack {
             Button(action: onClose) {
-                Image(systemName: "xmark")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(.white.opacity(0.6))
-                    .frame(width: 36, height: 36)
-                    .background(Color.white.opacity(0.1))
-                    .clipShape(Circle())
+                HStack(spacing: 4) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 16, weight: .semibold))
+                    Text("Back")
+                        .font(.system(size: 16, weight: .medium))
+                }
+                .foregroundColor(.white.opacity(0.8))
             }
 
             Spacer()
@@ -249,7 +265,7 @@ struct AchievementsHeader: View {
 
             // Invisible spacer for balance
             Color.clear
-                .frame(width: 36, height: 36)
+                .frame(width: 60, height: 36)
         }
         .padding(.horizontal, MPSpacing.lg)
         .padding(.vertical, MPSpacing.md)
@@ -452,27 +468,46 @@ struct AchievementBadge: View {
     }
 }
 
-// MARK: - Achievement Detail Sheet
+// MARK: - Achievement Detail Card (Overlay Popup)
 
-struct AchievementDetailSheet: View {
+struct AchievementDetailCard: View {
     let achievement: AchievementItem
-    @Environment(\.dismiss) private var dismiss
+    let onDismiss: () -> Void
     @State private var animateProgress = false
 
     var body: some View {
-        VStack(spacing: MPSpacing.xl) {
+        VStack(spacing: MPSpacing.lg) {
             // Large badge display
             ZStack {
                 if achievement.isUnlocked {
-                    // Animated rings
+                    // Animated rings with glass effect
                     ForEach(0..<3, id: \.self) { index in
                         Circle()
                             .stroke(
-                                achievement.gradientColors[0].opacity(0.2 - Double(index) * 0.05),
-                                lineWidth: 1
+                                achievement.gradientColors[0].opacity(0.3 - Double(index) * 0.08),
+                                lineWidth: 1.5
                             )
-                            .frame(width: CGFloat(140 + index * 30), height: CGFloat(140 + index * 30))
+                            .frame(width: CGFloat(100 + index * 25), height: CGFloat(100 + index * 25))
                     }
+                }
+
+                // Outer glow
+                if achievement.isUnlocked {
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    achievement.gradientColors[0].opacity(0.4),
+                                    achievement.gradientColors[0].opacity(0.1),
+                                    .clear
+                                ],
+                                center: .center,
+                                startRadius: 30,
+                                endRadius: 70
+                            )
+                        )
+                        .frame(width: 140, height: 140)
+                        .blur(radius: 10)
                 }
 
                 Circle()
@@ -489,44 +524,44 @@ struct AchievementDetailSheet: View {
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 120, height: 120)
-                    .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.5) : .clear, radius: 20)
+                    .frame(width: 90, height: 90)
+                    .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.6) : .clear, radius: 15)
 
                 Group {
                     if achievement.icon == "50.circle.fill" {
                         Text("50")
-                            .font(.system(size: 44, weight: .bold, design: .rounded))
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
                     } else {
                         Image(systemName: achievement.icon)
-                            .font(.system(size: 48, weight: .medium))
+                            .font(.system(size: 36, weight: .medium))
                     }
                 }
                 .foregroundColor(achievement.isUnlocked ? .white : .white.opacity(0.4))
             }
-            .padding(.top, MPSpacing.xl)
 
             // Achievement info
-            VStack(spacing: MPSpacing.sm) {
+            VStack(spacing: MPSpacing.xs) {
                 Text(achievement.name)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
                     .foregroundColor(.white)
 
                 Text(achievement.description)
-                    .font(.system(size: 15))
+                    .font(.system(size: 14))
                     .foregroundColor(.white.opacity(0.6))
+                    .multilineTextAlignment(.center)
             }
 
-            // Progress bar
+            // Progress bar with glass styling
             VStack(spacing: MPSpacing.sm) {
                 GeometryReader { geometry in
                     ZStack(alignment: .leading) {
-                        // Background track
-                        RoundedRectangle(cornerRadius: 4)
-                            .fill(Color.white.opacity(0.1))
-                            .frame(height: 8)
+                        // Glass background track
+                        RoundedRectangle(cornerRadius: 5)
+                            .fill(.ultraThinMaterial.opacity(0.3))
+                            .frame(height: 10)
 
                         // Progress fill
-                        RoundedRectangle(cornerRadius: 4)
+                        RoundedRectangle(cornerRadius: 5)
                             .fill(
                                 LinearGradient(
                                     colors: achievement.isUnlocked ? achievement.gradientColors : [Color.gray.opacity(0.5)],
@@ -534,10 +569,11 @@ struct AchievementDetailSheet: View {
                                     endPoint: .trailing
                                 )
                             )
-                            .frame(width: animateProgress ? geometry.size.width * achievement.progressPercent : 0, height: 8)
+                            .frame(width: animateProgress ? geometry.size.width * achievement.progressPercent : 0, height: 10)
+                            .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.5) : .clear, radius: 4)
                     }
                 }
-                .frame(height: 8)
+                .frame(height: 10)
 
                 HStack {
                     Text("\(achievement.progress)")
@@ -565,11 +601,46 @@ struct AchievementDetailSheet: View {
                     }
                 }
             }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
         }
-        .padding(.horizontal, MPSpacing.lg)
+        .padding(MPSpacing.xl)
+        .background(
+            // Liquid glass background
+            ZStack {
+                // Base glass layer
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(.ultraThinMaterial)
+
+                // Gradient overlay for depth
+                RoundedRectangle(cornerRadius: 24)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.15),
+                                Color.white.opacity(0.05),
+                                Color.black.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+
+                // Subtle border
+                RoundedRectangle(cornerRadius: 24)
+                    .stroke(
+                        LinearGradient(
+                            colors: [
+                                Color.white.opacity(0.3),
+                                Color.white.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1
+                    )
+            }
+        )
+        .shadow(color: Color.black.opacity(0.3), radius: 30, y: 10)
+        .padding(.horizontal, MPSpacing.xl)
         .onAppear {
             withAnimation(.easeOut(duration: 0.8).delay(0.2)) {
                 animateProgress = true

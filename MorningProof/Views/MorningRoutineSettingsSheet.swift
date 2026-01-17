@@ -178,6 +178,10 @@ struct MorningRoutineSettingsSheet: View {
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingCustomHabitInfo != nil)
         }
+        .swipeBack {
+            saveSettings()
+            dismiss()
+        }
     }
 
     // MARK: - Deadline Section

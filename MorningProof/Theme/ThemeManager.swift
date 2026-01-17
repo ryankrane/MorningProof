@@ -48,7 +48,7 @@ class ThemeManager: ObservableObject {
            let mode = AppThemeMode(rawValue: savedMode) {
             self.themeMode = mode
         } else {
-            self.themeMode = .system
+            self.themeMode = .dark
         }
     }
 
