@@ -70,18 +70,11 @@ The Screen Time (Family Controls) feature is temporarily disabled while waiting 
 6. **MorningProofManager.swift**: Uncomment `checkForEmergencyUnlock()` and `ensureShieldsAppliedIfNeeded()` calls
 7. Run `xcodegen generate` to regenerate the project
 
-## Paywall & TestFlight Testing
-The `HardPaywallStep` auto-detects TestFlight builds using the sandbox receipt and skips the paywall automatically. This means:
-- **TestFlight testers** (internal & external): Paywall is skipped, full app access
-- **App Store users**: See the Superwall paywall
-
-For App Store release, optionally remove the TestFlight bypass in `HardPaywallStep.isTestFlight` if you want TestFlight testers to also see the paywall.
+## Paywall
+The app uses Superwall for the paywall. The paywall shows for all users (TestFlight and App Store). TestFlight testers can use sandbox accounts to test purchases without real charges.
 
 ## TODO: Pre-Release Checklist
 When ready for App Store release (after Family Controls approval):
 
 ### Re-enable Screen Time Feature
 - [ ] Re-enable Screen Time feature once all bundle IDs are approved for Family Controls (see section above)
-
-### Optional: Remove TestFlight Paywall Bypass
-- [ ] In `HardPaywallStep`, remove or modify the `isTestFlight` check if you want TestFlight users to see the paywall

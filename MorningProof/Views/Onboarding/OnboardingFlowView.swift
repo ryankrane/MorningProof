@@ -2646,12 +2646,6 @@ struct HardPaywallStep: View {
 
     @State private var hasShownPaywall = false
 
-    /// Detects if app is running from TestFlight
-    private var isTestFlight: Bool {
-        guard let receiptURL = Bundle.main.appStoreReceiptURL else { return false }
-        return receiptURL.lastPathComponent == "sandboxReceipt"
-    }
-
     var body: some View {
         ZStack {
             MPColors.background
@@ -2671,13 +2665,6 @@ struct HardPaywallStep: View {
             }
         }
         .onAppear {
-            // Auto-skip paywall for TestFlight builds
-            if isTestFlight {
-                print("📱 TestFlight detected - skipping paywall")
-                onSubscribe()
-                return
-            }
-
             showSuperwallPaywall()
         }
     }
