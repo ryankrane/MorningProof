@@ -135,8 +135,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 18
-    private let paywallStep = 17
+    private let totalSteps = 17
+    private let paywallStep = 16
 
     var body: some View {
         ZStack {
@@ -165,20 +165,19 @@ struct OnboardingFlowView: View {
                     case 5: YouAreNotAloneStep(onContinue: nextStep)
                     case 6: SuccessStoriesStep(onContinue: nextStep)
                     case 7: TrackingComparisonStep(onContinue: nextStep)
-                    case 8: MorningAdvantageStep(onContinue: nextStep)
 
                     // Phase 3: Solution & Investment
-                    case 9: HowItWorksStep(onContinue: nextStep)
-                    case 10: AIVerificationShowcaseStep(onContinue: nextStep)
-                    case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
-                    case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    case 8: HowItWorksStep(onContinue: nextStep)
+                    case 9: AIVerificationShowcaseStep(onContinue: nextStep)
+                    case 10: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                    case 11: ObstaclesStep(data: onboardingData, onContinue: nextStep)
+                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
                     // Phase 4: Habits & Paywall
-                    case 14: OptionalRatingStep(onContinue: nextStep)
-                    case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 17: HardPaywallStep(
+                    case 13: OptionalRatingStep(onContinue: nextStep)
+                    case 14: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
+                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 16: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding
                     )
@@ -910,160 +909,7 @@ struct TrackingComparisonStep: View {
     }
 }
 
-// MARK: - Step 9: Morning Advantage
-
-struct MorningAdvantageStep: View {
-    let onContinue: () -> Void
-    @State private var showHeader = false
-    @State private var showMultiplier = false
-    @State private var animatedValue: Double = 1.0
-    @State private var showCards = false
-    @State private var pulseAnimation = false
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: MPSpacing.xxl) {
-                VStack(spacing: MPSpacing.sm) {
-                    Text("Why Morning Proof Works")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("Our users are")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                .opacity(showHeader ? 1 : 0)
-
-                // Animated multiplier
-                ZStack {
-                    ForEach(0..<2, id: \.self) { index in
-                        Circle()
-                            .stroke(MPColors.accent.opacity(0.15 - Double(index) * 0.05), lineWidth: 1.5)
-                            .frame(width: CGFloat(160 + index * 30), height: CGFloat(160 + index * 30))
-                            .scaleEffect(pulseAnimation ? 1.15 : 1.0)
-                            .opacity(pulseAnimation ? 0 : 0.8)
-                            .animation(
-                                .easeOut(duration: 2.5).repeatForever(autoreverses: false).delay(Double(index) * 0.4),
-                                value: pulseAnimation
-                            )
-                    }
-
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [MPColors.primary, MPColors.accent],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 130, height: 130)
-                        .mpShadow(.large)
-
-                    VStack(spacing: 0) {
-                        Text(String(format: "%.1fx", animatedValue))
-                            .font(.system(size: 42, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .contentTransition(.numericText())
-
-                        Text("more consistent")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.white.opacity(0.9))
-                    }
-                    .scaleEffect(showMultiplier ? 1 : 0.5)
-                    .opacity(showMultiplier ? 1 : 0)
-                }
-
-                // Evidence cards
-                VStack(spacing: MPSpacing.md) {
-                    EvidenceCard(
-                        stat: "94%",
-                        description: "build lasting habits with photo proof",
-                        icon: "camera.fill",
-                        iconColor: MPColors.accent
-                    )
-
-                    EvidenceCard(
-                        stat: "87%",
-                        description: "say accountability keeps them on track",
-                        icon: "flame.fill",
-                        iconColor: MPColors.accentGold
-                    )
-                }
-                .padding(.horizontal, MPSpacing.xl)
-                .opacity(showCards ? 1 : 0)
-
-                HStack(spacing: MPSpacing.xs) {
-                    Image(systemName: "chart.bar.fill")
-                        .font(.system(size: 11))
-                    Text("Based on Morning Proof user data")
-                        .font(.system(size: 11, weight: .medium))
-                }
-                .foregroundColor(MPColors.textMuted)
-                .opacity(showCards ? 1 : 0)
-            }
-
-            Spacer()
-
-            MPButton(title: "Build My Routine", style: .primary, icon: "arrow.right") {
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-        }
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) { showHeader = true }
-            pulseAnimation = true
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(0.3)) { showMultiplier = true }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                withAnimation(.easeOut(duration: 1.2)) { animatedValue = 3.2 }
-            }
-            withAnimation(.easeOut(duration: 0.5).delay(1.0)) { showCards = true }
-        }
-    }
-}
-
-// MARK: - Evidence Card
-
-struct EvidenceCard: View {
-    let stat: String
-    let description: String
-    let icon: String
-    let iconColor: Color
-
-    var body: some View {
-        HStack(spacing: MPSpacing.md) {
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(iconColor)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(stat)
-                    .font(.system(size: 20, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text(description)
-                    .font(.system(size: 13))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-
-            Spacer()
-        }
-        .padding(MPSpacing.md)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.lg)
-        .mpShadow(.small)
-    }
-}
-
-// MARK: - Step 10: How It Works
+// MARK: - Step 8: How It Works
 
 struct HowItWorksStep: View {
     let onContinue: () -> Void
@@ -2398,26 +2244,47 @@ struct AnalyzingStep: View {
     private func startSmoothProgress() {
         let phaseCount = phases.count
 
-        // Phase 1: Fast progress 0-70% in ~2 seconds
-        // Phase 2: Sporadic progress 70-93% in ~2 seconds (realistic processing feel)
-        // Phase 3: Slow crawl 93-100% in ~3 seconds (builds anticipation)
+        // Phase 1: Realistic processing feel 0-70% in ~4 seconds (variable pacing)
+        // Phase 2: Sporadic progress 70-93% in ~2 seconds
+        // Phase 3: Sporadic crawl 93-100% in ~3 seconds (random-feeling speed variations)
 
-        // PHASE 1: Fast initial progress (0% to 70% in 2 seconds)
-        let phase1Duration: Double = 2.0
-        let phase1Steps = 40
-        let phase1Interval = phase1Duration / Double(phase1Steps)
+        // PHASE 1: Realistic processing feel (0% to 70% in ~4 seconds)
+        // Variable increments with micro-pauses to simulate actual work
+        let phase1Increments: [(delay: Double, progress: Double)] = [
+            (0.0, 0.02),
+            (0.12, 0.05),
+            (0.28, 0.08),
+            (0.35, 0.11),   // quick burst
+            (0.42, 0.14),
+            (0.65, 0.17),   // pause
+            (0.80, 0.21),
+            (0.95, 0.24),
+            (1.05, 0.28),   // quick
+            (1.30, 0.31),
+            (1.55, 0.35),
+            (1.70, 0.38),
+            (1.82, 0.42),   // burst
+            (1.90, 0.45),
+            (2.20, 0.48),   // pause
+            (2.45, 0.51),
+            (2.60, 0.54),
+            (2.80, 0.57),
+            (3.10, 0.60),   // pause
+            (3.35, 0.62),
+            (3.50, 0.64),
+            (3.58, 0.66),   // quick
+            (3.65, 0.68),
+            (3.90, 0.70),
+        ]
 
-        for i in 0...phase1Steps {
-            let targetProgress = 0.70 * (Double(i) / Double(phase1Steps))
-            let elapsed = Double(i) * phase1Interval
-
-            DispatchQueue.main.asyncAfter(deadline: .now() + elapsed) {
-                withAnimation(.easeOut(duration: phase1Interval)) {
-                    progress = CGFloat(targetProgress)
+        for increment in phase1Increments {
+            DispatchQueue.main.asyncAfter(deadline: .now() + increment.delay) {
+                withAnimation(.easeOut(duration: 0.1)) {
+                    progress = CGFloat(increment.progress)
                 }
 
-                // Update phases during fast progress
-                let phaseIndex = min(Int(targetProgress * Double(phaseCount)), phaseCount - 1)
+                // Update phases during progress
+                let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
                 if phaseIndex != currentPhase {
                     withAnimation(.easeInOut(duration: 0.3)) {
                         if currentPhase >= 0 {
@@ -2429,9 +2296,9 @@ struct AnalyzingStep: View {
             }
         }
 
-        // PHASE 2: Sporadic progress (70% to 93% in 2 seconds)
+        // PHASE 2: Sporadic progress (70% to 93% in ~2 seconds)
         // Creates realistic "processing" feel with variable increments and micro-pauses
-        let phase2Start: Double = 2.0
+        let phase2Start: Double = 4.0
         let sporadicIncrements: [(delay: Double, progress: Double)] = [
             (0.0, 0.72),
             (0.15, 0.74),
@@ -2468,19 +2335,18 @@ struct AnalyzingStep: View {
             }
         }
 
-        // PHASE 3: Slow crawl then quick finish (93% to 100% in ~3 seconds)
-        // Builds tension slowly to 97%, then quick satisfying burst to 100%
-        let phase3Start: Double = 4.0
+        // PHASE 3: Sporadic crawl with random-feeling speed variations (93% to 100% in ~3 seconds)
+        let phase3Start: Double = 6.0
         let phase3Duration: Double = 3.0
         let crawlSteps: [(delay: Double, progress: Double)] = [
             (0.0, 0.93),
-            (0.5, 0.94),    // slow crawl
-            (1.0, 0.95),    // slow crawl
-            (1.6, 0.96),    // slow crawl
-            (2.2, 0.97),    // tension peaks
-            (2.5, 0.98),    // quick burst
-            (2.7, 0.99),    // quick burst
-            (2.9, 1.00),    // done!
+            (0.6, 0.94),    // slow
+            (0.9, 0.95),    // quicker jump
+            (1.5, 0.96),    // slow again
+            (1.7, 0.97),    // quick
+            (1.85, 0.98),   // quick burst
+            (2.5, 0.99),    // long pause for tension
+            (2.8, 1.00),    // done
         ]
 
         for step in crawlSteps {
@@ -2653,6 +2519,7 @@ struct RecommendedHabitRow: View {
                         .font(.system(size: 13))
                         .foregroundColor(MPColors.textSecondary)
                         .lineLimit(2)
+                        .multilineTextAlignment(.leading)
                 }
 
                 Spacer()
