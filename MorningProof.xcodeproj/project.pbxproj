@@ -92,6 +92,7 @@
 		FE0AF8A5837165E0CC89F30F /* NotificationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6711E8B3FC3C7118542CE8D8 /* NotificationManager.swift */; };
 		FEE0E45CB5F8F4BC268C66B5 /* MorningProofUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7281A4F93258C56469EB73AD /* MorningProofUITests.swift */; };
 		SWBK5ACB26AA53D8DBDE100AB /* SwipeBackModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = SWBK87A88A1B0CF71F2FE22F /* SwipeBackModifier.swift */; };
+		HTCB1A2B3C4D5E6F7A8B9C0D /* HoldToCompleteButtonStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = HTCF1E2D3C4B5A6F7E8D9C0B /* HoldToCompleteButtonStyle.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -157,6 +158,7 @@
 		7F9DB6D41429EBB072A2745C /* EnhancedPlanCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPlanCard.swift; sourceTree = "<group>"; };
 		8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingService.swift; sourceTree = "<group>"; };
 		88B5D7D38090D80E9DF411AA /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
+		HTCF1E2D3C4B5A6F7E8D9C0B /* HoldToCompleteButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldToCompleteButtonStyle.swift; sourceTree = "<group>"; };
 		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		970A6074B025718639B71CD8 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
@@ -268,6 +270,7 @@
 			children = (
 				C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */,
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
+				HTCF1E2D3C4B5A6F7E8D9C0B /* HoldToCompleteButtonStyle.swift */,
 				E061493F2CFA221111F36339 /* LockInCelebrationView.swift */,
 				72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */,
 				4721A0F6D815690A22663A52 /* MiniConfettiView.swift */,
@@ -590,6 +593,7 @@
 				1E8811D345916DD25650A347 /* Habit.swift in Sources */,
 				0B895D680BA932C04ED15796 /* HapticManager.swift in Sources */,
 				7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */,
+				HTCB1A2B3C4D5E6F7A8B9C0D /* HoldToCompleteButtonStyle.swift in Sources */,
 				2A8447D7C9F7284723922D4D /* HistoryView.swift in Sources */,
 				07413D8B7ACA9D63E8F4F7E3 /* HomeView.swift in Sources */,
 				90297901B1B67BBFEB073DF1 /* HydrationCameraView.swift in Sources */,
