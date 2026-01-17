@@ -34,7 +34,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
         switch self {
         case .aiVerified: return "Photo Verified"
         case .autoTracked: return "Apple Health"
-        case .honorSystem: return "Hold to Confirm"
+        case .honorSystem: return "Honor System"
         }
     }
 
@@ -47,7 +47,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
     }
 }
 
-// Predefined habit types - Core 10 high-value habits
+// Predefined habit types - Core habits
 enum HabitType: String, Codable, CaseIterable, Identifiable {
     case madeBed = "made_bed"
     case sleepDuration = "sleep_duration"
@@ -59,6 +59,9 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     case morningSteps = "morning_steps"
     case meditation = "meditation"
     case hydration = "hydration"
+    case prayer = "prayer"
+    case reading = "reading"
+    case walkDog = "walk_dog"
 
     var id: String { rawValue }
 
@@ -74,6 +77,9 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningSteps: return "Morning Walk"
         case .meditation: return "Meditation"
         case .hydration: return "Hydration"
+        case .prayer: return "Prayer"
+        case .reading: return "Reading"
+        case .walkDog: return "Walk the Dog"
         }
     }
 
@@ -89,6 +95,9 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningSteps: return "figure.walk"
         case .meditation: return "brain.head.profile"
         case .hydration: return "drop.fill"
+        case .prayer: return "hands.sparkles.fill"
+        case .reading: return "book.fill"
+        case .walkDog: return "dog.fill"
         }
     }
 
@@ -96,15 +105,15 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         switch self {
         case .madeBed, .sunlightExposure, .hydration: return .aiVerified
         case .morningSteps, .sleepDuration, .morningWorkout: return .autoTracked
-        case .coldShower, .noSnooze, .morningStretch, .meditation: return .honorSystem
+        case .coldShower, .noSnooze, .morningStretch, .meditation, .prayer, .reading, .walkDog: return .honorSystem
         }
     }
 
     var category: HabitCategory {
         switch self {
         case .noSnooze, .madeBed, .sleepDuration: return .wakeUp
-        case .morningStretch, .morningWorkout, .morningSteps: return .movement
-        case .meditation, .coldShower, .sunlightExposure, .hydration: return .wellness
+        case .morningStretch, .morningWorkout, .morningSteps, .walkDog: return .movement
+        case .meditation, .coldShower, .sunlightExposure, .hydration, .prayer, .reading: return .wellness
         }
     }
 
@@ -115,7 +124,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .sleepDuration: return 7 // Hours
         case .sunlightExposure: return 10 // Minutes
         case .morningWorkout: return 20 // Minutes
-        case .coldShower, .noSnooze, .morningStretch, .meditation: return 1 // Binary
+        case .coldShower, .noSnooze, .morningStretch, .meditation, .prayer, .reading, .walkDog: return 1 // Binary
         case .hydration: return 1 // Binary - just verify water
         }
     }
@@ -149,6 +158,9 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningSteps: return "Get moving with a morning walk"
         case .meditation: return "Start with a clear, calm mind"
         case .hydration: return "Start your day hydrated with a glass of water"
+        case .prayer: return "Begin your day with spiritual connection"
+        case .reading: return "Feed your mind with morning reading"
+        case .walkDog: return "Get outside and give your dog some exercise"
         }
     }
 
@@ -165,6 +177,9 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .noSnooze: return "Hold to confirm you didn't snooze"
         case .morningStretch: return "Hold to confirm you stretched"
         case .meditation: return "Hold to confirm you meditated"
+        case .prayer: return "Hold to confirm you prayed"
+        case .reading: return "Hold to confirm you read"
+        case .walkDog: return "Hold to confirm you walked your dog"
         }
     }
 
@@ -181,6 +196,9 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .noSnooze: return "Hold to confirm you got up without hitting snooze."
         case .morningStretch: return "Hold to confirm you did your morning stretch."
         case .meditation: return "Hold to confirm you completed your meditation."
+        case .prayer: return "Hold to confirm you completed your morning prayer."
+        case .reading: return "Hold to confirm you did your morning reading."
+        case .walkDog: return "Hold to confirm you took your dog for a walk."
         }
     }
 }
