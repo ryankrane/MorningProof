@@ -201,7 +201,7 @@ struct MorningRoutineSettingsSheet: View {
                         Text("Habit Deadline")
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textPrimary)
-                        Text("Complete habits by this time to lock in your day")
+                        Text("Complete habits by this\ntime to lock in your day")
                             .font(MPFont.labelTiny())
                             .foregroundColor(MPColors.textTertiary)
                             .multilineTextAlignment(.leading)
