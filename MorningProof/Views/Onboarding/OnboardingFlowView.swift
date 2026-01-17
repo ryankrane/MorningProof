@@ -2096,8 +2096,6 @@ struct AnalyzingStep: View {
     @State private var currentPhase = 0
     @State private var completedSteps: Set<Int> = []
     @State private var rotationAngle: Double = 0
-    @State private var showSocialProof = false
-    @State private var userCount: Int = 0
     @State private var glowOpacity: Double = 0.3
 
     private var phases: [(title: String, icon: String)] {
@@ -2201,16 +2199,6 @@ struct AnalyzingStep: View {
             }
             .padding(.horizontal, MPSpacing.xl)
 
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Social proof
-            SocialProofCounter(
-                targetNumber: userCount,
-                suffix: " people built their routine this week",
-                icon: "person.3.fill"
-            )
-            .opacity(showSocialProof ? 1 : 0)
-
             Spacer()
         }
         .onAppear {
@@ -2227,14 +2215,6 @@ struct AnalyzingStep: View {
         // Pulse the glow
         withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
             glowOpacity = 0.6
-        }
-
-        // Show social proof after a delay
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showSocialProof = true
-            }
-            animateCounter(to: 2847)
         }
 
         // Smooth micro-progress animation that looks like real processing
@@ -2367,18 +2347,6 @@ struct AnalyzingStep: View {
         // Transition to next screen
         DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + phase3Duration + 0.5) {
             onComplete()
-        }
-    }
-
-    private func animateCounter(to target: Int) {
-        let steps = 25
-        let interval = 1.2 / Double(steps)
-        let increment = target / steps
-
-        for i in 1...steps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + interval * Double(i)) {
-                userCount = min(increment * i, target)
-            }
         }
     }
 }

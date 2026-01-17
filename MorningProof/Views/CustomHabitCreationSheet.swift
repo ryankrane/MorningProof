@@ -90,7 +90,7 @@ struct CustomHabitCreationSheet: View {
 
     var iconAndNameSection: some View {
         sectionContainer(title: "Habit Details", icon: "pencil") {
-            VStack(spacing: MPSpacing.lg) {
+            VStack(spacing: 0) {
                 // Icon selector
                 HStack {
                     Text("Icon")
@@ -102,37 +102,33 @@ struct CustomHabitCreationSheet: View {
                     Button {
                         showIconPicker = true
                     } label: {
-                        HStack(spacing: MPSpacing.sm) {
-                            Image(systemName: selectedIcon)
-                                .font(.system(size: 22))
-                                .foregroundColor(MPColors.primary)
-                                .frame(width: 36, height: 36)
-                                .background(MPColors.primaryLight.opacity(0.3))
-                                .cornerRadius(MPRadius.sm)
-
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .semibold))
-                                .foregroundColor(MPColors.textTertiary)
-                        }
+                        Image(systemName: selectedIcon)
+                            .font(.system(size: 22))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 44, height: 44)
+                            .background(MPColors.primaryLight.opacity(0.3))
+                            .cornerRadius(MPRadius.md)
                     }
                 }
+                .frame(height: 56)
 
                 Divider()
 
-                // Name field
-                VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                // Name field - inline style
+                HStack {
                     Text("Name")
                         .font(MPFont.bodyMedium())
                         .foregroundColor(MPColors.textPrimary)
 
+                    Spacer()
+
                     TextField("e.g., Take vitamins", text: $habitName)
                         .font(MPFont.bodyMedium())
                         .foregroundColor(MPColors.textPrimary)
-                        .padding(MPSpacing.md)
-                        .background(MPColors.surfaceSecondary)
-                        .cornerRadius(MPRadius.md)
+                        .multilineTextAlignment(.trailing)
                         .focused($isNameFocused)
                 }
+                .frame(height: 56)
             }
         }
         .sheet(isPresented: $showIconPicker) {
