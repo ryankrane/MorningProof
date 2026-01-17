@@ -56,6 +56,8 @@ Shared data between app and extensions uses App Group: `group.com.rk.morningproo
 - Each Screen Time extension needs its own entitlements file with `com.apple.developer.family-controls` and App Group
 - xcodegen may clear entitlements files - add `properties:` section in project.yml to preserve them
 - When defining local model types in Views (like `Achievement`), watch for naming conflicts with types in Models folder
+- **Onboarding animations**: Don't use `.animation()` on a ZStack/Group containing a switch statement for step transitions - it causes views to overlap. Use `.id(currentStep)` instead to force SwiftUI to replace the view entirely
+- **StoreKit async sequences**: Calling `Transaction.currentEntitlements` immediately at app launch can cause freezing in simulator. Added a 2-second delay before Superwall sync in `MorningProofApp.swift` to avoid startup issues
 
 ## TEMPORARILY DISABLED: Screen Time / App Blocking Feature
 The Screen Time (Family Controls) feature is temporarily disabled while waiting for Apple to approve all bundle IDs. To re-enable once approved:

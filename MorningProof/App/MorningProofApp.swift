@@ -43,8 +43,9 @@ struct MorningProofApp: App {
             purchaseController: purchaseController
         )
 
-        // Sync subscription status with Superwall on launch
+        // Sync subscription status with Superwall on launch (with delay to avoid startup issues)
         Task {
+            try? await Task.sleep(nanoseconds: 2_000_000_000) // 2 second delay
             await purchaseController.syncSuperwallSubscriptionStatus()
         }
 

@@ -91,27 +91,18 @@ final class SuperwallPurchaseController: PurchaseController {
     /// Syncs the subscription status with Superwall
     /// Must be called whenever the user's entitlements change
     func syncSuperwallSubscriptionStatus() async {
-        var activeProductIDs: Set<String> = []
+        var hasActiveSubscription = false
 
         for await result in Transaction.currentEntitlements {
-            if case .verified(let transaction) = result {
-                activeProductIDs.insert(transaction.productID)
+            if case .verified = result {
+                hasActiveSubscription = true
             }
         }
 
-        if activeProductIDs.isEmpty {
-            Superwall.shared.subscriptionStatus = .inactive
+        if hasActiveSubscription {
+            Superwall.shared.subscriptionStatus = .active([])
         } else {
-            // Get the StoreProducts from Superwall for these product IDs
-            let storeProducts = await Superwall.shared.products(for: activeProductIDs)
-            let entitlements = Set(storeProducts.flatMap { $0.entitlements })
-
-            if entitlements.isEmpty {
-                // Fallback: if no entitlements mapped, just mark as active
-                Superwall.shared.subscriptionStatus = .active([])
-            } else {
-                Superwall.shared.subscriptionStatus = .active(entitlements)
-            }
+            Superwall.shared.subscriptionStatus = .inactive
         }
     }
 

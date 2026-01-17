@@ -152,43 +152,41 @@ struct OnboardingFlowView: View {
                 }
 
                 // Content
-                ZStack {
-                    Group {
-                        switch currentStep {
-                        // Phase 1: Hook & Personalization
-                        case 0: WelcomeHeroStep(onContinue: nextStep)
-                        case 1: NameStep(data: onboardingData, onContinue: nextStep)
-                        case 2: GenderStep(data: onboardingData, onContinue: nextStep)
-                        case 3: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
+                Group {
+                    switch currentStep {
+                    // Phase 1: Hook & Personalization
+                    case 0: WelcomeHeroStep(onContinue: nextStep)
+                    case 1: NameStep(data: onboardingData, onContinue: nextStep)
+                    case 2: GenderStep(data: onboardingData, onContinue: nextStep)
+                    case 3: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
 
-                        // Phase 2: Problem Agitation & Social Proof
-                        case 4: ProblemStatisticsStep(onContinue: nextStep)
-                        case 5: YouAreNotAloneStep(onContinue: nextStep)
-                        case 6: SuccessStoriesStep(onContinue: nextStep)
-                        case 7: TrackingComparisonStep(onContinue: nextStep)
-                        case 8: MorningAdvantageStep(onContinue: nextStep)
+                    // Phase 2: Problem Agitation & Social Proof
+                    case 4: ProblemStatisticsStep(onContinue: nextStep)
+                    case 5: YouAreNotAloneStep(onContinue: nextStep)
+                    case 6: SuccessStoriesStep(onContinue: nextStep)
+                    case 7: TrackingComparisonStep(onContinue: nextStep)
+                    case 8: MorningAdvantageStep(onContinue: nextStep)
 
-                        // Phase 3: Solution & Investment
-                        case 9: HowItWorksStep(onContinue: nextStep)
-                        case 10: AIVerificationShowcaseStep(onContinue: nextStep)
-                        case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
-                        case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                        case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    // Phase 3: Solution & Investment
+                    case 9: HowItWorksStep(onContinue: nextStep)
+                    case 10: AIVerificationShowcaseStep(onContinue: nextStep)
+                    case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                    case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
+                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
-                        // Phase 4: Habits & Paywall
-                        case 14: OptionalRatingStep(onContinue: nextStep)
-                        case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                        case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                        case 17: HardPaywallStep(
-                            subscriptionManager: subscriptionManager,
-                            onSubscribe: completeOnboarding
-                        )
+                    // Phase 4: Habits & Paywall
+                    case 14: OptionalRatingStep(onContinue: nextStep)
+                    case 15: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
+                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 17: HardPaywallStep(
+                        subscriptionManager: subscriptionManager,
+                        onSubscribe: completeOnboarding
+                    )
 
-                        default: EmptyView()
-                        }
+                    default: EmptyView()
                     }
                 }
-                .animation(.easeInOut(duration: 0.3), value: currentStep)
+                .id(currentStep)
             }
         }
         .preferredColorScheme(.dark)
@@ -203,11 +201,7 @@ struct OnboardingFlowView: View {
             }
         }
 
-        let newStep = currentStep + 1
-
-        withAnimation(.easeInOut(duration: 0.3)) {
-            currentStep = newStep
-        }
+        currentStep += 1
     }
 
     private func completeOnboarding() {
