@@ -9,7 +9,6 @@ class SubscriptionManager: ObservableObject {
     enum ProductID: String, CaseIterable {
         case monthlyPremium = "com.rk.morningproof.premium.monthly"
         case yearlyPremium = "com.rk.morningproof.premium.yearly"
-        case streakRecovery = "com.rk.morningproof.streakrecovery"
     }
 
     // MARK: - Published Properties
@@ -38,7 +37,6 @@ class SubscriptionManager: ObservableObject {
 
     // MARK: - Feature Limits (Premium)
     let premiumStreakRecoveriesPerMonth = 1
-    let streakRecoveryPrice = "$0.99"
 
     // MARK: - Private
     private var updateListenerTask: Task<Void, Error>?
@@ -114,13 +112,6 @@ class SubscriptionManager: ObservableObject {
 
     func purchaseYearly() async throws -> StoreKit.Transaction? {
         guard let product = products.first(where: { $0.id == ProductID.yearlyPremium.rawValue }) else {
-            return nil
-        }
-        return try await purchase(product)
-    }
-
-    func purchaseStreakRecovery() async throws -> StoreKit.Transaction? {
-        guard let product = products.first(where: { $0.id == ProductID.streakRecovery.rawValue }) else {
             return nil
         }
         return try await purchase(product)

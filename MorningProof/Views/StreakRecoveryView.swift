@@ -5,9 +5,6 @@ struct StreakRecoveryView: View {
     @ObservedObject var subscriptionManager: SubscriptionManager
     @Environment(\.dismiss) var dismiss
 
-    @State private var isPurchasing = false
-    @State private var showError = false
-    @State private var errorMessage = ""
     @State private var showSuccess = false
 
     var body: some View {
@@ -68,18 +65,21 @@ struct StreakRecoveryView: View {
                                 ) {
                                     useFreeRecovery()
                                 }
-                            }
-
-                            // Paid recovery
-                            recoveryOption(
-                                title: "Buy Recovery",
-                                subtitle: subscriptionManager.streakRecoveryPrice,
-                                buttonText: "Purchase",
-                                isFree: false
-                            ) {
-                                Task {
-                                    await purchaseRecovery()
+                            } else {
+                                // No free recoveries left this month
+                                VStack(spacing: 8) {
+                                    Text("No recoveries left this month")
+                                        .font(.subheadline)
+                                        .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
+                                    Text("Free recovery resets next month")
+                                        .font(.caption)
+                                        .foregroundColor(Color(red: 0.7, green: 0.6, blue: 0.5))
                                 }
+                                .padding(20)
+                                .frame(maxWidth: .infinity)
+                                .background(Color.white)
+                                .cornerRadius(16)
+                                .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 3)
                             }
                         } else {
                             // Non-premium user
@@ -154,11 +154,6 @@ struct StreakRecoveryView: View {
                     }
                 }
             }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(errorMessage)
-            }
         }
     }
 
@@ -174,32 +169,21 @@ struct StreakRecoveryView: View {
 
                     Text(subtitle)
                         .font(.caption)
-                        .foregroundColor(isFree ? Color(red: 0.55, green: 0.75, blue: 0.55) : Color(red: 0.6, green: 0.5, blue: 0.4))
+                        .foregroundColor(Color(red: 0.55, green: 0.75, blue: 0.55))
                 }
 
                 Spacer()
 
                 Button(action: action) {
-                    if isPurchasing && !isFree {
-                        ProgressView()
-                            .tint(isFree ? Color(red: 0.55, green: 0.75, blue: 0.55) : Color(red: 0.55, green: 0.45, blue: 0.35))
-                            .frame(width: 100, height: 36)
-                    } else {
-                        Text(buttonText)
-                            .font(.subheadline)
-                            .fontWeight(.semibold)
-                            .foregroundColor(.white)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 10)
-                            .background(
-                                isFree
-                                    ? Color(red: 0.55, green: 0.75, blue: 0.55)
-                                    : Color(red: 0.55, green: 0.45, blue: 0.35)
-                            )
-                            .cornerRadius(10)
-                    }
+                    Text(buttonText)
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 10)
+                        .background(Color(red: 0.55, green: 0.75, blue: 0.55))
+                        .cornerRadius(10)
                 }
-                .disabled(isPurchasing)
             }
         }
         .padding(16)
@@ -266,22 +250,6 @@ struct StreakRecoveryView: View {
     private func useFreeRecovery() {
         subscriptionManager.useFreeStreakRecovery()
         recoverStreak()
-    }
-
-    private func purchaseRecovery() async {
-        isPurchasing = true
-
-        do {
-            let transaction = try await subscriptionManager.purchaseStreakRecovery()
-            if transaction != nil {
-                recoverStreak()
-            }
-        } catch {
-            errorMessage = error.localizedDescription
-            showError = true
-        }
-
-        isPurchasing = false
     }
 
     private func recoverStreak() {
