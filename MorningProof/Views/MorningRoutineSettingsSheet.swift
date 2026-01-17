@@ -191,7 +191,7 @@ struct MorningRoutineSettingsSheet: View {
             Button {
                 showCutoffTimePicker = true
             } label: {
-                HStack(alignment: .center) {
+                HStack(alignment: .firstTextBaseline, spacing: MPSpacing.lg) {
                     Image(systemName: "clock.fill")
                         .font(.system(size: MPIconSize.sm))
                         .foregroundColor(MPColors.primary)
