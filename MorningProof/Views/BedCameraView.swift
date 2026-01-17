@@ -18,6 +18,11 @@ struct BedCameraView: View {
     @State private var analysisProgress: CGFloat = 0
     @State private var dotCount: Int = 0
 
+    // Timer references for proper cleanup
+    @State private var dotTimer: Timer?
+    @State private var progressTimer: Timer?
+    @State private var progressStartTime: Date?
+
     // Animation states for result view
     @State private var showCheckmark = false
     @State private var showTitle = false
@@ -33,6 +38,8 @@ struct BedCameraView: View {
 
                 if isAnalyzing {
                     analyzingView
+                } else if let error = errorMessage {
+                    errorView(error)
                 } else if let result = result {
                     resultView(result)
                 } else {
@@ -214,13 +221,42 @@ struct BedCameraView: View {
             bedIconScale = 1.05
         }
 
-        // Progress bar (fake progress over ~3 seconds)
-        withAnimation(.easeInOut(duration: 3.0)) {
-            analysisProgress = 0.95
+        // Realistic progress animation
+        // Progress slows down as it gets higher, never reaching 100% until API completes
+        progressStartTime = Date()
+        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
+            guard isAnalyzing, let startTime = progressStartTime else {
+                timer.invalidate()
+                return
+            }
+
+            let elapsed = Date().timeIntervalSince(startTime)
+
+            // Multi-phase progress that slows down over time:
+            // - First 2s: 0% to 40% (fast - "uploading")
+            // - Next 3s: 40% to 65% (medium - "processing")
+            // - Next 10s: 65% to 85% (slow - "analyzing")
+            // - After 15s: 85% to 92% very slowly (still working)
+            let newProgress: CGFloat
+            if elapsed < 2 {
+                newProgress = CGFloat(elapsed / 2) * 0.40
+            } else if elapsed < 5 {
+                newProgress = 0.40 + CGFloat((elapsed - 2) / 3) * 0.25
+            } else if elapsed < 15 {
+                newProgress = 0.65 + CGFloat((elapsed - 5) / 10) * 0.20
+            } else {
+                // Very slow crawl after 15s, asymptotically approaching 92%
+                let extraTime = elapsed - 15
+                newProgress = 0.85 + CGFloat(min(extraTime / 30, 1.0)) * 0.07
+            }
+
+            withAnimation(.linear(duration: 0.1)) {
+                analysisProgress = min(newProgress, 0.92)
+            }
         }
 
         // Animated dots
-        Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { timer in
+        dotTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { timer in
             if !isAnalyzing {
                 timer.invalidate()
                 return
@@ -230,6 +266,14 @@ struct BedCameraView: View {
     }
 
     private func resetAnalyzingAnimations() {
+        // Invalidate timers
+        dotTimer?.invalidate()
+        dotTimer = nil
+        progressTimer?.invalidate()
+        progressTimer = nil
+        progressStartTime = nil
+
+        // Reset animation states
         scanRotation = 0
         glowScale = 1.0
         glowOpacity = 0.4
@@ -378,9 +422,69 @@ struct BedCameraView: View {
         showButton = false
     }
 
+    func errorView(_ message: String) -> some View {
+        VStack(spacing: MPSpacing.xxl) {
+            Spacer()
+
+            ZStack {
+                Circle()
+                    .fill(MPColors.errorLight)
+                    .frame(width: 120, height: 120)
+
+                Image(systemName: "wifi.exclamationmark")
+                    .font(.system(size: 50))
+                    .foregroundColor(MPColors.error)
+            }
+
+            Text("Verification Failed")
+                .font(MPFont.headingMedium())
+                .foregroundColor(MPColors.textPrimary)
+
+            Text(message)
+                .font(MPFont.bodyMedium())
+                .foregroundColor(MPColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, MPSpacing.xxxl)
+
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                if selectedImage != nil {
+                    MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
+                        errorMessage = nil
+                        Task {
+                            await verifyBed(image: selectedImage!)
+                        }
+                    }
+                }
+
+                MPButton(title: "Retake Photo", style: .secondary, icon: "camera.fill") {
+                    errorMessage = nil
+                    selectedImage = nil
+                }
+
+                MPButton(title: "Cancel", style: .secondary) {
+                    dismiss()
+                }
+            }
+            .padding(.horizontal, MPSpacing.xxl)
+            .padding(.bottom, MPSpacing.xxxl)
+        }
+        .onAppear {
+            HapticManager.shared.error()
+        }
+    }
+
     func verifyBed(image: UIImage) async {
         isAnalyzing = true
-        result = await manager.completeBedVerification(image: image)
+        errorMessage = nil
+
+        do {
+            result = try await manager.completeBedVerification(image: image)
+        } catch {
+            errorMessage = error.localizedDescription
+        }
+
         isAnalyzing = false
     }
 }
