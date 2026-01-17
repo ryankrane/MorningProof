@@ -46,8 +46,8 @@ enum CustomVerificationType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .aiVerified: return "AI Verified"
-        case .honorSystem: return "Honor System"
+        case .aiVerified: return "Photo Verified"
+        case .honorSystem: return "Hold to Confirm"
         }
     }
 

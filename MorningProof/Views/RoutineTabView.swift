@@ -35,6 +35,9 @@ struct RoutineTabView: View {
                         // MARK: - Habit Deadline
                         deadlineSection
 
+                        // MARK: - Weekly Schedule
+                        weeklyScheduleSection
+
                         // MARK: - Habits
                         habitsSection
 
@@ -109,7 +112,7 @@ struct RoutineTabView: View {
     // MARK: - Deadline Section
 
     var deadlineSection: some View {
-        sectionContainer(title: "Schedule", icon: "clock.fill") {
+        sectionContainer(title: "Deadline", icon: "clock.fill") {
             Button {
                 showCutoffTimePicker = true
             } label: {
@@ -118,7 +121,7 @@ struct RoutineTabView: View {
                         Text("Habit Deadline")
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textPrimary)
-                        Text("Complete habits by this time to lock in your day")
+                        Text("Finish your habits by this time")
                             .font(MPFont.labelTiny())
                             .foregroundColor(MPColors.textTertiary)
                     }
@@ -196,18 +199,14 @@ struct RoutineTabView: View {
                         }
                     }
 
-                    // Schedule indicator - tap to edit
-                    Button {
-                        editingHabitSchedule = config.habitType
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "calendar")
-                                .font(.system(size: 10))
-                            Text(DaySchedule.displayString(for: config.activeDays))
-                                .font(MPFont.labelTiny())
-                        }
-                        .foregroundColor(config.isEnabled ? MPColors.primary : MPColors.textTertiary)
+                    // Verification method indicator
+                    HStack(spacing: 4) {
+                        Image(systemName: config.habitType.tier.icon)
+                            .font(.system(size: 10))
+                        Text(config.habitType.tier.sectionTitle)
+                            .font(MPFont.labelTiny())
                     }
+                    .foregroundColor(MPColors.textTertiary)
                 }
 
                 Spacer()
@@ -298,18 +297,14 @@ struct RoutineTabView: View {
                         }
                     }
 
-                    // Schedule indicator - tap to edit
-                    Button {
-                        editingCustomHabitSchedule = habit
-                    } label: {
-                        HStack(spacing: 4) {
-                            Image(systemName: "calendar")
-                                .font(.system(size: 10))
-                            Text(DaySchedule.displayString(for: habit.activeDays))
-                                .font(MPFont.labelTiny())
-                        }
-                        .foregroundColor(isEnabled ? MPColors.primary : MPColors.textTertiary)
+                    // Verification method indicator
+                    HStack(spacing: 4) {
+                        Image(systemName: habit.verificationType.icon)
+                            .font(.system(size: 10))
+                        Text(habit.verificationType.displayName)
+                            .font(MPFont.labelTiny())
                     }
+                    .foregroundColor(MPColors.textTertiary)
                 }
 
                 Spacer()
@@ -334,6 +329,91 @@ struct RoutineTabView: View {
             } label: {
                 Label("Delete", systemImage: "trash")
             }
+        }
+    }
+
+    // MARK: - Weekly Schedule Section
+
+    var weeklyScheduleSection: some View {
+        // Collect enabled predefined habits
+        let enabledPredefined = manager.habitConfigs.filter { $0.isEnabled }
+
+        // Collect enabled custom habits
+        let enabledCustom = manager.customHabits.filter { habit in
+            let config = manager.customHabitConfigs.first { $0.customHabitId == habit.id }
+            return config?.isEnabled ?? true
+        }
+
+        let hasAnyEnabled = !enabledPredefined.isEmpty || !enabledCustom.isEmpty
+
+        return sectionContainer(title: "Weekly Schedule", icon: "calendar") {
+            if !hasAnyEnabled {
+                HStack {
+                    Text("Enable habits to set their schedule")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                    Spacer()
+                }
+                .padding(.vertical, MPSpacing.sm)
+            } else {
+                VStack(spacing: 0) {
+                    // Predefined habits
+                    ForEach(enabledPredefined) { config in
+                        scheduleRow(
+                            icon: config.habitType.icon,
+                            name: config.habitType.displayName,
+                            schedule: DaySchedule.displayString(for: config.activeDays),
+                            action: { editingHabitSchedule = config.habitType }
+                        )
+
+                        if config.id != enabledPredefined.last?.id || !enabledCustom.isEmpty {
+                            Divider()
+                                .padding(.leading, 46)
+                        }
+                    }
+
+                    // Custom habits
+                    ForEach(enabledCustom) { habit in
+                        scheduleRow(
+                            icon: habit.icon,
+                            name: habit.name,
+                            schedule: DaySchedule.displayString(for: habit.activeDays),
+                            action: { editingCustomHabitSchedule = habit }
+                        )
+
+                        if habit.id != enabledCustom.last?.id {
+                            Divider()
+                                .padding(.leading, 46)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    func scheduleRow(icon: String, name: String, schedule: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: MPSpacing.lg) {
+                Image(systemName: icon)
+                    .font(.system(size: MPIconSize.sm))
+                    .foregroundColor(MPColors.primary)
+                    .frame(width: 30)
+
+                Text(name)
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Text(schedule)
+                    .font(MPFont.labelSmall())
+                    .foregroundColor(MPColors.textSecondary)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(MPColors.textTertiary)
+            }
+            .padding(.vertical, MPSpacing.sm)
         }
     }
 
