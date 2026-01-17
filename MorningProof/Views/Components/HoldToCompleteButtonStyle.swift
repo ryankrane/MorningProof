@@ -1,48 +1,110 @@
 import SwiftUI
 
-/// A ButtonStyle that enables "hold to complete" functionality without blocking ScrollView gestures.
-/// Uses the isPressed state from ButtonStyle which integrates properly with UIKit's gesture system.
-struct HoldToCompleteButtonStyle: ButtonStyle {
-    let holdDuration: TimeInterval
+/// A view modifier that enables "hold to complete" functionality without blocking ScrollView gestures.
+/// Uses DragGesture with simultaneousGesture and movement detection to allow scrolling.
+struct HoldToCompleteModifier: ViewModifier {
+    let isEnabled: Bool
     @Binding var progress: CGFloat
-    let onHoldStarted: () -> Void
-    let onHoldCompleted: () -> Void
-    let onHoldCancelled: () -> Void
+    let holdDuration: TimeInterval
+    let onCompleted: () -> Void
 
-    init(
-        holdDuration: TimeInterval = 1.0,
-        progress: Binding<CGFloat>,
-        onHoldStarted: @escaping () -> Void = {},
-        onHoldCompleted: @escaping () -> Void,
-        onHoldCancelled: @escaping () -> Void = {}
-    ) {
-        self.holdDuration = holdDuration
-        self._progress = progress
-        self.onHoldStarted = onHoldStarted
-        self.onHoldCompleted = onHoldCompleted
-        self.onHoldCancelled = onHoldCancelled
-    }
+    // Movement threshold - if user moves more than this, they're scrolling
+    private let scrollThreshold: CGFloat = 10
 
+    @State private var isHolding = false
     @State private var holdStartDate: Date?
     @State private var holdTimer: Timer?
+    @State private var startLocation: CGPoint?
     @State private var didComplete = false
 
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .onChange(of: configuration.isPressed) { _, isPressed in
-                if isPressed {
+    init(
+        isEnabled: Bool,
+        progress: Binding<CGFloat>,
+        holdDuration: TimeInterval = 1.0,
+        onCompleted: @escaping () -> Void
+    ) {
+        self.isEnabled = isEnabled
+        self._progress = progress
+        self.holdDuration = holdDuration
+        self.onCompleted = onCompleted
+    }
+
+    func body(content: Content) -> some View {
+        if isEnabled {
+            content
+                // Empty tap gesture is a SwiftUI trick to allow scroll priority
+                .onTapGesture {}
+                .simultaneousGesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            handleDragChanged(value)
+                        }
+                        .onEnded { _ in
+                            handleDragEnded()
+                        }
+                )
+        } else {
+            content
+        }
+    }
+
+    private func handleDragChanged(_ value: DragGesture.Value) {
+        // First touch - record start location
+        if startLocation == nil {
+            startLocation = value.startLocation
+            // Don't start hold immediately - wait a tiny bit to see if scrolling
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+                // Only start if we haven't been cancelled and haven't moved much
+                if startLocation != nil && !didComplete {
                     startHold()
-                } else {
-                    endHold()
                 }
             }
+            return
+        }
+
+        // Check if user has moved too far (trying to scroll)
+        if let start = startLocation {
+            let distance = sqrt(
+                pow(value.location.x - start.x, 2) +
+                pow(value.location.y - start.y, 2)
+            )
+            if distance > scrollThreshold {
+                // User is scrolling, cancel hold
+                cancelHold()
+            }
+        }
+    }
+
+    private func handleDragEnded() {
+        guard !didComplete else {
+            // Reset for next use
+            resetState()
+            return
+        }
+
+        // Check if hold was long enough
+        if isHolding, let startDate = holdStartDate {
+            let elapsed = Date().timeIntervalSince(startDate)
+            if elapsed >= holdDuration {
+                completeHold()
+                return
+            }
+        }
+
+        // Not long enough or not holding - cancel
+        if isHolding {
+            cancelHold()
+        } else {
+            resetState()
+        }
     }
 
     private func startHold() {
-        didComplete = false
+        guard !isHolding, !didComplete, startLocation != nil else { return }
+
+        isHolding = true
         holdStartDate = Date()
         progress = 0
-        onHoldStarted()
 
         // Initial haptic
         HapticManager.shared.lightTap()
@@ -50,7 +112,7 @@ struct HoldToCompleteButtonStyle: ButtonStyle {
         // Start timer to update progress
         let tickInterval = 0.02
         holdTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { timer in
-            guard let startDate = holdStartDate else {
+            guard isHolding, let startDate = holdStartDate else {
                 timer.invalidate()
                 return
             }
@@ -58,7 +120,6 @@ struct HoldToCompleteButtonStyle: ButtonStyle {
             let elapsed = Date().timeIntervalSince(startDate)
             let newProgress = min(elapsed / holdDuration, 1.0)
 
-            // Update progress on main thread
             DispatchQueue.main.async {
                 progress = CGFloat(newProgress)
             }
@@ -78,119 +139,39 @@ struct HoldToCompleteButtonStyle: ButtonStyle {
         }
     }
 
-    private func endHold() {
-        holdTimer?.invalidate()
-        holdTimer = nil
-
-        guard !didComplete else { return }
-
-        // Check if hold was long enough
-        if let startDate = holdStartDate {
-            let elapsed = Date().timeIntervalSince(startDate)
-            if elapsed >= holdDuration {
-                completeHold()
-                return
-            }
-        }
-
-        // Not long enough - cancel
-        cancelHold()
-    }
-
     private func completeHold() {
         guard !didComplete else { return }
         didComplete = true
+
+        holdTimer?.invalidate()
+        holdTimer = nil
+        isHolding = false
         holdStartDate = nil
         progress = 0
-        onHoldCompleted()
+
+        onCompleted()
     }
 
     private func cancelHold() {
-        holdStartDate = nil
+        holdTimer?.invalidate()
+        holdTimer = nil
 
-        // Animate progress back to 0
         let currentProgress = progress
-        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
-        withAnimation(.easeOut(duration: unwindDuration)) {
-            progress = 0
-        }
-
-        onHoldCancelled()
-        HapticManager.shared.lightTap()
-    }
-}
-
-/// A view wrapper that makes any content hold-to-complete enabled without blocking scroll.
-struct HoldToCompleteButton<Content: View>: View {
-    let holdDuration: TimeInterval
-    @Binding var progress: CGFloat
-    let onHoldStarted: () -> Void
-    let onHoldCompleted: () -> Void
-    let onHoldCancelled: () -> Void
-    let content: () -> Content
-
-    init(
-        holdDuration: TimeInterval = 1.0,
-        progress: Binding<CGFloat>,
-        onHoldStarted: @escaping () -> Void = {},
-        onHoldCompleted: @escaping () -> Void,
-        onHoldCancelled: @escaping () -> Void = {},
-        @ViewBuilder content: @escaping () -> Content
-    ) {
-        self.holdDuration = holdDuration
-        self._progress = progress
-        self.onHoldStarted = onHoldStarted
-        self.onHoldCompleted = onHoldCompleted
-        self.onHoldCancelled = onHoldCancelled
-        self.content = content
-    }
-
-    var body: some View {
-        Button(action: {}) {
-            content()
-        }
-        .buttonStyle(HoldToCompleteButtonStyle(
-            holdDuration: holdDuration,
-            progress: $progress,
-            onHoldStarted: onHoldStarted,
-            onHoldCompleted: onHoldCompleted,
-            onHoldCancelled: onHoldCancelled
-        ))
-    }
-}
-
-/// A view modifier that conditionally wraps content in a hold-to-complete button.
-/// When disabled, just passes through the content unchanged.
-struct HoldToCompleteModifier: ViewModifier {
-    let isEnabled: Bool
-    @Binding var progress: CGFloat
-    let holdDuration: TimeInterval
-    let onCompleted: () -> Void
-
-    init(
-        isEnabled: Bool,
-        progress: Binding<CGFloat>,
-        holdDuration: TimeInterval = 1.0,
-        onCompleted: @escaping () -> Void
-    ) {
-        self.isEnabled = isEnabled
-        self._progress = progress
-        self.holdDuration = holdDuration
-        self.onCompleted = onCompleted
-    }
-
-    func body(content: Content) -> some View {
-        if isEnabled {
-            Button(action: {}) {
-                content
+        if currentProgress > 0 {
+            let unwindDuration = Double(currentProgress) * 0.5 + 0.15
+            withAnimation(.easeOut(duration: unwindDuration)) {
+                progress = 0
             }
-            .buttonStyle(HoldToCompleteButtonStyle(
-                holdDuration: holdDuration,
-                progress: $progress,
-                onHoldCompleted: onCompleted
-            ))
-        } else {
-            content
+            HapticManager.shared.lightTap()
         }
+
+        resetState()
+    }
+
+    private func resetState() {
+        isHolding = false
+        holdStartDate = nil
+        startLocation = nil
+        didComplete = false
     }
 }
