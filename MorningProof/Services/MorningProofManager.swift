@@ -228,79 +228,70 @@ final class MorningProofManager: ObservableObject, Sendable {
         saveCurrentState()
     }
 
-    func completeBedVerification(image: UIImage) async -> VerificationResult? {
-        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .madeBed }) else { return nil }
-
-        do {
-            let result = try await apiService.verifyBed(image: image)
-
-            if result.isMade {
-                todayLog.completions[index].isCompleted = true
-                todayLog.completions[index].completedAt = Date()
-                todayLog.completions[index].score = 100 // Binary pass/fail
-                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
-                    aiFeedback: result.feedback
-                )
-
-                recalculateScore()
-                saveCurrentState()
-            }
-
-            return result
-        } catch {
-            MPLogger.error("Bed verification failed", error: error, category: MPLogger.api)
-            return nil
+    func completeBedVerification(image: UIImage) async throws -> VerificationResult {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .madeBed }) else {
+            throw VerificationError.habitNotEnabled
         }
+
+        let result = try await apiService.verifyBed(image: image)
+
+        if result.isMade {
+            todayLog.completions[index].isCompleted = true
+            todayLog.completions[index].completedAt = Date()
+            todayLog.completions[index].score = 100 // Binary pass/fail
+            todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
+                aiFeedback: result.feedback
+            )
+
+            recalculateScore()
+            saveCurrentState()
+        }
+
+        return result
     }
 
-    func completeSunlightVerification(image: UIImage) async -> SunlightVerificationResult? {
-        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .sunlightExposure }) else { return nil }
-
-        do {
-            let result = try await apiService.verifySunlight(image: image)
-
-            if result.isOutside {
-                todayLog.completions[index].isCompleted = true
-                todayLog.completions[index].completedAt = Date()
-                todayLog.completions[index].score = 100 // Binary pass/fail
-                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
-                    aiFeedback: result.feedback
-                )
-
-                recalculateScore()
-                saveCurrentState()
-            }
-
-            return result
-        } catch {
-            MPLogger.error("Sunlight verification failed", error: error, category: MPLogger.api)
-            return nil
+    func completeSunlightVerification(image: UIImage) async throws -> SunlightVerificationResult {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .sunlightExposure }) else {
+            throw VerificationError.habitNotEnabled
         }
+
+        let result = try await apiService.verifySunlight(image: image)
+
+        if result.isOutside {
+            todayLog.completions[index].isCompleted = true
+            todayLog.completions[index].completedAt = Date()
+            todayLog.completions[index].score = 100 // Binary pass/fail
+            todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
+                aiFeedback: result.feedback
+            )
+
+            recalculateScore()
+            saveCurrentState()
+        }
+
+        return result
     }
 
-    func completeHydrationVerification(image: UIImage) async -> HydrationVerificationResult? {
-        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .hydration }) else { return nil }
-
-        do {
-            let result = try await apiService.verifyHydration(image: image)
-
-            if result.isWater {
-                todayLog.completions[index].isCompleted = true
-                todayLog.completions[index].completedAt = Date()
-                todayLog.completions[index].score = 100 // Binary - no score
-                todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
-                    aiFeedback: result.feedback
-                )
-
-                recalculateScore()
-                saveCurrentState()
-            }
-
-            return result
-        } catch {
-            MPLogger.error("Hydration verification failed", error: error, category: MPLogger.api)
-            return nil
+    func completeHydrationVerification(image: UIImage) async throws -> HydrationVerificationResult {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .hydration }) else {
+            throw VerificationError.habitNotEnabled
         }
+
+        let result = try await apiService.verifyHydration(image: image)
+
+        if result.isWater {
+            todayLog.completions[index].isCompleted = true
+            todayLog.completions[index].completedAt = Date()
+            todayLog.completions[index].score = 100 // Binary - no score
+            todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
+                aiFeedback: result.feedback
+            )
+
+            recalculateScore()
+            saveCurrentState()
+        }
+
+        return result
     }
 
     func completeTextEntry(habitType: HabitType, text: String) {
@@ -413,28 +404,25 @@ final class MorningProofManager: ObservableObject, Sendable {
     }
 
     /// Complete custom habit with AI verification
-    func completeCustomHabitVerification(habit: CustomHabit, image: UIImage) async -> CustomVerificationResult? {
-        guard let index = todayCustomCompletions.firstIndex(where: { $0.customHabitId == habit.id }) else { return nil }
-
-        do {
-            let result = try await apiService.verifyCustomHabit(image: image, customHabit: habit)
-
-            if result.isVerified {
-                todayCustomCompletions[index].isCompleted = true
-                todayCustomCompletions[index].completedAt = Date()
-                todayCustomCompletions[index].verificationData = CustomHabitCompletion.VerificationData(
-                    aiFeedback: result.feedback
-                )
-
-                recalculateScore()
-                saveCurrentState()
-            }
-
-            return result
-        } catch {
-            MPLogger.error("Custom habit verification failed", error: error, category: MPLogger.api)
-            return nil
+    func completeCustomHabitVerification(habit: CustomHabit, image: UIImage) async throws -> CustomVerificationResult {
+        guard let index = todayCustomCompletions.firstIndex(where: { $0.customHabitId == habit.id }) else {
+            throw VerificationError.habitNotEnabled
         }
+
+        let result = try await apiService.verifyCustomHabit(image: image, customHabit: habit)
+
+        if result.isVerified {
+            todayCustomCompletions[index].isCompleted = true
+            todayCustomCompletions[index].completedAt = Date()
+            todayCustomCompletions[index].verificationData = CustomHabitCompletion.VerificationData(
+                aiFeedback: result.feedback
+            )
+
+            recalculateScore()
+            saveCurrentState()
+        }
+
+        return result
     }
 
     /// Get enabled custom habits (sorted by display order)
@@ -858,4 +846,23 @@ struct MorningProofSettings: Codable {
             return (mins, String(format: "%d:%02d %@", displayHour, minute, period))
         }
     }()
+}
+
+// MARK: - Verification Errors
+
+enum VerificationError: LocalizedError {
+    case habitNotEnabled
+    case networkError
+    case serverError
+
+    var errorDescription: String? {
+        switch self {
+        case .habitNotEnabled:
+            return "This habit is not enabled"
+        case .networkError:
+            return "Unable to connect. Please check your internet connection and try again."
+        case .serverError:
+            return "Something went wrong. Please try again."
+        }
+    }
 }
