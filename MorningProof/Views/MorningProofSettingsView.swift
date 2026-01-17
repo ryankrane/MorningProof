@@ -37,7 +37,6 @@ struct MorningProofSettingsView: View {
     @State private var showReminderTimePicker = false
     @State private var showSleepGoalPicker = false
     @State private var showStepGoalPicker = false
-    @State private var showMorningRoutineSheet = false
 
     // Info alert
     @State private var showingInfoAlert = false
@@ -54,9 +53,6 @@ struct MorningProofSettingsView: View {
                     VStack(spacing: MPSpacing.xl) {
                         // MARK: - Header with Greeting & Theme
                         headerSection
-
-                        // MARK: - Morning Routine (clickable summary)
-                        morningRoutineSection
 
                         // MARK: - App Locking (TEMPORARILY DISABLED - waiting for Family Controls approval)
                         // appLockingSection
@@ -106,9 +102,6 @@ struct MorningProofSettingsView: View {
             }
             .sheet(isPresented: $showPaywall) {
                 PaywallView(subscriptionManager: subscriptionManager)
-            }
-            .sheet(isPresented: $showMorningRoutineSheet) {
-                MorningRoutineSettingsSheet(manager: manager)
             }
         }
     }
@@ -221,38 +214,6 @@ struct MorningProofSettingsView: View {
         .cornerRadius(MPRadius.md)
     }
 
-    // MARK: - Morning Routine Section (Clickable Summary)
-
-    private var enabledHabitCount: Int {
-        manager.habitConfigs.filter { $0.isEnabled }.count
-    }
-
-    var morningRoutineSection: some View {
-        settingsSection(title: "Morning Routine", icon: "sunrise.fill", infoText: "Configure your daily habits, goals, and completion deadline") {
-            Button {
-                showMorningRoutineSheet = true
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Complete by \(TimeOptions.formatTime(cutoffMinutes))")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Text("\(enabledHabitCount) habits enabled")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-            }
-        }
-    }
-
     func settingsSection<Content: View>(title: String, icon: String? = nil, infoText: String? = nil, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
             HStack(spacing: MPSpacing.sm) {
@@ -288,36 +249,6 @@ struct MorningProofSettingsView: View {
             .cornerRadius(MPRadius.lg)
             .mpShadow(.small)
         }
-    }
-
-    func habitToggleRow(config: HabitConfig) -> some View {
-        HStack(spacing: MPSpacing.lg) {
-            Image(systemName: config.habitType.icon)
-                .font(.system(size: MPIconSize.sm))
-                .foregroundColor(config.isEnabled ? MPColors.primary : MPColors.textTertiary)
-                .frame(width: 30)
-
-            VStack(alignment: .leading, spacing: 2) {
-                Text(config.habitType.displayName)
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text(config.habitType.tier.description)
-                    .font(MPFont.labelTiny())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-
-            Spacer()
-
-            Toggle("", isOn: Binding(
-                get: { config.isEnabled },
-                set: { newValue in
-                    manager.updateHabitConfig(config.habitType, isEnabled: newValue)
-                }
-            ))
-            .tint(MPColors.primary)
-        }
-        .padding(.vertical, MPSpacing.sm)
     }
 
     func loadSettings() {

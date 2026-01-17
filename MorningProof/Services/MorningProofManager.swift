@@ -117,8 +117,8 @@ final class MorningProofManager: ObservableObject, Sendable {
     func createDailyLog(for date: Date) -> DailyLog {
         var log = DailyLog(date: date)
 
-        // Create completion entries for enabled habits
-        for config in habitConfigs where config.isEnabled {
+        // Create completion entries for enabled habits that are active on this day
+        for config in habitConfigs where config.isEnabled && DaySchedule.isActiveOn(date: date, activeDays: config.activeDays) {
             let completion = HabitCompletion(habitType: config.habitType, date: date)
             log.completions.append(completion)
         }
@@ -129,11 +129,14 @@ final class MorningProofManager: ObservableObject, Sendable {
     func createCustomCompletions(for date: Date) -> [CustomHabitCompletion] {
         var completions: [CustomHabitCompletion] = []
 
-        // Create completion entries for enabled custom habits
+        // Create completion entries for enabled custom habits that are active on this day
         for config in customHabitConfigs where config.isEnabled {
-            if customHabits.contains(where: { $0.id == config.customHabitId && $0.isActive }) {
-                let completion = CustomHabitCompletion(customHabitId: config.customHabitId, date: date)
-                completions.append(completion)
+            if let habit = customHabits.first(where: { $0.id == config.customHabitId && $0.isActive }) {
+                // Check if habit is active on this day
+                if DaySchedule.isActiveOn(date: date, activeDays: habit.activeDays) {
+                    let completion = CustomHabitCompletion(customHabitId: config.customHabitId, date: date)
+                    completions.append(completion)
+                }
             }
         }
 
@@ -425,8 +428,21 @@ final class MorningProofManager: ObservableObject, Sendable {
         return result
     }
 
-    /// Get enabled custom habits (sorted by display order)
+    /// Get enabled custom habits that are active today (sorted by display order)
     var enabledCustomHabits: [CustomHabit] {
+        let today = Date()
+        let enabledIds = Set(customHabitConfigs.filter { $0.isEnabled }.map { $0.customHabitId })
+        return customHabits
+            .filter { enabledIds.contains($0.id) && $0.isActive && DaySchedule.isActiveOn(date: today, activeDays: $0.activeDays) }
+            .sorted { habit1, habit2 in
+                let order1 = customHabitConfigs.first { $0.customHabitId == habit1.id }?.displayOrder ?? 0
+                let order2 = customHabitConfigs.first { $0.customHabitId == habit2.id }?.displayOrder ?? 0
+                return order1 < order2
+            }
+    }
+
+    /// Get all enabled custom habits regardless of day schedule (for settings/routine UI)
+    var allEnabledCustomHabits: [CustomHabit] {
         let enabledIds = Set(customHabitConfigs.filter { $0.isEnabled }.map { $0.customHabitId })
         return customHabits
             .filter { enabledIds.contains($0.id) && $0.isActive }
@@ -485,18 +501,68 @@ final class MorningProofManager: ObservableObject, Sendable {
         if let enabled = isEnabled {
             habitConfigs[index].isEnabled = enabled
 
-            // Add or remove from today's log
-            if enabled {
+            // Add or remove from today's log (only if active today)
+            let isActiveToday = DaySchedule.isActiveToday(activeDays: habitConfigs[index].activeDays)
+            if enabled && isActiveToday {
                 if !todayLog.completions.contains(where: { $0.habitType == habitType }) {
                     todayLog.completions.append(HabitCompletion(habitType: habitType))
                 }
-            } else {
+            } else if !enabled {
                 todayLog.completions.removeAll { $0.habitType == habitType }
             }
         }
 
         if let newGoal = goal {
             habitConfigs[index].goal = newGoal
+        }
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
+    /// Update the day-of-week schedule for a habit
+    func updateHabitSchedule(_ habitType: HabitType, activeDays: Set<Int>) {
+        guard let index = habitConfigs.firstIndex(where: { $0.habitType == habitType }) else { return }
+
+        habitConfigs[index].activeDays = activeDays
+
+        // Update today's log based on new schedule
+        let isActiveToday = DaySchedule.isActiveToday(activeDays: activeDays)
+        let isEnabled = habitConfigs[index].isEnabled
+
+        if isEnabled && isActiveToday {
+            // Add to today's log if not present
+            if !todayLog.completions.contains(where: { $0.habitType == habitType }) {
+                todayLog.completions.append(HabitCompletion(habitType: habitType))
+            }
+        } else {
+            // Remove from today's log if not active today
+            todayLog.completions.removeAll { $0.habitType == habitType }
+        }
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
+    /// Update the day-of-week schedule for a custom habit
+    func updateCustomHabitSchedule(_ habitId: UUID, activeDays: Set<Int>) {
+        guard let index = customHabits.firstIndex(where: { $0.id == habitId }) else { return }
+
+        customHabits[index].activeDays = activeDays
+
+        // Update today's completions based on new schedule
+        let isActiveToday = DaySchedule.isActiveToday(activeDays: activeDays)
+        let isEnabled = customHabitConfigs.first { $0.customHabitId == habitId }?.isEnabled ?? false
+
+        if isEnabled && isActiveToday {
+            // Add to today's completions if not present
+            if !todayCustomCompletions.contains(where: { $0.customHabitId == habitId }) {
+                let completion = CustomHabitCompletion(customHabitId: habitId)
+                todayCustomCompletions.append(completion)
+            }
+        } else {
+            // Remove from today's completions if not active today
+            todayCustomCompletions.removeAll { $0.customHabitId == habitId }
         }
 
         recalculateScore()
@@ -595,7 +661,16 @@ final class MorningProofManager: ObservableObject, Sendable {
 
     // MARK: - Computed Properties
 
+    /// Habits that are enabled AND active today (filtered by day-of-week schedule)
     var enabledHabits: [HabitConfig] {
+        let today = Date()
+        return habitConfigs
+            .filter { $0.isEnabled && DaySchedule.isActiveOn(date: today, activeDays: $0.activeDays) }
+            .sorted { $0.displayOrder < $1.displayOrder }
+    }
+
+    /// All enabled habits regardless of day schedule (for settings/routine UI)
+    var allEnabledHabits: [HabitConfig] {
         habitConfigs.filter { $0.isEnabled }.sorted { $0.displayOrder < $1.displayOrder }
     }
 

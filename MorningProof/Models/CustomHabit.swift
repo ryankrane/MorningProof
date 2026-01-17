@@ -77,6 +77,7 @@ struct CustomHabit: Codable, Identifiable, Hashable {
     var aiPrompt: String?     // User's verification instructions (for AI verified)
     var createdAt: Date
     var isActive: Bool
+    var activeDays: Set<Int>  // 1=Sunday...7=Saturday (matches Calendar.weekday)
 
     init(
         id: UUID = UUID(),
@@ -85,7 +86,8 @@ struct CustomHabit: Codable, Identifiable, Hashable {
         verificationType: CustomVerificationType,
         aiPrompt: String? = nil,
         createdAt: Date = Date(),
-        isActive: Bool = true
+        isActive: Bool = true,
+        activeDays: Set<Int>? = nil
     ) {
         self.id = id
         self.name = name
@@ -94,6 +96,24 @@ struct CustomHabit: Codable, Identifiable, Hashable {
         self.aiPrompt = aiPrompt
         self.createdAt = createdAt
         self.isActive = isActive
+        self.activeDays = activeDays ?? Set(1...7) // Default to all days
+    }
+
+    // Custom decoder for backward compatibility (existing users get all days)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decode(UUID.self, forKey: .id)
+        name = try container.decode(String.self, forKey: .name)
+        icon = try container.decode(String.self, forKey: .icon)
+        verificationType = try container.decode(CustomVerificationType.self, forKey: .verificationType)
+        aiPrompt = try container.decodeIfPresent(String.self, forKey: .aiPrompt)
+        createdAt = try container.decode(Date.self, forKey: .createdAt)
+        isActive = try container.decode(Bool.self, forKey: .isActive)
+        activeDays = try container.decodeIfPresent(Set<Int>.self, forKey: .activeDays) ?? Set(1...7)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, name, icon, verificationType, aiPrompt, createdAt, isActive, activeDays
     }
 
     /// Convert to HabitIdentifier

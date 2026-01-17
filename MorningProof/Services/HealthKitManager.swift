@@ -56,6 +56,10 @@ final class HealthKitManager: ObservableObject, Sendable {
             try await healthStore.requestAuthorization(toShare: [], read: typesToRead)
             isAuthorized = true
             await syncMorningData()
+
+            // Register background observers for goal notifications
+            await HealthKitBackgroundDeliveryService.shared.registerObservers()
+
             return true
         } catch {
             MPLogger.error("HealthKit authorization failed", error: error, category: MPLogger.healthKit)

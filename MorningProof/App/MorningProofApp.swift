@@ -63,6 +63,7 @@ struct MorningProofApp: App {
 /// Root view that handles app initialization
 struct RootView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
     @State private var isReady = false
 
     var body: some View {
@@ -97,9 +98,25 @@ struct RootView: View {
                 isReady = true
             }
             print("🚀 RootView: Initialization complete")
+
+            // Register HealthKit background observers (with delay to avoid startup issues)
+            Task {
+                try? await Task.sleep(nanoseconds: 3_000_000_000) // 3 sec delay
+                let isAuthorized = await MainActor.run { HealthKitManager.shared.isAuthorized }
+                if isAuthorized {
+                    await HealthKitBackgroundDeliveryService.shared.registerObservers()
+                    print("🚀 RootView: HealthKit background observers registered")
+                }
+            }
         }
         .onAppear {
             print("🚀 RootView: onAppear called")
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                // Reset notification state if new day when app becomes active
+                HealthKitBackgroundDeliveryService.shared.resetDailyNotificationStateIfNeeded()
+            }
         }
     }
 }

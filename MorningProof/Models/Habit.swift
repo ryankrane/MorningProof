@@ -192,12 +192,28 @@ struct HabitConfig: Codable, Identifiable {
     var isEnabled: Bool
     var goal: Int
     var displayOrder: Int
+    var activeDays: Set<Int> // 1=Sunday...7=Saturday (matches Calendar.weekday)
 
-    init(habitType: HabitType, isEnabled: Bool = true, goal: Int? = nil, displayOrder: Int = 0) {
+    init(habitType: HabitType, isEnabled: Bool = true, goal: Int? = nil, displayOrder: Int = 0, activeDays: Set<Int>? = nil) {
         self.habitType = habitType
         self.isEnabled = isEnabled
         self.goal = goal ?? habitType.defaultGoal
         self.displayOrder = displayOrder
+        self.activeDays = activeDays ?? Set(1...7) // Default to all days
+    }
+
+    // Custom decoder for backward compatibility (existing users get all days)
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        habitType = try container.decode(HabitType.self, forKey: .habitType)
+        isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
+        goal = try container.decode(Int.self, forKey: .goal)
+        displayOrder = try container.decode(Int.self, forKey: .displayOrder)
+        activeDays = try container.decodeIfPresent(Set<Int>.self, forKey: .activeDays) ?? Set(1...7)
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case habitType, isEnabled, goal, displayOrder, activeDays
     }
 
     static var defaultConfigs: [HabitConfig] {

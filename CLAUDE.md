@@ -32,6 +32,31 @@ Morning habit tracking app that uses photo verification (AI checks if you made y
 - `AuthenticationManager` - Sign in with Apple
 - `ThemeManager` - Light/dark mode
 - `ScreenTimeManager` - App blocking via Family Controls API
+- `HealthKitBackgroundDeliveryService` - Background health goal notifications
+
+## HealthKit Background Delivery
+
+The app uses `HKObserverQuery` + `enableBackgroundDelivery()` to receive HealthKit updates even when the app is not running. This enables immediate notifications when users complete health goals.
+
+### How It Works
+1. `HealthKitBackgroundDeliveryService` registers observers for steps, sleep, and workouts
+2. When HealthKit has new data, it wakes the app and calls the observer's handler
+3. The handler fetches current data, checks against goals, sends notification if met
+4. "Already notified today" state tracked in UserDefaults to prevent duplicate notifications
+
+### Key Gotchas
+- **Observer completion handler MUST be called** - or HealthKit throttles future deliveries
+- **Cannot access @MainActor managers in background** - service reads settings from UserDefaults directly
+- **Background delivery doesn't work in simulator** - must test on device
+- **Timing not guaranteed** - `.immediate` is a request, actual delivery can be delayed by minutes
+
+### Adding New Health Goal Notifications
+To add background notifications for a new health metric:
+1. Add observer in `registerObservers()`
+2. Enable background delivery for the type
+3. Add handler method (e.g., `handleNewDataChange()`)
+4. Add notification tracking key to prevent duplicates
+5. Add goal getter that reads from stored habit configs
 
 ## Screen Time Extensions (App Blocking Feature)
 Three extensions are required for app blocking functionality:

@@ -178,6 +178,27 @@ final class NotificationManager: ObservableObject, Sendable {
         }
     }
 
+    // MARK: - Immediate Notifications
+
+    /// Sends an immediate notification for goal completion.
+    /// Used by HealthKitBackgroundDeliveryService when health goals are met.
+    func sendImmediateGoalNotification(identifier: String, title: String, body: String) async {
+        let content = UNMutableNotificationContent()
+        content.title = title
+        content.body = body
+        content.sound = .default
+        content.categoryIdentifier = "GOAL_COMPLETE"
+
+        // nil trigger = immediate delivery
+        let request = UNNotificationRequest(identifier: identifier, content: content, trigger: nil)
+
+        do {
+            try await notificationCenter.add(request)
+        } catch {
+            MPLogger.error("Failed to send immediate notification", error: error, category: MPLogger.notification)
+        }
+    }
+
     // MARK: - Cancel Notifications
 
     func cancelAllNotifications() async {

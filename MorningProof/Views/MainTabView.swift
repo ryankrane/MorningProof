@@ -6,14 +6,14 @@ struct MainTabView: View {
 
     enum Tab: String, CaseIterable {
         case home = "Home"
-        case calendar = "Calendar"
+        case routine = "Routine"
         case stats = "Progress"
         case settings = "Settings"
 
         var icon: String {
             switch self {
             case .home: return "house.fill"
-            case .calendar: return "calendar"
+            case .routine: return "sunrise.fill"
             case .stats: return "chart.bar.fill"
             case .settings: return "gearshape.fill"
             }
@@ -27,6 +27,12 @@ struct MainTabView: View {
                     Label(Tab.home.rawValue, systemImage: Tab.home.icon)
                 }
                 .tag(Tab.home)
+
+            RoutineTabView(manager: manager)
+                .tabItem {
+                    Label(Tab.routine.rawValue, systemImage: Tab.routine.icon)
+                }
+                .tag(Tab.routine)
 
             StatsTabView(manager: manager)
                 .tabItem {
@@ -52,7 +58,6 @@ struct DashboardContentView: View {
     @State private var showSunlightCamera = false
     @State private var showHydrationCamera = false
     @State private var showSleepInput = false
-    @State private var showHabitEditor = false
 
     // Hold-to-complete state
     @State private var holdProgress: [HabitType: CGFloat] = [:]
@@ -132,9 +137,6 @@ struct DashboardContentView: View {
             .sheet(isPresented: $showSleepInput) {
                 SleepInputSheet(manager: manager)
             }
-            .sheet(isPresented: $showHabitEditor) {
-                HabitEditorSheet(manager: manager)
-            }
             .task {
                 await manager.syncHealthData()
             }
@@ -174,23 +176,11 @@ struct DashboardContentView: View {
 
     var habitsSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
-            // Section header with edit button
-            HStack {
-                Text("Today's Habits")
-                    .font(MPFont.headingSmall())
-                    .foregroundColor(MPColors.textPrimary)
-
-                Spacer()
-
-                Button {
-                    showHabitEditor = true
-                } label: {
-                    Image(systemName: "plus.circle.fill")
-                        .font(.system(size: 22))
-                        .foregroundColor(MPColors.primary)
-                }
-            }
-            .padding(.leading, MPSpacing.xs)
+            // Section header
+            Text("Today's Habits")
+                .font(MPFont.headingSmall())
+                .foregroundColor(MPColors.textPrimary)
+                .padding(.leading, MPSpacing.xs)
 
             // All habits in a single unified list
             ForEach(manager.enabledHabits) { config in
