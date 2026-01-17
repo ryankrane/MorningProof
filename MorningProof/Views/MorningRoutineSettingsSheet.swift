@@ -29,9 +29,6 @@ struct MorningRoutineSettingsSheet: View {
 
                 ScrollView {
                     VStack(spacing: MPSpacing.xl) {
-                        // MARK: - Habit Deadline
-                        deadlineSection
-
                         // MARK: - Habits
                         habitsSection
 
@@ -42,6 +39,9 @@ struct MorningRoutineSettingsSheet: View {
 
                         // MARK: - Goals
                         goalsSection
+
+                        // MARK: - Schedule (compact row)
+                        scheduleRow
                     }
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.top, MPSpacing.lg)
@@ -184,50 +184,45 @@ struct MorningRoutineSettingsSheet: View {
         }
     }
 
-    // MARK: - Deadline Section
+    // MARK: - Schedule Row (Compact)
 
-    var deadlineSection: some View {
-        sectionContainer(title: "Schedule", icon: "clock.fill") {
-            Button {
-                showCutoffTimePicker = true
-            } label: {
-                HStack(alignment: .firstTextBaseline, spacing: MPSpacing.lg) {
-                    Image(systemName: "clock.fill")
-                        .font(.system(size: MPIconSize.sm))
-                        .foregroundColor(MPColors.primary)
-                        .frame(width: 30)
+    var scheduleRow: some View {
+        Button {
+            showCutoffTimePicker = true
+        } label: {
+            HStack(spacing: MPSpacing.md) {
+                Image(systemName: "clock.fill")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(MPColors.primary)
 
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Habit Deadline")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Complete habits by this\ntime to lock in your day")
-                            .font(MPFont.labelTiny())
-                            .foregroundColor(MPColors.textTertiary)
-                            .multilineTextAlignment(.leading)
-                    }
+                Text("Habit Deadline")
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textPrimary)
 
-                    Spacer()
+                Spacer()
 
-                    Text(TimeOptions.formatTime(cutoffMinutes))
-                        .font(.system(size: 15, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-                        .padding(.horizontal, MPSpacing.md)
-                        .padding(.vertical, MPSpacing.sm)
-                        .background(MPColors.primary)
-                        .cornerRadius(MPRadius.md)
-                }
-                .padding(.vertical, MPSpacing.xs)
+                Text(TimeOptions.formatTime(cutoffMinutes))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
+                    .foregroundColor(MPColors.primary)
+
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(MPColors.textTertiary)
             }
-            .sheet(isPresented: $showCutoffTimePicker) {
-                TimeWheelPicker(
-                    selectedMinutes: $cutoffMinutes,
-                    title: "Habit Deadline",
-                    subtitle: "Complete your habits by this time to lock in your day",
-                    timeOptions: TimeOptions.cutoffTime
-                )
-                .presentationDetents([.medium])
-            }
+            .padding(.horizontal, MPSpacing.lg)
+            .padding(.vertical, MPSpacing.md)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.small)
+        }
+        .sheet(isPresented: $showCutoffTimePicker) {
+            TimeWheelPicker(
+                selectedMinutes: $cutoffMinutes,
+                title: "Habit Deadline",
+                subtitle: "Complete your habits by this time to lock in your day",
+                timeOptions: TimeOptions.cutoffTime
+            )
+            .presentationDetents([.medium])
         }
     }
 
