@@ -16,6 +16,11 @@ final class MorningProofManager: ObservableObject, Sendable {
     @Published var longestStreak: Int = 0
     @Published var lastPerfectMorningDate: Date?
 
+    // Custom Habits
+    @Published var customHabits: [CustomHabit] = []
+    @Published var customHabitConfigs: [CustomHabitConfig] = []
+    @Published var todayCustomCompletions: [CustomHabitCompletion] = []
+
     // MARK: - Dependencies
     // Note: HealthKitManager accessed lazily to avoid @MainActor singleton deadlock
 
@@ -51,6 +56,19 @@ final class MorningProofManager: ObservableObject, Sendable {
             todayLog = savedLog
         } else {
             todayLog = createDailyLog(for: Date())
+        }
+
+        // Load custom habits
+        if let savedCustomHabits = storageService.loadCustomHabits() {
+            customHabits = savedCustomHabits
+        }
+        if let savedCustomConfigs = storageService.loadCustomHabitConfigs() {
+            customHabitConfigs = savedCustomConfigs
+        }
+        if let savedCustomCompletions = storageService.loadCustomCompletions(for: Date()) {
+            todayCustomCompletions = savedCustomCompletions
+        } else {
+            todayCustomCompletions = createCustomCompletions(for: Date())
         }
 
         hasCompletedOnboarding = storageService.hasCompletedOnboarding()
@@ -106,6 +124,20 @@ final class MorningProofManager: ObservableObject, Sendable {
         }
 
         return log
+    }
+
+    func createCustomCompletions(for date: Date) -> [CustomHabitCompletion] {
+        var completions: [CustomHabitCompletion] = []
+
+        // Create completion entries for enabled custom habits
+        for config in customHabitConfigs where config.isEnabled {
+            if customHabits.contains(where: { $0.id == config.customHabitId && $0.isActive }) {
+                let completion = CustomHabitCompletion(customHabitId: config.customHabitId, date: date)
+                completions.append(completion)
+            }
+        }
+
+        return completions
     }
 
     // MARK: - HealthKit Sync
@@ -301,6 +333,122 @@ final class MorningProofManager: ObservableObject, Sendable {
         saveCurrentState()
     }
 
+    // MARK: - Custom Habit Management
+
+    /// Add a new custom habit
+    func addCustomHabit(_ habit: CustomHabit) {
+        customHabits.append(habit)
+
+        // Create config for the habit
+        let config = CustomHabitConfig(
+            customHabitId: habit.id,
+            isEnabled: true,
+            displayOrder: customHabitConfigs.count
+        )
+        customHabitConfigs.append(config)
+
+        // Create today's completion
+        let completion = CustomHabitCompletion(customHabitId: habit.id)
+        todayCustomCompletions.append(completion)
+
+        saveCurrentState()
+    }
+
+    /// Update an existing custom habit
+    func updateCustomHabit(_ habit: CustomHabit) {
+        if let index = customHabits.firstIndex(where: { $0.id == habit.id }) {
+            customHabits[index] = habit
+            saveCurrentState()
+        }
+    }
+
+    /// Delete a custom habit
+    func deleteCustomHabit(id: UUID) {
+        customHabits.removeAll { $0.id == id }
+        customHabitConfigs.removeAll { $0.customHabitId == id }
+        todayCustomCompletions.removeAll { $0.customHabitId == id }
+        saveCurrentState()
+    }
+
+    /// Toggle custom habit enabled state
+    func toggleCustomHabit(_ habitId: UUID, isEnabled: Bool) {
+        if let index = customHabitConfigs.firstIndex(where: { $0.customHabitId == habitId }) {
+            customHabitConfigs[index].isEnabled = isEnabled
+
+            if isEnabled {
+                // Add completion if not present
+                if !todayCustomCompletions.contains(where: { $0.customHabitId == habitId }) {
+                    let completion = CustomHabitCompletion(customHabitId: habitId)
+                    todayCustomCompletions.append(completion)
+                }
+            } else {
+                // Remove completion
+                todayCustomCompletions.removeAll { $0.customHabitId == habitId }
+            }
+
+            recalculateScore()
+            saveCurrentState()
+        }
+    }
+
+    /// Get custom habit by ID
+    func getCustomHabit(id: UUID) -> CustomHabit? {
+        customHabits.first { $0.id == id }
+    }
+
+    /// Get completion for a custom habit
+    func getCustomCompletion(for habitId: UUID) -> CustomHabitCompletion? {
+        todayCustomCompletions.first { $0.customHabitId == habitId }
+    }
+
+    /// Complete custom habit with honor system
+    func completeCustomHabitHonorSystem(_ habitId: UUID) {
+        guard let index = todayCustomCompletions.firstIndex(where: { $0.customHabitId == habitId }) else { return }
+
+        todayCustomCompletions[index].isCompleted = true
+        todayCustomCompletions[index].completedAt = Date()
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
+    /// Complete custom habit with AI verification
+    func completeCustomHabitVerification(habit: CustomHabit, image: UIImage) async -> CustomVerificationResult? {
+        guard let index = todayCustomCompletions.firstIndex(where: { $0.customHabitId == habit.id }) else { return nil }
+
+        do {
+            let result = try await apiService.verifyCustomHabit(image: image, customHabit: habit)
+
+            if result.isVerified {
+                todayCustomCompletions[index].isCompleted = true
+                todayCustomCompletions[index].completedAt = Date()
+                todayCustomCompletions[index].verificationData = CustomHabitCompletion.VerificationData(
+                    aiFeedback: result.feedback
+                )
+
+                recalculateScore()
+                saveCurrentState()
+            }
+
+            return result
+        } catch {
+            MPLogger.error("Custom habit verification failed", error: error, category: MPLogger.api)
+            return nil
+        }
+    }
+
+    /// Get enabled custom habits (sorted by display order)
+    var enabledCustomHabits: [CustomHabit] {
+        let enabledIds = Set(customHabitConfigs.filter { $0.isEnabled }.map { $0.customHabitId })
+        return customHabits
+            .filter { enabledIds.contains($0.id) && $0.isActive }
+            .sorted { habit1, habit2 in
+                let order1 = customHabitConfigs.first { $0.customHabitId == habit1.id }?.displayOrder ?? 0
+                let order2 = customHabitConfigs.first { $0.customHabitId == habit2.id }?.displayOrder ?? 0
+                return order1 < order2
+            }
+    }
+
     /// Manually complete a workout when HealthKit doesn't detect it
     func completeManualWorkout() {
         guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) else { return }
@@ -380,6 +528,11 @@ final class MorningProofManager: ObservableObject, Sendable {
         storageService.saveHabitConfigs(habitConfigs)
         storageService.saveDailyLog(todayLog)
 
+        // Save custom habits data
+        storageService.saveCustomHabits(customHabits)
+        storageService.saveCustomHabitConfigs(customHabitConfigs)
+        storageService.saveCustomCompletions(todayCustomCompletions, for: Date())
+
         // Sync to App Group for Screen Time extensions
         AppLockingDataStore.morningCutoffMinutes = settings.morningCutoffMinutes
         AppLockingDataStore.appLockingEnabled = settings.appLockingEnabled
@@ -439,11 +592,13 @@ final class MorningProofManager: ObservableObject, Sendable {
     }
 
     var completedCount: Int {
-        todayLog.completions.filter { $0.isCompleted }.count
+        let predefinedCompleted = todayLog.completions.filter { $0.isCompleted }.count
+        let customCompleted = todayCustomCompletions.filter { $0.isCompleted }.count
+        return predefinedCompleted + customCompleted
     }
 
     var totalEnabled: Int {
-        enabledHabits.count
+        enabledHabits.count + enabledCustomHabits.count
     }
 
     var isPastCutoff: Bool {

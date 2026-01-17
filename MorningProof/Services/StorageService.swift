@@ -15,6 +15,11 @@ class StorageService {
     private let mpOnboardingUserNameKey = "morningproof_onboarding_username"
     private let mpOnboardingHabitsKey = "morningproof_onboarding_habits"
 
+    // Custom Habits keys
+    private let mpCustomHabitsKey = "morningproof_custom_habits"
+    private let mpCustomHabitConfigsKey = "morningproof_custom_habit_configs"
+    private let mpCustomCompletionsPrefix = "morningproof_custom_completions_"
+
     private let defaults = UserDefaults.standard
 
     // MARK: - Legacy Streak Data (kept for backward compatibility)
@@ -171,6 +176,58 @@ class StorageService {
         return Set(habitStrings.compactMap { HabitType(rawValue: $0) })
     }
 
+    // MARK: - Custom Habits
+
+    func loadCustomHabits() -> [CustomHabit]? {
+        guard let data = defaults.data(forKey: mpCustomHabitsKey),
+              let habits = try? JSONDecoder().decode([CustomHabit].self, from: data) else {
+            return nil
+        }
+        return habits
+    }
+
+    func saveCustomHabits(_ habits: [CustomHabit]) {
+        if let data = try? JSONEncoder().encode(habits) {
+            defaults.set(data, forKey: mpCustomHabitsKey)
+        }
+    }
+
+    func loadCustomHabitConfigs() -> [CustomHabitConfig]? {
+        guard let data = defaults.data(forKey: mpCustomHabitConfigsKey),
+              let configs = try? JSONDecoder().decode([CustomHabitConfig].self, from: data) else {
+            return nil
+        }
+        return configs
+    }
+
+    func saveCustomHabitConfigs(_ configs: [CustomHabitConfig]) {
+        if let data = try? JSONEncoder().encode(configs) {
+            defaults.set(data, forKey: mpCustomHabitConfigsKey)
+        }
+    }
+
+    func loadCustomCompletions(for date: Date) -> [CustomHabitCompletion]? {
+        let key = customCompletionsKey(for: date)
+        guard let data = defaults.data(forKey: key),
+              let completions = try? JSONDecoder().decode([CustomHabitCompletion].self, from: data) else {
+            return nil
+        }
+        return completions
+    }
+
+    func saveCustomCompletions(_ completions: [CustomHabitCompletion], for date: Date) {
+        let key = customCompletionsKey(for: date)
+        if let data = try? JSONEncoder().encode(completions) {
+            defaults.set(data, forKey: key)
+        }
+    }
+
+    private func customCompletionsKey(for date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return mpCustomCompletionsPrefix + formatter.string(from: date)
+    }
+
     // MARK: - Reset
 
     func resetAll() {
@@ -187,12 +244,15 @@ class StorageService {
         defaults.removeObject(forKey: mpReachedPaywallKey)
         defaults.removeObject(forKey: mpOnboardingUserNameKey)
         defaults.removeObject(forKey: mpOnboardingHabitsKey)
+        defaults.removeObject(forKey: mpCustomHabitsKey)
+        defaults.removeObject(forKey: mpCustomHabitConfigsKey)
 
-        // Remove daily logs for the past 30 days
+        // Remove daily logs and custom completions for the past 30 days
         let calendar = Calendar.current
         for i in 0..<30 {
             if let date = calendar.date(byAdding: .day, value: -i, to: Date()) {
                 defaults.removeObject(forKey: dailyLogKey(for: date))
+                defaults.removeObject(forKey: customCompletionsKey(for: date))
             }
         }
     }

@@ -29,3 +29,13 @@ struct HydrationVerificationResult: Codable {
         case feedback
     }
 }
+
+struct CustomVerificationResult: Codable {
+    let isVerified: Bool
+    let feedback: String
+
+    enum CodingKeys: String, CodingKey {
+        case isVerified = "is_verified"
+        case feedback
+    }
+}

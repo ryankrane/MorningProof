@@ -304,6 +304,100 @@ actor ClaudeAPIService {
         let result = try JSONDecoder().decode(HydrationVerificationResult.self, from: cleanedData)
         return result
     }
+
+    func verifyCustomHabit(image: UIImage, customHabit: CustomHabit) async throws -> CustomVerificationResult {
+        await MainActor.run {
+            CrashReportingService.shared.logAPICall("claude/verify-custom-habit")
+        }
+
+        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
+            let error = APIError.imageConversionFailed
+            await MainActor.run {
+                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-custom-habit")
+            }
+            throw error
+        }
+
+        let base64Image = imageData.base64EncodedString()
+
+        // Build the prompt based on user's AI instructions
+        let userCriteria = customHabit.aiPrompt ?? "Verify that this habit has been completed."
+        let prompt = """
+            You are verifying a morning habit.
+            Habit: \(customHabit.name)
+            User's verification criteria: \(userCriteria)
+
+            Analyze the photo and determine if it meets the user's criteria.
+            Be reasonably generous - if there's genuine effort, pass it.
+
+            Respond ONLY with valid JSON:
+            {"is_verified": boolean, "feedback": "brief encouraging message"}
+            """
+
+        let requestBody: [String: Any] = [
+            "model": "claude-3-haiku-20240307",
+            "max_tokens": 256,
+            "messages": [
+                [
+                    "role": "user",
+                    "content": [
+                        [
+                            "type": "image",
+                            "source": [
+                                "type": "base64",
+                                "media_type": "image/jpeg",
+                                "data": base64Image
+                            ]
+                        ],
+                        [
+                            "type": "text",
+                            "text": prompt
+                        ]
+                    ]
+                ]
+            ]
+        ]
+
+        guard let url = URL(string: baseURL) else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse else {
+            throw APIError.invalidResponse
+        }
+
+        guard httpResponse.statusCode == 200 else {
+            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+            let error = APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
+            await MainActor.run {
+                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-custom-habit", statusCode: httpResponse.statusCode)
+            }
+            throw error
+        }
+
+        let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
+
+        guard let textContent = claudeResponse.content.first(where: { $0.type == "text" }),
+              let responseText = textContent.text else {
+            throw APIError.parsingFailed
+        }
+
+        let cleanedJSON = extractJSON(from: responseText)
+        guard let cleanedData = cleanedJSON.data(using: .utf8) else {
+            throw APIError.parsingFailed
+        }
+
+        let result = try JSONDecoder().decode(CustomVerificationResult.self, from: cleanedData)
+        return result
+    }
 }
 
 // MARK: - Response Models

@@ -16,6 +16,11 @@ struct MorningRoutineSettingsSheet: View {
     // Info alert
     @State private var showingHabitInfo: HabitType? = nil
 
+    // Custom habits
+    @State private var showCreateCustomHabit = false
+    @State private var editingCustomHabit: CustomHabit? = nil
+    @State private var showingCustomHabitInfo: CustomHabit? = nil
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -30,6 +35,11 @@ struct MorningRoutineSettingsSheet: View {
                         // MARK: - Habits
                         habitsSection
 
+                        // MARK: - Custom Habits
+                        if !manager.customHabits.isEmpty {
+                            customHabitsSection
+                        }
+
                         // MARK: - Goals
                         goalsSection
                     }
@@ -41,14 +51,32 @@ struct MorningRoutineSettingsSheet: View {
             .navigationTitle("Morning Routine")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    Button {
                         saveSettings()
                         dismiss()
+                    } label: {
+                        Image(systemName: "chevron.left")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(MPColors.textSecondary)
                     }
-                    .fontWeight(.semibold)
-                    .foregroundColor(MPColors.primary)
                 }
+
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showCreateCustomHabit = true
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundColor(MPColors.primary)
+                    }
+                }
+            }
+            .sheet(isPresented: $showCreateCustomHabit) {
+                CustomHabitCreationSheet(manager: manager)
+            }
+            .sheet(item: $editingCustomHabit) { habit in
+                CustomHabitCreationSheet(manager: manager, editingHabit: habit)
             }
             .onAppear {
                 loadSettings()
@@ -94,6 +122,61 @@ struct MorningRoutineSettingsSheet: View {
                 }
             }
             .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingHabitInfo)
+            .overlay {
+                // Custom habit info popup overlay
+                if let customHabit = showingCustomHabitInfo {
+                    ZStack {
+                        // Dimmed background - tap to dismiss
+                        Color.black.opacity(0.4)
+                            .ignoresSafeArea()
+                            .onTapGesture {
+                                showingCustomHabitInfo = nil
+                            }
+
+                        // Popup card
+                        VStack(spacing: MPSpacing.md) {
+                            // Header with icon and title
+                            HStack(spacing: MPSpacing.sm) {
+                                Image(systemName: customHabit.icon)
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundColor(MPColors.primary)
+
+                                Text(customHabit.name)
+                                    .font(MPFont.labelLarge())
+                                    .foregroundColor(MPColors.textPrimary)
+                            }
+
+                            // Verification type
+                            Text(customHabit.verificationType.displayName)
+                                .font(MPFont.labelSmall())
+                                .foregroundColor(MPColors.textTertiary)
+
+                            // AI Prompt if present
+                            if let prompt = customHabit.aiPrompt, !prompt.isEmpty {
+                                VStack(spacing: MPSpacing.xs) {
+                                    Text("Verification Instructions:")
+                                        .font(MPFont.labelSmall())
+                                        .foregroundColor(MPColors.textSecondary)
+
+                                    Text("\"\(prompt)\"")
+                                        .font(MPFont.bodySmall())
+                                        .foregroundColor(MPColors.textPrimary)
+                                        .italic()
+                                        .multilineTextAlignment(.center)
+                                }
+                                .padding(.top, MPSpacing.sm)
+                            }
+                        }
+                        .padding(MPSpacing.xl)
+                        .background(MPColors.surface)
+                        .cornerRadius(MPRadius.lg)
+                        .mpShadow(.medium)
+                        .padding(.horizontal, MPSpacing.xxl)
+                        .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                    }
+                }
+            }
+            .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingCustomHabitInfo != nil)
         }
     }
 
@@ -237,6 +320,77 @@ struct MorningRoutineSettingsSheet: View {
                     StepGoalPicker(stepGoal: $customStepGoal)
                         .presentationDetents([.medium])
                 }
+            }
+        }
+    }
+
+    // MARK: - Custom Habits Section
+
+    var customHabitsSection: some View {
+        sectionContainer(title: "Custom Habits", icon: "star.fill") {
+            VStack(spacing: 0) {
+                ForEach(manager.customHabits) { habit in
+                    customHabitRow(habit: habit)
+
+                    if habit.id != manager.customHabits.last?.id {
+                        Divider()
+                            .padding(.leading, 46)
+                    }
+                }
+            }
+        }
+    }
+
+    func customHabitRow(habit: CustomHabit) -> some View {
+        let config = manager.customHabitConfigs.first { $0.customHabitId == habit.id }
+        let isEnabled = config?.isEnabled ?? true
+
+        return HStack(spacing: MPSpacing.lg) {
+            Image(systemName: habit.icon)
+                .font(.system(size: MPIconSize.sm))
+                .foregroundColor(isEnabled ? MPColors.primary : MPColors.textTertiary)
+                .frame(width: 30)
+
+            VStack(alignment: .leading, spacing: 2) {
+                HStack(spacing: 6) {
+                    Text(habit.name)
+                        .font(MPFont.bodyMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Button {
+                        showingCustomHabitInfo = habit
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 14))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
+
+                Text(habit.verificationType.displayName)
+                    .font(MPFont.labelTiny())
+                    .foregroundColor(MPColors.textTertiary)
+            }
+
+            Spacer()
+
+            Toggle("", isOn: Binding(
+                get: { isEnabled },
+                set: { newValue in
+                    manager.toggleCustomHabit(habit.id, isEnabled: newValue)
+                }
+            ))
+            .tint(MPColors.primary)
+        }
+        .padding(.vertical, MPSpacing.sm)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            editingCustomHabit = habit
+        }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                manager.deleteCustomHabit(id: habit.id)
+            } label: {
+                Label("Delete", systemImage: "trash")
             }
         }
     }

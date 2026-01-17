@@ -13,6 +13,17 @@ struct DashboardView: View {
     @State private var holdStartTime: [HabitType: Date] = [:]
     @State private var holdTimers: [HabitType: Timer] = [:]
 
+    // Custom habit states
+    @State private var customHabitCameraTarget: CustomHabit? = nil
+    @State private var customHoldProgress: [UUID: CGFloat] = [:]
+    @State private var isHoldingCustomHabit: UUID? = nil
+    @State private var customHoldStartTime: [UUID: Date] = [:]
+    @State private var customHoldTimers: [UUID: Timer] = [:]
+    @State private var recentlyCompletedCustomHabits: Set<UUID> = []
+    @State private var customHabitRowFlash: [UUID: Bool] = [:]
+    @State private var customHabitRowGlow: [UUID: CGFloat] = [:]
+    @State private var showConfettiForCustomHabit: UUID? = nil
+
     // Side menu state
     @State private var showSideMenu = false
     @State private var selectedMenuItem: SideMenuItem?
@@ -143,6 +154,9 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showHabitEditor) {
             HabitEditorSheet(manager: manager)
+        }
+        .sheet(item: $customHabitCameraTarget) { habit in
+            CustomHabitCameraView(manager: manager, customHabit: habit)
         }
         .task {
             // Track which habits were completed before sync
@@ -284,6 +298,11 @@ struct DashboardView: View {
             // All habits in a single unified list
             ForEach(manager.enabledHabits) { config in
                 habitRow(for: config)
+            }
+
+            // Custom habits
+            ForEach(manager.enabledCustomHabits) { customHabit in
+                customHabitRow(for: customHabit)
             }
 
             // Lock In Day Button
@@ -498,6 +517,240 @@ struct DashboardView: View {
                 }
             }
         )
+    }
+
+    // MARK: - Custom Habit Row
+
+    func customHabitRow(for customHabit: CustomHabit) -> some View {
+        let completion = manager.getCustomCompletion(for: customHabit.id)
+        let isCompleted = completion?.isCompleted ?? false
+        let justCompleted = recentlyCompletedCustomHabits.contains(customHabit.id)
+        let isFlashing = customHabitRowFlash[customHabit.id] ?? false
+        let glowIntensity = customHabitRowGlow[customHabit.id] ?? 0
+        let progress = customHoldProgress[customHabit.id] ?? 0
+        let isHoldType = customHabit.verificationType == .honorSystem
+
+        return ZStack {
+            // Base background
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.surface)
+
+            // Green fill progress overlay (fills from left to right, or full for completed)
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .fill(isCompleted ? MPColors.successLight : MPColors.success.opacity(0.25))
+                    .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
+            }
+
+            HStack(spacing: MPSpacing.lg) {
+                // Icon with circular background
+                ZStack {
+                    Circle()
+                        .fill(isCompleted ? MPColors.success.opacity(0.15) : MPColors.surfaceSecondary)
+                        .frame(width: 40, height: 40)
+                    Image(systemName: customHabit.icon)
+                        .font(.system(size: MPIconSize.md))
+                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
+                }
+                .frame(width: 40)
+
+                // Info
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                    Text(customHabit.name)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    // Status text
+                    customHabitStatusText(for: customHabit, completion: completion)
+                }
+
+                Spacer()
+
+                // Camera button for AI verified habits
+                if !isCompleted && customHabit.verificationType == .aiVerified {
+                    Button {
+                        customHabitCameraTarget = customHabit
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.sm)
+                    }
+                }
+
+                // Checkmark indicator for completed habits
+                if isCompleted {
+                    ZStack {
+                        Circle()
+                            .fill(MPColors.success)
+                            .frame(width: 28, height: 28)
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                }
+            }
+            .padding(MPSpacing.lg)
+
+            // Flash overlay for completion celebration
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
+        }
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
+        // Enhanced glow shadow when completing
+        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+        // Enhanced scale effect (1.05 instead of 1.03)
+        .scaleEffect(justCompleted ? 1.05 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+        .animation(.easeOut(duration: 0.15), value: isFlashing)
+        .animation(.easeOut(duration: 0.3), value: glowIntensity)
+        // Make entire row tappable for hold-to-complete habits
+        .contentShape(Rectangle())
+        .gesture(
+            isHoldType && !isCompleted ?
+            LongPressGesture(minimumDuration: 0.15)
+                .sequenced(before: DragGesture(minimumDistance: 0))
+                .onChanged { value in
+                    if case .second(true, _) = value {
+                        if isHoldingCustomHabit != customHabit.id {
+                            startCustomHabitHold(customHabit.id)
+                        }
+                    }
+                }
+                .onEnded { _ in
+                    if isHoldingCustomHabit == customHabit.id {
+                        endCustomHabitHold(customHabit.id)
+                    }
+                }
+            : nil
+        )
+        .overlay(
+            // Mini confetti overlay
+            Group {
+                if showConfettiForCustomHabit == customHabit.id {
+                    MiniConfettiView()
+                        .allowsHitTesting(false)
+                }
+            }
+        )
+    }
+
+    @ViewBuilder
+    func customHabitStatusText(for customHabit: CustomHabit, completion: CustomHabitCompletion?) -> some View {
+        if let completion = completion, completion.isCompleted {
+            Text(customHabit.verificationType == .aiVerified ? "Verified" : "Completed")
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.success)
+        } else {
+            Text(customHabit.verificationType == .aiVerified ? "Take a photo to verify" : "Hold to complete")
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textTertiary)
+        }
+    }
+
+    // MARK: - Custom Habit Hold Gesture Handling
+
+    private func startCustomHabitHold(_ habitId: UUID) {
+        isHoldingCustomHabit = habitId
+        customHoldProgress[habitId] = 0
+        customHoldStartTime[habitId] = Date()
+
+        HapticManager.shared.lightTap()
+
+        let tickInterval = 0.02
+        let timer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { [self] t in
+            guard isHoldingCustomHabit == habitId, let startTime = customHoldStartTime[habitId] else {
+                t.invalidate()
+                customHoldTimers[habitId] = nil
+                return
+            }
+
+            let elapsed = Date().timeIntervalSince(startTime)
+            let newProgress = min(elapsed / habitHoldDuration, 1.0)
+            customHoldProgress[habitId] = CGFloat(newProgress)
+
+            if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {
+                HapticManager.shared.lightTap()
+            }
+
+            if elapsed >= habitHoldDuration {
+                t.invalidate()
+                customHoldTimers[habitId] = nil
+                completeCustomHabitHold(habitId)
+            }
+        }
+        customHoldTimers[habitId] = timer
+    }
+
+    private func endCustomHabitHold(_ habitId: UUID) {
+        customHoldTimers[habitId]?.invalidate()
+        customHoldTimers[habitId] = nil
+
+        guard isHoldingCustomHabit == habitId else { return }
+
+        if let startTime = customHoldStartTime[habitId] {
+            let elapsed = Date().timeIntervalSince(startTime)
+            if elapsed >= habitHoldDuration {
+                completeCustomHabitHold(habitId)
+                return
+            }
+        }
+
+        cancelCustomHabitHold(habitId)
+    }
+
+    private func completeCustomHabitHold(_ habitId: UUID) {
+        guard isHoldingCustomHabit == habitId else { return }
+
+        isHoldingCustomHabit = nil
+        customHoldStartTime[habitId] = nil
+        customHoldProgress[habitId] = 0
+
+        completeCustomHabitWithCelebration(habitId)
+    }
+
+    private func cancelCustomHabitHold(_ habitId: UUID) {
+        isHoldingCustomHabit = nil
+        customHoldStartTime[habitId] = nil
+
+        let currentProgress = customHoldProgress[habitId] ?? 0
+        let unwindDuration = Double(currentProgress) * 0.5 + 0.15
+        withAnimation(.easeOut(duration: unwindDuration)) {
+            customHoldProgress[habitId] = 0
+        }
+
+        HapticManager.shared.lightTap()
+    }
+
+    private func completeCustomHabitWithCelebration(_ habitId: UUID) {
+        recentlyCompletedCustomHabits.insert(habitId)
+
+        customHabitRowFlash[habitId] = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            customHabitRowFlash[habitId] = false
+        }
+
+        customHabitRowGlow[habitId] = 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            customHabitRowGlow[habitId] = 0
+        }
+
+        showConfettiForCustomHabit = habitId
+
+        HapticManager.shared.habitCompletedEnhanced()
+
+        manager.completeCustomHabitHonorSystem(habitId)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            showConfettiForCustomHabit = nil
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            recentlyCompletedCustomHabits.remove(habitId)
+        }
     }
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
