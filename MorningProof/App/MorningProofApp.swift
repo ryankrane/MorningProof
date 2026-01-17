@@ -35,8 +35,18 @@ struct MorningProofApp: App {
             print("🚨 MorningProofApp: Using in-memory fallback container")
         }
 
-        // Configure Superwall for paywalls
-        Superwall.configure(apiKey: "pk_gy44ZZ9bIK5RvZTC9n_RZ")
+        // Configure Superwall for paywalls with custom purchase controller
+        // The purchase controller bridges Superwall with StoreKit 2 for handling purchases
+        let purchaseController = SuperwallPurchaseController()
+        Superwall.configure(
+            apiKey: "pk_gy44ZZ9bIK5RvZTC9n_RZ",
+            purchaseController: purchaseController
+        )
+
+        // Sync subscription status with Superwall on launch
+        Task {
+            await purchaseController.syncSuperwallSubscriptionStatus()
+        }
 
         print("🚀 MorningProofApp: init complete")
     }

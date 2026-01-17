@@ -37,6 +37,7 @@
 		3EE5982C81661ADCA7FF8180 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 594D2249590A3D0670CB069C /* GoogleSignIn */; };
 		43FD81844A20AED0658247A2 /* LiveActivityManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */; };
 		4536987E4D02514E625C49EA /* SDModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = DACC698ADA5AC3BD5172F402 /* SDModels.swift */; };
+		4903DDD2A292D81D95C76665 /* SuperwallPurchaseController.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5CF41A13AB04E29DADD5C76 /* SuperwallPurchaseController.swift */; };
 		49797C886BDE9E1940FB196E /* PaywallView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D02803BF9F11FE07F6AAC89F /* PaywallView.swift */; };
 		4A5710E479D06D630AA72C63 /* LockInDayButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */; };
 		4F8B9E2348E476753CB676DC /* AchievementUnlockCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */; };
@@ -190,6 +191,7 @@
 		F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofSettingsView.swift; sourceTree = "<group>"; };
 		F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SubscriptionManager.swift; sourceTree = "<group>"; };
 		F5852861CDBB1C328CB76899 /* SunlightCameraView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SunlightCameraView.swift; sourceTree = "<group>"; };
+		F5CF41A13AB04E29DADD5C76 /* SuperwallPurchaseController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SuperwallPurchaseController.swift; sourceTree = "<group>"; };
 		F6CB434AF33E074D379634A1 /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		F90F005F187ED89A58BD5A38 /* CustomHabit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomHabit.swift; sourceTree = "<group>"; };
 		FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnimatedCheckmark.swift; sourceTree = "<group>"; };
@@ -298,6 +300,7 @@
 				C7267B14FC0782C37738784A /* ScreenTimeManager.swift */,
 				F6CB434AF33E074D379634A1 /* StorageService.swift */,
 				F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */,
+				F5CF41A13AB04E29DADD5C76 /* SuperwallPurchaseController.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -626,6 +629,7 @@
 				E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */,
 				E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */,
 				98658D813025CE4FFC90C33F /* SunlightCameraView.swift in Sources */,
+				4903DDD2A292D81D95C76665 /* SuperwallPurchaseController.swift in Sources */,
 				E9C2294E7A8FA2E784DC1CFC /* TestimonialCard.swift in Sources */,
 				3E47A6B089C95465AF967F56 /* TextEntryView.swift in Sources */,
 				ED80EC39FD2965B333865034 /* Theme.swift in Sources */,
