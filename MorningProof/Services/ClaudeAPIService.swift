@@ -4,9 +4,53 @@ import UIKit
 actor ClaudeAPIService {
     private let apiKey: String
     private let baseURL = "https://api.anthropic.com/v1/messages"
+    private let maxImageBytes = 4_500_000 // Stay under 5MB API limit with some buffer
 
     init(apiKey: String = Config.claudeAPIKey) {
         self.apiKey = apiKey
+    }
+
+    /// Compresses and resizes image to stay under the API size limit
+    private func prepareImageData(_ image: UIImage) throws -> Data {
+        // Start with the original image, resize if very large
+        var workingImage = image
+        let maxDimension: CGFloat = 2048
+
+        if image.size.width > maxDimension || image.size.height > maxDimension {
+            let scale = min(maxDimension / image.size.width, maxDimension / image.size.height)
+            let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
+
+            UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+            image.draw(in: CGRect(origin: .zero, size: newSize))
+            if let resized = UIGraphicsGetImageFromCurrentImageContext() {
+                workingImage = resized
+            }
+            UIGraphicsEndImageContext()
+        }
+
+        // Try progressively lower compression until under size limit
+        let compressionLevels: [CGFloat] = [0.7, 0.5, 0.3, 0.2]
+
+        for quality in compressionLevels {
+            if let data = workingImage.jpegData(compressionQuality: quality),
+               data.count <= maxImageBytes {
+                return data
+            }
+        }
+
+        // Last resort: resize smaller and compress heavily
+        let smallScale: CGFloat = 0.5
+        let smallSize = CGSize(width: workingImage.size.width * smallScale, height: workingImage.size.height * smallScale)
+        UIGraphicsBeginImageContextWithOptions(smallSize, false, 1.0)
+        workingImage.draw(in: CGRect(origin: .zero, size: smallSize))
+        if let smallImage = UIGraphicsGetImageFromCurrentImageContext(),
+           let data = smallImage.jpegData(compressionQuality: 0.3) {
+            UIGraphicsEndImageContext()
+            return data
+        }
+        UIGraphicsEndImageContext()
+
+        throw APIError.imageConversionFailed
     }
 
     func verifyBed(image: UIImage) async throws -> VerificationResult {
@@ -14,12 +58,14 @@ actor ClaudeAPIService {
             CrashReportingService.shared.logAPICall("claude/verify-bed")
         }
 
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            let error = APIError.imageConversionFailed
+        let imageData: Data
+        do {
+            imageData = try prepareImageData(image)
+        } catch {
             await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-bed")
+                CrashReportingService.shared.recordAPIError(APIError.imageConversionFailed, endpoint: "claude/verify-bed")
             }
-            throw error
+            throw APIError.imageConversionFailed
         }
 
         let base64Image = imageData.base64EncodedString()
@@ -123,12 +169,14 @@ actor ClaudeAPIService {
             CrashReportingService.shared.logAPICall("claude/verify-sunlight")
         }
 
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            let error = APIError.imageConversionFailed
+        let imageData: Data
+        do {
+            imageData = try prepareImageData(image)
+        } catch {
             await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-sunlight")
+                CrashReportingService.shared.recordAPIError(APIError.imageConversionFailed, endpoint: "claude/verify-sunlight")
             }
-            throw error
+            throw APIError.imageConversionFailed
         }
 
         let base64Image = imageData.base64EncodedString()
@@ -218,12 +266,14 @@ actor ClaudeAPIService {
             CrashReportingService.shared.logAPICall("claude/verify-hydration")
         }
 
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            let error = APIError.imageConversionFailed
+        let imageData: Data
+        do {
+            imageData = try prepareImageData(image)
+        } catch {
             await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-hydration")
+                CrashReportingService.shared.recordAPIError(APIError.imageConversionFailed, endpoint: "claude/verify-hydration")
             }
-            throw error
+            throw APIError.imageConversionFailed
         }
 
         let base64Image = imageData.base64EncodedString()
@@ -310,12 +360,14 @@ actor ClaudeAPIService {
             CrashReportingService.shared.logAPICall("claude/verify-custom-habit")
         }
 
-        guard let imageData = image.jpegData(compressionQuality: 0.8) else {
-            let error = APIError.imageConversionFailed
+        let imageData: Data
+        do {
+            imageData = try prepareImageData(image)
+        } catch {
             await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-custom-habit")
+                CrashReportingService.shared.recordAPIError(APIError.imageConversionFailed, endpoint: "claude/verify-custom-habit")
             }
-            throw error
+            throw APIError.imageConversionFailed
         }
 
         let base64Image = imageData.base64EncodedString()
@@ -423,15 +475,27 @@ enum APIError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .invalidURL:
-            return "Invalid API URL configuration"
+            return "Something went wrong. Please try again."
         case .imageConversionFailed:
-            return "Failed to process image"
+            return "Couldn't process your photo. Please try again."
         case .invalidResponse:
-            return "Invalid server response"
-        case .serverError(let code, let message):
-            return "Server error (\(code)): \(message)"
+            return "Couldn't connect to the server. Please check your connection and try again."
+        case .serverError(let code, _):
+            // Return user-friendly messages based on status code
+            switch code {
+            case 400:
+                return "Couldn't process your photo. Please try taking another one."
+            case 401, 403:
+                return "Authentication error. Please restart the app and try again."
+            case 429:
+                return "Too many requests. Please wait a moment and try again."
+            case 500...599:
+                return "Server is temporarily unavailable. Please try again later."
+            default:
+                return "Something went wrong. Please try again."
+            }
         case .parsingFailed:
-            return "Failed to parse response"
+            return "Couldn't understand the response. Please try again."
         }
     }
 }
