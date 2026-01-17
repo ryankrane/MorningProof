@@ -90,46 +90,53 @@ struct CustomHabitCreationSheet: View {
 
     var iconAndNameSection: some View {
         sectionContainer(title: "Habit Details", icon: "pencil") {
-            VStack(spacing: 0) {
-                // Icon selector
-                HStack {
-                    Text("Icon")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textPrimary)
+            VStack(spacing: MPSpacing.lg) {
+                // Icon selector - centered hero style
+                Button {
+                    showIconPicker = true
+                } label: {
+                    VStack(spacing: MPSpacing.sm) {
+                        ZStack {
+                            // Outer glow ring
+                            Circle()
+                                .fill(MPColors.primaryLight.opacity(0.15))
+                                .frame(width: 88, height: 88)
 
-                    Spacer()
+                            // Main icon background
+                            Circle()
+                                .fill(MPColors.primaryLight.opacity(0.3))
+                                .frame(width: 72, height: 72)
 
-                    Button {
-                        showIconPicker = true
-                    } label: {
-                        Image(systemName: selectedIcon)
-                            .font(.system(size: 22))
-                            .foregroundColor(MPColors.primary)
-                            .frame(width: 44, height: 44)
-                            .background(MPColors.primaryLight.opacity(0.3))
-                            .cornerRadius(MPRadius.md)
+                            // Icon
+                            Image(systemName: selectedIcon)
+                                .font(.system(size: 32, weight: .medium))
+                                .foregroundColor(MPColors.primary)
+                        }
+
+                        Text("Tap to change")
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 }
-                .frame(height: 56)
+                .padding(.top, MPSpacing.sm)
 
-                Divider()
-
-                // Name field - inline style
-                HStack {
+                // Name field
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
                     Text("Name")
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Spacer()
+                        .font(MPFont.labelSmall())
+                        .foregroundColor(MPColors.textSecondary)
 
                     TextField("e.g., Take vitamins", text: $habitName)
                         .font(MPFont.bodyMedium())
                         .foregroundColor(MPColors.textPrimary)
-                        .multilineTextAlignment(.trailing)
+                        .padding(.horizontal, MPSpacing.md)
+                        .padding(.vertical, MPSpacing.md)
+                        .background(MPColors.surfaceSecondary)
+                        .cornerRadius(MPRadius.md)
                         .focused($isNameFocused)
                 }
-                .frame(height: 56)
             }
+            .padding(.bottom, MPSpacing.xs)
         }
         .sheet(isPresented: $showIconPicker) {
             iconPickerSheet
