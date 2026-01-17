@@ -42,6 +42,9 @@ struct DashboardView: View {
     @State private var lockButtonFrame: CGRect = .zero
     @State private var streakFlameFrame: CGRect = .zero
 
+    // Environment
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some View {
         ZStack {
             // Background
@@ -73,10 +76,6 @@ struct DashboardView: View {
                 .padding(.horizontal, MPSpacing.xl)
                 .padding(.top, MPSpacing.sm)
             }
-            .refreshable {
-                await manager.syncHealthData()
-            }
-
             // Lock-in celebration overlay (when user locks in their day)
             if showLockInCelebration {
                 LockInCelebrationView(
@@ -161,6 +160,15 @@ struct DashboardView: View {
 
             // Check for newly auto-completed habits after sync
             checkForNewlyCompletedHabits()
+        }
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active {
+                Task {
+                    previouslyCompletedHabits = Set(manager.todayLog.completions.filter { $0.isCompleted }.map { $0.habitType })
+                    await manager.syncHealthData()
+                    checkForNewlyCompletedHabits()
+                }
+            }
         }
     }
 

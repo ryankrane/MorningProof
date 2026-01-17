@@ -47,6 +47,7 @@ struct MainTabView: View {
 // MARK: - Home Tab (Main Dashboard Content)
 struct DashboardContentView: View {
     @ObservedObject var manager: MorningProofManager
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showBedCamera = false
     @State private var showSunlightCamera = false
     @State private var showHydrationCamera = false
@@ -100,10 +101,6 @@ struct DashboardContentView: View {
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.top, MPSpacing.sm)
                 }
-                .refreshable {
-                    await manager.syncHealthData()
-                }
-
                 // Perfect Morning celebration overlay
                 if showPerfectMorningCelebration {
                     FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
@@ -140,6 +137,13 @@ struct DashboardContentView: View {
             }
             .task {
                 await manager.syncHealthData()
+            }
+            .onChange(of: scenePhase) { _, newPhase in
+                if newPhase == .active {
+                    Task {
+                        await manager.syncHealthData()
+                    }
+                }
             }
             .onChange(of: manager.isPerfectMorning) { _, newValue in
                 if newValue && !showPerfectMorningCelebration {
