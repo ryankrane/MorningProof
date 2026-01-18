@@ -14,7 +14,6 @@ struct StreakHeroCard: View {
     @Binding var impactShake: CGFloat  // For slam shake offset
 
     @State private var streakNumberScale: CGFloat = 0.8
-    @State private var showPerfectBadge = false
     @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
     @State private var displayedStreak: Double = 0  // For smooth speedometer-style animation
 
@@ -218,17 +217,11 @@ struct StreakHeroCard: View {
 
             // Perfect Morning status or progress
             HStack {
-                if isPerfectMorning {
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "sparkles")
-                            .foregroundColor(MPColors.accentGold)
-                        Text("Perfect Morning!")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.accentGold)
-                    }
-                    .scaleEffect(showPerfectBadge ? 1.0 : 0.8)
-                    .opacity(showPerfectBadge ? 1.0 : 0)
-                } else {
+                PoofTransitionView(
+                    showSecond: isPerfectMorning,
+                    trigger: triggerPulse
+                ) {
+                    // First content: habit counter
                     HStack(spacing: MPSpacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
                             .foregroundColor(MPColors.success)
@@ -236,7 +229,17 @@ struct StreakHeroCard: View {
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textSecondary)
                     }
+                } secondContent: {
+                    // Second content: Perfect Morning
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: "sparkles")
+                            .foregroundColor(MPColors.accentGold)
+                        Text("Perfect Morning!")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.accentGold)
+                    }
                 }
+                .frame(height: 24)
 
                 Spacer()
 
@@ -282,19 +285,10 @@ struct StreakHeroCard: View {
             if currentStreak > 0 {
                 startFlameAnimation()
             }
-
-            // Animate perfect badge if applicable
-            if isPerfectMorning {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.3)) {
-                    showPerfectBadge = true
-                }
-            }
         }
         .onChange(of: isPerfectMorning) { _, newValue in
             if newValue {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
-                    showPerfectBadge = true
-                }
+                // Haptic feedback when Perfect Morning is achieved
                 HapticManager.shared.success()
             }
         }
