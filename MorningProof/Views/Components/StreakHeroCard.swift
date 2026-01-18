@@ -34,6 +34,11 @@ struct StreakHeroCard: View {
     @State private var livingFlameOpacity: Double = 1.0
     @State private var isLivingFlameActive: Bool = false
 
+    // On-fire pulsing flame states (when streak > 0)
+    @State private var innerFlameScale: CGFloat = 1.0
+    @State private var outerGlowIntensity: CGFloat = 0.0
+    @State private var emberOffset: CGFloat = 0
+
     // Radial flare effect (on flame arrival)
     @State private var radialFlareScale: CGFloat = 0.3
     @State private var radialFlareOpacity: Double = 0
@@ -129,61 +134,85 @@ struct StreakHeroCard: View {
             // Streak display
             HStack(spacing: MPSpacing.md) {
                 // Flame icon with dynamic glow animation
-                ZStack {
-                    // Radial flare (expands on flame arrival)
-                    Circle()
-                        .stroke(
-                            RadialGradient(
-                                colors: [MPColors.flameOrange, MPColors.flameOrange.opacity(0.5), .clear],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 50
-                            ),
-                            lineWidth: 3
-                        )
-                        .frame(width: 100, height: 100)
-                        .scaleEffect(radialFlareScale)
-                        .opacity(radialFlareOpacity)
-
-                    // Flare-Up effect: blurred flame pulse behind (for streak 1+)
-                    if showFlareUp {
-                        Text("🔥")
-                            .font(.system(size: MPIconSize.xl * 1.5))
-                            .scaleEffect(flareScale)
-                            .opacity(flareOpacity)
-                            .blur(radius: 8)
+                // Main flame - this determines the layout size
+                Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
+                    .font(.system(size: flameIconSize))
+                    .foregroundStyle(flameGradient)
+                    .scaleEffect(flameScale * arrivalPulse * ignitionScale * innerFlameScale)
+                    .rotationEffect(.degrees(livingFlameRotation))
+                    .opacity(livingFlameOpacity)
+                    // Always-on glow when streak > 0, with pulsing effect
+                    .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2 + ignitionGlow * 0.3), radius: glowRadius + glowPulse * 4 + ignitionGlow * 10)
+                    .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
+                    // Decorative overlays (don't affect layout)
+                    .overlay {
+                        // Radial flare (expands on flame arrival)
+                        Circle()
+                            .stroke(
+                                RadialGradient(
+                                    colors: [MPColors.flameOrange, MPColors.flameOrange.opacity(0.5), .clear],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 50
+                                ),
+                                lineWidth: 3
+                            )
+                            .frame(width: 100, height: 100)
+                            .scaleEffect(radialFlareScale)
+                            .opacity(radialFlareOpacity)
                     }
-
-                    // Ignition glow effect (for 0→1 transition)
-                    Circle()
-                        .fill(MPColors.flameOrange.opacity(ignitionGlow * 0.6))
-                        .frame(width: MPIconSize.xl * 2, height: MPIconSize.xl * 2)
-                        .blur(radius: 15)
-                        .opacity(ignitionGlow)
-
-                    // Main flame icon with living flame effect - size scales with streak
-                    Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
-                        .font(.system(size: flameIconSize))
-                        .foregroundStyle(flameGradient)
-                        .scaleEffect(flameScale * arrivalPulse * ignitionScale)
-                        .rotationEffect(.degrees(livingFlameRotation))
-                        .opacity(livingFlameOpacity)
-                        // Always-on glow when streak > 0, with pulsing effect
-                        .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2 + ignitionGlow * 0.3), radius: glowRadius + glowPulse * 4 + ignitionGlow * 10)
-                        .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
-                }
-                .offset(x: impactShake) // Apply shake offset from slam impact
-                .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .onAppear {
-                                flameFrame = geo.frame(in: .global)
-                            }
-                            .onChange(of: geo.frame(in: .global)) { _, newFrame in
-                                flameFrame = newFrame
-                            }
+                    .overlay {
+                        // Flare-Up effect: blurred flame pulse behind (for streak 1+)
+                        if showFlareUp {
+                            Text("🔥")
+                                .font(.system(size: MPIconSize.xl * 1.5))
+                                .scaleEffect(flareScale)
+                                .opacity(flareOpacity)
+                                .blur(radius: 8)
+                        }
                     }
-                )
+                    .background {
+                        // Ignition glow effect (for 0→1 transition)
+                        Circle()
+                            .fill(MPColors.flameOrange.opacity(ignitionGlow * 0.6))
+                            .frame(width: MPIconSize.xl * 2, height: MPIconSize.xl * 2)
+                            .blur(radius: 15)
+                            .opacity(ignitionGlow)
+                    }
+                    .background {
+                        // Outer pulsing glow layer (breathing fire effect)
+                        if currentStreak > 0 {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: flameIconSize * 1.15))
+                                .foregroundStyle(MPColors.flameOrange.opacity(0.4))
+                                .blur(radius: 6)
+                                .scaleEffect(innerFlameScale * 1.1)
+                                .opacity(outerGlowIntensity)
+                        }
+                    }
+                    .overlay {
+                        // Ember particle floating up (subtle rising heat effect)
+                        if currentStreak > 0 {
+                            Circle()
+                                .fill(MPColors.flameOrange.opacity(0.6))
+                                .frame(width: 4, height: 4)
+                                .offset(x: 8, y: -flameIconSize * 0.4 - emberOffset)
+                                .opacity(Double(1.0 - emberOffset / 20))
+                                .blur(radius: 1)
+                        }
+                    }
+                    .offset(x: impactShake) // Apply shake offset from slam impact
+                    .background(
+                        GeometryReader { geo in
+                            Color.clear
+                                .onAppear {
+                                    flameFrame = geo.frame(in: .global)
+                                }
+                                .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                                    flameFrame = newFrame
+                                }
+                        }
+                    )
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
@@ -196,28 +225,6 @@ struct StreakHeroCard: View {
                         Text("day streak")
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textTertiary)
-
-                        Spacer()
-
-                        // Countdown timer - parallel to streak (hide when Perfect Morning achieved)
-                        if let interval = timeUntilCutoff, interval > 0, !isPerfectMorning {
-                            HStack(spacing: 4) {
-                                Image(systemName: "timer")
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(MPColors.textTertiary)
-                                Text(compactCountdownText(for: interval))
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(MPColors.textTertiary)
-                            }
-                        } else if hasOverdueHabits {
-                            // Show LATE badge when past cutoff with incomplete habits
-                            HStack(spacing: 4) {
-                                Image(systemName: "exclamationmark.circle.fill")
-                                Text("LATE")
-                            }
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(MPColors.error)
-                        }
                     }
 
                     // Progress to next milestone
@@ -233,6 +240,8 @@ struct StreakHeroCard: View {
                         }
                     }
                 }
+
+                Spacer()
             }
 
             // Perfect Morning status or progress
@@ -258,6 +267,26 @@ struct StreakHeroCard: View {
                 }
 
                 Spacer()
+
+                // Countdown timer - bottom right corner (hide when Perfect Morning achieved)
+                if let interval = timeUntilCutoff, interval > 0, !isPerfectMorning {
+                    HStack(spacing: 4) {
+                        Image(systemName: "timer")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(MPColors.textTertiary)
+                        Text(compactCountdownText(for: interval))
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                } else if hasOverdueHabits {
+                    // Show LATE badge when past cutoff with incomplete habits
+                    HStack(spacing: 4) {
+                        Image(systemName: "exclamationmark.circle.fill")
+                        Text("LATE")
+                    }
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(MPColors.error)
+                }
             }
         }
         .padding(MPSpacing.xl)
@@ -289,6 +318,8 @@ struct StreakHeroCard: View {
                 }
                 // Start living flame animation immediately for existing streaks
                 startLivingFlameAnimation()
+                // Start the on-fire pulsing effect
+                startOnFireAnimation()
             }
 
             // Animate perfect badge if applicable
@@ -347,6 +378,7 @@ struct StreakHeroCard: View {
                 // Start living flame animation after impact settles
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                     startLivingFlameAnimation()
+                    startOnFireAnimation()
                 }
 
                 // Reset the trigger
@@ -424,24 +456,88 @@ struct StreakHeroCard: View {
             }
         }
 
-        // Flickering opacity: 0.75-1.0 with quick random timing - simulates flame intensity
-        func animateFlicker() {
+        // Pulsing opacity: smooth breathing effect instead of flickering
+        func animatePulse() {
             guard isLivingFlameActive else { return }
-            let target = Double.random(in: 0.75...1.0)
-            let duration = Double.random(in: 0.08...0.2)
-            withAnimation(.easeInOut(duration: duration)) {
-                livingFlameOpacity = target
+            // Pulse down
+            withAnimation(.easeInOut(duration: 0.8)) {
+                livingFlameOpacity = 0.85
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                animateFlicker()
+            // Pulse back up
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                guard isLivingFlameActive else { return }
+                withAnimation(.easeInOut(duration: 0.8)) {
+                    livingFlameOpacity = 1.0
+                }
+                // Continue the cycle
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    animatePulse()
+                }
             }
         }
 
         // Start dancing rotation
         animateDancingRotation()
-        // Start flicker with slight offset for organic feel
+        // Start pulse with slight offset for organic feel
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            animateFlicker()
+            animatePulse()
+        }
+    }
+
+    // MARK: - On-Fire Pulsing Animation
+
+    /// Creates a continuous "burning" effect with pulsing scale and glow
+    private func startOnFireAnimation() {
+        guard currentStreak > 0 else { return }
+
+        // Inner flame pulsing (scale breathing)
+        func animateInnerPulse() {
+            withAnimation(.easeInOut(duration: 0.6)) {
+                innerFlameScale = 1.08
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                withAnimation(.easeInOut(duration: 0.5)) {
+                    innerFlameScale = 0.95
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    animateInnerPulse()
+                }
+            }
+        }
+
+        // Outer glow intensity pulsing (fire breathing)
+        func animateOuterGlow() {
+            withAnimation(.easeIn(duration: 0.4)) {
+                outerGlowIntensity = 0.8
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+                withAnimation(.easeOut(duration: 0.7)) {
+                    outerGlowIntensity = 0.3
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                    animateOuterGlow()
+                }
+            }
+        }
+
+        // Ember floating upward animation (continuous loop)
+        func animateEmber() {
+            emberOffset = 0
+            withAnimation(.easeOut(duration: 1.2)) {
+                emberOffset = 20
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
+                animateEmber()
+            }
+        }
+
+        // Start all fire animations with slight offsets for organic feel
+        animateInnerPulse()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            animateOuterGlow()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            animateEmber()
         }
     }
 }
