@@ -10,6 +10,7 @@ struct MorningProofSettingsView: View {
     @State private var userName: String = ""
     @State private var cutoffMinutes: Int = 540  // 9:00 AM
     @State private var showResetConfirmation = false
+    @State private var showResetTodayConfirmation = false
     @State private var showPaywall = false
     @State private var showAppLockingSheet = false
 
@@ -74,6 +75,7 @@ struct MorningProofSettingsView: View {
                         isShowing: $showTestCelebration,
                         buttonPosition: CGPoint(x: 200, y: 600),
                         streakFlamePosition: CGPoint(x: 60, y: 150),
+                        previousStreak: 1,
                         onFlameArrived: {}
                     )
                 }
@@ -85,6 +87,14 @@ struct MorningProofSettingsView: View {
             }
             .onDisappear {
                 saveSettings()
+            }
+            .alert("Reset Today's Progress?", isPresented: $showResetTodayConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Reset Today", role: .destructive) {
+                    manager.resetTodaysProgress()
+                }
+            } message: {
+                Text("This will clear all habit completions for today. Your settings and streak history will be preserved.")
             }
             .alert("Reset All Data?", isPresented: $showResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
@@ -503,12 +513,29 @@ struct MorningProofSettingsView: View {
                 Divider()
                     .padding(.leading, 46)
 
-                // Reset Data button
+                // Reset Today button
+                Button {
+                    showResetTodayConfirmation = true
+                } label: {
+                    aboutRow(
+                        icon: "arrow.counterclockwise",
+                        iconColor: MPColors.warning,
+                        title: "Reset Today",
+                        titleColor: MPColors.warning,
+                        trailing: AnyView(EmptyView())
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Reset All Data button
                 Button {
                     showResetConfirmation = true
                 } label: {
                     aboutRow(
-                        icon: "arrow.counterclockwise",
+                        icon: "trash.fill",
                         iconColor: MPColors.error,
                         title: "Reset All Data",
                         titleColor: MPColors.error,

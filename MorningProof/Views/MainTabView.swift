@@ -73,6 +73,12 @@ struct DashboardContentView: View {
     @State private var habitRowFlash: [HabitType: Bool] = [:]
     @State private var habitRowGlow: [HabitType: CGFloat] = [:]
 
+    // Lock-in celebration state
+    @State private var lockButtonFrame: CGRect = .zero
+    @State private var previousStreakBeforeLockIn: Int = 0
+    @State private var triggerIgnition: Bool = false
+    @State private var streakShakeOffset: CGFloat = 0
+
     // Custom habit state
     @State private var customHabitCameraTarget: CustomHabit? = nil
     @State private var customHoldProgress: [UUID: CGFloat] = [:]
@@ -80,6 +86,9 @@ struct DashboardContentView: View {
     @State private var customHabitRowFlash: [UUID: Bool] = [:]
     @State private var customHabitRowGlow: [UUID: CGFloat] = [:]
     @State private var showConfettiForCustomHabit: UUID? = nil
+
+    // Named coordinate space for consistent position tracking across navigation bar
+    private let screenCoordinateSpace = "screenCoordinateSpace"
 
     var body: some View {
         NavigationStack {
@@ -99,7 +108,9 @@ struct DashboardContentView: View {
                             cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
                             hasOverdueHabits: manager.hasOverdueHabits,
                             triggerPulse: $triggerStreakPulse,
-                            flameFrame: $flameFrame
+                            flameFrame: $flameFrame,
+                            triggerIgnition: $triggerIgnition,
+                            impactShake: $streakShakeOffset
                         )
 
                         // Habits List
@@ -114,21 +125,10 @@ struct DashboardContentView: View {
                 if showPerfectMorningCelebration {
                     FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
                 }
-
-                // Lock-in celebration overlay
-                if showLockInCelebration {
-                    LockInCelebrationView(
-                        isShowing: $showLockInCelebration,
-                        buttonPosition: CGPoint(x: UIScreen.main.bounds.width / 2, y: UIScreen.main.bounds.height - 200),
-                        streakFlamePosition: CGPoint(x: flameFrame.midX, y: flameFrame.midY),
-                        onFlameArrived: {
-                            triggerStreakPulse = true
-                        }
-                    )
-                }
             }
             .navigationTitle(greeting)
             .navigationBarTitleDisplayMode(.large)
+            .coordinateSpace(name: screenCoordinateSpace)
             .sheet(isPresented: $showBedCamera) {
                 BedCameraView(manager: manager)
             }
@@ -159,6 +159,28 @@ struct DashboardContentView: View {
                     showPerfectMorningCelebration = true
                     HapticManager.shared.perfectMorning()
                 }
+            }
+        }
+        // Lock-in celebration overlay - full screen, ignoring safe areas
+        // Positioned outside NavigationStack so it spans the entire screen
+        .overlay {
+            if showLockInCelebration {
+                LockInCelebrationView(
+                    isShowing: $showLockInCelebration,
+                    buttonPosition: CGPoint(x: lockButtonFrame.midX, y: lockButtonFrame.midY),
+                    streakFlamePosition: CGPoint(x: flameFrame.midX, y: flameFrame.midY),
+                    previousStreak: previousStreakBeforeLockIn,
+                    onFlameArrived: {
+                        triggerStreakPulse = true
+                    },
+                    onIgnition: {
+                        triggerIgnition = true
+                    },
+                    onShake: { offset in
+                        streakShakeOffset = offset
+                    }
+                )
+                .ignoresSafeArea()
             }
         }
     }
@@ -209,6 +231,16 @@ struct DashboardContentView: View {
                         triggerLockInCelebration()
                     }
                 )
+                .background(
+                    GeometryReader { geo in
+                        Color.clear.onAppear {
+                            lockButtonFrame = geo.frame(in: .global)
+                        }
+                        .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                            lockButtonFrame = newFrame
+                        }
+                    }
+                )
                 Spacer()
             }
             .padding(.top, MPSpacing.lg)
@@ -216,6 +248,8 @@ struct DashboardContentView: View {
     }
 
     private func triggerLockInCelebration() {
+        // Capture the streak BEFORE lock-in (0 = ignition, 1+ = flare-up)
+        previousStreakBeforeLockIn = manager.currentStreak
         manager.lockInDay()
         showLockInCelebration = true
     }
@@ -283,13 +317,15 @@ struct DashboardContentView: View {
             // Flash overlay for completion celebration
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.success.opacity(isFlashing ? 0.25 : 0))
-
+        }
+        .cornerRadius(MPRadius.lg)
+        // Confetti OUTSIDE clipped container so particles aren't cut off
+        .overlay {
             if showConfettiForHabit == config.habitType {
                 MiniConfettiView()
                     .allowsHitTesting(false)
             }
         }
-        .cornerRadius(MPRadius.lg)
         .mpShadow(.small)
         // Enhanced glow shadow when completing
         .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
@@ -578,7 +614,10 @@ struct DashboardContentView: View {
             // Flash overlay
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.success.opacity(customHabitRowFlash[customHabit.id] ?? false ? 0.25 : 0))
-
+        }
+        .cornerRadius(MPRadius.lg)
+        // Confetti OUTSIDE clipped container so particles aren't cut off
+        .overlay {
             if showConfettiForCustomHabit == customHabit.id {
                 MiniConfettiView()
                     .allowsHitTesting(false)

@@ -681,6 +681,40 @@ final class MorningProofManager: ObservableObject, Sendable {
         await LiveActivityManager.shared.endActivity()
     }
 
+    /// Reset only today's progress (for testing) - keeps settings, habits, and onboarding state
+    func resetTodaysProgress() {
+        // Reset today's log (clears all completions)
+        todayLog = createDailyLog(for: Date())
+
+        // Reset custom habit completions for today
+        todayCustomCompletions = createCustomCompletions(for: Date())
+
+        // Reset lock-in status
+        AppLockingDataStore.isDayLockedIn = false
+
+        // If today was counted as a perfect morning, undo that
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        if let lastDate = lastPerfectMorningDate, calendar.isDate(lastDate, inSameDayAs: today) {
+            // Decrement streak since we're undoing today
+            if currentStreak > 0 {
+                currentStreak -= 1
+            }
+            // Set last perfect morning to yesterday if streak > 0, otherwise nil
+            if currentStreak > 0 {
+                lastPerfectMorningDate = calendar.date(byAdding: .day, value: -1, to: today)
+            } else {
+                lastPerfectMorningDate = nil
+            }
+            if settings.totalPerfectMornings > 0 {
+                settings.totalPerfectMornings -= 1
+            }
+            saveStreakData()
+        }
+
+        saveCurrentState()
+    }
+
     func resetAllData() {
         // Reset all settings to defaults
         settings = MorningProofSettings()

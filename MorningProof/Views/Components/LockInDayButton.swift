@@ -78,19 +78,29 @@ struct LockInDayButton: View {
                 .clipShape(Capsule())
             }
 
-            // Shimmer effect (enabled state)
+            // Shimmer effect (enabled state) - full width diagonal sweep
             if isEnabled && !isLockedIn && !isHolding {
-                Capsule()
+                Rectangle()
                     .fill(
                         LinearGradient(
-                            colors: [.clear, .white.opacity(0.15), .clear],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                            colors: [
+                                .clear,
+                                .white.opacity(0.2),
+                                .white.opacity(0.3),
+                                .white.opacity(0.2),
+                                .clear
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 60, height: buttonHeight)
-                    .offset(x: shimmerOffset * (buttonWidth / 2))
-                    .clipShape(Capsule().size(width: buttonWidth, height: buttonHeight))
+                    .frame(width: buttonWidth * 0.6, height: buttonHeight * 2)
+                    .rotationEffect(.degrees(25))
+                    .offset(x: shimmerOffset * buttonWidth)
+                    .mask(
+                        Capsule()
+                            .frame(width: buttonWidth, height: buttonHeight)
+                    )
             }
 
 
@@ -292,9 +302,9 @@ struct LockInDayButton: View {
         }
 
         // Shimmer sweep
-        shimmerOffset = -1.0
+        shimmerOffset = -1.2
         withAnimation(.linear(duration: 2.5).repeatForever(autoreverses: false)) {
-            shimmerOffset = 1.0
+            shimmerOffset = 1.2
         }
     }
 

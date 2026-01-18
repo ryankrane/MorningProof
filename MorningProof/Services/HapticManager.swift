@@ -170,4 +170,23 @@ class HapticManager {
             notification.notificationOccurred(.success)
         }
     }
+
+    // Dramatic slam impact for lock-in celebration
+    // Creates a heavy "thud" with cascading impacts for the flame arrival
+    func flameSlamImpact() {
+        let heavy = UIImpactFeedbackGenerator(style: .heavy)
+        heavy.impactOccurred(intensity: 1.0)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) {
+            UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 0.9)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.6)
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+    }
 }

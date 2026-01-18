@@ -2,9 +2,12 @@ import SwiftUI
 
 struct LockInCelebrationView: View {
     @Binding var isShowing: Bool
-    let buttonPosition: CGPoint       // Where the lock button is (global coordinates)
-    let streakFlamePosition: CGPoint  // Where the streak flame icon is (global coordinates)
+    let buttonPosition: CGPoint       // Center of the lock button (global coordinates)
+    let streakFlamePosition: CGPoint  // Center of the streak flame icon (global coordinates)
+    let previousStreak: Int           // Streak BEFORE lock-in (0 = ignition, 1+ = flare-up)
     let onFlameArrived: () -> Void    // Callback when flame reaches destination
+    var onIgnition: (() -> Void)?     // Callback for 0→1 effect (gray→vibrant transition)
+    var onShake: ((CGFloat) -> Void)? // Callback for slam shake
 
     // Animation phases
     @State private var phase: CelebrationPhase = .initial
@@ -18,9 +21,16 @@ struct LockInCelebrationView: View {
     // Flame animation states
     @State private var flameScale: CGFloat = 0
     @State private var flameOpacity: Double = 0
-    @State private var flamePosition: CGPoint = .zero
-    @State private var flameRotation: Double = 0
     @State private var flameGlowOpacity: Double = 0.5
+
+    // Anticipation animation states (wind-up)
+    @State private var anticipationScale: CGFloat = 1.0
+    @State private var anticipationOffset: CGFloat = 0
+
+    // Bezier flight states
+    @State private var bezierProgress: CGFloat = 0
+    @State private var bezier: QuadraticBezier?
+    @State private var flameSpinRotation: Double = 0
 
     // Trail particles
     @State private var trailParticles: [TrailParticle] = []
@@ -31,14 +41,12 @@ struct LockInCelebrationView: View {
     @State private var impactBurstScale: CGFloat = 0.3
     @State private var impactBurstOpacity: Double = 0
 
-    private let flameSize: CGFloat = 48  // Increased from 32
-    private let buttonWidth: CGFloat = 220
-    private let buttonHeight: CGFloat = 56
+    private let flameSize: CGFloat = 52  // Slightly larger for drama
 
     enum CelebrationPhase {
         case initial
         case lockClick
-        case flameEmerge
+        case windUp
         case flying
         case impact
         case complete
@@ -49,283 +57,398 @@ struct LockInCelebrationView: View {
         var position: CGPoint
         var scale: CGFloat
         var opacity: Double
+        var blur: CGFloat
     }
 
-    // Flame gradient matching StreakHeroCard - consistent in dark mode
+    // Flame gradient matching StreakHeroCard
     private var flameGradient: LinearGradient {
         MPColors.flameGradient
     }
 
     var body: some View {
-        ZStack {
-            // Semi-transparent background
-            Color.black.opacity(0.15)
-                .ignoresSafeArea()
-                .allowsHitTesting(false)
+        GeometryReader { geometry in
+            ZStack {
+                // Semi-transparent background - slightly darker for drama
+                // Uses ignoresSafeArea to ensure full screen coverage
+                Color.black.opacity(0.25)
+                    .allowsHitTesting(false)
 
-            // Trail particles
-            ForEach(trailParticles) { particle in
-                Image(systemName: "flame.fill")
-                    .font(.system(size: 24))
-                    .foregroundStyle(flameGradient.opacity(0.7))
-                    .scaleEffect(particle.scale)
-                    .opacity(particle.opacity)
-                    .position(particle.position)
-            }
-
-            // Lock icon (at button position)
-            if showLock {
-                Image(systemName: "lock.fill")
-                    .font(.system(size: 28, weight: .semibold))
-                    .foregroundStyle(MPColors.accentGold)
-                    .scaleEffect(lockScale)
-                    .rotationEffect(.degrees(lockRotation))
-                    .shadow(color: MPColors.accentGold.opacity(lockGlowOpacity), radius: 20)
-                    .position(buttonCenter)
-            }
-
-            // Flying flame
-            if flameOpacity > 0 {
-                ZStack {
-                    // Intense glow behind flame - consistent color
-                    Circle()
-                        .fill(MPColors.flameOrange.opacity(flameGlowOpacity * 0.6))
-                        .frame(width: 80, height: 80)
-                        .blur(radius: 25)
-
-                    // Main flame icon
+                // Trail particles (behind the flame)
+                ForEach(trailParticles) { particle in
                     Image(systemName: "flame.fill")
-                        .font(.system(size: flameSize, weight: .bold))
-                        .foregroundStyle(flameGradient)
-                        .shadow(color: MPColors.flameOrange, radius: 15)
-                        .shadow(color: MPColors.flameRed.opacity(0.8), radius: 8)
+                        .font(.system(size: 28))  // Larger trail particles
+                        .foregroundStyle(flameGradient.opacity(0.7))
+                        .scaleEffect(particle.scale)
+                        .opacity(particle.opacity)
+                        .blur(radius: particle.blur)
+                        .position(particle.position)
                 }
-                .scaleEffect(flameScale)
-                .rotationEffect(.degrees(flameRotation))
-                .opacity(flameOpacity)
-                .position(flamePosition)
+
+                // Lock icon (at button position)
+                if showLock {
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 32, weight: .semibold))  // Larger lock
+                        .foregroundStyle(MPColors.accentGold)
+                        .scaleEffect(lockScale)
+                        .rotationEffect(.degrees(lockRotation))
+                        .shadow(color: MPColors.accentGold.opacity(lockGlowOpacity), radius: 25)
+                        .shadow(color: MPColors.accentGold.opacity(lockGlowOpacity * 0.5), radius: 40)
+                        .position(buttonPosition)
+                }
+
+                // Flying flame with Bezier path animation
+                if flameOpacity > 0 {
+                    ZStack {
+                        // Intense glow behind flame - larger and more dramatic
+                        Circle()
+                            .fill(MPColors.flameOrange.opacity(flameGlowOpacity * 0.5))
+                            .frame(width: 120, height: 120)
+                            .blur(radius: 35)
+
+                        // Secondary glow layer
+                        Circle()
+                            .fill(MPColors.flameRed.opacity(flameGlowOpacity * 0.3))
+                            .frame(width: 90, height: 90)
+                            .blur(radius: 20)
+
+                        // Main flame icon
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: flameSize, weight: .bold))
+                            .foregroundStyle(flameGradient)
+                            .shadow(color: MPColors.flameOrange, radius: 20)
+                            .shadow(color: MPColors.flameRed.opacity(0.8), radius: 12)
+                    }
+                    .scaleEffect(flameScale * anticipationScale)
+                    .offset(y: anticipationOffset)
+                    .rotationEffect(.degrees(flameSpinRotation))
+                    .opacity(flameOpacity)
+                    .modifier(FlamePositionModifier(
+                        bezier: bezier,
+                        progress: bezierProgress,
+                        fallbackPosition: buttonPosition
+                    ))
+                }
+
+                // Impact effects at destination
+                if phase == .impact {
+                    // Shockwave ring - bigger and bolder
+                    Circle()
+                        .stroke(MPColors.accentGold, lineWidth: 5)
+                        .frame(width: 120, height: 120)
+                        .scaleEffect(shockwaveScale)
+                        .opacity(shockwaveOpacity)
+                        .position(streakFlamePosition)
+
+                    // Inner impact burst
+                    Circle()
+                        .fill(MPColors.accent.opacity(impactBurstOpacity))
+                        .frame(width: 80, height: 80)
+                        .scaleEffect(impactBurstScale)
+                        .blur(radius: 15)
+                        .position(streakFlamePosition)
+                }
             }
-
-            // Impact effects at destination
-            if phase == .impact {
-                // Shockwave ring
-                Circle()
-                    .stroke(MPColors.accentGold, lineWidth: 4)
-                    .frame(width: 100, height: 100)
-                    .scaleEffect(shockwaveScale)
-                    .opacity(shockwaveOpacity)
-                    .position(streakFlamePosition)
-
-                // Inner impact burst
-                Circle()
-                    .fill(MPColors.accent.opacity(impactBurstOpacity))
-                    .frame(width: 60, height: 60)
-                    .scaleEffect(impactBurstScale)
-                    .blur(radius: 10)
-                    .position(streakFlamePosition)
+            .onAppear {
+                startAnimation(screenWidth: geometry.size.width)
             }
         }
-        .onAppear {
-            startAnimation()
-        }
+        .ignoresSafeArea()  // Ensures GeometryReader spans full screen for accurate global positioning
     }
 
-    // Button center calculation for capsule shape
-    // buttonPosition is the frame origin (top-left), so we add half dimensions to get center
-    private var buttonCenter: CGPoint {
-        CGPoint(
-            x: buttonPosition.x + buttonWidth / 2,
-            y: buttonPosition.y + buttonHeight / 2 - 8  // Offset to account for visual center
-        )
-    }
+    // MARK: - Animation Sequence
+    // Total duration: ~2.5 seconds (was ~1 second)
 
-    private func startAnimation() {
-        // Initialize flame position at button center
-        flamePosition = buttonCenter
-
-        // Phase 1: Lock clicks (0.0-0.15s)
+    private func startAnimation(screenWidth: CGFloat) {
+        // ═══════════════════════════════════════════════════════════════
+        // PHASE 1: Lock Click (0 - 0.3s)
+        // The lock "catches" and glows with satisfaction
+        // ═══════════════════════════════════════════════════════════════
         phase = .lockClick
         HapticManager.shared.rigid()
 
-        withAnimation(.spring(response: 0.12, dampingFraction: 0.5)) {
-            lockRotation = -20
-            lockScale = 1.15
+        // Lock rotates and glows
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+            lockRotation = -25
+            lockScale = 1.2
             lockGlowOpacity = 1.0
         }
 
-        // Phase 2: Flame emerges powerfully (0.15-0.4s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            phase = .flameEmerge
+        // Hold the lock pose for a beat
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            HapticManager.shared.light()
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PHASE 2: Flame Emerges + Wind-Up (0.3s - 0.9s)
+        // Flame appears, does a dramatic squash-and-stretch wind-up
+        // ═══════════════════════════════════════════════════════════════
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            phase = .windUp
             HapticManager.shared.medium()
 
-            // Flame bursts out
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
-                flameScale = 1.3
+            // Flame bursts into existence
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                flameScale = 1.1
                 flameOpacity = 1.0
                 flameGlowOpacity = 1.0
             }
 
-            // Fade out lock
-            withAnimation(.easeOut(duration: 0.2)) {
+            // Fade out lock gracefully
+            withAnimation(.easeOut(duration: 0.25)) {
                 lockGlowOpacity = 0
-                lockScale = 0.8
+                lockScale = 0.7
             }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
                 showLock = false
             }
         }
 
-        // Phase 3: Dramatic flight (0.4s - start flight)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+        // Wind-up: SQUASH (crouch before the jump)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+            HapticManager.shared.light()
+            withAnimation(.interpolatingSpring(stiffness: 300, damping: 12)) {
+                anticipationScale = 0.6
+                anticipationOffset = 12  // Crouch down
+            }
+        }
+
+        // Wind-up: HOLD the crouch for tension
+        // (The anticipation makes the release more satisfying)
+
+        // Wind-up: STRETCH (the release!)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
+            HapticManager.shared.medium()
+            withAnimation(.interpolatingSpring(stiffness: 250, damping: 10)) {
+                anticipationScale = 1.4
+                anticipationOffset = -20  // Pop up!
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════
+        // PHASE 3: The Flight (0.95s - 1.85s)
+        // Dramatic Bezier arc with tumbling rotation and particle trail
+        // ═══════════════════════════════════════════════════════════════
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             phase = .flying
-            startDramaticFlight()
+            startBezierFlight(screenWidth: screenWidth)
         }
     }
 
-    private func startDramaticFlight() {
-        let startPos = flamePosition
-        let endPos = streakFlamePosition
-        let flightDuration: Double = 0.35
+    private func startBezierFlight(screenWidth: CGFloat) {
+        let flightDuration: Double = 0.9  // Slower, more dramatic flight
 
-        // Calculate direction for rotation
-        let angle = atan2(endPos.y - startPos.y, endPos.x - startPos.x) * 180 / .pi
-
-        // Rotate flame to point toward destination
+        // Reset anticipation for clean flight
         withAnimation(.easeOut(duration: 0.08)) {
-            flameRotation = angle - 90  // Adjust so flame tip points forward
+            anticipationScale = 1.0
+            anticipationOffset = 0
         }
 
-        // Start trail particle spawning
-        startTrailEffect(from: startPos, to: endPos, duration: flightDuration)
+        // Create Bezier path with more dramatic arc
+        let flightBezier = QuadraticBezier.swoopingArc(
+            from: buttonPosition,
+            to: streakFlamePosition,
+            screenWidth: screenWidth
+        )
+        bezier = flightBezier
 
-        // Accelerating flight - fast and direct
-        withAnimation(.timingCurve(0.4, 0, 1, 1, duration: flightDuration)) {
-            flamePosition = endPos
-            flameScale = 0.9  // Compress as it speeds up
+        // Start trail particle spawning along the Bezier path
+        startBezierTrailEffect(bezier: flightBezier, duration: flightDuration)
+
+        // Tumble rotation during flight (1.5-2.5 full rotations for drama)
+        let rotationAmount = Double.random(in: 540...900) * (Bool.random() ? 1 : -1)
+        withAnimation(.easeInOut(duration: flightDuration)) {
+            flameSpinRotation = rotationAmount
         }
 
-        // Intensify glow during flight
-        withAnimation(.easeIn(duration: flightDuration * 0.7)) {
-            flameGlowOpacity = 1.2
+        // Animate along Bezier path - slower ease for more visible arc
+        withAnimation(.timingCurve(0.25, 0.1, 0.25, 1.0, duration: flightDuration)) {
+            bezierProgress = 1.0
         }
 
-        // Impact!
+        // Scale gets smaller in middle of flight, bigger approaching target
+        withAnimation(.easeInOut(duration: flightDuration * 0.5)) {
+            flameScale = 0.75
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + flightDuration * 0.5) {
+            withAnimation(.easeIn(duration: flightDuration * 0.5)) {
+                flameScale = 1.1
+            }
+        }
+
+        // Intensify glow as it approaches target
+        DispatchQueue.main.asyncAfter(deadline: .now() + flightDuration * 0.4) {
+            withAnimation(.easeIn(duration: flightDuration * 0.6)) {
+                flameGlowOpacity = 1.5
+            }
+        }
+
+        // IMPACT!
         DispatchQueue.main.asyncAfter(deadline: .now() + flightDuration) {
             triggerImpact()
         }
     }
 
-    private func startTrailEffect(from start: CGPoint, to end: CGPoint, duration: Double) {
-        let particleCount = 6
+    private func startBezierTrailEffect(bezier: QuadraticBezier, duration: Double) {
+        let particleCount = 14  // More particles for longer trail
         let interval = duration / Double(particleCount)
 
         for i in 0..<particleCount {
             DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * interval) {
-                let progress = Double(i) / Double(particleCount)
-                let particlePos = CGPoint(
-                    x: start.x + (end.x - start.x) * progress,
-                    y: start.y + (end.y - start.y) * progress
-                )
+                let progress = CGFloat(i) / CGFloat(particleCount)
+                let particlePos = bezier.point(at: progress)
 
+                // Each particle scales down and fades based on age
                 let particle = TrailParticle(
                     position: particlePos,
-                    scale: 0.7 - CGFloat(progress) * 0.3,
-                    opacity: 0.8
+                    scale: 0.8 - CGFloat(progress) * 0.4,
+                    opacity: 0.9 - progress * 0.5,
+                    blur: progress * 5
                 )
 
                 trailParticles.append(particle)
 
-                // Fade out particle
+                // Fade out particle more slowly
                 let particleId = particle.id
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    withAnimation(.easeOut(duration: 0.25)) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    withAnimation(.easeOut(duration: 0.5)) {
                         if let index = trailParticles.firstIndex(where: { $0.id == particleId }) {
                             trailParticles[index].opacity = 0
-                            trailParticles[index].scale = 0.2
+                            trailParticles[index].scale = 0.1
+                            trailParticles[index].blur = 12
                         }
                     }
                 }
 
                 // Remove particle after fade
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                     trailParticles.removeAll { $0.id == particleId }
                 }
             }
         }
     }
 
+    // ═══════════════════════════════════════════════════════════════
+    // PHASE 4: Impact (1.85s - 2.5s)
+    // The satisfying SLAM with compression, explosion, and settle
+    // ═══════════════════════════════════════════════════════════════
     private func triggerImpact() {
         phase = .impact
 
-        // SLAM! Compress then explode
-        withAnimation(.spring(response: 0.06, dampingFraction: 0.3)) {
-            flameScale = 0.5  // Compress on impact
+        // SLAM! Compress on impact
+        withAnimation(.spring(response: 0.08, dampingFraction: 0.3)) {
+            flameScale = 0.4
+            flameSpinRotation = 0  // Lock rotation on impact
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
-            withAnimation(.spring(response: 0.1, dampingFraction: 0.35)) {
-                flameScale = 1.8  // Explosive expansion
+        // Explosive expansion
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            withAnimation(.spring(response: 0.15, dampingFraction: 0.35)) {
+                flameScale = 2.2  // Bigger explosion
             }
         }
 
-        // Then settle with strong spring
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                flameScale = 1.2
-                flameRotation = 0
+        // First settle
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                flameScale = 1.4
             }
         }
 
-        // Shockwave burst
-        shockwaveScale = 0.5
+        // Final settle
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+            withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
+                flameScale = 1.0
+            }
+        }
+
+        // Shockwave burst - bigger and slower
+        shockwaveScale = 0.4
         shockwaveOpacity = 1.0
-        withAnimation(.easeOut(duration: 0.35)) {
-            shockwaveScale = 2.5
+        withAnimation(.easeOut(duration: 0.5)) {
+            shockwaveScale = 3.0
             shockwaveOpacity = 0
         }
 
         // Inner impact flash
-        impactBurstScale = 0.3
-        impactBurstOpacity = 0.9
-        withAnimation(.easeOut(duration: 0.25)) {
-            impactBurstScale = 2.0
+        impactBurstScale = 0.2
+        impactBurstOpacity = 1.0
+        withAnimation(.easeOut(duration: 0.35)) {
+            impactBurstScale = 2.5
             impactBurstOpacity = 0
         }
 
-        // STRONG haptic sequence - the "slam"
-        HapticManager.shared.heavyTap()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.06) {
-            HapticManager.shared.rigid()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            HapticManager.shared.success()
+        // STRONG haptic slam
+        HapticManager.shared.flameSlamImpact()
+
+        // Shake effect via callback
+        triggerShakeSequence()
+
+        // Trigger ignition callback if going from 0→1
+        if previousStreak == 0 {
+            onIgnition?()
         }
 
         // Callback to trigger StreakHeroCard pulse
         onFlameArrived()
 
-        // Final settle
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
-                flameScale = 1.0
-            }
-        }
-
         // Fade out (merges with existing flame)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
-            withAnimation(.easeOut(duration: 0.2)) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+            withAnimation(.easeOut(duration: 0.3)) {
                 flameOpacity = 0
             }
         }
 
         // Complete and dismiss
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
             phase = .complete
-            withAnimation(.easeOut(duration: 0.15)) {
+            withAnimation(.easeOut(duration: 0.2)) {
                 isShowing = false
             }
         }
+    }
+
+    private func triggerShakeSequence() {
+        // Oscillating shake - slightly more dramatic
+        let shakeValues: [(CGFloat, Double)] = [
+            (7, 0.02),
+            (-6, 0.06),
+            (5, 0.10),
+            (-3, 0.14),
+            (2, 0.18),
+            (0, 0.22)
+        ]
+
+        for (value, delay) in shakeValues {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                onShake?(value)
+            }
+        }
+    }
+}
+
+// MARK: - Flame Position Modifier
+
+/// Positions the flame along the Bezier path based on progress
+private struct FlamePositionModifier: ViewModifier, Animatable {
+    var bezier: QuadraticBezier?
+    var progress: CGFloat
+    let fallbackPosition: CGPoint
+
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
+    }
+
+    func body(content: Content) -> some View {
+        let position: CGPoint
+        if let bezier = bezier {
+            position = bezier.point(at: progress)
+        } else {
+            position = fallbackPosition
+        }
+
+        return content.position(position)
     }
 }
 
@@ -335,9 +458,12 @@ struct LockInCelebrationView: View {
 
         LockInCelebrationView(
             isShowing: .constant(true),
-            buttonPosition: CGPoint(x: 85, y: 600),
+            buttonPosition: CGPoint(x: 200, y: 600),
             streakFlamePosition: CGPoint(x: 60, y: 200),
-            onFlameArrived: {}
+            previousStreak: 0,
+            onFlameArrived: {},
+            onIgnition: {},
+            onShake: { _ in }
         )
     }
 }

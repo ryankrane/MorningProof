@@ -38,7 +38,7 @@ struct MiniConfettiView: View {
         Color(red: 0.95, green: 0.8, blue: 0.6)    // Cream
     ]
 
-    init(particleCount: Int = 25, colors: [Color]? = nil) {
+    init(particleCount: Int = 35, colors: [Color]? = nil) {
         self.particleCount = particleCount
         self.colors = colors ?? Self.defaultColors
     }
@@ -57,7 +57,10 @@ struct MiniConfettiView: View {
             }
             .onAppear {
                 createParticles(in: geometry.size)
-                animateParticles()
+                // Delay to ensure initial state renders before animation starts
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    animateParticles()
+                }
             }
         }
         .allowsHitTesting(false)
@@ -79,7 +82,7 @@ struct MiniConfettiView: View {
                 opacity: 1.0,
                 color: colors.randomElement() ?? .orange,
                 velocityX: cos(angle) * speed,
-                velocityY: sin(angle) * speed - 60, // Stronger upward bias
+                velocityY: sin(angle) * speed - 80, // Stronger upward bias
                 rotationSpeed: Double.random(in: -400...400),
                 shapeType: ConfettiShapeType.allCases.randomElement() ?? .rectangle
             )
@@ -87,12 +90,12 @@ struct MiniConfettiView: View {
     }
 
     private func animateParticles() {
-        withAnimation(.easeOut(duration: 1.0)) { // Longer duration
+        withAnimation(.easeOut(duration: 1.2)) {
             for i in particles.indices {
-                particles[i].x += particles[i].velocityX * 0.9
-                particles[i].y += particles[i].velocityY * 0.9 + 50 // Add gravity
+                particles[i].x += particles[i].velocityX * 1.0
+                particles[i].y += particles[i].velocityY * 1.0 + 40 // Gravity with more upward travel
                 particles[i].rotation += particles[i].rotationSpeed
-                particles[i].scale *= 0.4
+                particles[i].scale *= 0.35
                 particles[i].opacity = 0
             }
         }
@@ -201,7 +204,10 @@ struct FullScreenConfettiView: View {
             }
             .onAppear {
                 createParticles(in: geometry.size)
-                animateParticles(in: geometry.size)
+                // Delay to ensure initial state renders before animation starts
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    animateParticles(in: geometry.size)
+                }
             }
         }
         .allowsHitTesting(false)

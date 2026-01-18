@@ -42,6 +42,11 @@ struct DashboardView: View {
     @State private var lockButtonFrame: CGRect = .zero
     @State private var streakFlameFrame: CGRect = .zero
 
+    // Lock-in celebration state
+    @State private var previousStreakBeforeLockIn: Int = 0
+    @State private var triggerIgnition: Bool = false
+    @State private var streakShakeOffset: CGFloat = 0
+
     // Environment
     @Environment(\.scenePhase) private var scenePhase
 
@@ -66,7 +71,9 @@ struct DashboardView: View {
                         cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
                         hasOverdueHabits: manager.hasOverdueHabits,
                         triggerPulse: $triggerStreakPulse,
-                        flameFrame: $streakFlameFrame
+                        flameFrame: $streakFlameFrame,
+                        triggerIgnition: $triggerIgnition,
+                        impactShake: $streakShakeOffset
                     )
 
                     // Habits List
@@ -78,16 +85,25 @@ struct DashboardView: View {
                 .padding(.top, MPSpacing.sm)
             }
             // Lock-in celebration overlay (when user locks in their day)
+            // Uses ignoresSafeArea to ensure full screen coverage for accurate global positioning
             if showLockInCelebration {
                 LockInCelebrationView(
                     isShowing: $showLockInCelebration,
-                    buttonPosition: lockButtonFrame.origin,
-                    streakFlamePosition: streakFlameFrame.origin,
+                    buttonPosition: CGPoint(x: lockButtonFrame.midX, y: lockButtonFrame.midY),
+                    streakFlamePosition: CGPoint(x: streakFlameFrame.midX, y: streakFlameFrame.midY),
+                    previousStreak: previousStreakBeforeLockIn,
                     onFlameArrived: {
                         // Trigger StreakHeroCard pulse when flame arrives
                         triggerStreakPulse = true
+                    },
+                    onIgnition: {
+                        triggerIgnition = true
+                    },
+                    onShake: { offset in
+                        streakShakeOffset = offset
                     }
                 )
+                .ignoresSafeArea()
             }
 
             // Side menu overlay
@@ -174,6 +190,8 @@ struct DashboardView: View {
     }
 
     private func triggerLockInCelebration() {
+        // Capture the streak BEFORE lock-in (0 = ignition, 1+ = flare-up)
+        previousStreakBeforeLockIn = manager.currentStreak
         manager.lockInDay()
         showLockInCelebration = true
     }

@@ -10,6 +10,8 @@ struct StreakHeroCard: View {
     let hasOverdueHabits: Bool  // True if past cutoff with incomplete habits (that have been completed before)
     @Binding var triggerPulse: Bool  // External trigger for flame pulse (when flying flame arrives)
     @Binding var flameFrame: CGRect  // For lock-in celebration to target the flame
+    @Binding var triggerIgnition: Bool  // For 0→1 color transition (gray→vibrant)
+    @Binding var impactShake: CGFloat  // For slam shake offset
 
     @State private var flameScale: CGFloat = 1.0
     @State private var streakNumberScale: CGFloat = 0.8
@@ -17,6 +19,15 @@ struct StreakHeroCard: View {
     @State private var glowPulse: CGFloat = 0.0
     @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
     @State private var displayedStreak: Double = 0  // For smooth speedometer-style animation
+
+    // Ignition effect states (0→1 transition)
+    @State private var ignitionGlow: CGFloat = 0
+    @State private var ignitionScale: CGFloat = 1.0
+
+    // Flare-Up effect states (1+ streak)
+    @State private var showFlareUp = false
+    @State private var flareScale: CGFloat = 1.0
+    @State private var flareOpacity: Double = 0
 
     // Milestone targets
     private let milestones = [7, 14, 21, 30, 60, 90, 180, 365]
@@ -94,24 +105,44 @@ struct StreakHeroCard: View {
             // Streak display
             HStack(spacing: MPSpacing.md) {
                 // Flame icon with dynamic glow animation
-                Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
-                    .font(.system(size: MPIconSize.xl))
-                    .foregroundStyle(flameGradient)
-                    .scaleEffect(flameScale * arrivalPulse)  // Combines normal pulse with arrival pulse
-                    // Always-on glow when streak > 0, with pulsing effect
-                    .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2), radius: glowRadius + glowPulse * 4)
-                    .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
-                    .background(
-                        GeometryReader { geo in
-                            Color.clear
-                                .onAppear {
-                                    flameFrame = geo.frame(in: .global)
-                                }
-                                .onChange(of: geo.frame(in: .global)) { _, newFrame in
-                                    flameFrame = newFrame
-                                }
-                        }
-                    )
+                ZStack {
+                    // Flare-Up effect: blurred flame pulse behind (for streak 1+)
+                    if showFlareUp {
+                        Text("🔥")
+                            .font(.system(size: MPIconSize.xl * 1.5))
+                            .scaleEffect(flareScale)
+                            .opacity(flareOpacity)
+                            .blur(radius: 8)
+                    }
+
+                    // Ignition glow effect (for 0→1 transition)
+                    Circle()
+                        .fill(MPColors.flameOrange.opacity(ignitionGlow * 0.6))
+                        .frame(width: MPIconSize.xl * 2, height: MPIconSize.xl * 2)
+                        .blur(radius: 15)
+                        .opacity(ignitionGlow)
+
+                    // Main flame icon
+                    Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
+                        .font(.system(size: MPIconSize.xl))
+                        .foregroundStyle(flameGradient)
+                        .scaleEffect(flameScale * arrivalPulse * ignitionScale)
+                        // Always-on glow when streak > 0, with pulsing effect
+                        .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2 + ignitionGlow * 0.3), radius: glowRadius + glowPulse * 4 + ignitionGlow * 10)
+                        .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
+                }
+                .offset(x: impactShake) // Apply shake offset from slam impact
+                .background(
+                    GeometryReader { geo in
+                        Color.clear
+                            .onAppear {
+                                flameFrame = geo.frame(in: .global)
+                            }
+                            .onChange(of: geo.frame(in: .global)) { _, newFrame in
+                                flameFrame = newFrame
+                            }
+                    }
+                )
 
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
@@ -238,6 +269,23 @@ struct StreakHeroCard: View {
                 withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
                     arrivalPulse = 1.3
                 }
+
+                // Flare-Up effect for streak 1+ (blurred flame pulse behind)
+                if currentStreak >= 1 {
+                    showFlareUp = true
+                    flareScale = 1.0
+                    flareOpacity = 0.8
+
+                    withAnimation(.easeOut(duration: 0.25)) {
+                        flareScale = 1.8
+                        flareOpacity = 0
+                    }
+
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                        showFlareUp = false
+                    }
+                }
+
                 // Return to normal
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
                     withAnimation(.spring(response: 0.2, dampingFraction: 0.6)) {
@@ -247,6 +295,40 @@ struct StreakHeroCard: View {
                 // Reset the trigger
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     triggerPulse = false
+                }
+            }
+        }
+        .onChange(of: triggerIgnition) { _, newValue in
+            if newValue {
+                // Ignition effect: 0→1 transition (gray→vibrant with glow + scale pulse)
+
+                // Flash glow intensity to 1.0 over 0.15s
+                withAnimation(.easeIn(duration: 0.15)) {
+                    ignitionGlow = 1.0
+                }
+
+                // Pulse scale to 1.5x with spring
+                withAnimation(.spring(response: 0.2, dampingFraction: 0.5)) {
+                    ignitionScale = 1.5
+                }
+
+                // Settle back with spring over 0.3s
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                        ignitionScale = 1.0
+                    }
+                }
+
+                // Fade out glow
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                    withAnimation(.easeOut(duration: 0.2)) {
+                        ignitionGlow = 0
+                    }
+                }
+
+                // Reset the trigger
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    triggerIgnition = false
                 }
             }
         }
@@ -268,11 +350,11 @@ struct StreakHeroCard: View {
 
 #Preview {
     VStack(spacing: MPSpacing.xl) {
-        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 8 * 3600 + 37 * 60, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
-        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
-        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 30 * 60, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 14, completedToday: 3, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 8 * 3600 + 37 * 60, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero), triggerIgnition: .constant(false), impactShake: .constant(0))
+        StreakHeroCard(currentStreak: 14, completedToday: 5, totalHabits: 5, isPerfectMorning: true, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero), triggerIgnition: .constant(false), impactShake: .constant(0))
+        StreakHeroCard(currentStreak: 0, completedToday: 0, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: 30 * 60, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: false, triggerPulse: .constant(false), flameFrame: .constant(.zero), triggerIgnition: .constant(false), impactShake: .constant(0))
         // Late state preview
-        StreakHeroCard(currentStreak: 5, completedToday: 2, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: true, triggerPulse: .constant(false), flameFrame: .constant(.zero))
+        StreakHeroCard(currentStreak: 5, completedToday: 2, totalHabits: 5, isPerfectMorning: false, timeUntilCutoff: nil, cutoffTimeFormatted: "9:00 AM", hasOverdueHabits: true, triggerPulse: .constant(false), flameFrame: .constant(.zero), triggerIgnition: .constant(false), impactShake: .constant(0))
     }
     .padding()
     .background(MPColors.background)
