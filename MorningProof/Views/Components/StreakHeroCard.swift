@@ -337,6 +337,17 @@ struct StreakHeroCard: View {
                 HapticManager.shared.success()
             }
         }
+        .onChange(of: currentStreak) { _, newValue in
+            // Animate the streak number when it changes (e.g., after lock-in)
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                displayedStreak = Double(newValue)
+            }
+            // Start fire animation if streak just became > 0
+            if newValue > 0 && !isLivingFlameActive {
+                startLivingFlameAnimation()
+                startOnFireAnimation()
+            }
+        }
         .onChange(of: triggerPulse) { _, newValue in
             if newValue {
                 // Big pulse when the flying flame arrives! (slightly bigger for drama)
