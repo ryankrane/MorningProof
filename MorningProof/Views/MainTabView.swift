@@ -67,6 +67,7 @@ struct DashboardContentView: View {
     @State private var recentlyCompletedHabits: Set<HabitType> = []
     @State private var showConfettiForHabit: HabitType? = nil
     @State private var showPerfectMorningCelebration = false
+    @State private var showGrandFinaleConfetti = false  // For final habit celebration
     @State private var triggerStreakPulse = false
     @State private var flameFrame: CGRect = .zero
     @State private var showLockInCelebration = false
@@ -78,6 +79,9 @@ struct DashboardContentView: View {
     @State private var previousStreakBeforeLockIn: Int = 0
     @State private var triggerIgnition: Bool = false
     @State private var streakShakeOffset: CGFloat = 0
+
+    // Visual streak for flame timing - only updates AFTER celebration completes
+    @State private var visualStreak: Int = 0
 
     // Custom habit state
     @State private var customHabitCameraTarget: CustomHabit? = nil
@@ -98,9 +102,9 @@ struct DashboardContentView: View {
 
                 ScrollView(showsIndicators: false) {
                     VStack(spacing: MPSpacing.xl) {
-                        // Streak Hero Card
+                        // Streak Hero Card - uses visualStreak so flame stays gray until celebration completes
                         StreakHeroCard(
-                            currentStreak: manager.currentStreak,
+                            currentStreak: visualStreak,
                             completedToday: manager.completedCount,
                             totalHabits: manager.totalEnabled,
                             isPerfectMorning: manager.isPerfectMorning,
@@ -125,6 +129,13 @@ struct DashboardContentView: View {
                 if showPerfectMorningCelebration {
                     FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
                 }
+
+                // Grand finale confetti (when final habit completed)
+                if showGrandFinaleConfetti {
+                    GrandFinaleConfettiView()
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                }
             }
             .navigationTitle(greeting)
             .navigationBarTitleDisplayMode(.large)
@@ -146,11 +157,29 @@ struct DashboardContentView: View {
             }
             .task {
                 await manager.syncHealthData()
+                // Sync after data loaded
+                visualStreak = manager.currentStreak
+            }
+            .onAppear {
+                // Initialize visualStreak with current streak
+                visualStreak = manager.currentStreak
+            }
+            .onChange(of: manager.currentStreak) { oldValue, newValue in
+                // Only sync visualStreak if:
+                // 1. Not during a lock-in celebration (showLockInCelebration is false)
+                // 2. OR streak decreased (reset/new day)
+                if !showLockInCelebration || newValue < oldValue {
+                    visualStreak = newValue
+                }
             }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task {
                         await manager.syncHealthData()
+                        // Sync after returning from background
+                        if !showLockInCelebration {
+                            visualStreak = manager.currentStreak
+                        }
                     }
                 }
             }
@@ -175,6 +204,8 @@ struct DashboardContentView: View {
                     },
                     onIgnition: {
                         triggerIgnition = true
+                        // Sync visualStreak now that ignition effect is happening
+                        visualStreak = manager.currentStreak
                     },
                     onShake: { offset in
                         streakShakeOffset = offset
@@ -354,7 +385,15 @@ struct DashboardContentView: View {
 
     // MARK: - Habit Completion Celebration
 
+    /// Returns true if completing the next habit would complete ALL habits (final habit)
+    private func isCompletingFinalHabit() -> Bool {
+        manager.completedCount == manager.totalEnabled - 1
+    }
+
     private func completeHabitWithCelebration(_ habitType: HabitType) {
+        // Check if this is the final habit BEFORE completing
+        let isFinalHabit = isCompletingFinalHabit()
+
         // Add to recently completed for scale animation
         recentlyCompletedHabits.insert(habitType)
 
@@ -370,12 +409,6 @@ struct DashboardContentView: View {
             habitRowGlow[habitType] = 0
         }
 
-        // Show confetti
-        showConfettiForHabit = habitType
-
-        // Enhanced haptic feedback
-        HapticManager.shared.habitCompletedEnhanced()
-
         // Complete the habit (workout has special handling for manual completion)
         if habitType == .morningWorkout {
             manager.completeManualWorkout()
@@ -383,9 +416,25 @@ struct DashboardContentView: View {
             manager.completeHabit(habitType)
         }
 
-        // Clear confetti after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            showConfettiForHabit = nil
+        // Show appropriate celebration based on whether this is the final habit
+        if isFinalHabit {
+            // Grand Finale for final habit
+            showGrandFinaleConfetti = true
+            HapticManager.shared.success()
+
+            // Clear grand finale after 2.5s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                showGrandFinaleConfetti = false
+            }
+        } else {
+            // Mini confetti for regular habits
+            showConfettiForHabit = habitType
+            HapticManager.shared.habitCompletedEnhanced()
+
+            // Clear confetti after 1.2s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                showConfettiForHabit = nil
+            }
         }
 
         // Remove from recently completed after animation settles
@@ -701,6 +750,9 @@ struct DashboardContentView: View {
     }
 
     private func completeCustomHabitWithCelebration(_ habitId: UUID) {
+        // Check if this is the final habit BEFORE completing
+        let isFinalHabit = isCompletingFinalHabit()
+
         recentlyCompletedCustomHabits.insert(habitId)
 
         customHabitRowFlash[habitId] = true
@@ -713,14 +765,27 @@ struct DashboardContentView: View {
             customHabitRowGlow[habitId] = 0
         }
 
-        showConfettiForCustomHabit = habitId
-
-        HapticManager.shared.habitCompletedEnhanced()
-
         manager.completeCustomHabitHonorSystem(habitId)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-            showConfettiForCustomHabit = nil
+        // Show appropriate celebration based on whether this is the final habit
+        if isFinalHabit {
+            // Grand Finale for final habit
+            showGrandFinaleConfetti = true
+            HapticManager.shared.success()
+
+            // Clear grand finale after 2.5s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                showGrandFinaleConfetti = false
+            }
+        } else {
+            // Mini confetti for regular habits
+            showConfettiForCustomHabit = habitId
+            HapticManager.shared.habitCompletedEnhanced()
+
+            // Clear confetti after 1.2s
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                showConfettiForCustomHabit = nil
+            }
         }
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
