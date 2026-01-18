@@ -23,41 +23,37 @@ struct PoofTransitionView<FirstContent: View, SecondContent: View>: View {
 
     var body: some View {
         ZStack(alignment: .leading) {
-            // First content - stays in place, just fades
+            // First content - visibility controlled only by showFirstContent
             firstContent()
-                .opacity(showFirstContent && !showSecond ? 1.0 : 0.0)
+                .opacity(showFirstContent ? 1.0 : 0.0)
 
             // Second content
             if showSecondContentView || (showSecond && !isAnimating && hasTriggeredOnce) {
                 secondContent()
                     .opacity(secondContentOpacity)
             }
-        }
-        // Particles rendered as overlay so they can escape bounds
-        .overlay(alignment: .leading) {
-            ZStack(alignment: .leading) {
-                // Dissolve particles (green, scatter outward)
-                ForEach(dissolveParticles) { particle in
-                    Circle()
-                        .fill(particle.color)
-                        .frame(width: particleSize, height: particleSize)
-                        .scaleEffect(particle.scale)
-                        .opacity(particle.opacity)
-                        .offset(x: particle.offset.x, y: particle.offset.y)
-                }
 
-                // Materialize particles (gold, converge inward)
-                ForEach(materializeParticles) { particle in
-                    Circle()
-                        .fill(particle.color)
-                        .frame(width: particleSize, height: particleSize)
-                        .scaleEffect(particle.scale)
-                        .opacity(particle.opacity)
-                        .offset(x: particle.offset.x, y: particle.offset.y)
-                }
+            // Dissolve particles (green, scatter outward)
+            ForEach(dissolveParticles) { particle in
+                Circle()
+                    .fill(particle.color)
+                    .frame(width: particleSize, height: particleSize)
+                    .scaleEffect(particle.scale)
+                    .opacity(particle.opacity)
+                    .offset(x: particle.offset.x, y: particle.offset.y)
             }
-            .allowsHitTesting(false)
+
+            // Materialize particles (gold, converge inward)
+            ForEach(materializeParticles) { particle in
+                Circle()
+                    .fill(particle.color)
+                    .frame(width: particleSize, height: particleSize)
+                    .scaleEffect(particle.scale)
+                    .opacity(particle.opacity)
+                    .offset(x: particle.offset.x, y: particle.offset.y)
+            }
         }
+        .allowsHitTesting(false)
         .onChange(of: trigger) { _, newValue in
             if newValue && showSecond && !hasTriggeredOnce {
                 startPoofTransition()
@@ -97,27 +93,26 @@ struct PoofTransitionView<FirstContent: View, SecondContent: View>: View {
         hasTriggeredOnce = true
 
         // === PHASE 1: DISSOLVE ===
-        // Create particles at content position, then scatter them
+        // Create green particles where the text is
         createDissolveParticles()
 
-        // Hide the text, show particles
+        // Hide text, particles now visible in its place
         showFirstContent = false
 
-        // Scatter particles outward after a tiny moment
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+        // Scatter particles outward
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             scatterDissolveParticles()
         }
 
         // === PHASE 2: MATERIALIZE ===
-        // Start gold particles converging
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.45) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             dissolveParticles.removeAll()
             createMaterializeParticles()
             convergeMaterializeParticles()
         }
 
-        // Show the Perfect Morning text as particles converge
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        // Show Perfect Morning text as particles converge
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
             showSecondContentView = true
             withAnimation(.easeIn(duration: 0.2)) {
                 secondContentOpacity = 1.0
@@ -125,7 +120,7 @@ struct PoofTransitionView<FirstContent: View, SecondContent: View>: View {
         }
 
         // Cleanup
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.85) {
             materializeParticles.removeAll()
             isAnimating = false
         }
