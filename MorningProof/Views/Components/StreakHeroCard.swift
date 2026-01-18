@@ -29,6 +29,15 @@ struct StreakHeroCard: View {
     @State private var flareScale: CGFloat = 1.0
     @State private var flareOpacity: Double = 0
 
+    // Living flame states (continuous animation after lock-in)
+    @State private var livingFlameRotation: Double = 0
+    @State private var livingFlameOpacity: Double = 1.0
+    @State private var isLivingFlameActive: Bool = false
+
+    // Radial flare effect (on flame arrival)
+    @State private var radialFlareScale: CGFloat = 0.3
+    @State private var radialFlareOpacity: Double = 0
+
     // Milestone targets
     private let milestones = [7, 14, 21, 30, 60, 90, 180, 365]
 
@@ -63,6 +72,21 @@ struct StreakHeroCard: View {
         case 1...6: return MPColors.flameOrange  // Orange - consistent
         case 7...29: return Color(red: 1.0, green: 0.7, blue: 0.2) // Orange-gold
         default: return Color(red: 1.0, green: 0.84, blue: 0.0) // Pure gold - consistent
+        }
+    }
+
+    /// Flame icon size scales with streak - Days 1-5 grow each day for early investment feel
+    var flameIconSize: CGFloat {
+        switch currentStreak {
+        case 0: return 40          // Gray flame (no streak)
+        case 1: return 44          // Day 1 - just ignited
+        case 2: return 48          // Day 2 - growing
+        case 3: return 52          // Day 3 - building momentum
+        case 4: return 56          // Day 4 - getting strong
+        case 5: return 60          // Day 5 - almost a week!
+        case 6...13: return 62     // Week territory
+        case 14...29: return 66    // Two week+ streak
+        default: return 72         // Month+ streak - impressive
         }
     }
 
@@ -106,6 +130,21 @@ struct StreakHeroCard: View {
             HStack(spacing: MPSpacing.md) {
                 // Flame icon with dynamic glow animation
                 ZStack {
+                    // Radial flare (expands on flame arrival)
+                    Circle()
+                        .stroke(
+                            RadialGradient(
+                                colors: [MPColors.flameOrange, MPColors.flameOrange.opacity(0.5), .clear],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 50
+                            ),
+                            lineWidth: 3
+                        )
+                        .frame(width: 100, height: 100)
+                        .scaleEffect(radialFlareScale)
+                        .opacity(radialFlareOpacity)
+
                     // Flare-Up effect: blurred flame pulse behind (for streak 1+)
                     if showFlareUp {
                         Text("🔥")
@@ -122,11 +161,13 @@ struct StreakHeroCard: View {
                         .blur(radius: 15)
                         .opacity(ignitionGlow)
 
-                    // Main flame icon
+                    // Main flame icon with living flame effect - size scales with streak
                     Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
-                        .font(.system(size: MPIconSize.xl))
+                        .font(.system(size: flameIconSize))
                         .foregroundStyle(flameGradient)
                         .scaleEffect(flameScale * arrivalPulse * ignitionScale)
+                        .rotationEffect(.degrees(livingFlameRotation))
+                        .opacity(livingFlameOpacity)
                         // Always-on glow when streak > 0, with pulsing effect
                         .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2 + ignitionGlow * 0.3), radius: glowRadius + glowPulse * 4 + ignitionGlow * 10)
                         .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
@@ -158,8 +199,8 @@ struct StreakHeroCard: View {
 
                         Spacer()
 
-                        // Countdown timer - parallel to streak
-                        if let interval = timeUntilCutoff, interval > 0 {
+                        // Countdown timer - parallel to streak (hide when Perfect Morning achieved)
+                        if let interval = timeUntilCutoff, interval > 0, !isPerfectMorning {
                             HStack(spacing: 4) {
                                 Image(systemName: "timer")
                                     .font(.system(size: 12, weight: .medium))
@@ -246,6 +287,8 @@ struct StreakHeroCard: View {
                 withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
                     glowPulse = 1.0
                 }
+                // Start living flame animation immediately for existing streaks
+                startLivingFlameAnimation()
             }
 
             // Animate perfect badge if applicable
@@ -265,9 +308,17 @@ struct StreakHeroCard: View {
         }
         .onChange(of: triggerPulse) { _, newValue in
             if newValue {
-                // Big pulse when the flying flame arrives!
+                // Big pulse when the flying flame arrives! (slightly bigger for drama)
                 withAnimation(.spring(response: 0.15, dampingFraction: 0.5)) {
-                    arrivalPulse = 1.3
+                    arrivalPulse = 1.35
+                }
+
+                // Radial flare burst - golden ring expands outward
+                radialFlareScale = 0.3
+                radialFlareOpacity = 0.9
+                withAnimation(.easeOut(duration: 0.4)) {
+                    radialFlareScale = 2.5
+                    radialFlareOpacity = 0
                 }
 
                 // Flare-Up effect for streak 1+ (blurred flame pulse behind)
@@ -292,6 +343,12 @@ struct StreakHeroCard: View {
                         arrivalPulse = 1.0
                     }
                 }
+
+                // Start living flame animation after impact settles
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    startLivingFlameAnimation()
+                }
+
                 // Reset the trigger
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                     triggerPulse = false
@@ -344,6 +401,47 @@ struct StreakHeroCard: View {
                 startPoint: .bottom,
                 endPoint: .top
             )
+        }
+    }
+
+    // MARK: - Living Flame Animation
+
+    /// Starts continuous dynamic animation on the flame to make it feel "alive" and dancing
+    private func startLivingFlameAnimation() {
+        guard !isLivingFlameActive else { return }
+        isLivingFlameActive = true
+
+        // Dancing rotation: ±4 degrees with organic timing - makes flame sway like real fire
+        func animateDancingRotation() {
+            guard isLivingFlameActive else { return }
+            let target = Double.random(in: -4...4)
+            let duration = Double.random(in: 0.2...0.5)
+            withAnimation(.easeInOut(duration: duration)) {
+                livingFlameRotation = target
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                animateDancingRotation()
+            }
+        }
+
+        // Flickering opacity: 0.75-1.0 with quick random timing - simulates flame intensity
+        func animateFlicker() {
+            guard isLivingFlameActive else { return }
+            let target = Double.random(in: 0.75...1.0)
+            let duration = Double.random(in: 0.08...0.2)
+            withAnimation(.easeInOut(duration: duration)) {
+                livingFlameOpacity = target
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
+                animateFlicker()
+            }
+        }
+
+        // Start dancing rotation
+        animateDancingRotation()
+        // Start flicker with slight offset for organic feel
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            animateFlicker()
         }
     }
 }
