@@ -77,9 +77,9 @@ struct WelcomeHeroStep: View {
                             .opacity(animateContent ? 1 : 0)
                             .offset(y: animateContent ? 0 : 12)
 
-                        // Secondary tagline - same font size, accented color
+                        // Secondary tagline - slightly smaller, accented color, single line
                         Text("Take Back Your Morning.")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .font(.system(size: 30, weight: .bold, design: .rounded))
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
@@ -90,6 +90,7 @@ struct WelcomeHeroStep: View {
                                     endPoint: .trailing
                                 )
                             )
+                            .fixedSize(horizontal: true, vertical: false)
                             .opacity(animateContent ? 1 : 0)
                             .offset(y: animateContent ? 0 : 10)
                             .animation(.easeOut(duration: 0.8).delay(0.15), value: animateContent)

@@ -62,10 +62,10 @@ struct GuardrailStep: View {
             .offset(y: showHeadline ? 0 : 10)
 
             Spacer()
-                .frame(height: MPSpacing.xxl)
+                .frame(height: MPSpacing.xl)
 
             // Friction Cards
-            VStack(spacing: MPSpacing.lg) {
+            VStack(spacing: MPSpacing.md) {
                 ForEach(0..<3, id: \.self) { index in
                     let card = frictionCards[index]
                     FrictionCard(
@@ -114,50 +114,46 @@ struct FrictionCard: View {
     let accentColor: Color
 
     var body: some View {
-        HStack(alignment: .top, spacing: MPSpacing.lg) {
+        HStack(alignment: .top, spacing: MPSpacing.md) {
             // Icon with glow effect
             ZStack {
                 // Outer glow
                 Circle()
                     .fill(accentColor.opacity(0.2))
-                    .frame(width: 64, height: 64)
-                    .blur(radius: 8)
+                    .frame(width: 52, height: 52)
+                    .blur(radius: 6)
 
                 // Icon container
                 RoundedRectangle(cornerRadius: MPRadius.md)
                     .fill(accentColor.opacity(0.15))
-                    .frame(width: 52, height: 52)
+                    .frame(width: 44, height: 44)
 
                 Image(systemName: icon)
-                    .font(.system(size: 24, weight: .medium))
+                    .font(.system(size: 20, weight: .medium))
                     .foregroundColor(accentColor)
             }
-            .frame(width: 52, height: 52) // Constrain the ZStack to prevent layout issues
+            .frame(width: 44, height: 44)
 
-            VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                // Title row with tagline
-                HStack(spacing: MPSpacing.sm) {
+            VStack(alignment: .leading, spacing: 2) {
+                // Title with tagline as subtitle
+                HStack(alignment: .firstTextBaseline, spacing: MPSpacing.sm) {
                     Text(title)
-                        .font(.system(size: 16, weight: .bold))
+                        .font(.system(size: 15, weight: .bold))
                         .foregroundColor(MPColors.textPrimary)
 
-                    Text("•")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.textTertiary)
-
                     Text(tagline)
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(accentColor)
                 }
 
                 Text(description)
-                    .font(.system(size: 13))
+                    .font(.system(size: 12))
                     .foregroundColor(MPColors.textSecondary)
-                    .lineSpacing(2)
+                    .lineSpacing(1)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
-        .padding(MPSpacing.xl)
+        .padding(MPSpacing.lg)
         .background(
             ZStack {
                 MPColors.surface
