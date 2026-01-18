@@ -96,26 +96,28 @@ struct PoofTransitionView<FirstContent: View, SecondContent: View>: View {
         isAnimating = true
         hasTriggeredOnce = true
 
-        // Create particles for dissolve
+        // Phase 1: Create dissolve particles and immediately hide content
+        // Particles visually replace the content
         createDissolveParticles()
 
-        // Phase 1: Fade out first content while particles scatter
-        withAnimation(.easeOut(duration: 0.15)) {
-            firstContentOpacity = 0
+        // Instantly hide content - particles are now visible in its place
+        firstContentOpacity = 0
+
+        // Brief moment to see particles before they scatter
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            // Animate particles scattering outward
+            animateDissolve()
         }
 
-        // Animate particles scattering outward
-        animateDissolve()
-
         // Phase 2: After dissolve, start materialize
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             showFirst = false
             createMaterializeParticles()
             animateMaterialize()
         }
 
         // Phase 3: Show second content as particles converge
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
             showSecondContent = true
             withAnimation(.easeIn(duration: 0.25)) {
                 secondContentOpacity = 1.0
@@ -123,7 +125,7 @@ struct PoofTransitionView<FirstContent: View, SecondContent: View>: View {
         }
 
         // Cleanup
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
             particles.removeAll()
             isAnimating = false
         }
