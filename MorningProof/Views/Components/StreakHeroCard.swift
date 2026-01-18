@@ -13,7 +13,6 @@ struct StreakHeroCard: View {
     @Binding var triggerIgnition: Bool  // For 0→1 color transition (gray→vibrant)
     @Binding var impactShake: CGFloat  // For slam shake offset
 
-    @State private var flameScale: CGFloat = 1.0
     @State private var streakNumberScale: CGFloat = 0.8
     @State private var showPerfectBadge = false
     @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
@@ -132,7 +131,7 @@ struct StreakHeroCard: View {
                 Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
                     .font(.system(size: flameIconSize))
                     .foregroundStyle(flameGradient)
-                    .scaleEffect(flameScale * arrivalPulse * ignitionScale * flamePulseScale)
+                    .scaleEffect(arrivalPulse * ignitionScale * flamePulseScale)
                     .opacity(flameIntensity)
                     // Always-on glow when streak > 0, with pulsing effect synced to flame intensity
                     .shadow(color: glowColor.opacity((glowOpacity + ignitionGlow * 0.3) * flameIntensity), radius: glowRadius + ignitionGlow * 10)
@@ -277,12 +276,7 @@ struct StreakHeroCard: View {
                 streakNumberScale = 1.0
             }
 
-            // Animate flame pulsing (scale)
-            withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-                flameScale = 1.1
-            }
-
-            // Start flame pulsing animation for active streaks
+            // Only animate flame when streak is active
             if currentStreak > 0 {
                 startFlameAnimation()
             }
