@@ -80,7 +80,7 @@ struct LockInDayButton: View {
     @State private var pulseScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.3
     @State private var shimmerOffset: CGFloat = -1.5
-    @State private var lockedGlowPulse: CGFloat = 0.4
+    @State private var lockedGlowPulse: CGFloat = 0.3
     @State private var brushedShimmerOffset: CGFloat = -1.0
     @State private var holdStartTime: Date?
     @State private var holdTimer: Timer?
@@ -537,7 +537,7 @@ struct LockInDayButton: View {
     private func startLockedAnimations() {
         // Celebratory glow pulse - subtle breathing effect
         withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) {
-            lockedGlowPulse = 0.7
+            lockedGlowPulse = 0.5
         }
 
         // Brushed shimmer for dark mode - subtle metallic gleam
