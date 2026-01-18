@@ -31,6 +31,7 @@ struct StreakHeroCard: View {
     @State private var isLivingFlameActive: Bool = false
     @State private var flamePulseScale: CGFloat = 1.0
     @State private var flameIntensity: CGFloat = 1.0
+    @State private var flameRotation: Double = 0  // Subtle sway left/right
 
     // Radial flare effect (on flame arrival)
     @State private var radialFlareScale: CGFloat = 0.3
@@ -132,6 +133,7 @@ struct StreakHeroCard: View {
                     .font(.system(size: flameIconSize))
                     .foregroundStyle(flameGradient)
                     .scaleEffect(arrivalPulse * ignitionScale * flamePulseScale)
+                    .rotationEffect(.degrees(flameRotation), anchor: .bottom)  // Sway from base
                     .opacity(flameIntensity)
                     // Always-on glow when streak > 0, with pulsing effect synced to flame intensity
                     .shadow(color: glowColor.opacity((glowOpacity + ignitionGlow * 0.3) * flameIntensity), radius: glowRadius + ignitionGlow * 10)
@@ -406,7 +408,7 @@ struct StreakHeroCard: View {
 
     // MARK: - Flame Animation
 
-    /// Creates a realistic flame pulsing effect - scale and intensity pulse like a real fire
+    /// Creates a realistic flame pulsing effect - scale, intensity, and sway like a real fire
     private func startFlameAnimation() {
         guard !isLivingFlameActive else { return }
         isLivingFlameActive = true
@@ -414,17 +416,17 @@ struct StreakHeroCard: View {
         // Flame pulse: scale grows and shrinks like fire rising and falling
         func animateScale() {
             guard isLivingFlameActive else { return }
-            // Rise up
-            withAnimation(.easeOut(duration: 0.4)) {
+            // Rise up (slowed down)
+            withAnimation(.easeOut(duration: 0.5)) {
                 flamePulseScale = 1.06
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 guard isLivingFlameActive else { return }
-                // Fall back
-                withAnimation(.easeIn(duration: 0.5)) {
+                // Fall back (slowed down)
+                withAnimation(.easeIn(duration: 0.6)) {
                     flamePulseScale = 0.97
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
                     animateScale()
                 }
             }
@@ -433,26 +435,48 @@ struct StreakHeroCard: View {
         // Intensity pulse: brightness fluctuates like flame intensity
         func animateIntensity() {
             guard isLivingFlameActive else { return }
-            // Brighten
-            withAnimation(.easeOut(duration: 0.3)) {
+            // Brighten (slowed down)
+            withAnimation(.easeOut(duration: 0.4)) {
                 flameIntensity = 1.0
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 guard isLivingFlameActive else { return }
-                // Dim slightly
-                withAnimation(.easeIn(duration: 0.6)) {
+                // Dim slightly (slowed down)
+                withAnimation(.easeIn(duration: 0.7)) {
                     flameIntensity = 0.85
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                     animateIntensity()
                 }
             }
         }
 
-        // Start both animations with offset for organic feel
+        // Rotation sway: subtle left-right movement like wind flickering
+        func animateSway() {
+            guard isLivingFlameActive else { return }
+            // Sway right
+            withAnimation(.easeInOut(duration: 0.7)) {
+                flameRotation = 3.0
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                guard isLivingFlameActive else { return }
+                // Sway left
+                withAnimation(.easeInOut(duration: 0.8)) {
+                    flameRotation = -3.0
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                    animateSway()
+                }
+            }
+        }
+
+        // Start all animations with offsets for organic feel
         animateScale()
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             animateIntensity()
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            animateSway()
         }
     }
 }
