@@ -5,38 +5,14 @@ struct DaySchedulePicker: View {
     @Binding var activeDays: Set<Int>
 
     var body: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.lg) {
-            // Quick presets
-            HStack(spacing: MPSpacing.sm) {
-                PresetButton(
-                    title: "Every day",
-                    isSelected: activeDays == DaySchedule.allDays,
-                    action: { activeDays = DaySchedule.allDays }
+        HStack(spacing: MPSpacing.md) {
+            ForEach(DaySchedule.shortDayNames, id: \.day) { dayInfo in
+                DayToggleCircle(
+                    day: dayInfo.day,
+                    label: dayInfo.name,
+                    isSelected: activeDays.contains(dayInfo.day),
+                    onToggle: { toggleDay(dayInfo.day) }
                 )
-
-                PresetButton(
-                    title: "Weekdays",
-                    isSelected: activeDays == DaySchedule.weekdays,
-                    action: { activeDays = DaySchedule.weekdays }
-                )
-
-                PresetButton(
-                    title: "Weekends",
-                    isSelected: activeDays == DaySchedule.weekends,
-                    action: { activeDays = DaySchedule.weekends }
-                )
-            }
-
-            // Individual day toggles
-            HStack(spacing: MPSpacing.sm) {
-                ForEach(DaySchedule.shortDayNames, id: \.day) { dayInfo in
-                    DayToggleCircle(
-                        day: dayInfo.day,
-                        label: dayInfo.name,
-                        isSelected: activeDays.contains(dayInfo.day),
-                        onToggle: { toggleDay(dayInfo.day) }
-                    )
-                }
             }
         }
     }
@@ -53,29 +29,6 @@ struct DaySchedulePicker: View {
     }
 }
 
-// MARK: - Preset Button
-
-private struct PresetButton: View {
-    let title: String
-    let isSelected: Bool
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            Text(title)
-                .font(MPFont.labelSmall())
-                .foregroundColor(isSelected ? .white : MPColors.textSecondary)
-                .padding(.horizontal, MPSpacing.md)
-                .padding(.vertical, MPSpacing.sm)
-                .background(
-                    RoundedRectangle(cornerRadius: MPRadius.sm)
-                        .fill(isSelected ? MPColors.primary : MPColors.surfaceSecondary)
-                )
-        }
-        .buttonStyle(.plain)
-    }
-}
-
 // MARK: - Day Toggle Circle
 
 private struct DayToggleCircle: View {
@@ -87,9 +40,9 @@ private struct DayToggleCircle: View {
     var body: some View {
         Button(action: onToggle) {
             Text(label)
-                .font(.system(size: 14, weight: isSelected ? .semibold : .medium))
+                .font(.system(size: 16, weight: isSelected ? .semibold : .medium))
                 .foregroundColor(isSelected ? .white : MPColors.textSecondary)
-                .frame(width: 36, height: 36)
+                .frame(width: 44, height: 44)
                 .background(
                     Circle()
                         .fill(isSelected ? MPColors.primary : MPColors.surfaceSecondary)

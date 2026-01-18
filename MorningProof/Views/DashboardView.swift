@@ -458,7 +458,7 @@ struct DashboardView: View {
                             .font(.body)
                             .foregroundColor(.white)
                             .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.accentGold)
+                            .background(MPColors.primary)
                             .cornerRadius(MPRadius.sm)
                     }
                 } else if !isCompleted && config.habitType == .hydration {
@@ -671,11 +671,59 @@ struct DashboardView: View {
             }
             .font(MPFont.bodySmall())
             .foregroundColor(MPColors.error)
+        } else if customHabit.verificationType == .aiVerified {
+            Text(formatVerificationPrompt(customHabit.aiPrompt))
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textTertiary)
+                .lineLimit(1)
         } else {
-            Text(customHabit.verificationType == .aiVerified ? "Take a photo to verify" : "Hold to complete")
+            Text("Hold to complete")
                 .font(MPFont.bodySmall())
                 .foregroundColor(MPColors.textTertiary)
         }
+    }
+
+    /// Formats the AI verification prompt into a user-friendly status text
+    private func formatVerificationPrompt(_ prompt: String?) -> String {
+        guard let prompt = prompt?.trimmingCharacters(in: .whitespaces), !prompt.isEmpty else {
+            return "Take a photo"
+        }
+
+        var cleaned = prompt
+
+        // Remove common AI-instruction prefixes to make it more user-facing
+        let prefixesToRemove = [
+            "make me show ",
+            "make me ",
+            "show me ",
+            "show that ",
+            "show ",
+            "verify that ",
+            "verify ",
+            "check that ",
+            "check if ",
+            "check "
+        ]
+
+        let lowercased = cleaned.lowercased()
+        for prefix in prefixesToRemove {
+            if lowercased.hasPrefix(prefix) {
+                cleaned = String(cleaned.dropFirst(prefix.count))
+                break
+            }
+        }
+
+        // Capitalize first letter
+        if let first = cleaned.first {
+            cleaned = first.uppercased() + cleaned.dropFirst()
+        }
+
+        // Truncate if too long
+        if cleaned.count > 30 {
+            cleaned = String(cleaned.prefix(27)) + "..."
+        }
+
+        return "Show: " + cleaned
     }
 
     // MARK: - Habit Completion Celebrations

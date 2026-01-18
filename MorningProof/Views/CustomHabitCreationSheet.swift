@@ -9,7 +9,7 @@ struct CustomHabitCreationSheet: View {
 
     // Form state
     @State private var habitName: String = ""
-    @State private var selectedIcon: String = "star.fill"
+    @State private var selectedIcon: String = "bolt.fill"
     @State private var verificationType: CustomVerificationType = .honorSystem
     @State private var aiPrompt: String = ""
 

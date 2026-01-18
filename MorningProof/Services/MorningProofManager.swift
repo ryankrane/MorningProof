@@ -65,6 +65,10 @@ final class MorningProofManager: ObservableObject, Sendable {
         if let savedCustomConfigs = storageService.loadCustomHabitConfigs() {
             customHabitConfigs = savedCustomConfigs
         }
+
+        // Ensure every custom habit has a config (fixes data inconsistencies)
+        reconcileCustomHabitConfigs()
+
         if let savedCustomCompletions = storageService.loadCustomCompletions(for: Date()) {
             todayCustomCompletions = savedCustomCompletions
         } else {
@@ -341,10 +345,13 @@ final class MorningProofManager: ObservableObject, Sendable {
         )
         customHabitConfigs.append(config)
 
-        // Create today's completion
-        let completion = CustomHabitCompletion(customHabitId: habit.id)
-        todayCustomCompletions.append(completion)
+        // Create today's completion (only if habit is active today)
+        if DaySchedule.isActiveOn(date: Date(), activeDays: habit.activeDays) {
+            let completion = CustomHabitCompletion(customHabitId: habit.id)
+            todayCustomCompletions.append(completion)
+        }
 
+        recalculateScore()
         saveCurrentState()
     }
 
@@ -361,7 +368,50 @@ final class MorningProofManager: ObservableObject, Sendable {
         customHabits.removeAll { $0.id == id }
         customHabitConfigs.removeAll { $0.customHabitId == id }
         todayCustomCompletions.removeAll { $0.customHabitId == id }
+        recalculateScore()
         saveCurrentState()
+    }
+
+    /// Ensures every custom habit has a corresponding config.
+    /// This fixes data inconsistencies where habits exist but configs are missing.
+    private func reconcileCustomHabitConfigs() {
+        var needsSave = false
+
+        // Fix any habits that have isActive = false (all custom habits should be active)
+        for i in customHabits.indices where !customHabits[i].isActive {
+            customHabits[i].isActive = true
+            needsSave = true
+        }
+
+        let existingConfigIds = Set(customHabitConfigs.map { $0.customHabitId })
+
+        for habit in customHabits where habit.isActive {
+            if !existingConfigIds.contains(habit.id) {
+                // Create missing config with enabled=true
+                let config = CustomHabitConfig(
+                    customHabitId: habit.id,
+                    isEnabled: true,
+                    displayOrder: customHabitConfigs.count
+                )
+                customHabitConfigs.append(config)
+                needsSave = true
+            }
+        }
+
+        // Also create today's completions for newly configured habits
+        if needsSave {
+            for config in customHabitConfigs where config.isEnabled {
+                if let habit = customHabits.first(where: { $0.id == config.customHabitId && $0.isActive }) {
+                    if DaySchedule.isActiveOn(date: Date(), activeDays: habit.activeDays) {
+                        if !todayCustomCompletions.contains(where: { $0.customHabitId == config.customHabitId }) {
+                            let completion = CustomHabitCompletion(customHabitId: config.customHabitId)
+                            todayCustomCompletions.append(completion)
+                        }
+                    }
+                }
+            }
+            saveCurrentState()
+        }
     }
 
     /// Toggle custom habit enabled state

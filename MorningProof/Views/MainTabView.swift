@@ -73,6 +73,14 @@ struct DashboardContentView: View {
     @State private var habitRowFlash: [HabitType: Bool] = [:]
     @State private var habitRowGlow: [HabitType: CGFloat] = [:]
 
+    // Custom habit state
+    @State private var customHabitCameraTarget: CustomHabit? = nil
+    @State private var customHoldProgress: [UUID: CGFloat] = [:]
+    @State private var recentlyCompletedCustomHabits: Set<UUID> = []
+    @State private var customHabitRowFlash: [UUID: Bool] = [:]
+    @State private var customHabitRowGlow: [UUID: CGFloat] = [:]
+    @State private var showConfettiForCustomHabit: UUID? = nil
+
     var body: some View {
         NavigationStack {
             ZStack {
@@ -133,6 +141,9 @@ struct DashboardContentView: View {
             .sheet(isPresented: $showSleepInput) {
                 SleepInputSheet(manager: manager)
             }
+            .sheet(item: $customHabitCameraTarget) { habit in
+                CustomHabitCameraView(manager: manager, customHabit: habit)
+            }
             .task {
                 await manager.syncHealthData()
             }
@@ -181,6 +192,11 @@ struct DashboardContentView: View {
             // All habits in a single unified list
             ForEach(manager.enabledHabits) { config in
                 habitRow(for: config)
+            }
+
+            // Custom habits
+            ForEach(manager.enabledCustomHabits) { customHabit in
+                customHabitRow(for: customHabit)
             }
 
             // Lock In Day Button
@@ -447,7 +463,7 @@ struct DashboardContentView: View {
                         .font(.body)
                         .foregroundColor(.white)
                         .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                        .background(MPColors.accentGold)
+                        .background(MPColors.primary)
                         .cornerRadius(MPRadius.sm)
                 }
 
@@ -490,6 +506,186 @@ struct DashboardContentView: View {
                 // The green fill serves as the indicator
                 EmptyView()
             }
+        }
+    }
+
+    // MARK: - Custom Habit Row
+
+    func customHabitRow(for customHabit: CustomHabit) -> some View {
+        let completion = manager.getCustomCompletion(for: customHabit.id)
+        let isCompleted = completion?.isCompleted ?? false
+        let justCompleted = recentlyCompletedCustomHabits.contains(customHabit.id)
+        let glowIntensity = customHabitRowGlow[customHabit.id] ?? 0
+        let progress = customHoldProgress[customHabit.id] ?? 0
+        let isHoldType = customHabit.verificationType == .honorSystem
+
+        return ZStack {
+            // Base background
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.surface)
+
+            // Green fill progress overlay
+            GeometryReader { geo in
+                RoundedRectangle(cornerRadius: MPRadius.lg)
+                    .fill(isCompleted ? MPColors.success.opacity(0.4) : MPColors.success.opacity(0.3))
+                    .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
+            }
+
+            HStack(spacing: MPSpacing.lg) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(isCompleted ? MPColors.successLight : MPColors.surfaceSecondary)
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: customHabit.icon)
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textTertiary)
+                }
+
+                // Info
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                    Text(customHabit.name)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    customHabitStatusText(for: customHabit, completion: completion)
+                }
+
+                Spacer()
+
+                // Camera button for AI verified habits
+                if !isCompleted && customHabit.verificationType == .aiVerified {
+                    Button {
+                        customHabitCameraTarget = customHabit
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.sm)
+                    }
+                }
+
+                // Checkmark for completed habits
+                if isCompleted {
+                    CheckmarkCircle(isCompleted: true, size: 28)
+                }
+            }
+            .padding(MPSpacing.lg)
+
+            // Flash overlay
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.success.opacity(customHabitRowFlash[customHabit.id] ?? false ? 0.25 : 0))
+
+            if showConfettiForCustomHabit == customHabit.id {
+                MiniConfettiView()
+                    .allowsHitTesting(false)
+            }
+        }
+        .mpShadow(.small)
+        .shadow(color: MPColors.success.opacity(glowIntensity), radius: 12, x: 0, y: 2)
+        .scaleEffect(justCompleted ? 1.05 : 1.0)
+        .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
+        .modifier(HoldToCompleteModifier(
+            isEnabled: isHoldType && !isCompleted,
+            progress: Binding(
+                get: { customHoldProgress[customHabit.id] ?? 0 },
+                set: { customHoldProgress[customHabit.id] = $0 }
+            ),
+            onCompleted: {
+                completeCustomHabitWithCelebration(customHabit.id)
+            }
+        ))
+    }
+
+    @ViewBuilder
+    func customHabitStatusText(for customHabit: CustomHabit, completion: CustomHabitCompletion?) -> some View {
+        if let completion = completion, completion.isCompleted {
+            Text(customHabit.verificationType == .aiVerified ? "Verified" : "Completed")
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.success)
+        } else if customHabit.verificationType == .aiVerified {
+            Text(formatVerificationPrompt(customHabit.aiPrompt))
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textTertiary)
+                .lineLimit(1)
+        } else {
+            Text("Hold to complete")
+                .font(MPFont.bodySmall())
+                .foregroundColor(MPColors.textTertiary)
+        }
+    }
+
+    /// Formats the AI verification prompt into a user-friendly status text
+    private func formatVerificationPrompt(_ prompt: String?) -> String {
+        guard let prompt = prompt?.trimmingCharacters(in: .whitespaces), !prompt.isEmpty else {
+            return "Take a photo"
+        }
+
+        var cleaned = prompt
+
+        // Remove common AI-instruction prefixes to make it more user-facing
+        let prefixesToRemove = [
+            "make me show ",
+            "make me ",
+            "show me ",
+            "show that ",
+            "show ",
+            "verify that ",
+            "verify ",
+            "check that ",
+            "check if ",
+            "check "
+        ]
+
+        let lowercased = cleaned.lowercased()
+        for prefix in prefixesToRemove {
+            if lowercased.hasPrefix(prefix) {
+                cleaned = String(cleaned.dropFirst(prefix.count))
+                break
+            }
+        }
+
+        // Capitalize first letter
+        if let first = cleaned.first {
+            cleaned = first.uppercased() + cleaned.dropFirst()
+        }
+
+        // Truncate if too long
+        if cleaned.count > 30 {
+            cleaned = String(cleaned.prefix(27)) + "..."
+        }
+
+        return "Show: " + cleaned
+    }
+
+    private func completeCustomHabitWithCelebration(_ habitId: UUID) {
+        recentlyCompletedCustomHabits.insert(habitId)
+
+        customHabitRowFlash[habitId] = true
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            customHabitRowFlash[habitId] = false
+        }
+
+        customHabitRowGlow[habitId] = 0.5
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            customHabitRowGlow[habitId] = 0
+        }
+
+        showConfettiForCustomHabit = habitId
+
+        HapticManager.shared.habitCompletedEnhanced()
+
+        manager.completeCustomHabitHonorSystem(habitId)
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            showConfettiForCustomHabit = nil
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            recentlyCompletedCustomHabits.remove(habitId)
         }
     }
 }
@@ -895,6 +1091,7 @@ struct SettingsTabView: View {
 struct HabitEditorSheet: View {
     @ObservedObject var manager: MorningProofManager
     @Environment(\.dismiss) var dismiss
+    @State private var showCreateCustomHabit = false
 
     var body: some View {
         NavigationStack {
@@ -903,9 +1100,64 @@ struct HabitEditorSheet: View {
                     .ignoresSafeArea()
 
                 ScrollView {
-                    VStack(spacing: MPSpacing.md) {
-                        ForEach(HabitType.allCases) { habitType in
-                            habitToggleRow(habitType)
+                    VStack(spacing: MPSpacing.xl) {
+                        // MARK: - Predefined Habits Section
+                        VStack(alignment: .leading, spacing: MPSpacing.md) {
+                            Text("MORNING HABITS")
+                                .font(MPFont.labelSmall())
+                                .foregroundColor(MPColors.textTertiary)
+                                .padding(.horizontal, MPSpacing.sm)
+
+                            VStack(spacing: MPSpacing.md) {
+                                ForEach(HabitType.allCases) { habitType in
+                                    habitToggleRow(habitType)
+                                }
+                            }
+                        }
+
+                        // MARK: - Custom Habits Section
+                        VStack(alignment: .leading, spacing: MPSpacing.md) {
+                            Text("CUSTOM HABITS")
+                                .font(MPFont.labelSmall())
+                                .foregroundColor(MPColors.textTertiary)
+                                .padding(.horizontal, MPSpacing.sm)
+
+                            VStack(spacing: MPSpacing.md) {
+                                ForEach(manager.customHabits.filter { $0.isActive }) { habit in
+                                    customHabitToggleRow(habit)
+                                }
+
+                                // Add Custom Habit Button
+                                Button {
+                                    showCreateCustomHabit = true
+                                } label: {
+                                    HStack(spacing: MPSpacing.lg) {
+                                        ZStack {
+                                            Circle()
+                                                .fill(MPColors.primaryLight)
+                                                .frame(width: 44, height: 44)
+
+                                            Image(systemName: "plus")
+                                                .font(.system(size: MPIconSize.sm, weight: .medium))
+                                                .foregroundColor(MPColors.primary)
+                                        }
+
+                                        Text("Add Custom Habit")
+                                            .font(MPFont.labelMedium())
+                                            .foregroundColor(MPColors.primary)
+
+                                        Spacer()
+
+                                        Image(systemName: "chevron.right")
+                                            .font(.system(size: 14, weight: .medium))
+                                            .foregroundColor(MPColors.textTertiary)
+                                    }
+                                    .padding(MPSpacing.lg)
+                                    .background(MPColors.surface)
+                                    .cornerRadius(MPRadius.lg)
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
                     .padding(MPSpacing.xl)
@@ -921,6 +1173,9 @@ struct HabitEditorSheet: View {
                     .fontWeight(.semibold)
                     .foregroundColor(MPColors.primary)
                 }
+            }
+            .sheet(isPresented: $showCreateCustomHabit) {
+                CustomHabitCreationSheet(manager: manager)
             }
         }
     }
@@ -949,6 +1204,47 @@ struct HabitEditorSheet: View {
                         .foregroundColor(MPColors.textPrimary)
 
                     Text(habitType.tier.description)
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+                Spacer()
+
+                Image(systemName: isEnabled ? "checkmark.circle.fill" : "circle")
+                    .font(.title2)
+                    .foregroundColor(isEnabled ? MPColors.success : MPColors.border)
+            }
+            .padding(MPSpacing.lg)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+        }
+        .buttonStyle(.plain)
+    }
+
+    func customHabitToggleRow(_ habit: CustomHabit) -> some View {
+        let config = manager.customHabitConfigs.first { $0.customHabitId == habit.id }
+        let isEnabled = config?.isEnabled ?? false
+
+        return Button {
+            manager.toggleCustomHabit(habit.id, isEnabled: !isEnabled)
+        } label: {
+            HStack(spacing: MPSpacing.lg) {
+                ZStack {
+                    Circle()
+                        .fill(isEnabled ? MPColors.successLight : MPColors.surfaceSecondary)
+                        .frame(width: 44, height: 44)
+
+                    Image(systemName: habit.icon)
+                        .font(.system(size: MPIconSize.sm))
+                        .foregroundColor(isEnabled ? MPColors.success : MPColors.textTertiary)
+                }
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(habit.name)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text(habit.verificationType.displayName)
                         .font(MPFont.bodySmall())
                         .foregroundColor(MPColors.textTertiary)
                 }
