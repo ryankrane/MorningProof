@@ -37,13 +37,11 @@ struct DistractionCard: View {
     var body: some View {
         Button(action: {
             if !isSelected {
-                // Trigger heavy haptic when locking
-                let impactFeedback = UIImpactFeedbackGenerator(style: .heavy)
-                impactFeedback.impactOccurred()
+                // Heavy THUD haptic when locking an app
+                HapticManager.shared.heavyTap()
             } else {
                 // Light haptic when unlocking
-                let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                impactFeedback.impactOccurred()
+                HapticManager.shared.light()
             }
             onTap()
         }) {
@@ -150,12 +148,12 @@ struct DistractionSelectionView: View {
                 VStack(spacing: MPSpacing.xxl) {
                     // Header
                     VStack(spacing: MPSpacing.md) {
-                        Text("Which apps own your morning?")
+                        Text("Lock your biggest time-wasters")
                             .font(.system(size: 26, weight: .bold))
                             .foregroundColor(MPColors.textPrimary)
                             .multilineTextAlignment(.center)
 
-                        Text("Select the apps that kill your productivity.\nWe'll lock them until you prove you're awake.")
+                        Text("Choose the apps that steal your mornings.\nThey stay locked until your habits are done.")
                             .font(.system(size: 15))
                             .foregroundColor(MPColors.textSecondary)
                             .multilineTextAlignment(.center)
@@ -197,8 +195,7 @@ struct DistractionSelectionView: View {
                     if selectedDistractions.isEmpty {
                         // Ghost button state
                         Button(action: {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .light)
-                            impactFeedback.impactOccurred()
+                            HapticManager.shared.light()
                             onContinue(selectedDistractions)
                         }) {
                             Text("I have no distractions")
@@ -214,8 +211,7 @@ struct DistractionSelectionView: View {
                     } else {
                         // Active state with count
                         Button(action: {
-                            let impactFeedback = UIImpactFeedbackGenerator(style: .medium)
-                            impactFeedback.impactOccurred()
+                            HapticManager.shared.medium()
                             onContinue(selectedDistractions)
                         }) {
                             HStack(spacing: MPSpacing.sm) {

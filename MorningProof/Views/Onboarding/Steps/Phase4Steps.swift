@@ -40,7 +40,7 @@ struct PermissionsStep: View {
                     icon: "heart.fill",
                     iconColor: MPColors.error,
                     title: "Apple Health",
-                    description: "Auto-track sleep & steps",
+                    description: "Skip manual check-ins—we pull your data automatically",
                     isEnabled: data.healthConnected,
                     isLoading: isRequestingHealth
                 ) {
@@ -52,7 +52,7 @@ struct PermissionsStep: View {
                     icon: "bell.badge.fill",
                     iconColor: MPColors.primary,
                     title: "Notifications",
-                    description: "Morning reminders & streak alerts",
+                    description: "Never forget your routine or break your streak",
                     isEnabled: data.notificationsEnabled,
                     isLoading: isRequestingNotifications
                 ) {
@@ -64,7 +64,7 @@ struct PermissionsStep: View {
                     icon: "lock.shield.fill",
                     iconColor: MPColors.accentGold,
                     title: "App Locking",
-                    description: "Block distracting apps",
+                    description: "Lock distractions until your habits are done",
                     isEnabled: screenTimeEnabled,
                     isLoading: isRequestingScreenTime
                 ) {
@@ -271,7 +271,7 @@ struct OptionalRatingStep: View {
 // MARK: - Step 15: Analyzing
 
 struct AnalyzingStep: View {
-    let userName: String
+    @ObservedObject var data: OnboardingData
     let onComplete: () -> Void
 
     @State private var progress: CGFloat = 0
@@ -280,12 +280,18 @@ struct AnalyzingStep: View {
     @State private var rotationAngle: Double = 0
     @State private var glowOpacity: Double = 0.3
 
+    private var userName: String { data.userName }
+
     private var phases: [(title: String, icon: String)] {
-        [
-            (title: "Analyzing your responses", icon: "doc.text.magnifyingglass"),
-            (title: "Identifying your patterns", icon: "brain.head.profile"),
-            (title: "Selecting optimal habits", icon: "target"),
-            (title: "Building your routine", icon: "checkmark.seal")
+        let struggleCount = data.morningStruggles.count
+        let goalCount = data.desiredOutcomes.count
+        let obstacleCount = data.obstacles.count
+
+        return [
+            (title: struggleCount > 0 ? "Analyzing \(struggleCount) morning challenge\(struggleCount == 1 ? "" : "s")" : "Analyzing your responses", icon: "doc.text.magnifyingglass"),
+            (title: obstacleCount > 0 ? "Finding solutions for \(obstacleCount) obstacle\(obstacleCount == 1 ? "" : "s")" : "Identifying your patterns", icon: "brain.head.profile"),
+            (title: goalCount > 0 ? "Matching habits to \(goalCount) goal\(goalCount == 1 ? "" : "s")" : "Selecting optimal habits", icon: "target"),
+            (title: "Building your personalized routine", icon: "checkmark.seal")
         ]
     }
 
@@ -606,7 +612,11 @@ struct RecommendedHabitRow: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            // Light tap haptic when selecting/deselecting habits
+            HapticManager.shared.light()
+            action()
+        }) {
             HStack(spacing: MPSpacing.lg) {
                 ZStack {
                     Circle()

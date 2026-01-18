@@ -127,7 +127,7 @@ class OnboardingData: ObservableObject {
     }
 }
 
-// MARK: - Onboarding Flow View (18 Steps)
+// MARK: - Onboarding Flow View (17 Steps - Gender removed, Distraction moved)
 
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
@@ -158,27 +158,27 @@ struct OnboardingFlowView: View {
                     // Phase 1: Hook & Personalization
                     case 0: WelcomeHeroStep(onContinue: nextStep)
                     case 1: NameStep(data: onboardingData, onContinue: nextStep)
-                    case 2: GenderStep(data: onboardingData, onContinue: nextStep)
-                    case 3: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
+                    case 2: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
 
                     // Phase 2: Problem Agitation & Social Proof
-                    case 4: ProblemStatisticsStep(onContinue: nextStep)
-                    case 5: YouAreNotAloneStep(onContinue: nextStep)
-                    case 6: SuccessStoriesStep(onContinue: nextStep)
-                    case 7: TrackingComparisonStep(onContinue: nextStep)
+                    case 3: GuardrailStep(onContinue: nextStep)
+                    case 4: YouAreNotAloneStep(onContinue: nextStep)
+                    case 5: SuccessStoriesStep(onContinue: nextStep)
+                    case 6: TrackingComparisonStep(onContinue: nextStep)
 
                     // Phase 3: Solution & Investment
-                    case 8: HowItWorksStep(onContinue: nextStep)
-                    case 9: AIVerificationShowcaseStep(onContinue: nextStep)
-                    case 10: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
-                    case 11: ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    case 7: HowItWorksStep(onContinue: nextStep)
+                    case 8: AIVerificationShowcaseStep(onContinue: nextStep)
+                    case 9: DoomScrollingSimulatorStep(onContinue: nextStep)
+                    case 10: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
+                    case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                    case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
+                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
                     // Phase 4: Habits & Paywall
-                    case 13: OptionalRatingStep(onContinue: nextStep)
-                    case 14: AnalyzingStep(userName: onboardingData.userName, onComplete: nextStep)
-                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 16: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
+                    case 14: OptionalRatingStep(onContinue: nextStep)
+                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
                     case 17: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding

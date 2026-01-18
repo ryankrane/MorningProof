@@ -300,19 +300,19 @@ struct SuccessStoriesStep: View {
                 HStack(spacing: MPSpacing.lg) {
                     TransformationStatCard(
                         value: "89%",
-                        label: "reduced snoozing",
+                        label: "snooze less by day 10",
                         icon: "alarm.fill",
                         color: MPColors.accent
                     )
                     TransformationStatCard(
                         value: "3.7x",
-                        label: "habit consistency",
+                        label: "more consistent than before",
                         icon: "flame.fill",
                         color: MPColors.primary
                     )
                     TransformationStatCard(
                         value: "80%",
-                        label: "more productive",
+                        label: "feel more productive",
                         icon: "bolt.fill",
                         color: MPColors.accentGold
                     )

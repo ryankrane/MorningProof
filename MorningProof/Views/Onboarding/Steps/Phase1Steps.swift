@@ -10,55 +10,95 @@ struct WelcomeHeroStep: View {
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
     @State private var animateContent = false
     @State private var animateOrb = false
+    @State private var pulseOrb = false
+    @State private var shimmerPhase: CGFloat = -1
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+            // Top half - branding content, vertically centered in its space
+            VStack(spacing: 0) {
+                Spacer()
 
-            // App branding
-            VStack(spacing: MPSpacing.lg) {
-                // Animated orb with sunrise
-                ZStack {
-                    // Outer glow
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [
-                                    MPColors.primary.opacity(0.6),
-                                    MPColors.primary.opacity(0.2),
-                                    Color.clear
-                                ],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 100
+                // App branding - centered
+                VStack(spacing: MPSpacing.xl) {
+                    // Animated orb with sunrise - gentle 5% pulse
+                    ZStack {
+                        // Outer glow - subtle pulse
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [
+                                        MPColors.primary.opacity(pulseOrb ? 0.55 : 0.45),
+                                        MPColors.primary.opacity(pulseOrb ? 0.25 : 0.18),
+                                        Color.clear
+                                    ],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 90
+                                )
                             )
-                        )
-                        .frame(width: 200, height: 200)
-                        .scaleEffect(animateOrb ? 1.1 : 1.0)
+                            .frame(width: 180, height: 180)
+                            .scaleEffect(pulseOrb ? 1.05 : 1.0)
+                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: pulseOrb)
 
-                    Image(systemName: "sunrise.fill")
-                        .font(.system(size: 60))
-                        .foregroundColor(MPColors.primary)
-                        .offset(y: animateOrb ? -4 : 4)
+                        Image(systemName: "sunrise.fill")
+                            .font(.system(size: 52))
+                            .foregroundColor(MPColors.primary)
+                            .offset(y: animateOrb ? -5 : 5)
+                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
+                    }
+
+                    // Headlines - centered, same font size
+                    VStack(spacing: MPSpacing.sm) {
+                        // Primary headline with shimmer
+                        Text("Lock Your Distractions.")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
+                            .fixedSize(horizontal: true, vertical: false)
+                            .overlay(
+                                // Subtle shimmer highlight
+                                LinearGradient(
+                                    stops: [
+                                        .init(color: .clear, location: 0),
+                                        .init(color: .white.opacity(0.4), location: 0.45),
+                                        .init(color: .white.opacity(0.6), location: 0.5),
+                                        .init(color: .white.opacity(0.4), location: 0.55),
+                                        .init(color: .clear, location: 1)
+                                    ],
+                                    startPoint: UnitPoint(x: shimmerPhase, y: 0.5),
+                                    endPoint: UnitPoint(x: shimmerPhase + 0.3, y: 0.5)
+                                )
+                                .mask(
+                                    Text("Lock Your Distractions.")
+                                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                                        .fixedSize(horizontal: true, vertical: false)
+                                )
+                            )
+                            .opacity(animateContent ? 1 : 0)
+                            .offset(y: animateContent ? 0 : 12)
+
+                        // Secondary tagline - same font size, accented color
+                        Text("Take Back Your Morning.")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [
+                                        MPColors.primary.opacity(0.9),
+                                        MPColors.primary.opacity(0.7)
+                                    ],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
+                            )
+                            .opacity(animateContent ? 1 : 0)
+                            .offset(y: animateContent ? 0 : 10)
+                            .animation(.easeOut(duration: 0.8).delay(0.15), value: animateContent)
+                    }
                 }
-                .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
+                .padding(.horizontal, MPSpacing.xl)
 
-                VStack(spacing: MPSpacing.sm) {
-                    Text("Earn Your Morning")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("Build daily habits that stick")
-                        .font(.system(size: 17))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                .opacity(animateContent ? 1 : 0)
-                .offset(y: animateContent ? 0 : 20)
+                Spacer()
             }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            Spacer()
 
             // Sign-in options
             VStack(spacing: MPSpacing.md) {
@@ -129,8 +169,15 @@ struct WelcomeHeroStep: View {
         }
         .onAppear {
             animateOrb = true
+            pulseOrb = true
             withAnimation(.easeOut(duration: 0.8)) {
                 animateContent = true
+            }
+            // Start shimmer after content fades in
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                withAnimation(.easeInOut(duration: 1.5)) {
+                    shimmerPhase = 1.5
+                }
             }
         }
     }
@@ -142,6 +189,8 @@ struct NameStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
     @FocusState private var isNameFocused: Bool
+    @State private var hasConfirmedName = false
+    @State private var showGreeting = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -152,17 +201,36 @@ struct NameStep: View {
                     .font(.system(size: 60))
                     .foregroundColor(MPColors.primary)
 
-                Text("Let's make this personal")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+                // Morphing text - switches between prompt and greeting
+                ZStack {
+                    // Initial prompt
+                    VStack(spacing: MPSpacing.sm) {
+                        Text("Let's make this personal")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
 
-                Text("What should we call you?")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
+                        Text("What should we call you?")
+                            .font(.system(size: 16))
+                            .foregroundColor(MPColors.textSecondary)
+                    }
+                    .opacity(showGreeting ? 0 : 1)
+                    .scaleEffect(showGreeting ? 0.8 : 1)
+                    .offset(y: showGreeting ? -20 : 0)
+
+                    // Greeting after name confirmed
+                    Text("Great to meet you, \(data.userName)!")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .opacity(showGreeting ? 1 : 0)
+                        .scaleEffect(showGreeting ? 1 : 0.8)
+                        .offset(y: showGreeting ? 0 : 20)
+                }
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showGreeting)
             }
 
             Spacer().frame(height: MPSpacing.xxxl)
 
+            // Input section - fades out when name confirmed
             VStack(spacing: MPSpacing.sm) {
                 TextField("", text: $data.userName, prompt: Text("First name").foregroundColor(MPColors.textTertiary))
                     .font(.system(size: 24, weight: .medium))
@@ -173,6 +241,12 @@ struct NameStep: View {
                     .cornerRadius(MPRadius.lg)
                     .mpShadow(.small)
                     .focused($isNameFocused)
+                    .submitLabel(.done)
+                    .onSubmit {
+                        if !data.userName.isEmpty {
+                            confirmName()
+                        }
+                    }
 
                 HStack(spacing: MPSpacing.xs) {
                     Image(systemName: "lock.fill")
@@ -183,16 +257,25 @@ struct NameStep: View {
                 .foregroundColor(MPColors.textMuted)
             }
             .padding(.horizontal, MPSpacing.xxxl)
+            .opacity(hasConfirmedName ? 0 : 1)
+            .scaleEffect(hasConfirmedName ? 0.9 : 1)
+            .animation(.easeInOut(duration: 0.4), value: hasConfirmedName)
 
             Spacer()
 
+            // Button section - fades out when name confirmed
             VStack(spacing: MPSpacing.md) {
                 MPButton(
                     title: data.userName.isEmpty ? "Skip" : "Continue",
                     style: .primary
                 ) {
-                    isNameFocused = false
-                    onContinue()
+                    if data.userName.isEmpty {
+                        // Skip without animation
+                        isNameFocused = false
+                        onContinue()
+                    } else {
+                        confirmName()
+                    }
                 }
 
                 if data.userName.isEmpty {
@@ -203,11 +286,28 @@ struct NameStep: View {
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
+            .opacity(hasConfirmedName ? 0 : 1)
+            .animation(.easeInOut(duration: 0.3), value: hasConfirmedName)
         }
         .onAppear {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isNameFocused = true
             }
+        }
+    }
+
+    private func confirmName() {
+        isNameFocused = false
+        hasConfirmedName = true
+
+        // Show greeting after input fades
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            showGreeting = true
+        }
+
+        // Auto-advance after greeting is shown (1.7s = 25% faster than 2.25s)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
+            onContinue()
         }
     }
 }
