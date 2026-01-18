@@ -99,11 +99,10 @@ struct DashboardView: View {
                     onFlameArrived: {
                         // Trigger StreakHeroCard pulse when flame arrives
                         triggerStreakPulse = true
-                        // Sync visualStreak immediately when flame lands (for all streak values)
-                        visualStreak = manager.currentStreak
                     },
                     onIgnition: {
-                        triggerIgnition = true
+                        // Don't trigger ignition yet - wait for celebration to complete
+                        // This ensures flame stays gray until the flying flame "ignites" it
                     },
                     onShake: { offset in
                         streakShakeOffset = offset
@@ -217,6 +216,18 @@ struct DashboardView: View {
                         visualStreak = manager.currentStreak
                     }
                 }
+            }
+        }
+        .onChange(of: showLockInCelebration) { oldValue, newValue in
+            // When celebration completes (goes from true to false), update visualStreak
+            // This is when the flying flame has "ignited" the streak flame
+            if oldValue && !newValue {
+                // Trigger ignition effect if going from 0→1
+                if previousStreakBeforeLockIn == 0 {
+                    triggerIgnition = true
+                }
+                // Now update the visual streak (makes flame turn orange and number update)
+                visualStreak = manager.currentStreak
             }
         }
     }

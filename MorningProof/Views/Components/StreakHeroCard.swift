@@ -346,9 +346,11 @@ struct StreakHeroCard: View {
                     }
                 }
 
-                // Start flame animation after impact settles
+                // Start flame animation after impact settles (only if streak > 0)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    startFlameAnimation()
+                    if currentStreak > 0 {
+                        startFlameAnimation()
+                    }
                 }
 
                 // Reset the trigger

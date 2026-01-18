@@ -13,10 +13,14 @@ struct LockInCelebrationView: View {
     @State private var phase: CelebrationPhase = .initial
 
     // Lock animation states
-    @State private var lockScale: CGFloat = 1.0
+    @State private var lockScale: CGFloat = 0  // Start at 0 for phoenix spawn
     @State private var lockRotation: Double = 0
     @State private var lockGlowOpacity: Double = 0
     @State private var showLock: Bool = true
+
+    // Phoenix spawn particles
+    @State private var spawnParticles: [SpawnParticle] = []
+    @State private var showSpawnBurst: Bool = false
 
     // Flame animation states
     @State private var flameScale: CGFloat = 0
@@ -32,16 +36,27 @@ struct LockInCelebrationView: View {
     @State private var bezier: QuadraticBezier?
     @State private var flameSpinRotation: Double = 0
 
-    // Trail particles
-    @State private var trailParticles: [TrailParticle] = []
-
     // Impact effects
     @State private var shockwaveScale: CGFloat = 0.5
     @State private var shockwaveOpacity: Double = 0
     @State private var impactBurstScale: CGFloat = 0.3
     @State private var impactBurstOpacity: Double = 0
 
-    private let flameSize: CGFloat = 52  // Slightly larger for drama
+    /// Flame size scales with streak - matches StreakHeroCard's destination size
+    private var flameSize: CGFloat {
+        // previousStreak is the streak before this lock-in, so destination is previousStreak + 1
+        let destinationStreak = previousStreak + 1
+        switch destinationStreak {
+        case 1: return 52          // 0→1 ignition
+        case 2: return 56          // Day 2
+        case 3: return 60          // Day 3
+        case 4: return 64          // Day 4
+        case 5: return 68          // Day 5
+        case 6...13: return 70     // Week territory
+        case 14...29: return 74    // Two week+
+        default: return 80         // Month+ streaks
+        }
+    }
 
     enum CelebrationPhase {
         case initial
@@ -52,12 +67,12 @@ struct LockInCelebrationView: View {
         case complete
     }
 
-    struct TrailParticle: Identifiable {
+    struct SpawnParticle: Identifiable {
         let id = UUID()
-        var position: CGPoint
+        var offset: CGPoint
         var scale: CGFloat
         var opacity: Double
-        var blur: CGFloat
+        var rotation: Double
     }
 
     // Flame gradient matching StreakHeroCard
@@ -73,15 +88,20 @@ struct LockInCelebrationView: View {
                 Color.black.opacity(0.25)
                     .allowsHitTesting(false)
 
-                // Trail particles (behind the flame)
-                ForEach(trailParticles) { particle in
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 28))  // Larger trail particles
-                        .foregroundStyle(flameGradient.opacity(0.7))
-                        .scaleEffect(particle.scale)
-                        .opacity(particle.opacity)
-                        .blur(radius: particle.blur)
-                        .position(particle.position)
+                // Phoenix spawn particles (golden sparks radiating outward)
+                if showSpawnBurst {
+                    ForEach(spawnParticles) { particle in
+                        Image(systemName: "sparkle")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(MPColors.accentGold)
+                            .scaleEffect(particle.scale)
+                            .opacity(particle.opacity)
+                            .rotationEffect(.degrees(particle.rotation))
+                            .position(
+                                x: buttonPosition.x + particle.offset.x,
+                                y: buttonPosition.y + particle.offset.y
+                            )
+                    }
                 }
 
                 // Lock icon (at button position)
@@ -160,22 +180,48 @@ struct LockInCelebrationView: View {
 
     private func startAnimation(screenWidth: CGFloat) {
         // ═══════════════════════════════════════════════════════════════
-        // PHASE 1: Lock Click (0 - 0.3s)
-        // The lock "catches" and glows with satisfaction
+        // PHASE 1: Phoenix Spawn (0 - 0.35s)
+        // Lock materializes from golden sparks radiating outward
         // ═══════════════════════════════════════════════════════════════
         phase = .lockClick
         HapticManager.shared.rigid()
 
-        // Lock rotates and glows
-        withAnimation(.spring(response: 0.25, dampingFraction: 0.6)) {
-            lockRotation = -25
+        // Create spawn particles in radial burst
+        createSpawnParticles()
+        showSpawnBurst = true
+
+        // Animate particles outward and fade
+        animateSpawnParticles()
+
+        // Lock spawns: 0% → 120% (spring overshoot) → 100% (settle)
+        withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
             lockScale = 1.2
             lockGlowOpacity = 1.0
+        }
+
+        // Settle to normal scale
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.65)) {
+                lockScale = 1.0
+            }
+        }
+
+        // Rotate with slight delay for layered effect
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                lockRotation = -25
+            }
         }
 
         // Hold the lock pose for a beat
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
             HapticManager.shared.light()
+        }
+
+        // Clean up spawn particles
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
+            showSpawnBurst = false
+            spawnParticles.removeAll()
         }
 
         // ═══════════════════════════════════════════════════════════════
@@ -235,6 +281,46 @@ struct LockInCelebrationView: View {
         }
     }
 
+    // MARK: - Phoenix Spawn Helpers
+
+    private func createSpawnParticles() {
+        // Create 8 particles in radial pattern
+        spawnParticles = (0..<8).map { i in
+            SpawnParticle(
+                offset: .zero,  // Start at center
+                scale: 0.8,
+                opacity: 1.0,
+                rotation: Double.random(in: 0...360)
+            )
+        }
+    }
+
+    private func animateSpawnParticles() {
+        // Animate each particle outward in its radial direction
+        for (index, _) in spawnParticles.enumerated() {
+            let angle = (Double(index) / 8.0) * 2 * .pi
+            let distance: CGFloat = 45  // How far particles travel
+
+            // Calculate target position
+            let targetX = cos(angle) * distance
+            let targetY = sin(angle) * distance
+
+            // Stagger the animations slightly for organic feel
+            let delay = Double(index) * 0.015
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.easeOut(duration: 0.3)) {
+                    if index < spawnParticles.count {
+                        spawnParticles[index].offset = CGPoint(x: targetX, y: targetY)
+                        spawnParticles[index].scale = 0.3
+                        spawnParticles[index].opacity = 0
+                        spawnParticles[index].rotation += Double.random(in: 90...180)
+                    }
+                }
+            }
+        }
+    }
+
     private func startBezierFlight(screenWidth: CGFloat) {
         let flightDuration: Double = 0.9  // Slower, more dramatic flight
 
@@ -251,9 +337,6 @@ struct LockInCelebrationView: View {
             screenWidth: screenWidth
         )
         bezier = flightBezier
-
-        // Start trail particle spawning along the Bezier path
-        startBezierTrailEffect(bezier: flightBezier, duration: flightDuration)
 
         // Tumble rotation during flight (1.5-2.5 full rotations for drama)
         let rotationAmount = Double.random(in: 540...900) * (Bool.random() ? 1 : -1)
@@ -286,45 +369,6 @@ struct LockInCelebrationView: View {
         // IMPACT!
         DispatchQueue.main.asyncAfter(deadline: .now() + flightDuration) {
             triggerImpact()
-        }
-    }
-
-    private func startBezierTrailEffect(bezier: QuadraticBezier, duration: Double) {
-        let particleCount = 14  // More particles for longer trail
-        let interval = duration / Double(particleCount)
-
-        for i in 0..<particleCount {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * interval) {
-                let progress = CGFloat(i) / CGFloat(particleCount)
-                let particlePos = bezier.point(at: progress)
-
-                // Each particle scales down and fades based on age
-                let particle = TrailParticle(
-                    position: particlePos,
-                    scale: 0.8 - CGFloat(progress) * 0.4,
-                    opacity: 0.9 - progress * 0.5,
-                    blur: progress * 5
-                )
-
-                trailParticles.append(particle)
-
-                // Fade out particle more slowly
-                let particleId = particle.id
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                    withAnimation(.easeOut(duration: 0.5)) {
-                        if let index = trailParticles.firstIndex(where: { $0.id == particleId }) {
-                            trailParticles[index].opacity = 0
-                            trailParticles[index].scale = 0.1
-                            trailParticles[index].blur = 12
-                        }
-                    }
-                }
-
-                // Remove particle after fade
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                    trailParticles.removeAll { $0.id == particleId }
-                }
-            }
         }
     }
 

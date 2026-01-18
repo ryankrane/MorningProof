@@ -126,6 +126,36 @@ class HapticManager {
         }
     }
 
+    // Premium burst haptic for habit completion confetti explosion
+    // Syncs with visual burst - sharp initial pop with satisfying cascading falloff
+    func habitBurst() {
+        let heavy = UIImpactFeedbackGenerator(style: .heavy)
+        let rigid = UIImpactFeedbackGenerator(style: .rigid)
+        let medium = UIImpactFeedbackGenerator(style: .medium)
+
+        // Prepare for immediate response
+        heavy.prepare()
+        rigid.prepare()
+
+        // Phase 1: Initial BURST - heavy thud as particles explode
+        heavy.impactOccurred(intensity: 1.0)
+
+        // Phase 2: Sharp crackle follow-up (like confetti popping)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) {
+            rigid.impactOccurred(intensity: 0.9)
+        }
+
+        // Phase 3: Softer echo as particles spread
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.09) {
+            medium.impactOccurred(intensity: 0.5)
+        }
+
+        // Phase 4: Success confirmation - the satisfying finish
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+        }
+    }
+
     // Dramatic celebration for all habits complete
     func allHabitsCompleteCelebration() {
         let heavy = UIImpactFeedbackGenerator(style: .heavy)

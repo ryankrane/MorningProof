@@ -177,6 +177,18 @@ struct DashboardContentView: View {
                     }
                 }
             }
+            .onChange(of: showLockInCelebration) { oldValue, newValue in
+                // When celebration completes (goes from true to false), update visualStreak
+                // This is when the flying flame has "ignited" the streak flame
+                if oldValue && !newValue {
+                    // Trigger ignition effect if going from 0→1
+                    if previousStreakBeforeLockIn == 0 {
+                        triggerIgnition = true
+                    }
+                    // Now update the visual streak (makes flame turn orange and number update)
+                    visualStreak = manager.currentStreak
+                }
+            }
         }
         // Lock-in celebration overlay - full screen, ignoring safe areas
         // Positioned outside NavigationStack so it spans the entire screen
@@ -191,9 +203,8 @@ struct DashboardContentView: View {
                         triggerStreakPulse = true
                     },
                     onIgnition: {
-                        triggerIgnition = true
-                        // Sync visualStreak now that ignition effect is happening
-                        visualStreak = manager.currentStreak
+                        // Don't trigger ignition yet - wait for celebration to complete
+                        // This ensures flame stays gray until the flying flame "ignites" it
                     },
                     onShake: { offset in
                         streakShakeOffset = offset

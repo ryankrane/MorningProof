@@ -531,8 +531,8 @@ final class MorningProofManager: ObservableObject, Sendable {
             return completedAt <= cutoffTime
         }
 
-        // Update streak when all habits completed
-        updateStreak()
+        // Note: Streak is NOT updated here - it only updates when user explicitly locks in via lockInDay()
+        // This ensures the flame stays gray until the lock-in celebration completes
     }
 
     private func getCutoffTime() -> Date {
@@ -682,6 +682,7 @@ final class MorningProofManager: ObservableObject, Sendable {
     }
 
     /// Reset only today's progress (for testing) - keeps settings, habits, and onboarding state
+    /// Treats today as "day 0" - a completely fresh start
     func resetTodaysProgress() {
         // Reset today's log (clears all completions)
         todayLog = createDailyLog(for: Date())
@@ -692,25 +693,19 @@ final class MorningProofManager: ObservableObject, Sendable {
         // Reset lock-in status
         AppLockingDataStore.isDayLockedIn = false
 
-        // If today was counted as a perfect morning, undo that
+        // If today was counted as a perfect morning, undo the totalPerfectMornings count
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
         if let lastDate = lastPerfectMorningDate, calendar.isDate(lastDate, inSameDayAs: today) {
-            // Decrement streak since we're undoing today
-            if currentStreak > 0 {
-                currentStreak -= 1
-            }
-            // Set last perfect morning to yesterday if streak > 0, otherwise nil
-            if currentStreak > 0 {
-                lastPerfectMorningDate = calendar.date(byAdding: .day, value: -1, to: today)
-            } else {
-                lastPerfectMorningDate = nil
-            }
             if settings.totalPerfectMornings > 0 {
                 settings.totalPerfectMornings -= 1
             }
-            saveStreakData()
         }
+
+        // Always reset to "day 0" state - fresh start for today
+        currentStreak = 0
+        lastPerfectMorningDate = nil
+        saveStreakData()
 
         saveCurrentState()
     }
@@ -882,6 +877,9 @@ final class MorningProofManager: ObservableObject, Sendable {
         // if settings.appLockingEnabled {
         //     ScreenTimeManager.shared.removeShields()
         // }
+
+        // Update the streak now that user has explicitly locked in
+        updateStreak()
 
         saveCurrentState()
     }

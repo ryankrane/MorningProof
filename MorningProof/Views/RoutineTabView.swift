@@ -36,14 +36,14 @@ struct RoutineTabView: View {
                         // MARK: - Habit Deadline
                         deadlineSection
 
-                        // MARK: - Weekly Schedule
-                        weeklyScheduleSection
-
                         // MARK: - Habits
                         habitsSection
 
                         // MARK: - Custom Habits
                         customHabitsSection
+
+                        // MARK: - Habit Schedule
+                        weeklyScheduleSection
 
                         // MARK: - Goals
                         goalsSection
@@ -343,7 +343,7 @@ struct RoutineTabView: View {
 
         let totalEnabled = enabledPredefined.count + enabledCustom.count
 
-        return sectionContainer(title: "Schedule", icon: "calendar") {
+        return sectionContainer(title: "Habit Schedule", icon: "calendar") {
             Button {
                 showScheduleSheet = true
             } label: {
@@ -836,7 +836,7 @@ private struct ScheduleOverviewSheet: View {
                     .padding(.bottom, MPSpacing.xxxl)
                 }
             }
-            .navigationTitle("Schedule")
+            .navigationTitle("Habit Schedule")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -875,25 +875,30 @@ private struct ScheduleOverviewSheet: View {
         let hasAnyEnabled = !enabledPredefined.isEmpty || !enabledCustom.isEmpty
 
         if !hasAnyEnabled {
-            VStack(spacing: MPSpacing.md) {
-                Image(systemName: "calendar.badge.exclamationmark")
-                    .font(.system(size: 40))
-                    .foregroundColor(MPColors.textTertiary)
+            VStack(spacing: MPSpacing.lg) {
+                ZStack {
+                    Circle()
+                        .fill(MPColors.surfaceSecondary)
+                        .frame(width: 72, height: 72)
+                    Image(systemName: "calendar.badge.exclamationmark")
+                        .font(.system(size: 28))
+                        .foregroundColor(MPColors.textTertiary)
+                }
 
-                Text("No habits enabled")
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textSecondary)
-
-                Text("Enable habits in the Routine tab to set their schedule")
-                    .font(MPFont.labelSmall())
-                    .foregroundColor(MPColors.textTertiary)
-                    .multilineTextAlignment(.center)
+                VStack(spacing: MPSpacing.sm) {
+                    Text("No habits enabled")
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textSecondary)
+                    Text("Enable habits above to set their schedule")
+                        .font(MPFont.labelSmall())
+                        .foregroundColor(MPColors.textTertiary)
+                        .multilineTextAlignment(.center)
+                }
             }
             .frame(maxWidth: .infinity)
             .padding(.vertical, MPSpacing.xxxl)
         } else {
-            VStack(spacing: 0) {
-                // Predefined habits
+            VStack(spacing: MPSpacing.md) {
                 ForEach(enabledPredefined) { config in
                     scheduleRow(
                         icon: config.habitType.icon,
@@ -901,14 +906,8 @@ private struct ScheduleOverviewSheet: View {
                         schedule: DaySchedule.displayString(for: config.activeDays),
                         action: { editingHabitSchedule = config.habitType }
                     )
-
-                    if config.id != enabledPredefined.last?.id || !enabledCustom.isEmpty {
-                        Divider()
-                            .padding(.leading, 46)
-                    }
                 }
 
-                // Custom habits
                 ForEach(enabledCustom) { habit in
                     scheduleRow(
                         icon: habit.icon,
@@ -916,45 +915,47 @@ private struct ScheduleOverviewSheet: View {
                         schedule: DaySchedule.displayString(for: habit.activeDays),
                         action: { editingCustomHabitSchedule = habit }
                     )
-
-                    if habit.id != enabledCustom.last?.id {
-                        Divider()
-                            .padding(.leading, 46)
-                    }
                 }
             }
-            .padding(.horizontal, MPSpacing.lg)
-            .padding(.vertical, MPSpacing.md)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
-            .mpShadow(.small)
         }
     }
 
     func scheduleRow(icon: String, name: String, schedule: String, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             HStack(spacing: MPSpacing.lg) {
-                Image(systemName: icon)
-                    .font(.system(size: MPIconSize.sm))
-                    .foregroundColor(MPColors.primary)
-                    .frame(width: 30)
+                // Icon in circular background
+                ZStack {
+                    Circle()
+                        .fill(MPColors.surfaceSecondary)
+                        .frame(width: 40, height: 40)
+                    Image(systemName: icon)
+                        .font(.system(size: MPIconSize.md))
+                        .foregroundColor(MPColors.primary)
+                }
 
-                Text(name)
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textPrimary)
+                // Two-line text layout
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                    Text(name)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+                    Text(schedule)
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.textTertiary)
+                }
 
                 Spacer()
-
-                Text(schedule)
-                    .font(MPFont.labelSmall())
-                    .foregroundColor(MPColors.textSecondary)
 
                 Image(systemName: "chevron.right")
                     .font(.system(size: 12, weight: .semibold))
                     .foregroundColor(MPColors.textTertiary)
             }
-            .padding(.vertical, MPSpacing.sm)
+            .padding(MPSpacing.lg)
+            .frame(minHeight: 60)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.small)
         }
+        .buttonStyle(.plain)
     }
 }
 
