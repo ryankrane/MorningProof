@@ -9,19 +9,7 @@ struct SunlightCameraView: View {
     @State private var isAnalyzing = false
     @State private var result: SunlightVerificationResult?
     @State private var errorMessage: String?
-
-    // Animation states for analyzing view
-    @State private var scanRotation: Double = 0
-    @State private var glowScale: CGFloat = 1.0
-    @State private var glowOpacity: Double = 0.4
-    @State private var sunIconScale: CGFloat = 1.0
-    @State private var analysisProgress: CGFloat = 0
-    @State private var dotCount: Int = 0
-
-    // Timer references for proper cleanup
-    @State private var dotTimer: Timer?
-    @State private var progressTimer: Timer?
-    @State private var progressStartTime: Date?
+    @State private var showResultTransition = false
 
     // Animation states for result view
     @State private var showCheckmark = false
@@ -38,6 +26,15 @@ struct SunlightCameraView: View {
 
                 if isAnalyzing {
                     analyzingView
+                } else if showResultTransition, let image = selectedImage, let result = result {
+                    VerificationResultTransitionView(
+                        image: image,
+                        isApproved: result.isOutside,
+                        accentColor: MPColors.accentGold,
+                        onComplete: {
+                            showResultTransition = false
+                        }
+                    )
                 } else if let error = errorMessage {
                     errorView(error)
                 } else if let result = result {
@@ -121,170 +118,19 @@ struct SunlightCameraView: View {
         }
     }
 
+    @ViewBuilder
     var analyzingView: some View {
-        VStack(spacing: MPSpacing.xxxl) {
-            Spacer()
-
-            ZStack {
-                // Outer glow ring
-                Circle()
-                    .stroke(
-                        LinearGradient(
-                            colors: [MPColors.accentGold.opacity(0.6), MPColors.accent.opacity(0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 3
-                    )
-                    .frame(width: 160, height: 160)
-                    .scaleEffect(glowScale)
-                    .opacity(glowOpacity)
-
-                // Rotating scan line
-                Circle()
-                    .trim(from: 0, to: 0.25)
-                    .stroke(
-                        LinearGradient(
-                            colors: [MPColors.accentGold, MPColors.accentGold.opacity(0)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ),
-                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                    )
-                    .frame(width: 150, height: 150)
-                    .rotationEffect(.degrees(scanRotation))
-
-                // White background circle
-                Circle()
-                    .fill(MPColors.surface)
-                    .frame(width: 130, height: 130)
-                    .shadow(color: MPColors.accentGold.opacity(0.3), radius: 20, x: 0, y: 5)
-
-                // Sun icon with pulse
-                Image(systemName: "sun.max.fill")
-                    .font(.system(size: MPIconSize.xxl))
-                    .foregroundColor(MPColors.accentGold)
-                    .scaleEffect(sunIconScale)
-            }
-
-            VStack(spacing: MPSpacing.md) {
-                Text("Analyzing\(String(repeating: ".", count: dotCount))")
-                    .font(MPFont.headingSmall())
-                    .foregroundColor(MPColors.textPrimary)
-                    .frame(width: 150, alignment: .leading)
-
-                Text("AI is checking for sunlight")
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-
-            // Progress bar
-            VStack(spacing: MPSpacing.sm) {
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: MPRadius.xs)
-                            .fill(MPColors.progressBg)
-                            .frame(height: 8)
-
-                        RoundedRectangle(cornerRadius: MPRadius.xs)
-                            .fill(
-                                LinearGradient(
-                                    colors: [MPColors.accentGold, MPColors.accent],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
-                            )
-                            .frame(width: geometry.size.width * analysisProgress, height: 8)
-                    }
-                }
-                .frame(height: 8)
-                .frame(maxWidth: 200)
-
-                Text("\(Int(analysisProgress * 100))%")
-                    .font(MPFont.labelSmall())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-
-            Spacer()
+        if let image = selectedImage {
+            LaserScanOverlayView(
+                image: image,
+                accentColor: MPColors.accentGold,
+                statusText: "AI is checking for sunlight"
+            )
+        } else {
+            // Fallback if no image (shouldn't happen)
+            ProgressView()
+                .scaleEffect(1.5)
         }
-        .onAppear {
-            startAnalyzingAnimations()
-        }
-        .onDisappear {
-            resetAnalyzingAnimations()
-        }
-    }
-
-    private func startAnalyzingAnimations() {
-        // Rotating scan line
-        withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-            scanRotation = 360
-        }
-
-        // Glow pulse
-        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-            glowScale = 1.15
-            glowOpacity = 0.7
-        }
-
-        // Sun icon subtle pulse
-        withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-            sunIconScale = 1.05
-        }
-
-        // Realistic progress animation
-        progressStartTime = Date()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            guard isAnalyzing, let startTime = progressStartTime else {
-                timer.invalidate()
-                return
-            }
-
-            let elapsed = Date().timeIntervalSince(startTime)
-
-            // Multi-phase progress that slows down over time
-            let newProgress: CGFloat
-            if elapsed < 2 {
-                newProgress = CGFloat(elapsed / 2) * 0.40
-            } else if elapsed < 5 {
-                newProgress = 0.40 + CGFloat((elapsed - 2) / 3) * 0.25
-            } else if elapsed < 15 {
-                newProgress = 0.65 + CGFloat((elapsed - 5) / 10) * 0.20
-            } else {
-                let extraTime = elapsed - 15
-                newProgress = 0.85 + CGFloat(min(extraTime / 30, 1.0)) * 0.07
-            }
-
-            withAnimation(.linear(duration: 0.1)) {
-                analysisProgress = min(newProgress, 0.92)
-            }
-        }
-
-        // Animated dots
-        dotTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { timer in
-            if !isAnalyzing {
-                timer.invalidate()
-                return
-            }
-            dotCount = (dotCount + 1) % 4
-        }
-    }
-
-    private func resetAnalyzingAnimations() {
-        // Invalidate timers
-        dotTimer?.invalidate()
-        dotTimer = nil
-        progressTimer?.invalidate()
-        progressTimer = nil
-        progressStartTime = nil
-
-        // Reset animation states
-        scanRotation = 0
-        glowScale = 1.0
-        glowOpacity = 0.4
-        sunIconScale = 1.0
-        analysisProgress = 0
-        dotCount = 0
     }
 
     func resultView(_ result: SunlightVerificationResult) -> some View {
@@ -352,7 +198,7 @@ struct SunlightCameraView: View {
 
                 VStack(spacing: MPSpacing.md) {
                     if !result.isOutside {
-                        MPButton(title: "Try Again", style: .primary, icon: "camera.fill") {
+                        MPButton(title: "Fix & Rescan", style: .primary, icon: "arrow.clockwise") {
                             resetResultAnimations()
                             self.result = nil
                             selectedImage = nil
@@ -486,11 +332,12 @@ struct SunlightCameraView: View {
 
         do {
             result = try await manager.completeSunlightVerification(image: image)
+            isAnalyzing = false
+            showResultTransition = true
         } catch {
             errorMessage = error.localizedDescription
+            isAnalyzing = false
         }
-
-        isAnalyzing = false
     }
 }
 

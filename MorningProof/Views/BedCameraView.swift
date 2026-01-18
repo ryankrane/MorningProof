@@ -9,19 +9,7 @@ struct BedCameraView: View {
     @State private var isAnalyzing = false
     @State private var result: VerificationResult?
     @State private var errorMessage: String?
-
-    // Animation states for analyzing view
-    @State private var scanRotation: Double = 0
-    @State private var glowScale: CGFloat = 1.0
-    @State private var glowOpacity: Double = 0.4
-    @State private var bedIconScale: CGFloat = 1.0
-    @State private var analysisProgress: CGFloat = 0
-    @State private var dotCount: Int = 0
-
-    // Timer references for proper cleanup
-    @State private var dotTimer: Timer?
-    @State private var progressTimer: Timer?
-    @State private var progressStartTime: Date?
+    @State private var showResultTransition = false
 
     // Animation states for result view
     @State private var showCheckmark = false
@@ -38,6 +26,16 @@ struct BedCameraView: View {
 
                 if isAnalyzing {
                     analyzingView
+                } else if showResultTransition, let image = selectedImage, let result = result {
+                    // Dramatic transition before showing result
+                    VerificationResultTransitionView(
+                        image: image,
+                        isApproved: result.isMade,
+                        accentColor: MPColors.accent,
+                        onComplete: {
+                            showResultTransition = false
+                        }
+                    )
                 } else if let error = errorMessage {
                     errorView(error)
                 } else if let result = result {
@@ -90,9 +88,25 @@ struct BedCameraView: View {
             } else {
                 VStack(spacing: MPSpacing.xl) {
                     VStack(spacing: MPSpacing.xl) {
-                        Image(systemName: "bed.double.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(MPColors.textTertiary)
+                        // Bed icon with subtle glow
+                        ZStack {
+                            // Glow background
+                            Circle()
+                                .fill(MPColors.accent.opacity(0.15))
+                                .frame(width: 120, height: 120)
+                                .blur(radius: 20)
+
+                            Image(systemName: "bed.double.fill")
+                                .font(.system(size: 70))
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [MPColors.accent, MPColors.accent.opacity(0.7)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        .parallaxTilt(intensity: 10)
 
                         Text("Take a photo of your made bed")
                             .font(MPFont.bodyMedium())
@@ -116,170 +130,19 @@ struct BedCameraView: View {
         }
     }
 
+    @ViewBuilder
     var analyzingView: some View {
-        VStack(spacing: MPSpacing.xxxl) {
-            Spacer()
-
-            ZStack {
-                // Outer glow ring
-                Circle()
-                    .stroke(
-                        LinearGradient(
-                            colors: [MPColors.accent.opacity(0.6), MPColors.accentGold.opacity(0.3)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 3
-                    )
-                    .frame(width: 160, height: 160)
-                    .scaleEffect(glowScale)
-                    .opacity(glowOpacity)
-
-                // Rotating scan line
-                Circle()
-                    .trim(from: 0, to: 0.25)
-                    .stroke(
-                        LinearGradient(
-                            colors: [MPColors.accent, MPColors.accent.opacity(0)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        ),
-                        style: StrokeStyle(lineWidth: 3, lineCap: .round)
-                    )
-                    .frame(width: 150, height: 150)
-                    .rotationEffect(.degrees(scanRotation))
-
-                // White background circle
-                Circle()
-                    .fill(MPColors.surface)
-                    .frame(width: 130, height: 130)
-                    .shadow(color: MPColors.accent.opacity(0.3), radius: 20, x: 0, y: 5)
-
-                // Bed icon with pulse
-                Image(systemName: "bed.double.fill")
-                    .font(.system(size: MPIconSize.xxl))
-                    .foregroundColor(MPColors.primaryLight)
-                    .scaleEffect(bedIconScale)
-            }
-
-            VStack(spacing: MPSpacing.md) {
-                Text("Analyzing\(String(repeating: ".", count: dotCount))")
-                    .font(MPFont.headingSmall())
-                    .foregroundColor(MPColors.textPrimary)
-                    .frame(width: 150, alignment: .leading)
-
-                Text("AI is checking if it's made")
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-
-            // Progress bar
-            VStack(spacing: MPSpacing.sm) {
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        RoundedRectangle(cornerRadius: MPRadius.xs)
-                            .fill(MPColors.progressBg)
-                            .frame(height: 8)
-
-                        RoundedRectangle(cornerRadius: MPRadius.xs)
-                            .fill(MPColors.accentGradient)
-                            .frame(width: geometry.size.width * analysisProgress, height: 8)
-                    }
-                }
-                .frame(height: 8)
-                .frame(maxWidth: 200)
-
-                Text("\(Int(analysisProgress * 100))%")
-                    .font(MPFont.labelSmall())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-
-            Spacer()
+        if let image = selectedImage {
+            LaserScanOverlayView(
+                image: image,
+                accentColor: MPColors.accent,
+                statusText: "AI is checking if it's made"
+            )
+        } else {
+            // Fallback if no image (shouldn't happen)
+            ProgressView()
+                .scaleEffect(1.5)
         }
-        .onAppear {
-            startAnalyzingAnimations()
-        }
-        .onDisappear {
-            resetAnalyzingAnimations()
-        }
-    }
-
-    private func startAnalyzingAnimations() {
-        // Rotating scan line
-        withAnimation(.linear(duration: 1.5).repeatForever(autoreverses: false)) {
-            scanRotation = 360
-        }
-
-        // Glow pulse
-        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-            glowScale = 1.15
-            glowOpacity = 0.7
-        }
-
-        // Bed icon subtle pulse
-        withAnimation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true)) {
-            bedIconScale = 1.05
-        }
-
-        // Realistic progress animation
-        // Progress slows down as it gets higher, never reaching 100% until API completes
-        progressStartTime = Date()
-        progressTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { timer in
-            guard isAnalyzing, let startTime = progressStartTime else {
-                timer.invalidate()
-                return
-            }
-
-            let elapsed = Date().timeIntervalSince(startTime)
-
-            // Multi-phase progress that slows down over time:
-            // - First 2s: 0% to 40% (fast - "uploading")
-            // - Next 3s: 40% to 65% (medium - "processing")
-            // - Next 10s: 65% to 85% (slow - "analyzing")
-            // - After 15s: 85% to 92% very slowly (still working)
-            let newProgress: CGFloat
-            if elapsed < 2 {
-                newProgress = CGFloat(elapsed / 2) * 0.40
-            } else if elapsed < 5 {
-                newProgress = 0.40 + CGFloat((elapsed - 2) / 3) * 0.25
-            } else if elapsed < 15 {
-                newProgress = 0.65 + CGFloat((elapsed - 5) / 10) * 0.20
-            } else {
-                // Very slow crawl after 15s, asymptotically approaching 92%
-                let extraTime = elapsed - 15
-                newProgress = 0.85 + CGFloat(min(extraTime / 30, 1.0)) * 0.07
-            }
-
-            withAnimation(.linear(duration: 0.1)) {
-                analysisProgress = min(newProgress, 0.92)
-            }
-        }
-
-        // Animated dots
-        dotTimer = Timer.scheduledTimer(withTimeInterval: 0.4, repeats: true) { timer in
-            if !isAnalyzing {
-                timer.invalidate()
-                return
-            }
-            dotCount = (dotCount + 1) % 4
-        }
-    }
-
-    private func resetAnalyzingAnimations() {
-        // Invalidate timers
-        dotTimer?.invalidate()
-        dotTimer = nil
-        progressTimer?.invalidate()
-        progressTimer = nil
-        progressStartTime = nil
-
-        // Reset animation states
-        scanRotation = 0
-        glowScale = 1.0
-        glowOpacity = 0.4
-        bedIconScale = 1.0
-        analysisProgress = 0
-        dotCount = 0
     }
 
     func resultView(_ result: VerificationResult) -> some View {
@@ -347,7 +210,7 @@ struct BedCameraView: View {
 
                 VStack(spacing: MPSpacing.md) {
                     if !result.isMade {
-                        MPButton(title: "Try Again", style: .primary, icon: "camera.fill") {
+                        MPButton(title: "Fix & Rescan", style: .primary, icon: "arrow.clockwise") {
                             resetResultAnimations()
                             self.result = nil
                             selectedImage = nil
@@ -481,11 +344,13 @@ struct BedCameraView: View {
 
         do {
             result = try await manager.completeBedVerification(image: image)
+            isAnalyzing = false
+            // Trigger dramatic transition
+            showResultTransition = true
         } catch {
             errorMessage = error.localizedDescription
+            isAnalyzing = false
         }
-
-        isAnalyzing = false
     }
 }
 
