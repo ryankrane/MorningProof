@@ -3,7 +3,24 @@ import UIKit
 class HapticManager {
     static let shared = HapticManager()
 
-    private init() {}
+    // Pre-prepared generator for low-latency rapid charging taps
+    private let chargingGenerator = UIImpactFeedbackGenerator(style: .rigid)
+
+    private init() {
+        // Prepare the charging generator for immediate use
+        chargingGenerator.prepare()
+    }
+
+    // MARK: - Charging Haptics
+
+    /// Charging tap for hold-to-complete buttons with variable intensity
+    /// Uses a pre-prepared rigid generator for low-latency rapid-fire taps
+    /// - Parameter intensity: 0.0 to 1.0, controls haptic strength
+    func chargingTap(intensity: CGFloat) {
+        chargingGenerator.impactOccurred(intensity: intensity)
+        // Re-prepare for next tap (keeps latency low)
+        chargingGenerator.prepare()
+    }
 
     // Light tap for UI interactions
     func lightTap() {
@@ -172,20 +189,37 @@ class HapticManager {
     }
 
     // Dramatic slam impact for lock-in celebration
-    // Creates a heavy "thud" with cascading impacts for the flame arrival
+    // Creates a heavy "thud" with cascading impacts and satisfying rumble echo
     func flameSlamImpact() {
         let heavy = UIImpactFeedbackGenerator(style: .heavy)
+        let rigid = UIImpactFeedbackGenerator(style: .rigid)
+        let medium = UIImpactFeedbackGenerator(style: .medium)
+
+        // Prepare generators for immediate response
+        heavy.prepare()
+        rigid.prepare()
+        medium.prepare()
+
+        // Initial HEAVY slam - the main impact
         heavy.impactOccurred(intensity: 1.0)
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.04) {
-            UIImpactFeedbackGenerator(style: .rigid).impactOccurred(intensity: 0.9)
+        // Sharp follow-up for crispness
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.035) {
+            rigid.impactOccurred(intensity: 1.0)
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-            UIImpactFeedbackGenerator(style: .medium).impactOccurred(intensity: 0.6)
+        // Rumble echo - secondary thud
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.08) {
+            heavy.impactOccurred(intensity: 0.7)
         }
 
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+        // Settle - softer landing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.13) {
+            medium.impactOccurred(intensity: 0.5)
+        }
+
+        // Success confirmation - the satisfying finish
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         }
     }
