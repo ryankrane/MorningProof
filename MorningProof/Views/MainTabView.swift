@@ -66,7 +66,6 @@ struct DashboardContentView: View {
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
     @State private var showConfettiForHabit: HabitType? = nil
-    @State private var showPerfectMorningCelebration = false
     @State private var showGrandFinaleConfetti = false  // For final habit celebration
     @State private var triggerStreakPulse = false
     @State private var flameFrame: CGRect = .zero
@@ -125,11 +124,6 @@ struct DashboardContentView: View {
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.top, MPSpacing.sm)
                 }
-                // Perfect Morning celebration overlay
-                if showPerfectMorningCelebration {
-                    FullScreenConfettiView(isShowing: $showPerfectMorningCelebration)
-                }
-
                 // Grand finale confetti (when final habit completed)
                 if showGrandFinaleConfetti {
                     GrandFinaleConfettiView()
@@ -181,12 +175,6 @@ struct DashboardContentView: View {
                             visualStreak = manager.currentStreak
                         }
                     }
-                }
-            }
-            .onChange(of: manager.isPerfectMorning) { _, newValue in
-                if newValue && !showPerfectMorningCelebration {
-                    showPerfectMorningCelebration = true
-                    HapticManager.shared.perfectMorning()
                 }
             }
         }
