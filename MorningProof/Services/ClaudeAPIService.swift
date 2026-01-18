@@ -88,15 +88,19 @@ actor ClaudeAPIService {
                         [
                             "type": "text",
                             "text": """
-                            Analyze this photo of a bed. Is it made?
+                            TASK: Verify if this photo shows a MADE BED.
 
-                            Pass if: The covers/blankets are pulled up and the bed looks roughly made. It doesn't need to be perfect - wrinkles and imperfections are fine.
-                            Fail if: The bed is clearly unmade with messy/bunched sheets, exposed mattress, or no attempt was made.
+                            STEP 1 - CRITICAL: First, check if this photo actually contains a bed.
+                            A bed must have: a mattress, bedding (sheets/blankets/comforter), and typically a headboard or bed frame.
+                            If you do NOT see a bed in this photo, respond with is_made: false and feedback explaining no bed was found.
+                            Furniture like couches, chairs, bookcases, desks, or other non-bed items do NOT count.
 
-                            If this is not a photo of a bed, respond with is_made: false.
+                            STEP 2 - Only if a bed IS present: Check if it's made.
+                            Pass if: Covers/blankets are pulled up and the bed looks roughly tidy. Wrinkles are fine.
+                            Fail if: Sheets are bunched/messy, mattress is exposed, or no attempt was made to make it.
 
                             Respond ONLY with valid JSON:
-                            {"is_made": boolean, "feedback": "brief encouraging message"}
+                            {"is_made": boolean, "feedback": "brief message"}
                             """
                         ]
                     ]
@@ -137,20 +141,14 @@ actor ClaudeAPIService {
             throw APIError.parsingFailed
         }
 
-        // Extract JSON from the response (handle potential markdown code blocks)
-        let cleanedJSON = extractJSON(from: responseText)
-        guard let cleanedData = cleanedJSON.data(using: .utf8) else {
-            throw APIError.parsingFailed
-        }
-
-        let result = try JSONDecoder().decode(VerificationResult.self, from: cleanedData)
-        return result
+        // Decode the response with robust error handling
+        return try await decodeVerificationResult(VerificationResult.self, from: responseText, endpoint: "claude/verify-bed")
     }
 
     private func extractJSON(from text: String) -> String {
-        // Remove markdown code blocks if present
         var cleaned = text.trimmingCharacters(in: .whitespacesAndNewlines)
 
+        // Remove markdown code blocks if present
         if cleaned.hasPrefix("```json") {
             cleaned = String(cleaned.dropFirst(7))
         } else if cleaned.hasPrefix("```") {
@@ -161,7 +159,52 @@ actor ClaudeAPIService {
             cleaned = String(cleaned.dropLast(3))
         }
 
-        return cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+        cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
+
+        // If it already looks like JSON, return it
+        if cleaned.hasPrefix("{") && cleaned.hasSuffix("}") {
+            return cleaned
+        }
+
+        // Try to find JSON object anywhere in the response using regex
+        if let range = cleaned.range(of: "\\{[^{}]*\\}", options: .regularExpression) {
+            return String(cleaned[range])
+        }
+
+        // Last resort: look for JSON with nested braces
+        if let startIndex = cleaned.firstIndex(of: "{"),
+           let endIndex = cleaned.lastIndex(of: "}") {
+            return String(cleaned[startIndex...endIndex])
+        }
+
+        return cleaned
+    }
+
+    private func decodeVerificationResult<T: Decodable>(_ type: T.Type, from text: String, endpoint: String) async throws -> T {
+        let cleanedJSON = extractJSON(from: text)
+
+        guard let cleanedData = cleanedJSON.data(using: .utf8) else {
+            await MainActor.run {
+                CrashReportingService.shared.recordError(
+                    NSError(domain: "ClaudeAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert response to data"]),
+                    userInfo: ["endpoint": endpoint, "response": String(text.prefix(500))]
+                )
+            }
+            throw APIError.parsingFailed
+        }
+
+        do {
+            return try JSONDecoder().decode(type, from: cleanedData)
+        } catch {
+            // Log the actual response for debugging
+            await MainActor.run {
+                CrashReportingService.shared.recordError(
+                    error,
+                    userInfo: ["endpoint": endpoint, "cleanedJSON": String(cleanedJSON.prefix(500)), "originalResponse": String(text.prefix(500))]
+                )
+            }
+            throw APIError.parsingFailed
+        }
     }
 
     func verifySunlight(image: UIImage) async throws -> SunlightVerificationResult {
@@ -199,20 +242,19 @@ actor ClaudeAPIService {
                         [
                             "type": "text",
                             "text": """
-                            Analyze this photo for natural light exposure.
+                            TASK: Verify this photo shows NATURAL LIGHT exposure.
 
-                            Pass if ANY of these are true:
-                            - Photo is taken outdoors (any weather)
-                            - Natural daylight is visible through windows
-                            - Sky, trees, or outdoor elements are visible
-                            - Any natural light is present
+                            STEP 1 - CRITICAL: Verify this photo shows natural daylight.
+                            Natural light sources: sunlight, daylight sky, outdoor environment, daylight through windows.
+                            If you see ONLY artificial light (lamps, screens, LEDs, fluorescent lights) with NO natural light, respond with is_outside: false.
+                            Indoor photos with visible daylight through windows DO count.
 
-                            Be very generous - overcast, cloudy, through a window, any hint of natural light counts.
-
-                            Only fail if it's clearly nighttime or a dark indoor space with no natural light.
+                            STEP 2 - If natural light IS present: Verify exposure quality.
+                            Pass if: Any amount of natural daylight is visible - overcast, cloudy, through window, or direct sun.
+                            Fail if: Photo is clearly nighttime, dark indoor space, or only shows artificial lighting.
 
                             Respond ONLY with valid JSON:
-                            {"is_outside": boolean, "feedback": "brief encouraging message"}
+                            {"is_outside": boolean, "feedback": "brief message"}
                             """
                         ]
                     ]
@@ -252,13 +294,7 @@ actor ClaudeAPIService {
             throw APIError.parsingFailed
         }
 
-        let cleanedJSON = extractJSON(from: responseText)
-        guard let cleanedData = cleanedJSON.data(using: .utf8) else {
-            throw APIError.parsingFailed
-        }
-
-        let result = try JSONDecoder().decode(SunlightVerificationResult.self, from: cleanedData)
-        return result
+        return try await decodeVerificationResult(SunlightVerificationResult.self, from: responseText, endpoint: "claude/verify-sunlight")
     }
 
     func verifyHydration(image: UIImage) async throws -> HydrationVerificationResult {
@@ -296,17 +332,22 @@ actor ClaudeAPIService {
                         [
                             "type": "text",
                             "text": """
-                            Analyze this photo to verify morning hydration.
+                            TASK: Verify this photo shows HYDRATION (a beverage or drinking vessel).
 
-                            Pass if the photo shows ANY beverage:
-                            - Water, coffee, tea, juice, smoothie, protein shake
-                            - Any cup, glass, mug, bottle, or tumbler with liquid
-                            - Person drinking anything
+                            STEP 1 - CRITICAL: Verify this photo contains a beverage or drinking vessel.
+                            Valid items: glass, cup, mug, water bottle, tumbler, or person actively drinking.
+                            If you do NOT see any beverage or drinking vessel, respond with is_water: false.
+                            Random objects, food items, electronics, or furniture do NOT count.
 
-                            Be very generous - any drink counts for morning hydration.
+                            STEP 2 - If a drinking vessel IS present: Verify hydration.
+                            Pass if: Any drinking vessel (full, partially full, OR empty - empty means they drank it!), or person drinking.
+                            Pass for: water, coffee, tea, juice, smoothie, sports drinks, etc.
+                            Fail if: Photo shows no drinking vessel at all.
+
+                            Be lenient - the goal is to encourage hydration, not police it.
 
                             Respond ONLY with valid JSON:
-                            {"is_water": boolean, "feedback": "brief encouraging message"}
+                            {"is_water": boolean, "feedback": "brief message"}
                             """
                         ]
                     ]
@@ -346,13 +387,7 @@ actor ClaudeAPIService {
             throw APIError.parsingFailed
         }
 
-        let cleanedJSON = extractJSON(from: responseText)
-        guard let cleanedData = cleanedJSON.data(using: .utf8) else {
-            throw APIError.parsingFailed
-        }
-
-        let result = try JSONDecoder().decode(HydrationVerificationResult.self, from: cleanedData)
-        return result
+        return try await decodeVerificationResult(HydrationVerificationResult.self, from: responseText, endpoint: "claude/verify-hydration")
     }
 
     func verifyCustomHabit(image: UIImage, customHabit: CustomHabit) async throws -> CustomVerificationResult {
@@ -375,15 +410,23 @@ actor ClaudeAPIService {
         // Build the prompt based on user's AI instructions
         let userCriteria = customHabit.aiPrompt ?? "Verify that this habit has been completed."
         let prompt = """
-            You are verifying a morning habit.
-            Habit: \(customHabit.name)
+            TASK: Verify this photo for a custom morning habit.
+
+            Habit name: \(customHabit.name)
             User's verification criteria: \(userCriteria)
 
-            Analyze the photo and determine if it meets the user's criteria.
-            Be reasonably generous - if there's genuine effort, pass it.
+            STEP 1 - CRITICAL: Determine if this photo is RELEVANT to the habit "\(customHabit.name)".
+            The photo must show something clearly related to the habit being verified.
+            If the photo appears completely unrelated to "\(customHabit.name)" (random object, different activity, blank/unclear image), respond with is_verified: false.
+
+            STEP 2 - If the photo IS relevant: Check against the user's criteria.
+            Pass if: The photo shows reasonable evidence matching the verification criteria. Be moderately generous - the intent should be clear even if execution isn't perfect.
+            Fail if: The photo doesn't demonstrate the habit, contradicts the criteria, or shows no genuine attempt.
+
+            Important: If the user's criteria is vague or impossible to verify from a photo, use your judgment based on whether the photo plausibly relates to "\(customHabit.name)".
 
             Respond ONLY with valid JSON:
-            {"is_verified": boolean, "feedback": "brief encouraging message"}
+            {"is_verified": boolean, "feedback": "brief message"}
             """
 
         let requestBody: [String: Any] = [
@@ -442,13 +485,7 @@ actor ClaudeAPIService {
             throw APIError.parsingFailed
         }
 
-        let cleanedJSON = extractJSON(from: responseText)
-        guard let cleanedData = cleanedJSON.data(using: .utf8) else {
-            throw APIError.parsingFailed
-        }
-
-        let result = try JSONDecoder().decode(CustomVerificationResult.self, from: cleanedData)
-        return result
+        return try await decodeVerificationResult(CustomVerificationResult.self, from: responseText, endpoint: "claude/verify-custom-habit")
     }
 }
 

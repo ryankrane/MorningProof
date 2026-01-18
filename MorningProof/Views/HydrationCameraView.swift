@@ -92,7 +92,7 @@ struct HydrationCameraView: View {
                     VStack(spacing: MPSpacing.xl) {
                         Image(systemName: "drop.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(MPColors.primary)
+                            .foregroundColor(MPColors.textTertiary)
 
                         Text("Take a photo of your water")
                             .font(MPFont.bodyMedium())

@@ -90,9 +90,9 @@ struct BedCameraView: View {
             } else {
                 VStack(spacing: MPSpacing.xl) {
                     VStack(spacing: MPSpacing.xl) {
-                        Image(systemName: "camera.viewfinder")
+                        Image(systemName: "bed.double.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(MPColors.border)
+                            .foregroundColor(MPColors.textTertiary)
 
                         Text("Take a photo of your made bed")
                             .font(MPFont.bodyMedium())

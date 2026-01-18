@@ -92,7 +92,7 @@ struct SunlightCameraView: View {
                     VStack(spacing: MPSpacing.xl) {
                         Image(systemName: "sun.max.fill")
                             .font(.system(size: 80))
-                            .foregroundColor(MPColors.accentGold)
+                            .foregroundColor(MPColors.textTertiary)
 
                         Text("Take a photo outside")
                             .font(MPFont.bodyMedium())
