@@ -16,7 +16,6 @@ struct StreakHeroCard: View {
     @State private var flameScale: CGFloat = 1.0
     @State private var streakNumberScale: CGFloat = 0.8
     @State private var showPerfectBadge = false
-    @State private var glowPulse: CGFloat = 0.0
     @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
     @State private var displayedStreak: Double = 0  // For smooth speedometer-style animation
 
@@ -29,15 +28,10 @@ struct StreakHeroCard: View {
     @State private var flareScale: CGFloat = 1.0
     @State private var flareOpacity: Double = 0
 
-    // Living flame states (continuous animation after lock-in)
-    @State private var livingFlameRotation: Double = 0
-    @State private var livingFlameOpacity: Double = 1.0
+    // Living flame states (continuous animation when streak > 0)
     @State private var isLivingFlameActive: Bool = false
-
-    // On-fire pulsing flame states (when streak > 0)
-    @State private var innerFlameScale: CGFloat = 1.0
-    @State private var outerGlowIntensity: CGFloat = 0.0
-    @State private var emberOffset: CGFloat = 0
+    @State private var flamePulseScale: CGFloat = 1.0
+    @State private var flameIntensity: CGFloat = 1.0
 
     // Radial flare effect (on flame arrival)
     @State private var radialFlareScale: CGFloat = 0.3
@@ -138,12 +132,11 @@ struct StreakHeroCard: View {
                 Image(systemName: currentStreak > 0 ? "flame.fill" : "flame")
                     .font(.system(size: flameIconSize))
                     .foregroundStyle(flameGradient)
-                    .scaleEffect(flameScale * arrivalPulse * ignitionScale * innerFlameScale)
-                    .rotationEffect(.degrees(livingFlameRotation))
-                    .opacity(livingFlameOpacity)
-                    // Always-on glow when streak > 0, with pulsing effect
-                    .shadow(color: glowColor.opacity(glowOpacity + glowPulse * 0.2 + ignitionGlow * 0.3), radius: glowRadius + glowPulse * 4 + ignitionGlow * 10)
-                    .shadow(color: glowColor.opacity(glowOpacity * 0.5 + glowPulse * 0.1), radius: glowRadius * 0.5)
+                    .scaleEffect(flameScale * arrivalPulse * ignitionScale * flamePulseScale)
+                    .opacity(flameIntensity)
+                    // Always-on glow when streak > 0, with pulsing effect synced to flame intensity
+                    .shadow(color: glowColor.opacity((glowOpacity + ignitionGlow * 0.3) * flameIntensity), radius: glowRadius + ignitionGlow * 10)
+                    .shadow(color: glowColor.opacity(glowOpacity * 0.5 * flameIntensity), radius: glowRadius * 0.5)
                     // Decorative overlays (don't affect layout)
                     .overlay {
                         // Radial flare (expands on flame arrival)
@@ -178,28 +171,6 @@ struct StreakHeroCard: View {
                             .frame(width: MPIconSize.xl * 2, height: MPIconSize.xl * 2)
                             .blur(radius: 15)
                             .opacity(ignitionGlow)
-                    }
-                    .background {
-                        // Outer pulsing glow layer (breathing fire effect)
-                        if currentStreak > 0 {
-                            Image(systemName: "flame.fill")
-                                .font(.system(size: flameIconSize * 1.15))
-                                .foregroundStyle(MPColors.flameOrange.opacity(0.4))
-                                .blur(radius: 6)
-                                .scaleEffect(innerFlameScale * 1.1)
-                                .opacity(outerGlowIntensity)
-                        }
-                    }
-                    .overlay {
-                        // Ember particle floating up (subtle rising heat effect)
-                        if currentStreak > 0 {
-                            Circle()
-                                .fill(MPColors.flameOrange.opacity(0.6))
-                                .frame(width: 4, height: 4)
-                                .offset(x: 8, y: -flameIconSize * 0.4 - emberOffset)
-                                .opacity(Double(1.0 - emberOffset / 20))
-                                .blur(radius: 1)
-                        }
                     }
                     .offset(x: impactShake) // Apply shake offset from slam impact
                     .background(
@@ -311,15 +282,9 @@ struct StreakHeroCard: View {
                 flameScale = 1.1
             }
 
-            // Animate glow pulsing (separate from scale for layered effect)
+            // Start flame pulsing animation for active streaks
             if currentStreak > 0 {
-                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                    glowPulse = 1.0
-                }
-                // Start living flame animation immediately for existing streaks
-                startLivingFlameAnimation()
-                // Start the on-fire pulsing effect
-                startOnFireAnimation()
+                startFlameAnimation()
             }
 
             // Animate perfect badge if applicable
@@ -344,8 +309,7 @@ struct StreakHeroCard: View {
             }
             // Start fire animation if streak just became > 0
             if newValue > 0 && !isLivingFlameActive {
-                startLivingFlameAnimation()
-                startOnFireAnimation()
+                startFlameAnimation()
             }
         }
         .onChange(of: triggerPulse) { _, newValue in
@@ -386,10 +350,9 @@ struct StreakHeroCard: View {
                     }
                 }
 
-                // Start living flame animation after impact settles
+                // Start flame animation after impact settles
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    startLivingFlameAnimation()
-                    startOnFireAnimation()
+                    startFlameAnimation()
                 }
 
                 // Reset the trigger
@@ -447,108 +410,55 @@ struct StreakHeroCard: View {
         }
     }
 
-    // MARK: - Living Flame Animation
+    // MARK: - Flame Animation
 
-    /// Starts continuous dynamic animation on the flame to make it feel "alive" and dancing
-    private func startLivingFlameAnimation() {
+    /// Creates a realistic flame pulsing effect - scale and intensity pulse like a real fire
+    private func startFlameAnimation() {
         guard !isLivingFlameActive else { return }
         isLivingFlameActive = true
 
-        // Dancing rotation: ±4 degrees with organic timing - makes flame sway like real fire
-        func animateDancingRotation() {
+        // Flame pulse: scale grows and shrinks like fire rising and falling
+        func animateScale() {
             guard isLivingFlameActive else { return }
-            let target = Double.random(in: -4...4)
-            let duration = Double.random(in: 0.2...0.5)
-            withAnimation(.easeInOut(duration: duration)) {
-                livingFlameRotation = target
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
-                animateDancingRotation()
-            }
-        }
-
-        // Pulsing opacity: smooth breathing effect instead of flickering
-        func animatePulse() {
-            guard isLivingFlameActive else { return }
-            // Pulse down
-            withAnimation(.easeInOut(duration: 0.8)) {
-                livingFlameOpacity = 0.85
-            }
-            // Pulse back up
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                guard isLivingFlameActive else { return }
-                withAnimation(.easeInOut(duration: 0.8)) {
-                    livingFlameOpacity = 1.0
-                }
-                // Continue the cycle
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
-                    animatePulse()
-                }
-            }
-        }
-
-        // Start dancing rotation
-        animateDancingRotation()
-        // Start pulse with slight offset for organic feel
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            animatePulse()
-        }
-    }
-
-    // MARK: - On-Fire Pulsing Animation
-
-    /// Creates a continuous "burning" effect with pulsing scale and glow
-    private func startOnFireAnimation() {
-        guard currentStreak > 0 else { return }
-
-        // Inner flame pulsing (scale breathing)
-        func animateInnerPulse() {
-            withAnimation(.easeInOut(duration: 0.6)) {
-                innerFlameScale = 1.08
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                withAnimation(.easeInOut(duration: 0.5)) {
-                    innerFlameScale = 0.95
-                }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    animateInnerPulse()
-                }
-            }
-        }
-
-        // Outer glow intensity pulsing (fire breathing)
-        func animateOuterGlow() {
-            withAnimation(.easeIn(duration: 0.4)) {
-                outerGlowIntensity = 0.8
+            // Rise up
+            withAnimation(.easeOut(duration: 0.4)) {
+                flamePulseScale = 1.06
             }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                withAnimation(.easeOut(duration: 0.7)) {
-                    outerGlowIntensity = 0.3
+                guard isLivingFlameActive else { return }
+                // Fall back
+                withAnimation(.easeIn(duration: 0.5)) {
+                    flamePulseScale = 0.97
                 }
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
-                    animateOuterGlow()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    animateScale()
                 }
             }
         }
 
-        // Ember floating upward animation (continuous loop)
-        func animateEmber() {
-            emberOffset = 0
-            withAnimation(.easeOut(duration: 1.2)) {
-                emberOffset = 20
+        // Intensity pulse: brightness fluctuates like flame intensity
+        func animateIntensity() {
+            guard isLivingFlameActive else { return }
+            // Brighten
+            withAnimation(.easeOut(duration: 0.3)) {
+                flameIntensity = 1.0
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.4) {
-                animateEmber()
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                guard isLivingFlameActive else { return }
+                // Dim slightly
+                withAnimation(.easeIn(duration: 0.6)) {
+                    flameIntensity = 0.85
+                }
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                    animateIntensity()
+                }
             }
         }
 
-        // Start all fire animations with slight offsets for organic feel
-        animateInnerPulse()
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-            animateOuterGlow()
-        }
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            animateEmber()
+        // Start both animations with offset for organic feel
+        animateScale()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+            animateIntensity()
         }
     }
 }
