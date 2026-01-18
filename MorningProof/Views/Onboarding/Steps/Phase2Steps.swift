@@ -2,58 +2,176 @@ import SwiftUI
 
 // MARK: - Phase 2: Problem Agitation & Social Proof
 
-// MARK: - Step 5: Problem Statistics
+// MARK: - Step 5: The Guardrail (Why Morning Proof Works)
 
-struct ProblemStatisticsStep: View {
+struct GuardrailStep: View {
     let onContinue: () -> Void
-    @State private var showContent = false
+    @State private var showHeadline = false
+    @State private var showCards = [false, false, false]
+
+    private let frictionCards: [(title: String, tagline: String, description: String, icon: String, color: Color)] = [
+        (
+            "The Dopamine Gate",
+            "Earned Access",
+            "You shouldn't get a 'win' (scrolling) before you've even moved. We gate your distractions until you've actually earned them.",
+            "lock.shield.fill",
+            Color(red: 0.4, green: 0.6, blue: 1.0) // Blue
+        ),
+        (
+            "The Proof Gap",
+            "Hard Evidence",
+            "Intentions are cheap. A checklist is just a list of lies you tell yourself. We require physical, AI-verified proof that the work is done.",
+            "viewfinder",
+            MPColors.accent // Gold/Orange
+        ),
+        (
+            "The Path of Resistance",
+            "Forced Accountability",
+            "Without a barrier, you'll always choose the path of least resistance. We create the friction you need to stay on track.",
+            "figure.walk.motion",
+            MPColors.primary // Teal
+        )
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+                .frame(height: MPSpacing.xxl)
 
-            VStack(spacing: MPSpacing.xxl) {
-                Text("Here's the truth")
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(MPColors.textTertiary)
-                    .opacity(showContent ? 1 : 0)
+            // Headline Section
+            VStack(spacing: MPSpacing.md) {
+                Text("Willpower is a")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                +
+                Text(" losing game.")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.error)
 
-                StatisticHeroCard(
-                    value: "73%",
-                    label: "of people abandon their morning\nroutine within 2 weeks",
-                    citation: "American Psychological Association, 2023"
-                )
+                Text("Your brain is wired to choose the screen over the routine.")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+                    .multilineTextAlignment(.center)
 
-                // Supporting stats
-                VStack(spacing: MPSpacing.sm) {
-                    Text("Why most people fail:")
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-
-                    HStack(spacing: MPSpacing.md) {
-                        StatPillView(value: "3.5", label: "snoozes per day", icon: "alarm.fill")
-                        StatPillView(value: "47m", label: "scrolling in bed", icon: "iphone")
-                        StatPillView(value: "8%", label: "succeed alone", icon: "person.fill")
-                    }
-                }
-                .padding(.horizontal, MPSpacing.lg)
-                .opacity(showContent ? 1 : 0)
-                .offset(y: showContent ? 0 : 20)
+                Text("We just change the rules.")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
             }
+            .padding(.horizontal, MPSpacing.xl)
+            .opacity(showHeadline ? 1 : 0)
+            .offset(y: showHeadline ? 0 : 10)
+
+            Spacer()
+                .frame(height: MPSpacing.xxl)
+
+            // Friction Cards
+            VStack(spacing: MPSpacing.lg) {
+                ForEach(0..<3, id: \.self) { index in
+                    let card = frictionCards[index]
+                    FrictionCard(
+                        title: card.title,
+                        tagline: card.tagline,
+                        description: card.description,
+                        icon: card.icon,
+                        accentColor: card.color
+                    )
+                    .opacity(showCards[index] ? 1 : 0)
+                    .offset(y: showCards[index] ? 0 : 20)
+                }
+            }
+            .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
-            MPButton(title: "What can I do?", style: .primary, icon: "arrow.right") {
+            MPButton(title: "Set My Guardrails", style: .primary, icon: "shield.checkered") {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.6).delay(0.5)) {
-                showContent = true
+            // Animate headline first
+            withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
+                showHeadline = true
+            }
+            // Stagger cards
+            for i in 0..<3 {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5 + Double(i) * 0.15)) {
+                    showCards[i] = true
+                }
             }
         }
+    }
+}
+
+// MARK: - Friction Card Component
+
+struct FrictionCard: View {
+    let title: String
+    let tagline: String
+    let description: String
+    let icon: String
+    let accentColor: Color
+
+    var body: some View {
+        HStack(alignment: .top, spacing: MPSpacing.lg) {
+            // Icon with glow effect
+            ZStack {
+                // Outer glow
+                Circle()
+                    .fill(accentColor.opacity(0.2))
+                    .frame(width: 64, height: 64)
+                    .blur(radius: 8)
+
+                // Icon container
+                RoundedRectangle(cornerRadius: MPRadius.md)
+                    .fill(accentColor.opacity(0.15))
+                    .frame(width: 52, height: 52)
+
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .medium))
+                    .foregroundColor(accentColor)
+            }
+            .frame(width: 52, height: 52) // Constrain the ZStack to prevent layout issues
+
+            VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                // Title row with tagline
+                HStack(spacing: MPSpacing.sm) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("•")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
+
+                    Text(tagline)
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(accentColor)
+                }
+
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundColor(MPColors.textSecondary)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        }
+        .padding(MPSpacing.xl)
+        .background(
+            ZStack {
+                MPColors.surface
+
+                // Gradient glow from top-left
+                LinearGradient(
+                    colors: [accentColor.opacity(0.12), Color.clear],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            }
+        )
+        .cornerRadius(MPRadius.lg)
+        .mpShadow(.small)
     }
 }
 
