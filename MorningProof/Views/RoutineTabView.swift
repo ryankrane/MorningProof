@@ -543,10 +543,10 @@ struct RoutineTabView: View {
                             Text("Edit")
                                 .font(MPFont.labelMedium())
                         }
-                        .foregroundColor(MPColors.primary)
+                        .foregroundColor(.white)
                         .padding(.horizontal, MPSpacing.lg)
                         .padding(.vertical, MPSpacing.sm)
-                        .background(MPColors.primaryLight)
+                        .background(MPColors.primary)
                         .cornerRadius(MPRadius.md)
                     }
 
