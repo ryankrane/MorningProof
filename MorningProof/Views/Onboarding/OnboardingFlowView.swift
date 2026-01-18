@@ -136,8 +136,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 18
-    private let paywallStep = 17
+    private let totalSteps = 17
+    private let paywallStep = 16
 
     var body: some View {
         ZStack {
@@ -169,17 +169,16 @@ struct OnboardingFlowView: View {
                     // Phase 3: Solution & Investment
                     case 7: HowItWorksStep(onContinue: nextStep)
                     case 8: AIVerificationShowcaseStep(onContinue: nextStep)
-                    case 9: DoomScrollingSimulatorStep(onContinue: nextStep)
-                    case 10: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
-                    case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
-                    case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    case 9: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
+                    case 10: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                    case 11: ObstaclesStep(data: onboardingData, onContinue: nextStep)
+                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
                     // Phase 4: Habits & Paywall
-                    case 14: OptionalRatingStep(onContinue: nextStep)
-                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 17: HardPaywallStep(
+                    case 13: OptionalRatingStep(onContinue: nextStep)
+                    case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 16: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding
                     )
