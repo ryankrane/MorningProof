@@ -298,13 +298,33 @@ struct DashboardView: View {
             }
             .padding(.leading, MPSpacing.xs)
 
-            // All habits in a single unified list
-            ForEach(manager.enabledHabits) { config in
+            // All habits sorted by verification type:
+            // 1. AI Verified (camera) - both predefined and custom
+            // 2. Auto-Tracked (Apple Health)
+            // 3. Honor System (hold to complete) - both predefined and custom
+
+            // AI Verified predefined habits
+            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .aiVerified }) { config in
                 habitRow(for: config)
             }
 
-            // Custom habits
-            ForEach(manager.enabledCustomHabits) { customHabit in
+            // AI Verified custom habits
+            ForEach(manager.enabledCustomHabits.filter { $0.verificationType == .aiVerified }) { customHabit in
+                customHabitRow(for: customHabit)
+            }
+
+            // Auto-Tracked (Apple Health) habits
+            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .autoTracked }) { config in
+                habitRow(for: config)
+            }
+
+            // Honor System predefined habits
+            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .honorSystem }) { config in
+                habitRow(for: config)
+            }
+
+            // Honor System custom habits
+            ForEach(manager.enabledCustomHabits.filter { $0.verificationType == .honorSystem }) { customHabit in
                 customHabitRow(for: customHabit)
             }
 
