@@ -454,9 +454,9 @@ struct DashboardContentView: View {
 
             case .sleepDuration:
                 if let hours = completion.verificationData?.sleepHours {
-                    Text(String(format: "%.1f/\(config.goal)h sleep", hours))
+                    Text("\(formatHours(hours))/\(config.goal)h sleep")
                         .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(completion.isCompleted ? MPColors.success : MPColors.textTertiary)
                 } else {
                     Text("Tap to enter sleep")
                         .font(MPFont.bodySmall())
@@ -789,6 +789,15 @@ struct DashboardContentView: View {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedCustomHabits.remove(habitId)
+        }
+    }
+
+    /// Formats hours nicely: 8 instead of 8.0, but 8.5 stays 8.5
+    private func formatHours(_ hours: Double) -> String {
+        if hours == floor(hours) {
+            return "\(Int(hours))h"
+        } else {
+            return String(format: "%.1fh", hours)
         }
     }
 }

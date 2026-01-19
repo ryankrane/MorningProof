@@ -955,7 +955,7 @@ struct DashboardView: View {
                     let isFromHealth = completion.verificationData?.isFromHealthKit == true
                     if completion.isCompleted && wasCompletedLate(completion) {
                         HStack(spacing: MPSpacing.xs) {
-                            Text(String(format: "%.1f/\(config.goal)h sleep", hours))
+                            Text("\(formatHours(hours))/\(config.goal)h sleep")
                             Text("Late")
                             if isFromHealth {
                                 Text("from Health")
@@ -971,13 +971,13 @@ struct DashboardView: View {
                         .foregroundColor(MPColors.warning)
                     } else {
                         HStack(spacing: MPSpacing.xs) {
-                            Text(String(format: "%.1f/\(config.goal)h sleep", hours))
+                            Text("\(formatHours(hours))/\(config.goal)h sleep")
                                 .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
+                                .foregroundColor(completion.isCompleted ? MPColors.success : MPColors.textTertiary)
                             if isFromHealth {
                                 Text("from Health")
                                     .font(.system(size: 10))
-                                    .foregroundColor(MPColors.textTertiary.opacity(0.7))
+                                    .foregroundColor(completion.isCompleted ? MPColors.success.opacity(0.7) : MPColors.textTertiary.opacity(0.7))
                                     .padding(.horizontal, 4)
                                     .padding(.vertical, 2)
                                     .background(MPColors.surfaceSecondary)
@@ -1144,6 +1144,14 @@ struct DashboardView: View {
         }
     }
 
+    /// Formats hours nicely: 8 instead of 8.0, but 8.5 stays 8.5
+    private func formatHours(_ hours: Double) -> String {
+        if hours == floor(hours) {
+            return "\(Int(hours))h"
+        } else {
+            return String(format: "%.1fh", hours)
+        }
+    }
 }
 
 // MARK: - Supporting Views
