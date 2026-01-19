@@ -14,10 +14,6 @@ struct NeuralLoadingView: View {
     @State private var displayedProgress: Int = 0
     @State private var shimmerOffset: CGFloat = -1
 
-    // Colors
-    private let electricPurple = Color(red: 0.545, green: 0.361, blue: 0.965)  // #8B5CF6
-    private let electricCyan = Color(red: 0.024, green: 0.714, blue: 0.831)    // #06B6D4
-
     private let barHeight: CGFloat = 8
     private let barCornerRadius: CGFloat = 4
 
@@ -31,13 +27,7 @@ struct NeuralLoadingView: View {
                 // Percentage text
                 Text("\(displayedProgress)%")
                     .font(.system(size: 64, weight: .bold, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [electricPurple, electricCyan],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
+                    .foregroundColor(MPColors.primary)
                     .scaleEffect(lastProgressScale)
                     .contentTransition(.numericText())
 
@@ -45,18 +35,12 @@ struct NeuralLoadingView: View {
                 ZStack(alignment: .leading) {
                     // Background track
                     RoundedRectangle(cornerRadius: barCornerRadius)
-                        .fill(electricPurple.opacity(0.15))
+                        .fill(MPColors.primary.opacity(0.15))
                         .frame(width: barWidth, height: barHeight)
 
-                    // Filled portion with gradient
+                    // Filled portion
                     RoundedRectangle(cornerRadius: barCornerRadius)
-                        .fill(
-                            LinearGradient(
-                                colors: [electricPurple, electricCyan],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
+                        .fill(MPColors.primary)
                         .frame(width: max(barHeight, barWidth * CGFloat(progress)), height: barHeight)
 
                     // Shimmer effect
@@ -66,7 +50,7 @@ struct NeuralLoadingView: View {
                                 LinearGradient(
                                     colors: [
                                         .white.opacity(0),
-                                        .white.opacity(0.3),
+                                        .white.opacity(0.4),
                                         .white.opacity(0)
                                     ],
                                     startPoint: .leading,
@@ -132,7 +116,7 @@ struct NeuralLoadingViewPreview: View {
 
     var body: some View {
         ZStack {
-            Color.black.ignoresSafeArea()
+            MPColors.background.ignoresSafeArea()
 
             VStack(spacing: 40) {
                 NeuralLoadingView(
@@ -147,7 +131,7 @@ struct NeuralLoadingViewPreview: View {
                     Button("+10%") { progress = min(1.0, progress + 0.1) }
                     Button("100%") { progress = 1.0 }
                 }
-                .foregroundColor(.white)
+                .foregroundColor(MPColors.primary)
             }
         }
     }

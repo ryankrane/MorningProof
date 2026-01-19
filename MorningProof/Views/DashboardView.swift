@@ -178,7 +178,11 @@ struct DashboardView: View {
             HabitEditorSheet(manager: manager)
         }
         .sheet(item: $customHabitCameraTarget) { habit in
-            CustomHabitCameraView(manager: manager, customHabit: habit)
+            if habit.mediaType == .video {
+                VideoVerificationView(manager: manager, customHabit: habit)
+            } else {
+                CustomHabitCameraView(manager: manager, customHabit: habit)
+            }
         }
         .task {
             // Track which habits were completed before sync

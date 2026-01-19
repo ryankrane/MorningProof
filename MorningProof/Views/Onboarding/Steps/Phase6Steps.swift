@@ -8,8 +8,8 @@ import SuperwallKit
 
 struct OptionalRatingStep: View {
     let onContinue: () -> Void
-    @State private var hasRequestedReview = false
     @State private var starsVisible = [false, false, false, false, false]
+    @State private var buttonEnabled = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -24,9 +24,6 @@ struct OptionalRatingStep: View {
                         .opacity(starsVisible[index] ? 1 : 0)
                         .scaleEffect(starsVisible[index] ? 1 : 0.5)
                 }
-            }
-            .onTapGesture {
-                requestReview()
             }
 
             Spacer().frame(height: MPSpacing.xxl)
@@ -43,18 +40,8 @@ struct OptionalRatingStep: View {
 
             Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                MPButton(title: "Leave a Rating", style: .primary) {
-                    requestReview()
-                }
-
-                Button {
-                    onContinue()
-                } label: {
-                    Text("Skip")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-                }
+            MPButton(title: "Continue", style: .primary, isDisabled: !buttonEnabled) {
+                onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
@@ -66,16 +53,24 @@ struct OptionalRatingStep: View {
                     starsVisible[i] = true
                 }
             }
+
+            // Show review prompt after 0.5 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                requestReview()
+            }
+
+            // Enable button after 2 seconds
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation {
+                    buttonEnabled = true
+                }
+            }
         }
     }
 
     private func requestReview() {
         if let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene {
             SKStoreReviewController.requestReview(in: scene)
-        }
-        hasRequestedReview = true
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-            onContinue()
         }
     }
 }

@@ -554,12 +554,28 @@ actor ClaudeAPIService {
 
         // Build the prompt based on user's AI instructions
         let userCriteria = customHabit.aiPrompt ?? "Verify that this habit has been completed."
+
+        // Screenshot handling guidance depends on habit settings
+        let screenshotGuidance = customHabit.allowsScreenshots ? """
+            SCREENSHOT POLICY: Screenshots ARE ACCEPTED for this habit.
+            - Screenshots showing app interfaces, phone calls, messages, or activity are valid proof
+            - Only reject screenshots if they're obviously fake, heavily edited, or completely unrelated
+            - Focus on whether the screenshot shows legitimate proof of the habit
+            """ : """
+            SCREENSHOT POLICY: Screenshots are NOT ACCEPTED for this habit.
+            - If this appears to be a screenshot (phone screen, app interface, status bar visible), reject it
+            - The user must provide a live camera photo as proof
+            - Politely ask them to take a real photo if you detect a screenshot
+            """
+
         let prompt = """
             ROLE: You are a sharp-eyed habit verification AI. Be honest, specific, and catch gaming attempts.
 
             TASK: Verify this photo for the custom habit "\(customHabit.name)" using the user's criteria.
 
             User's verification criteria: \(userCriteria)
+
+            \(screenshotGuidance)
 
             ═══════════════════════════════════════════════════════════════
             STEP 1: IDENTIFY WHAT'S IN THE PHOTO
@@ -568,7 +584,6 @@ actor ClaudeAPIService {
             Examples: "person exercising", "notebook with writing", "kitchen counter", "bathroom sink", "random object", "screenshot"
 
             Gaming detection - FAIL immediately if you see:
-            - Screenshot of another photo or screen
             - Stock photo / obviously not personal
             - Completely unrelated to "\(customHabit.name)"
 
@@ -659,6 +674,138 @@ actor ClaudeAPIService {
         }
 
         return try await decodeVerificationResult(CustomVerificationResult.self, from: responseText, endpoint: "claude/verify-custom-habit")
+    }
+
+    func verifyVideo(frames: [UIImage], customHabit: CustomHabit, duration: TimeInterval) async throws -> VideoVerificationResult {
+        await MainActor.run {
+            CrashReportingService.shared.logAPICall("claude/verify-video")
+        }
+
+        // Prepare all frames as base64
+        var imageContents: [[String: Any]] = []
+
+        for (index, frame) in frames.enumerated() {
+            let imageData: Data
+            do {
+                imageData = try prepareImageData(frame)
+            } catch {
+                await MainActor.run {
+                    CrashReportingService.shared.recordAPIError(APIError.imageConversionFailed, endpoint: "claude/verify-video")
+                }
+                throw APIError.imageConversionFailed
+            }
+
+            let base64Image = imageData.base64EncodedString()
+
+            imageContents.append([
+                "type": "image",
+                "source": [
+                    "type": "base64",
+                    "media_type": "image/jpeg",
+                    "data": base64Image
+                ]
+            ])
+
+            // Add frame label
+            imageContents.append([
+                "type": "text",
+                "text": "Frame \(index + 1) of \(frames.count)"
+            ])
+        }
+
+        // Build the verification prompt
+        let userCriteria = customHabit.aiPrompt ?? "Verify that this action was performed."
+        let prompt = """
+            ROLE: You are a sharp-eyed action verification AI. Analyze video frames to verify the user completed their habit.
+
+            TASK: Verify this video for the habit "\(customHabit.name)" using the user's criteria.
+
+            You are seeing \(frames.count) frames extracted from a \(Int(duration))-second video, shown in chronological order.
+
+            User's verification criteria: \(userCriteria)
+
+            ═══════════════════════════════════════════════════════════════
+            CRITICAL - ANALYZE AS A SEQUENCE
+            ═══════════════════════════════════════════════════════════════
+            These frames show PROGRESSION over time, not separate photos:
+            1. Look for evidence the ACTION was actually performed
+            2. Verify movement/change between frames shows the activity
+            3. Be lenient on form/perfection but verify the core action happened
+
+            ═══════════════════════════════════════════════════════════════
+            DETECT CHEATING
+            ═══════════════════════════════════════════════════════════════
+            FAIL immediately if you detect:
+            - Video of a video / screen recording
+            - Still images with no movement between frames
+            - Completely unrelated content
+            - Someone else doing the action (not the user)
+
+            ═══════════════════════════════════════════════════════════════
+            VERIFICATION CRITERIA
+            ═══════════════════════════════════════════════════════════════
+            PASS (is_verified: true) if:
+            - Frames show clear progression of the described action
+            - The action matches the habit "\(customHabit.name)"
+            - Movement between frames indicates real activity
+
+            FAIL (is_verified: false) if:
+            - No relevant action visible
+            - Static/no movement (just showing equipment doesn't count)
+            - Content doesn't match the criteria
+            - Obvious cheating attempt
+
+            ═══════════════════════════════════════════════════════════════
+            RESPOND WITH SPECIFIC FEEDBACK
+            ═══════════════════════════════════════════════════════════════
+            - If passed: Acknowledge what you saw ("Great form on those pushups!")
+            - If failed: Explain specifically what was missing or wrong
+            - detected_action: Brief description of what you actually saw happen
+            - confidence: "high" if very clear, "medium" if some uncertainty, "low" if barely passed
+
+            JSON format (all fields required):
+            {"is_verified": boolean, "feedback": "specific message", "detected_action": "what happened", "confidence": "high/medium/low"}
+            """
+
+        // Build the content array with all images followed by the prompt
+        var contentArray = imageContents
+        contentArray.append([
+            "type": "text",
+            "text": prompt
+        ])
+
+        let requestBody: [String: Any] = [
+            "model": "claude-3-haiku-20240307",
+            "max_tokens": 512,
+            "messages": [
+                [
+                    "role": "user",
+                    "content": contentArray
+                ]
+            ]
+        ]
+
+        guard let url = URL(string: baseURL) else {
+            throw APIError.invalidURL
+        }
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("2023-06-01", forHTTPHeaderField: "anthropic-version")
+        request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
+        request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
+
+        // Use retry logic for resilience
+        let data = try await performRequestWithRetry(request, endpoint: "claude/verify-video")
+
+        let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
+
+        guard let textContent = claudeResponse.content.first(where: { $0.type == "text" }),
+              let responseText = textContent.text else {
+            throw APIError.parsingFailed
+        }
+
+        return try await decodeVerificationResult(VideoVerificationResult.self, from: responseText, endpoint: "claude/verify-video")
     }
 }
 

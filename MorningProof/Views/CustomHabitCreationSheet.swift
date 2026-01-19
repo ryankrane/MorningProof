@@ -11,7 +11,9 @@ struct CustomHabitCreationSheet: View {
     @State private var habitName: String = ""
     @State private var selectedIcon: String = "bolt.fill"
     @State private var verificationType: CustomVerificationType = .honorSystem
+    @State private var mediaType: VerificationMediaType = .photo
     @State private var aiPrompt: String = ""
+    @State private var allowsScreenshots: Bool = false
 
     // UI state
     @State private var showIconPicker = false
@@ -42,8 +44,16 @@ struct CustomHabitCreationSheet: View {
                         // Verification Type Section
                         verificationTypeSection
 
-                        // AI Prompt Section (conditional)
+                        // Media Type Section (conditional - only for AI verified)
                         if verificationType == .aiVerified {
+                            mediaTypeSection
+
+                            // Screenshot Option Section (only for photo media type)
+                            if mediaType == .photo {
+                                screenshotOptionSection
+                            }
+
+                            // AI Prompt Section
                             aiPromptSection
                         }
                     }
@@ -79,7 +89,9 @@ struct CustomHabitCreationSheet: View {
                     habitName = habit.name
                     selectedIcon = habit.icon
                     verificationType = habit.verificationType
+                    mediaType = habit.mediaType
                     aiPrompt = habit.aiPrompt ?? ""
+                    allowsScreenshots = habit.allowsScreenshots
                 }
             }
         }
@@ -246,6 +258,76 @@ struct CustomHabitCreationSheet: View {
         }
     }
 
+    // MARK: - Media Type Section
+
+    var mediaTypeSection: some View {
+        sectionContainer(title: "Capture Method", icon: "camera.metering.multispot") {
+            VStack(spacing: MPSpacing.md) {
+                // Segmented picker
+                HStack(spacing: 0) {
+                    ForEach(VerificationMediaType.allCases, id: \.self) { type in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                mediaType = type
+                            }
+                        } label: {
+                            HStack(spacing: MPSpacing.xs) {
+                                Image(systemName: type.icon)
+                                    .font(.system(size: 14))
+                                Text(type.displayName)
+                                    .font(MPFont.labelMedium())
+                            }
+                            .foregroundColor(mediaType == type ? .white : MPColors.textSecondary)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, MPSpacing.sm)
+                            .background(
+                                RoundedRectangle(cornerRadius: MPRadius.sm)
+                                    .fill(mediaType == type ? MPColors.primary : Color.clear)
+                            )
+                        }
+                    }
+                }
+                .padding(4)
+                .background(MPColors.surfaceSecondary)
+                .cornerRadius(MPRadius.md)
+
+                // Help text
+                Text(mediaType.description)
+                    .font(MPFont.labelTiny())
+                    .foregroundColor(MPColors.textTertiary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+            }
+        }
+    }
+
+    // MARK: - Screenshot Option Section
+
+    var screenshotOptionSection: some View {
+        sectionContainer(title: "Screenshot Verification", icon: "photo.on.rectangle") {
+            VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                Toggle(isOn: $allowsScreenshots) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Allow screenshots")
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Text("Choose photos from library instead of camera")
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
+                .tint(MPColors.primary)
+
+                if allowsScreenshots {
+                    Text("Best for habits verified via screenshots (phone calls, app activity, etc.)")
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.textTertiary)
+                        .padding(.top, MPSpacing.xs)
+                }
+            }
+        }
+    }
+
     // MARK: - AI Prompt Section
 
     var aiPromptSection: some View {
@@ -313,13 +395,18 @@ struct CustomHabitCreationSheet: View {
         let trimmedName = habitName.trimmingCharacters(in: .whitespaces)
         let trimmedPrompt = aiPrompt.trimmingCharacters(in: .whitespaces)
 
+        // Only allow screenshots for AI-verified photo habits
+        let screenshotsEnabled = verificationType == .aiVerified && mediaType == .photo && allowsScreenshots
+
         if let existingHabit = editingHabit {
             // Update existing habit
             var updatedHabit = existingHabit
             updatedHabit.name = trimmedName
             updatedHabit.icon = selectedIcon
             updatedHabit.verificationType = verificationType
+            updatedHabit.mediaType = verificationType == .aiVerified ? mediaType : .photo
             updatedHabit.aiPrompt = verificationType == .aiVerified ? trimmedPrompt : nil
+            updatedHabit.allowsScreenshots = screenshotsEnabled
             manager.updateCustomHabit(updatedHabit)
         } else {
             // Create new habit
@@ -327,7 +414,9 @@ struct CustomHabitCreationSheet: View {
                 name: trimmedName,
                 icon: selectedIcon,
                 verificationType: verificationType,
-                aiPrompt: verificationType == .aiVerified ? trimmedPrompt : nil
+                mediaType: verificationType == .aiVerified ? mediaType : .photo,
+                aiPrompt: verificationType == .aiVerified ? trimmedPrompt : nil,
+                allowsScreenshots: screenshotsEnabled
             )
             manager.addCustomHabit(newHabit)
         }

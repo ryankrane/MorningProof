@@ -368,8 +368,18 @@ struct NameStep: View {
             .animation(.easeInOut(duration: 0.3), value: hasConfirmedName)
         }
         .onAppear {
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                isNameFocused = true
+            if !data.userName.isEmpty {
+                // Name was pre-filled from authentication - show greeting and proceed
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    if !hasConfirmedName {
+                        confirmName()
+                    }
+                }
+            } else {
+                // No name yet, focus the text field for manual entry
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                    isNameFocused = true
+                }
             }
         }
         } // Close VStack

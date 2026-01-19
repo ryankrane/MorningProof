@@ -71,3 +71,24 @@ struct CustomVerificationResult: Codable {
         self.detectedSubject = detectedSubject
     }
 }
+
+struct VideoVerificationResult: Codable {
+    let isVerified: Bool
+    let feedback: String
+    let detectedAction: String?      // What action AI detected
+    let confidenceLevel: String?     // "high", "medium", "low"
+
+    enum CodingKeys: String, CodingKey {
+        case isVerified = "is_verified"
+        case feedback
+        case detectedAction = "detected_action"
+        case confidenceLevel = "confidence"
+    }
+
+    init(isVerified: Bool, feedback: String, detectedAction: String? = nil, confidenceLevel: String? = nil) {
+        self.isVerified = isVerified
+        self.feedback = feedback
+        self.detectedAction = detectedAction
+        self.confidenceLevel = confidenceLevel
+    }
+}

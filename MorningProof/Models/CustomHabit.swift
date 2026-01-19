@@ -66,6 +66,35 @@ enum CustomVerificationType: String, Codable, CaseIterable {
     }
 }
 
+// MARK: - Verification Media Type
+
+/// What media type is used for AI verification (photo or video)
+enum VerificationMediaType: String, Codable, CaseIterable {
+    case photo
+    case video
+
+    var displayName: String {
+        switch self {
+        case .photo: return "Photo"
+        case .video: return "Video"
+        }
+    }
+
+    var description: String {
+        switch self {
+        case .photo: return "Verify an end result (made bed, clean desk)"
+        case .video: return "Verify an action (exercise, meditation)"
+        }
+    }
+
+    var icon: String {
+        switch self {
+        case .photo: return "camera.fill"
+        case .video: return "video.fill"
+        }
+    }
+}
+
 // MARK: - Custom Habit
 
 /// User-created custom habit definition
@@ -74,7 +103,9 @@ struct CustomHabit: Codable, Identifiable, Hashable {
     var name: String
     var icon: String          // SF Symbol name
     var verificationType: CustomVerificationType
+    var mediaType: VerificationMediaType  // Photo or video for AI verified habits
     var aiPrompt: String?     // User's verification instructions (for AI verified)
+    var allowsScreenshots: Bool  // Whether screenshots can be used for AI verification (default: false)
     var createdAt: Date
     var isActive: Bool
     var activeDays: Set<Int>  // 1=Sunday...7=Saturday (matches Calendar.weekday)
@@ -84,7 +115,9 @@ struct CustomHabit: Codable, Identifiable, Hashable {
         name: String,
         icon: String,
         verificationType: CustomVerificationType,
+        mediaType: VerificationMediaType = .photo,
         aiPrompt: String? = nil,
+        allowsScreenshots: Bool = false,
         createdAt: Date = Date(),
         isActive: Bool = true,
         activeDays: Set<Int>? = nil
@@ -93,27 +126,31 @@ struct CustomHabit: Codable, Identifiable, Hashable {
         self.name = name
         self.icon = icon
         self.verificationType = verificationType
+        self.mediaType = mediaType
         self.aiPrompt = aiPrompt
+        self.allowsScreenshots = allowsScreenshots
         self.createdAt = createdAt
         self.isActive = isActive
         self.activeDays = activeDays ?? Set(1...7) // Default to all days
     }
 
-    // Custom decoder for backward compatibility (existing users get all days)
+    // Custom decoder for backward compatibility (existing users get photo as default, screenshots disabled)
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
         name = try container.decode(String.self, forKey: .name)
         icon = try container.decode(String.self, forKey: .icon)
         verificationType = try container.decode(CustomVerificationType.self, forKey: .verificationType)
+        mediaType = try container.decodeIfPresent(VerificationMediaType.self, forKey: .mediaType) ?? .photo
         aiPrompt = try container.decodeIfPresent(String.self, forKey: .aiPrompt)
+        allowsScreenshots = try container.decodeIfPresent(Bool.self, forKey: .allowsScreenshots) ?? false
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         isActive = try container.decode(Bool.self, forKey: .isActive)
         activeDays = try container.decodeIfPresent(Set<Int>.self, forKey: .activeDays) ?? Set(1...7)
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, name, icon, verificationType, aiPrompt, createdAt, isActive, activeDays
+        case id, name, icon, verificationType, mediaType, aiPrompt, allowsScreenshots, createdAt, isActive, activeDays
     }
 
     /// Convert to HabitIdentifier

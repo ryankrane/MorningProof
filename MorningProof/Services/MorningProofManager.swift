@@ -478,6 +478,28 @@ final class MorningProofManager: ObservableObject, Sendable {
         return result
     }
 
+    /// Complete custom habit with video AI verification
+    func completeCustomHabitVideoVerification(habit: CustomHabit, frames: [UIImage], duration: TimeInterval) async throws -> VideoVerificationResult {
+        guard let index = todayCustomCompletions.firstIndex(where: { $0.customHabitId == habit.id }) else {
+            throw VerificationError.habitNotEnabled
+        }
+
+        let result = try await apiService.verifyVideo(frames: frames, customHabit: habit, duration: duration)
+
+        if result.isVerified {
+            todayCustomCompletions[index].isCompleted = true
+            todayCustomCompletions[index].completedAt = Date()
+            todayCustomCompletions[index].verificationData = CustomHabitCompletion.VerificationData(
+                aiFeedback: result.feedback
+            )
+
+            recalculateScore()
+            saveCurrentState()
+        }
+
+        return result
+    }
+
     /// Get enabled custom habits that are active today (sorted by display order)
     var enabledCustomHabits: [CustomHabit] {
         let today = Date()

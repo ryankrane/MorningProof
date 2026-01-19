@@ -147,7 +147,11 @@ struct DashboardContentView: View {
                 SleepInputSheet(manager: manager)
             }
             .sheet(item: $customHabitCameraTarget) { habit in
-                CustomHabitCameraView(manager: manager, customHabit: habit)
+                if habit.mediaType == .video {
+                    VideoVerificationView(manager: manager, customHabit: habit)
+                } else {
+                    CustomHabitCameraView(manager: manager, customHabit: habit)
+                }
             }
             .task {
                 await manager.syncHealthData()

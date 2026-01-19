@@ -7,6 +7,7 @@ struct CustomHabitCameraView: View {
     let customHabit: CustomHabit
 
     @State private var showingCamera = false
+    @State private var showingPhotoLibrary = false
     @State private var selectedImage: UIImage?
     @State private var isAnalyzing = false
     @State private var result: CustomVerificationResult?
@@ -59,6 +60,9 @@ struct CustomHabitCameraView: View {
         .sheet(isPresented: $showingCamera) {
             ImagePicker(image: $selectedImage, sourceType: .camera)
         }
+        .sheet(isPresented: $showingPhotoLibrary) {
+            ImagePicker(image: $selectedImage, sourceType: .photoLibrary)
+        }
     }
 
     var captureView: some View {
@@ -94,7 +98,7 @@ struct CustomHabitCameraView: View {
                             .foregroundColor(MPColors.textTertiary)
 
                         VStack(spacing: MPSpacing.sm) {
-                            Text("Take a photo to verify")
+                            Text(customHabit.allowsScreenshots ? "Verify with a photo" : "Take a photo to verify")
                                 .font(MPFont.bodyMedium())
                                 .foregroundColor(MPColors.textSecondary)
 
@@ -115,8 +119,17 @@ struct CustomHabitCameraView: View {
                     .mpShadow(.medium)
                     .padding(.horizontal, MPSpacing.xxl)
 
-                    MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
-                        showingCamera = true
+                    VStack(spacing: MPSpacing.md) {
+                        MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
+                            showingCamera = true
+                        }
+
+                        // Only show photo library option if habit allows screenshots
+                        if customHabit.allowsScreenshots {
+                            MPButton(title: "Choose from Library", style: .secondary, icon: "photo.fill") {
+                                showingPhotoLibrary = true
+                            }
+                        }
                     }
                     .padding(.horizontal, MPSpacing.xxl)
                 }
