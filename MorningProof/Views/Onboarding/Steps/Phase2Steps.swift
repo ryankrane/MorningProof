@@ -64,7 +64,7 @@ struct GuardrailStep: View {
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
-                .frame(height: MPSpacing.xl)
+                .frame(height: 80)
 
             // Guardrail cards
             VStack(spacing: MPSpacing.md) {
@@ -84,7 +84,7 @@ struct GuardrailStep: View {
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
-                .frame(height: MPSpacing.xxl)
+                .frame(height: 28)
 
             // Explanatory text below the cards
             Text("Your brain will always choose easy over hard.\nSo we remove the choice entirely.")

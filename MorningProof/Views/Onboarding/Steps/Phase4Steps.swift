@@ -541,7 +541,7 @@ struct YourHabitsStep: View {
     let onContinue: () -> Void
     @State private var showContent = false
 
-    private let recommendedHabits: [HabitType] = [.madeBed, .morningWorkout, .sleepDuration, .coldShower]
+    private let recommendedHabits: [HabitType] = [.madeBed, .morningWorkout, .sleepDuration, .prayer]
 
     var body: some View {
         VStack(spacing: 0) {

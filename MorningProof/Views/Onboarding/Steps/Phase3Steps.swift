@@ -919,11 +919,10 @@ private struct LockdownOverlay: View {
                         .font(.system(size: 18, weight: .bold))
                         .foregroundColor(.white)
 
-                    Text("Complete your routine\nto unlock")
+                    Text("Complete your routine to unlock Instagram")
                         .font(.system(size: 13))
                         .foregroundColor(Color.white.opacity(0.7))
                         .multilineTextAlignment(.center)
-                        .lineSpacing(2)
                 }
                 .opacity(lockSlammed ? 1 : 0)
 
@@ -936,12 +935,14 @@ private struct LockdownOverlay: View {
                             .fill(Color(white: 0.25))
                             .frame(height: 44)
                             .overlay(
-                                HStack(spacing: 6) {
-                                    Image(systemName: "camera.viewfinder")
-                                        .font(.system(size: 15))
-                                        .foregroundColor(MPColors.primary)
-                                    Text("Open Morning Proof")
-                                        .font(.system(size: 14, weight: .semibold))
+                                HStack(spacing: 8) {
+                                    Image("AppLogo")
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(width: 28, height: 28)
+                                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                                    Text("Finish your routine")
+                                        .font(.system(size: 13, weight: .semibold))
                                         .foregroundColor(.white)
                                 }
                             )
