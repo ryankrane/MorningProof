@@ -416,6 +416,8 @@ private struct LaserScanLine: View {
     let position: CGFloat
     let size: CGSize
 
+    private let scanColor = Color.black
+
     var body: some View {
         let y = size.height * position
 
@@ -425,10 +427,10 @@ private struct LaserScanLine: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            MPColors.accent.opacity(0),
-                            MPColors.accent,
-                            MPColors.accent,
-                            MPColors.accent.opacity(0)
+                            scanColor.opacity(0),
+                            scanColor,
+                            scanColor,
+                            scanColor.opacity(0)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -441,9 +443,9 @@ private struct LaserScanLine: View {
                 .fill(
                     LinearGradient(
                         colors: [
-                            MPColors.accent.opacity(0),
-                            MPColors.accent.opacity(0.6),
-                            MPColors.accent.opacity(0)
+                            scanColor.opacity(0),
+                            scanColor.opacity(0.4),
+                            scanColor.opacity(0)
                         ],
                         startPoint: .leading,
                         endPoint: .trailing
@@ -663,37 +665,36 @@ struct DoomScrollingSimulatorStep: View {
                     .offset(x: 99, y: -50)
 
                 // Screen content area
-                RoundedRectangle(cornerRadius: 38)
-                    .fill(MPColors.background)
-                    .frame(width: 184, height: 410)
-                    .overlay(
-                        ZStack {
-                            // Scrolling social feed OR locked state
-                            if !showLockdown {
-                                // Doom scrolling feed
-                                DoomScrollFeed(
-                                    feedItems: feedItems,
-                                    scrollOffset: scrollOffset,
-                                    isScrolling: isScrolling
-                                )
-                            }
+                ZStack {
+                    RoundedRectangle(cornerRadius: 38)
+                        .fill(MPColors.background)
 
-                            // Morning Proof lockdown overlay
-                            if showLockdown {
-                                LockdownOverlay(lockSlammed: lockSlammed)
-                            }
+                    // Scrolling social feed OR locked state
+                    if !showLockdown {
+                        // Doom scrolling feed
+                        DoomScrollFeed(
+                            feedItems: feedItems,
+                            scrollOffset: scrollOffset,
+                            isScrolling: isScrolling
+                        )
+                    }
 
-                            // Dynamic Island at top
-                            VStack {
-                                Capsule()
-                                    .fill(Color.black)
-                                    .frame(width: 85, height: 26)
-                                    .padding(.top, 10)
-                                Spacer()
-                            }
-                        }
-                        .clipShape(RoundedRectangle(cornerRadius: 38))
-                    )
+                    // Morning Proof lockdown overlay
+                    if showLockdown {
+                        LockdownOverlay(lockSlammed: lockSlammed)
+                    }
+
+                    // Dynamic Island at top
+                    VStack {
+                        Capsule()
+                            .fill(Color.black)
+                            .frame(width: 85, height: 26)
+                            .padding(.top, 10)
+                        Spacer()
+                    }
+                }
+                .frame(width: 184, height: 410)
+                .clipShape(RoundedRectangle(cornerRadius: 38))
             }
             .scaleEffect(showPhone ? 1 : 0.8)
             .opacity(showPhone ? 1 : 0)
@@ -800,12 +801,18 @@ private struct DoomScrollFeed: View {
 
     // Post gradients for variety
     private static let postGradients: [LinearGradient] = [
+        // Coral/salmon
         LinearGradient(colors: [Color(red: 0.95, green: 0.6, blue: 0.5), Color(red: 0.9, green: 0.4, blue: 0.3)], startPoint: .top, endPoint: .bottom),
+        // Teal/forest
         LinearGradient(colors: [Color(red: 0.3, green: 0.5, blue: 0.4), Color(red: 0.2, green: 0.4, blue: 0.35)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        // Slate blue
         LinearGradient(colors: [Color(red: 0.4, green: 0.5, blue: 0.65), Color(red: 0.3, green: 0.35, blue: 0.5)], startPoint: .top, endPoint: .bottom),
-        LinearGradient(colors: [Color(red: 0.85, green: 0.7, blue: 0.5), Color(red: 0.75, green: 0.55, blue: 0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        // Dusty rose
+        LinearGradient(colors: [Color(red: 0.65, green: 0.45, blue: 0.5), Color(red: 0.55, green: 0.35, blue: 0.45)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        // Deep purple
         LinearGradient(colors: [Color(red: 0.5, green: 0.4, blue: 0.6), Color(red: 0.4, green: 0.3, blue: 0.55)], startPoint: .top, endPoint: .bottom),
-        LinearGradient(colors: [Color(red: 0.9, green: 0.75, blue: 0.5), Color(red: 0.85, green: 0.6, blue: 0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        // Cool gray-blue
+        LinearGradient(colors: [Color(red: 0.45, green: 0.5, blue: 0.55), Color(red: 0.35, green: 0.4, blue: 0.48)], startPoint: .topLeading, endPoint: .bottomTrailing),
     ]
 }
 

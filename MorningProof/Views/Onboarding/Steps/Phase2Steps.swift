@@ -323,7 +323,7 @@ struct SuccessStoriesStep: View {
         (
             "Day 5",
             "Building Momentum",
-            "The routine clicks. Snooze becomes rare. Energy returns.",
+            "The routine clicks. Distractions fade. Focus sharpens.",
             "flame.fill",
             [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.45, blue: 0.35)]
         ),
@@ -513,7 +513,7 @@ private struct JourneyMilestone: View {
                 // Day badge + title
                 HStack(spacing: MPSpacing.sm) {
                     Text(day)
-                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .font(.system(size: 11, weight: .bold))
                         .foregroundColor(gradient[0])
                         .padding(.horizontal, 8)
                         .padding(.vertical, 3)
