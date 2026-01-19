@@ -102,6 +102,27 @@ struct StreakHeroCard: View {
         return CGFloat(progress) / CGFloat(range)
     }
 
+    /// Color for habit completion progress indicator
+    /// Purple (0) → Yellow (1-2) → Lime (3) → Green (all complete)
+    var habitProgressColor: Color {
+        guard totalHabits > 0 else { return MPColors.accent }
+
+        if completedToday == totalHabits {
+            return MPColors.success  // Green - all done
+        } else if completedToday == 0 {
+            return MPColors.accent  // Purple - not started
+        } else {
+            let progress = Double(completedToday) / Double(totalHabits)
+            if progress >= 0.75 {
+                // Lime green for 75%+
+                return Color(red: 0.6, green: 0.85, blue: 0.3)
+            } else {
+                // Yellow/amber for partial progress
+                return MPColors.warning
+            }
+        }
+    }
+
     /// Formats the countdown interval into a compact string
     /// - >= 1 hour: "3h 45m"
     /// - < 1 hour: "45 min"
@@ -224,7 +245,7 @@ struct StreakHeroCard: View {
                     // First content: habit counter
                     HStack(spacing: MPSpacing.sm) {
                         Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(MPColors.success)
+                            .foregroundColor(habitProgressColor)
                         Text("\(completedToday)/\(totalHabits) habits completed")
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textSecondary)
