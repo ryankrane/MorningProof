@@ -419,13 +419,45 @@ private struct LaserScanLine: View {
     let position: CGFloat
     let size: CGSize
 
-    private let scanColor = Color.black
+    private let scanColor = Color(red: 1.0, green: 0.2, blue: 0.2)
 
     var body: some View {
         let y = size.height * position
 
         ZStack {
-            // Main laser line
+            // Outer glow (wide, soft)
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            scanColor.opacity(0),
+                            scanColor.opacity(0.3),
+                            scanColor.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: size.width - 10, height: 30)
+                .blur(radius: 12)
+
+            // Inner glow (medium)
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            scanColor.opacity(0),
+                            scanColor.opacity(0.6),
+                            scanColor.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: size.width - 15, height: 12)
+                .blur(radius: 6)
+
+            // Main laser line (bright core)
             Rectangle()
                 .fill(
                     LinearGradient(
@@ -440,22 +472,7 @@ private struct LaserScanLine: View {
                     )
                 )
                 .frame(width: size.width - 20, height: 2)
-
-            // Glow effect
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            scanColor.opacity(0),
-                            scanColor.opacity(0.4),
-                            scanColor.opacity(0)
-                        ],
-                        startPoint: .leading,
-                        endPoint: .trailing
-                    )
-                )
-                .frame(width: size.width - 20, height: 20)
-                .blur(radius: 8)
+                .shadow(color: scanColor, radius: 4)
         }
         .position(x: size.width / 2, y: y)
     }

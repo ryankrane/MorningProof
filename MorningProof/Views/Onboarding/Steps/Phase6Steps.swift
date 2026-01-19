@@ -17,11 +17,26 @@ struct OptionalRatingStep: View {
         VStack(spacing: 0) {
             Spacer()
 
+            // Text above stars
+            VStack(spacing: MPSpacing.xs) {
+                Text("Enjoying Morning Proof?")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Your rating helps others find better mornings")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
             // Stars with glow and gentle hover animation
-            HStack(spacing: 16) {
+            HStack(spacing: 14) {
                 ForEach(0..<5, id: \.self) { index in
                     Image(systemName: "star.fill")
-                        .font(.system(size: 48))
+                        .font(.system(size: 44))
                         .foregroundColor(MPColors.accentGold)
                         .shadow(color: MPColors.accentGold.opacity(0.4 + glowIntensity * 0.3), radius: 8 + glowIntensity * 6)
                         .shadow(color: MPColors.accentGold.opacity(0.2 + glowIntensity * 0.15), radius: 16 + glowIntensity * 8)
@@ -30,22 +45,6 @@ struct OptionalRatingStep: View {
                         .offset(y: starsVisible[index] ? hoverOffset : 30)
                 }
             }
-            .padding(.vertical, MPSpacing.xxxl)
-
-            Spacer().frame(height: MPSpacing.xl)
-
-            VStack(spacing: MPSpacing.sm) {
-                Text("Help others find\nbetter mornings")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-
-                Text("Your review makes a difference")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
