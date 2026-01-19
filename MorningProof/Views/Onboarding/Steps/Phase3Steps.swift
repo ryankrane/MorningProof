@@ -931,26 +931,31 @@ private struct LockdownOverlay: View {
                 // CTA button
                 if lockSlammed {
                     VStack(spacing: 8) {
-                        RoundedRectangle(cornerRadius: 14)
-                            .fill(Color(white: 0.25))
-                            .frame(height: 44)
-                            .overlay(
-                                HStack(spacing: 8) {
-                                    Image("AppLogo")
-                                        .resizable()
-                                        .scaledToFit()
-                                        .frame(width: 28, height: 28)
-                                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                                    Text("Finish your routine")
-                                        .font(.system(size: 13, weight: .semibold))
-                                        .foregroundColor(.white)
-                                }
-                            )
-                            .padding(.horizontal, MPSpacing.md)
+                        HStack(spacing: 10) {
+                            Image("AppLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                            Text("Finish your routine")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(Color(white: 0.22))
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 12)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                        .padding(.horizontal, MPSpacing.lg)
 
                         Text("Verify habits to unlock")
                             .font(.system(size: 11))
-                            .foregroundColor(Color.white.opacity(0.5))
+                            .foregroundColor(Color.white.opacity(0.4))
                     }
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
                 }

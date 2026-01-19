@@ -620,12 +620,12 @@ struct RecommendedHabitRow: View {
             HStack(spacing: MPSpacing.lg) {
                 ZStack {
                     Circle()
-                        .fill(isSelected ? MPColors.primaryLight : MPColors.surfaceSecondary)
+                        .fill(isSelected ? MPColors.primary : MPColors.surfaceSecondary)
                         .frame(width: 50, height: 50)
 
                     Image(systemName: habitType.icon)
                         .font(.system(size: 22))
-                        .foregroundColor(isSelected ? MPColors.primary : MPColors.textTertiary)
+                        .foregroundColor(isSelected ? .white : MPColors.textTertiary)
                 }
 
                 VStack(alignment: .leading, spacing: 4) {

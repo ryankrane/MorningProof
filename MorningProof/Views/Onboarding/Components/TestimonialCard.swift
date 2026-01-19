@@ -30,10 +30,11 @@ struct TestimonialCard: View {
         VStack(alignment: .leading, spacing: MPSpacing.lg) {
             // Quote
             Text("\"\(quote)\"")
-                .font(.system(size: 17, weight: .medium))
+                .font(.system(size: 16, weight: .medium))
                 .foregroundColor(MPColors.textPrimary)
-                .lineSpacing(6)
-                .lineLimit(4)
+                .lineSpacing(5)
+                .lineLimit(5)
+                .fixedSize(horizontal: false, vertical: true)
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             Spacer(minLength: 0)
@@ -81,7 +82,7 @@ struct TestimonialCard: View {
             }
         }
         .padding(MPSpacing.xl)
-        .frame(height: 200)
+        .frame(height: 220)
         .background(MPColors.surface)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)

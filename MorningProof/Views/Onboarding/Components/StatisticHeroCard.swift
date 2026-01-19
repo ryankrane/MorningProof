@@ -113,7 +113,6 @@ struct StatisticRingCard: View {
     @State private var showComparison = false
     @State private var glowOpacity: Double = 0
     @State private var ringScale: CGFloat = 0.8
-    @State private var showEndCap = false
     @State private var pulseGlow = false
 
     private let ringSize: CGFloat = 200
@@ -204,24 +203,6 @@ struct StatisticRingCard: View {
                     .rotationEffect(.degrees(-90))
                     .shadow(color: accentColor.opacity(0.6), radius: 12, x: 0, y: 0)
 
-                // Glowing end cap dot
-                if showEndCap && animatedProgress > 0.05 {
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [.white, accentColor],
-                                center: .center,
-                                startRadius: 0,
-                                endRadius: 8
-                            )
-                        )
-                        .frame(width: 12, height: 12)
-                        .shadow(color: accentColor, radius: 8)
-                        .shadow(color: .white.opacity(0.5), radius: 4)
-                        .offset(y: -ringSize / 2)
-                        .rotationEffect(.degrees(-90 + 360 * Double(animatedProgress)))
-                }
-
                 // Center content
                 VStack(spacing: 6) {
                     Text("\(displayedNumber)%")
@@ -261,11 +242,6 @@ struct StatisticRingCard: View {
             // Start glow
             withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
                 glowOpacity = 1.0
-            }
-
-            // Show end cap
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                showEndCap = true
             }
 
             // Animate the progress ring

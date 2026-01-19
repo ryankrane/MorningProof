@@ -84,7 +84,7 @@ struct GuardrailStep: View {
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
-                .frame(height: 28)
+                .frame(height: 60)
 
             // Explanatory text below the cards
             Text("Your brain will always choose easy over hard.\nSo we remove the choice entirely.")
@@ -263,7 +263,7 @@ struct YouAreNotAloneStep: View {
                         }
                     }
                 }
-                .frame(height: 260)
+                .frame(height: 280)
                 .clipped()
                 .opacity(showContent ? 1 : 0)
 
