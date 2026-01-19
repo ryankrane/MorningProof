@@ -87,7 +87,7 @@ struct GuardrailStep: View {
                 .frame(height: 60)
 
             // Explanatory text below the cards
-            Text("Your brain will always choose easy over hard.\nSo we remove the choice entirely.")
+            Text("Your brain will always choose easy over hard —\nSo we remove the choice entirely.")
                 .font(.system(size: 15))
                 .foregroundColor(MPColors.textSecondary)
                 .multilineTextAlignment(.center)

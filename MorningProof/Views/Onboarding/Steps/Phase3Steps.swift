@@ -762,43 +762,154 @@ private struct DoomScrollFeed: View {
         VStack(spacing: 0) {
             // App header bar
             HStack {
-                Image(systemName: "camera.fill")
-                    .font(.system(size: 16))
+                Image(systemName: "camera")
+                    .font(.system(size: 14))
                     .foregroundColor(MPColors.textPrimary)
 
                 Spacer()
 
                 Text("Instagram")
-                    .font(.system(size: 15, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(MPColors.textPrimary)
 
                 Spacer()
 
-                Image(systemName: "paperplane.fill")
-                    .font(.system(size: 16))
+                Image(systemName: "paperplane")
+                    .font(.system(size: 14))
                     .foregroundColor(MPColors.textPrimary)
             }
-            .padding(.horizontal, MPSpacing.sm)
-            .padding(.vertical, 8)
-            .padding(.top, 30) // Space for Dynamic Island
-            .background(MPColors.surface)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .padding(.top, 38) // Space for Dynamic Island
+            .background(Color(white: 0.08))
 
-            // Scrolling feed
-            GeometryReader { geo in
-                VStack(spacing: MPSpacing.sm) {
-                    ForEach(0..<12, id: \.self) { index in
-                        FeedPostPlaceholder(
-                            item: feedItems[index % feedItems.count],
-                            index: index
-                        )
-                    }
+            // Scrolling feed - contained within remaining space
+            VStack(spacing: 0) {
+                ForEach(0..<8, id: \.self) { index in
+                    CompactFeedPost(
+                        gradient: Self.postGradients[index % Self.postGradients.count],
+                        index: index
+                    )
                 }
-                .offset(y: scrollOffset)
             }
-            .clipped()
+            .offset(y: scrollOffset)
         }
         .saturation(isScrolling ? 1 : 0.3)
         .brightness(isScrolling ? 0 : -0.1)
+    }
+
+    // Post gradients for variety
+    private static let postGradients: [LinearGradient] = [
+        LinearGradient(colors: [Color(red: 0.95, green: 0.6, blue: 0.5), Color(red: 0.9, green: 0.4, blue: 0.3)], startPoint: .top, endPoint: .bottom),
+        LinearGradient(colors: [Color(red: 0.3, green: 0.5, blue: 0.4), Color(red: 0.2, green: 0.4, blue: 0.35)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        LinearGradient(colors: [Color(red: 0.4, green: 0.5, blue: 0.65), Color(red: 0.3, green: 0.35, blue: 0.5)], startPoint: .top, endPoint: .bottom),
+        LinearGradient(colors: [Color(red: 0.85, green: 0.7, blue: 0.5), Color(red: 0.75, green: 0.55, blue: 0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        LinearGradient(colors: [Color(red: 0.5, green: 0.4, blue: 0.6), Color(red: 0.4, green: 0.3, blue: 0.55)], startPoint: .top, endPoint: .bottom),
+        LinearGradient(colors: [Color(red: 0.9, green: 0.75, blue: 0.5), Color(red: 0.85, green: 0.6, blue: 0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+    ]
+}
+
+// MARK: - Compact Feed Post (fits better in phone mockup)
+
+private struct CompactFeedPost: View {
+    let gradient: LinearGradient
+    let index: Int
+
+    private var likeCount: String {
+        ["1,247", "892", "3.4k", "567", "2,103", "438"][index % 6]
+    }
+
+    private var usernameWidth: CGFloat {
+        [45, 55, 40, 50, 60, 42][index % 6]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // User header row
+            HStack(spacing: 6) {
+                // Profile pic with story ring
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color(red: 0.95, green: 0.3, blue: 0.5), Color(red: 1.0, green: 0.6, blue: 0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+                    .frame(width: 22, height: 22)
+                    .overlay(
+                        Circle()
+                            .fill(Color(white: 0.3))
+                            .frame(width: 18, height: 18)
+                    )
+
+                // Username placeholder
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.7))
+                    .frame(width: usernameWidth, height: 7)
+
+                Spacer()
+
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+
+            // Post image
+            ZStack {
+                Rectangle()
+                    .fill(gradient)
+
+                // Abstract shapes
+                Circle()
+                    .fill(Color.white.opacity(0.12))
+                    .frame(width: 40, height: 40)
+                    .offset(x: -30, y: -15)
+
+                RoundedRectangle(cornerRadius: 3)
+                    .fill(Color.black.opacity(0.08))
+                    .frame(width: 50, height: 25)
+                    .offset(x: 25, y: 20)
+            }
+            .frame(height: 130)
+
+            // Action bar
+            HStack(spacing: 10) {
+                Image(systemName: "heart")
+                Image(systemName: "bubble.right")
+                Image(systemName: "paperplane")
+                Spacer()
+                Image(systemName: "bookmark")
+            }
+            .font(.system(size: 13))
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.top, 7)
+            .padding(.bottom, 4)
+
+            // Like count
+            Text("\(likeCount) likes")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 3)
+
+            // Caption line
+            HStack(spacing: 3) {
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color.white.opacity(0.6))
+                    .frame(width: 35, height: 6)
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color.white.opacity(0.35))
+                    .frame(width: 70, height: 6)
+            }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
+        }
+        .background(Color(white: 0.08))
     }
 }
 
@@ -1042,6 +1153,106 @@ private struct LockdownOverlay: View {
     }
 }
 
+// MARK: - Target with Arrow Icon
+
+private struct TargetWithArrowIcon: View {
+    let size: CGFloat
+
+    private let targetRed = Color(red: 0.85, green: 0.2, blue: 0.2)
+    private let arrowColor = Color(white: 0.15)
+
+    var body: some View {
+        ZStack {
+            // Outer red ring
+            Circle()
+                .fill(targetRed)
+                .frame(width: size, height: size)
+
+            // White ring
+            Circle()
+                .fill(Color.white)
+                .frame(width: size * 0.75, height: size * 0.75)
+
+            // Middle red ring
+            Circle()
+                .fill(targetRed)
+                .frame(width: size * 0.5, height: size * 0.5)
+
+            // Inner white ring
+            Circle()
+                .fill(Color.white)
+                .frame(width: size * 0.28, height: size * 0.28)
+
+            // Center bullseye (red)
+            Circle()
+                .fill(targetRed)
+                .frame(width: size * 0.12, height: size * 0.12)
+
+            // Arrow hitting the bullseye (diagonal from top-right)
+            DartArrow(size: size, color: arrowColor)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// Dart arrow pointing diagonally into target
+private struct DartArrow: View {
+    let size: CGFloat
+    let color: Color
+
+    var body: some View {
+        // Arrow shaft with arrowhead
+        Path { path in
+            let scale = size / 60.0 // Base scale factor
+
+            // Arrow tip lands at center, shaft extends to upper-right
+            let tipX = size * 0.5
+            let tipY = size * 0.5
+            let endX = size * 0.92
+            let endY = size * 0.08
+
+            // Main shaft line
+            path.move(to: CGPoint(x: endX, y: endY))
+            path.addLine(to: CGPoint(x: tipX + 2 * scale, y: tipY - 2 * scale))
+        }
+        .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+
+        // Arrowhead (filled triangle)
+        Path { path in
+            let scale = size / 60.0
+            let tipX = size * 0.5
+            let tipY = size * 0.5
+
+            // Triangle pointing toward center
+            path.move(to: CGPoint(x: tipX, y: tipY))
+            path.addLine(to: CGPoint(x: tipX + 12 * scale, y: tipY - 6 * scale))
+            path.addLine(to: CGPoint(x: tipX + 6 * scale, y: tipY - 12 * scale))
+            path.closeSubpath()
+        }
+        .fill(color)
+
+        // Fletching (tail feathers) - two small triangles at back
+        Path { path in
+            let scale = size / 60.0
+            let endX = size * 0.92
+            let endY = size * 0.08
+
+            // Upper-left feather
+            path.move(to: CGPoint(x: endX - 4 * scale, y: endY + 4 * scale))
+            path.addLine(to: CGPoint(x: endX - 12 * scale, y: endY - 2 * scale))
+            path.addLine(to: CGPoint(x: endX - 6 * scale, y: endY + 2 * scale))
+            path.closeSubpath()
+
+            // Lower-right feather
+            path.move(to: CGPoint(x: endX - 4 * scale, y: endY + 4 * scale))
+            path.addLine(to: CGPoint(x: endX + 2 * scale, y: endY + 12 * scale))
+            path.addLine(to: CGPoint(x: endX - 2 * scale, y: endY + 6 * scale))
+            path.closeSubpath()
+        }
+        .fill(color)
+    }
+}
+
 // MARK: - Step 11: Desired Outcome
 
 struct DesiredOutcomeStep: View {
@@ -1056,24 +1267,9 @@ struct DesiredOutcomeStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                ZStack {
-                    // Outer ring
-                    Circle()
-                        .stroke(Color.red.opacity(0.3), lineWidth: 4)
-                        .frame(width: 54, height: 54)
-
-                    // Middle ring
-                    Circle()
-                        .stroke(Color.red.opacity(0.5), lineWidth: 3)
-                        .frame(width: 38, height: 38)
-
-                    // Inner filled circle
-                    Circle()
-                        .fill(Color.red)
-                        .frame(width: 20, height: 20)
-                }
-                .opacity(appeared ? 1 : 0)
-                .scaleEffect(appeared ? 1 : 0.5)
+                TargetWithArrowIcon(size: 60)
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.5)
 
                 Text("What would you like\nto accomplish?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))

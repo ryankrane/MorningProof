@@ -127,7 +127,7 @@ class OnboardingData: ObservableObject {
     }
 }
 
-// MARK: - Onboarding Flow View (17 Steps - Gender removed, Distraction moved)
+// MARK: - Onboarding Flow View (17 Steps - Obstacles removed)
 
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
@@ -136,8 +136,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 18
-    private let paywallStep = 17
+    private let totalSteps = 17
+    private let paywallStep = 16
 
     var body: some View {
         ZStack {
@@ -179,14 +179,13 @@ struct OnboardingFlowView: View {
                     case 11: TrackingComparisonStep(onContinue: nextStep)
 
                     // Phase 5: Personalization
-                    case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
-                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
                     // Phase 6: Conversion
-                    case 14: OptionalRatingStep(onContinue: nextStep)
-                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 17: HardPaywallStep(
+                    case 13: OptionalRatingStep(onContinue: nextStep)
+                    case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 16: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding
                     )

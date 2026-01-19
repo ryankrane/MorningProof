@@ -548,7 +548,7 @@ struct YourHabitsStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                Text("Build Your Daily Habits")
+                Text("Build Your Morning Routine")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
