@@ -75,6 +75,12 @@ Shared data between app and extensions uses App Group: `group.com.rk.morningproo
 - Team ID: `P9ZXADV42A`
 - Google OAuth Client: `591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3.apps.googleusercontent.com`
 
+## Build Commands
+When building for simulator, use `iPhone 17 Pro`:
+```bash
+xcodebuild -project MorningProof.xcodeproj -scheme MorningProof -destination 'platform=iOS Simulator,name=iPhone 17 Pro' build
+```
+
 ## Gotchas & Learnings
 - Don't add `UIBackgroundModes: processing` to Info.plist unless you also add `BGTaskSchedulerPermittedIdentifiers` with task IDs - Apple will reject the build (ITMS-90771)
 - Version numbers need to be updated in both `project.yml` AND `project.pbxproj` (MARKETING_VERSION)

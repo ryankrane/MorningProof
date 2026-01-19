@@ -160,9 +160,9 @@ struct OnboardingFlowView: View {
                     case 1: NameStep(data: onboardingData, onContinue: nextStep)
                     case 2: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 2: Problem Agitation (show the villain FIRST)
-                    case 3: DoomScrollingSimulatorStep(onContinue: nextStep)
-                    case 4: GuardrailStep(onContinue: nextStep)
+                    // Phase 2: Problem Agitation (show the solution FIRST)
+                    case 3: GuardrailStep(onContinue: nextStep)
+                    case 4: DoomScrollingSimulatorStep(onContinue: nextStep)
 
                     // Phase 3: Solution Setup
                     case 5: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)

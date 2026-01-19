@@ -13,14 +13,14 @@ struct GuardrailStep: View {
 
     private let guardrails: [(title: String, description: String, icon: String, gradient: [Color])] = [
         (
-            "Gate Your Dopamine",
-            "No scrolling until you've earned it. We block distracting apps until your habits are verified.",
+            "Earn Your Dopamine",
+            "We block distracting apps until your morning routine is done.",
             "lock.shield.fill",
             [Color(red: 0.4, green: 0.5, blue: 1.0), Color(red: 0.6, green: 0.4, blue: 1.0)]
         ),
         (
             "Require Real Proof",
-            "No more lying to yourself. AI verifies your habits with photo evidence - not just checkboxes.",
+            "No more lying to yourself. AI verifies your morning routine with photo evidence.",
             "camera.viewfinder",
             [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.4, blue: 0.5)]
         ),
@@ -35,45 +35,39 @@ struct GuardrailStep: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+                .frame(minHeight: 40, maxHeight: 80)
 
-            // Hero headline
-            VStack(spacing: MPSpacing.lg) {
-                // Crossed out "Willpower" effect
-                VStack(spacing: MPSpacing.xs) {
-                    ZStack {
-                        Text("Willpower")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(MPColors.textTertiary)
+            // Hero headline - willpower < systems
+            HStack(spacing: MPSpacing.md) {
+                // Crossed out "Willpower"
+                ZStack {
+                    Text("Willpower")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textTertiary)
 
-                        Rectangle()
-                            .fill(MPColors.error.opacity(0.8))
-                            .frame(height: 2)
-                            .offset(y: 1)
-                    }
-                    .fixedSize()
-
-                    Text("Systems Win.")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
+                    Rectangle()
+                        .fill(MPColors.error.opacity(0.8))
+                        .frame(height: 2.5)
                 }
-                .opacity(showHeadline ? 1 : 0)
-                .offset(y: showHeadline ? 0 : 15)
+                .fixedSize()
 
-                Text("Your brain will always choose easy over hard.\nSo we remove the choice entirely.")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .lineSpacing(4)
-                    .opacity(showSubtext ? 1 : 0)
-                    .offset(y: showSubtext ? 0 : 10)
+                Text("<")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textTertiary)
+
+                Text("Systems")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
             }
+            .opacity(showHeadline ? 1 : 0)
+            .offset(y: showHeadline ? 0 : 15)
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
-                .frame(height: MPSpacing.xxl)
+                .frame(height: MPSpacing.xl)
 
             // Guardrail cards
-            VStack(spacing: MPSpacing.lg) {
+            VStack(spacing: MPSpacing.md) {
                 ForEach(0..<3, id: \.self) { index in
                     let item = guardrails[index]
                     GuardrailCard(
@@ -88,6 +82,19 @@ struct GuardrailStep: View {
                 }
             }
             .padding(.horizontal, MPSpacing.xl)
+
+            Spacer()
+                .frame(height: MPSpacing.xxl)
+
+            // Explanatory text below the cards
+            Text("Your brain will always choose easy over hard.\nSo we remove the choice entirely.")
+                .font(.system(size: 15))
+                .foregroundColor(MPColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .lineSpacing(4)
+                .opacity(showSubtext ? 1 : 0)
+                .offset(y: showSubtext ? 0 : 10)
+                .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
@@ -188,31 +195,18 @@ struct GuardrailCard: View {
         .background(
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.surface)
-                .overlay(
-                    // Subtle gradient border around the card
-                    RoundedRectangle(cornerRadius: MPRadius.lg)
-                        .stroke(
-                            LinearGradient(
-                                colors: [gradient[0].opacity(0.25), gradient[1].opacity(0.08), Color.clear],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
+        )
+        .overlay(
+            // Gradient border around the whole card
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .stroke(
+                    LinearGradient(
+                        colors: [gradient[0], gradient[1].opacity(0.6)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    ),
+                    lineWidth: 1.5
                 )
-                .overlay(alignment: .leading) {
-                    // Colored accent line on the left
-                    Capsule()
-                        .fill(
-                            LinearGradient(
-                                colors: gradient,
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 3)
-                        .padding(.vertical, 12)
-                }
         )
     }
 }

@@ -589,7 +589,6 @@ struct DoomScrollingSimulatorStep: View {
     @State private var showLockdown = false
     @State private var lockSlammed = false
     @State private var scrollOffset: CGFloat = 0
-    @State private var showMessage = false
 
     // Simulated social feed items
     private let feedItems: [(icon: String, color: Color, title: String)] = [
@@ -605,14 +604,15 @@ struct DoomScrollingSimulatorStep: View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: MPSpacing.md) {
-                Text("This Is Stealing\nYour Morning")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+            VStack(spacing: MPSpacing.sm) {
+                Text("Your Mornings, Protected")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
+                    .lineLimit(1)
                     .minimumScaleFactor(0.85)
 
-                Text("Instead of starting your routine...")
+                Text("Complete your habits first, then scroll")
                     .font(.system(size: 15))
                     .foregroundColor(MPColors.textSecondary)
             }
@@ -680,10 +680,7 @@ struct DoomScrollingSimulatorStep: View {
 
                             // Morning Proof lockdown overlay
                             if showLockdown {
-                                LockdownOverlay(
-                                    lockSlammed: lockSlammed,
-                                    showMessage: showMessage
-                                )
+                                LockdownOverlay(lockSlammed: lockSlammed)
                             }
 
                             // Dynamic Island at top
@@ -701,36 +698,9 @@ struct DoomScrollingSimulatorStep: View {
             .scaleEffect(showPhone ? 1 : 0.8)
             .opacity(showPhone ? 1 : 0)
 
-            Spacer().frame(height: MPSpacing.xl)
-
-            // Status message
-            if showMessage {
-                VStack(spacing: MPSpacing.sm) {
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "shield.lefthalf.filled")
-                            .font(.system(size: 18))
-                            .foregroundColor(MPColors.primary)
-
-                        Text("Morning Proof protects your mornings")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(MPColors.textPrimary)
-                    }
-
-                    Text("Complete your habits first, then scroll")
-                        .font(.system(size: 14))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                .padding(.horizontal, MPSpacing.lg)
-                .padding(.vertical, MPSpacing.md)
-                .background(MPColors.surface)
-                .cornerRadius(MPRadius.lg)
-                .mpShadow(.small)
-                .transition(.opacity.combined(with: .move(edge: .bottom)))
-            }
-
             Spacer()
 
-            MPButton(title: "Protect My Mornings", style: .primary, icon: "lock.shield.fill") {
+            MPButton(title: "Protect My Mornings", style: .primary, icon: "shield.lefthalf.filled") {
                 HapticManager.shared.medium()
                 onContinue()
             }
@@ -773,13 +743,6 @@ struct DoomScrollingSimulatorStep: View {
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
                     lockSlammed = true
                 }
-            }
-        }
-
-        // Phase 3: Show reassuring message
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
-            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
-                showMessage = true
             }
         }
     }
@@ -907,7 +870,6 @@ private struct FeedPostPlaceholder: View {
 
 private struct LockdownOverlay: View {
     let lockSlammed: Bool
-    let showMessage: Bool
 
     var body: some View {
         ZStack {
@@ -971,16 +933,17 @@ private struct LockdownOverlay: View {
                 if lockSlammed {
                     VStack(spacing: 8) {
                         RoundedRectangle(cornerRadius: 14)
-                            .fill(MPColors.primary)
+                            .fill(Color(white: 0.25))
                             .frame(height: 44)
                             .overlay(
                                 HStack(spacing: 6) {
                                     Image(systemName: "camera.viewfinder")
                                         .font(.system(size: 15))
+                                        .foregroundColor(MPColors.primary)
                                     Text("Open Morning Proof")
                                         .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
                                 }
-                                .foregroundColor(.white)
                             )
                             .padding(.horizontal, MPSpacing.md)
 
