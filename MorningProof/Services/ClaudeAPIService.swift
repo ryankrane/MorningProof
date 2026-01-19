@@ -53,6 +53,86 @@ actor ClaudeAPIService {
         throw APIError.imageConversionFailed
     }
 
+    /// Makes an API request with automatic retry logic for transient failures
+    /// Uses exponential backoff: 1s → 2s → 4s
+    private func performRequestWithRetry(_ request: URLRequest, endpoint: String, maxRetries: Int = 3) async throws -> Data {
+        var lastError: Error = APIError.invalidResponse
+        let retryDelays: [UInt64] = [1_000_000_000, 2_000_000_000, 4_000_000_000] // 1s, 2s, 4s in nanoseconds
+
+        for attempt in 0..<maxRetries {
+            do {
+                let (data, response) = try await URLSession.shared.data(for: request)
+
+                guard let httpResponse = response as? HTTPURLResponse else {
+                    throw APIError.invalidResponse
+                }
+
+                // Success
+                if httpResponse.statusCode == 200 {
+                    return data
+                }
+
+                // Classify the error
+                let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
+                let error = classifyHTTPError(statusCode: httpResponse.statusCode, message: errorMessage)
+
+                // Log the error
+                await MainActor.run {
+                    CrashReportingService.shared.recordAPIError(error, endpoint: endpoint, statusCode: httpResponse.statusCode)
+                }
+
+                // If retryable and we have attempts left, retry with backoff
+                if error.isRetryable && attempt < maxRetries - 1 {
+                    try await Task.sleep(nanoseconds: retryDelays[attempt])
+                    continue
+                }
+
+                throw error
+            } catch let urlError as URLError {
+                // Network errors - classify and potentially retry
+                let error = APIError.networkError(underlyingError: urlError)
+                lastError = error
+
+                if attempt < maxRetries - 1 {
+                    try await Task.sleep(nanoseconds: retryDelays[attempt])
+                    continue
+                }
+
+                await MainActor.run {
+                    CrashReportingService.shared.recordAPIError(error, endpoint: endpoint)
+                }
+                throw error
+            } catch let apiError as APIError {
+                throw apiError
+            } catch {
+                lastError = error
+                if attempt < maxRetries - 1 {
+                    try await Task.sleep(nanoseconds: retryDelays[attempt])
+                    continue
+                }
+                throw lastError
+            }
+        }
+
+        throw lastError
+    }
+
+    /// Classifies HTTP status codes into appropriate APIError types
+    private func classifyHTTPError(statusCode: Int, message: String) -> APIError {
+        switch statusCode {
+        case 429:
+            return .rateLimited
+        case 401, 403:
+            // Often rate limiting or temporary issues get misreported as auth errors
+            // Treat as service unavailable to be user-friendly
+            return .serviceUnavailable
+        case 500...599:
+            return .serviceUnavailable
+        default:
+            return .serverError(statusCode: statusCode, message: message)
+        }
+    }
+
     func verifyBed(image: UIImage) async throws -> VerificationResult {
         await MainActor.run {
             CrashReportingService.shared.logAPICall("claude/verify-bed")
@@ -88,65 +168,72 @@ actor ClaudeAPIService {
                         [
                             "type": "text",
                             "text": """
-                            ROLE: You are a STRICT bed inspection AI. Users want honest, exacting feedback.
-
-                            TASK: Score this bed photo using the EXACT rubric below.
+                            ROLE: You are a sharp-eyed bed inspector AI. Be honest, specific, and catch any gaming attempts.
 
                             ═══════════════════════════════════════════════════════════════
-                            STEP 1: VERIFY THIS IS A BED
+                            STEP 1: IDENTIFY WHAT'S IN THE PHOTO
                             ═══════════════════════════════════════════════════════════════
-                            A bed MUST have: mattress + bedding. If NO BED visible: score = 0, is_made = false.
-                            Couches, chairs, floors = NOT A BED.
+                            First, describe what you ACTUALLY see. Set detected_subject to one of:
+                            - "bed" - if a real bed with mattress/bedding is visible
+                            - "bathroom" - toilet, shower, sink, etc.
+                            - "kitchen" - stove, fridge, counters, etc.
+                            - "desk" - workspace, computer setup
+                            - "couch" - sofa or loveseat (NOT a bed)
+                            - "screenshot" - clearly a photo of a screen or another photo
+                            - "stock_photo" - unnaturally perfect/staged, watermarks, or obviously not personal
+                            - "other" - anything else (pet, food, random object, person without bed)
+
+                            If detected_subject is NOT "bed", respond immediately:
+                            {"is_made": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see your bed. Try again!"}
 
                             ═══════════════════════════════════════════════════════════════
-                            STEP 2: SCORE EACH CRITERION (0-25 points each)
+                            STEP 2: SCORE THE BED (only if bed is visible)
                             ═══════════════════════════════════════════════════════════════
 
-                            DUVET/COMFORTER SMOOTHNESS (0-25):
+                            DUVET/COMFORTER (0-25):
                               25: Perfectly smooth, hotel-quality
-                              20: Mostly smooth with 1-2 minor creases
+                              20: Mostly smooth, 1-2 minor creases
                               15: Some wrinkles but clearly pulled up
                               10: Multiple wrinkles, hastily done
-                              5:  Bunched, twisted, or half-pulled
-                              0:  Not pulled up, mattress exposed
+                              5:  Bunched or half-pulled
+                              0:  Not pulled up, mattress showing
 
-                            PILLOW ALIGNMENT (0-25):
-                              25: Perfectly centered, fluffed, symmetrical
+                            PILLOWS (0-25):
+                              25: Perfectly arranged and fluffed
                               20: In place, minor asymmetry
                               15: Roughly positioned
-                              10: Askew or not fluffed
-                              5:  Scattered or partially visible
-                              0:  No pillows visible OR completely disorganized
+                              10: Askew or flat
+                              5:  Scattered
+                              0:  Missing or chaos
 
-                            EDGES TUCKED (0-25):
-                              25: All edges tight, military-corner quality
+                            EDGES (0-25):
+                              25: Tight, military-corner quality
                               20: Tucked, minor looseness
-                              15: Most edges covered, some gaps
-                              10: Hanging or uneven
+                              15: Most edges covered
+                              10: Hanging unevenly
                               5:  Significant mattress visible
-                              0:  Not tucked at all
+                              0:  No attempt
 
-                            OVERALL TIDINESS (0-25):
-                              25: Magazine-quality
-                              20: Very neat, minor imperfections
-                              15: Acceptable, clear effort
-                              10: Messy but functional attempt
-                              5:  Minimal effort visible
-                              0:  No attempt made
+                            OVERALL (0-25):
+                              25: Magazine-worthy
+                              20: Very neat
+                              15: Acceptable effort
+                              10: Messy but tried
+                              5:  Minimal effort
+                              0:  No attempt
 
                             ═══════════════════════════════════════════════════════════════
-                            STEP 3: CALCULATE AND RESPOND
+                            STEP 3: RESPOND
                             ═══════════════════════════════════════════════════════════════
-                            - Total score = sum of all four criteria (0-100)
-                            - is_made = true ONLY if score >= 65
-                            - Feedback should be SPECIFIC and PERSONALITY-DRIVEN based on score tier:
-                              * Score >= 85: Celebrate with energy ("Pristine! That's hotel-worthy!")
-                              * Score 65-84: Acknowledge success, maybe a tip ("Solid work! Those corners could be tighter next time.")
-                              * Score 40-64: Specific actionable fix ("That duvet looks like a crumpled napkin. Smooth it from the corners!")
-                              * Score < 40: Playful challenge ("Is that a bed or a laundry pile? Show me what you've got!")
+                            - is_made = true if score >= 65
+                            - Feedback must be SPECIFIC to what you see:
+                              * Score >= 85: Celebrate! ("Pristine! Those hospital corners are chef's kiss!")
+                              * Score 65-84: Praise + one tip ("Looking good! Fluff those pillows for perfection.")
+                              * Score 40-64: Name the specific issue ("Those pillows are scattered - line them up!")
+                              * Score < 40: Call out what's wrong ("That duvet's still crumpled in the corner. Smooth it out!")
 
-                            Respond ONLY with valid JSON (score is for your internal use, do not include in response):
-                            {"is_made": boolean, "feedback": "specific message based on score tier"}
+                            JSON format (detected_subject required):
+                            {"is_made": boolean, "detected_subject": "bed", "feedback": "specific message"}
                             """
                         ]
                     ]
@@ -164,20 +251,8 @@ actor ClaudeAPIService {
         request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            let error = APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
-            await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-bed", statusCode: httpResponse.statusCode)
-            }
-            throw error
-        }
+        // Use retry logic for resilience against transient failures
+        let data = try await performRequestWithRetry(request, endpoint: "claude/verify-bed")
 
         // Parse Claude's response
         let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
@@ -290,17 +365,41 @@ actor ClaudeAPIService {
                             "text": """
                             TASK: Verify this photo shows NATURAL LIGHT exposure.
 
-                            STEP 1 - CRITICAL: Verify this photo shows natural daylight.
-                            Natural light sources: sunlight, daylight sky, outdoor environment, daylight through windows.
-                            If you see ONLY artificial light (lamps, screens, LEDs, fluorescent lights) with NO natural light, respond with is_outside: false.
-                            Indoor photos with visible daylight through windows DO count.
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+                            ═══════════════════════════════════════════════════════════════
+                            Set detected_subject to what best describes the scene:
+                            - "outdoor_daylight" - outside with natural sunlight/daylight
+                            - "window_daylight" - indoors but with visible natural light from windows
+                            - "dark_indoor" - indoor space with no natural light
+                            - "artificial_light" - room lit only by lamps/screens/LEDs
+                            - "nighttime" - clearly night (dark sky, stars, moon)
+                            - "screenshot" - photo of a screen or another image
+                            - "unrelated" - random object with no light context
 
-                            STEP 2 - If natural light IS present: Verify exposure quality.
-                            Pass if: Any amount of natural daylight is visible - overcast, cloudy, through window, or direct sun.
-                            Fail if: Photo is clearly nighttime, dark indoor space, or only shows artificial lighting.
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 2: DETERMINE PASS/FAIL
+                            ═══════════════════════════════════════════════════════════════
+                            PASS (is_outside: true) if:
+                            - Outdoor daylight (sunny, overcast, cloudy all count)
+                            - Indoors with visible natural daylight through windows
 
-                            Respond ONLY with valid JSON:
-                            {"is_outside": boolean, "feedback": "brief message"}
+                            FAIL (is_outside: false) if:
+                            - Nighttime scene
+                            - Only artificial lighting visible
+                            - Dark indoor space
+                            - Screenshot or unrelated image
+
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 3: RESPOND WITH SPECIFIC FEEDBACK
+                            ═══════════════════════════════════════════════════════════════
+                            - If unrelated/screenshot: "I see [what's there], but I need to see natural light exposure!"
+                            - If artificial light only: "That's artificial light - step outside or near a window!"
+                            - If nighttime: "It's dark out! Catch some rays tomorrow morning."
+                            - If passed: Acknowledge the light ("Beautiful morning light!" or "Good window setup!")
+
+                            JSON format:
+                            {"is_outside": boolean, "detected_subject": "category", "feedback": "specific message"}
                             """
                         ]
                     ]
@@ -318,20 +417,8 @@ actor ClaudeAPIService {
         request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            let error = APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
-            await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-sunlight", statusCode: httpResponse.statusCode)
-            }
-            throw error
-        }
+        // Use retry logic for resilience
+        let data = try await performRequestWithRetry(request, endpoint: "claude/verify-sunlight")
 
         let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
 
@@ -380,20 +467,44 @@ actor ClaudeAPIService {
                             "text": """
                             TASK: Verify this photo shows HYDRATION (a beverage or drinking vessel).
 
-                            STEP 1 - CRITICAL: Verify this photo contains a beverage or drinking vessel.
-                            Valid items: glass, cup, mug, water bottle, tumbler, or person actively drinking.
-                            If you do NOT see any beverage or drinking vessel, respond with is_water: false.
-                            Random objects, food items, electronics, or furniture do NOT count.
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+                            ═══════════════════════════════════════════════════════════════
+                            Set detected_subject to what you see:
+                            - "water_bottle" - reusable water bottle or tumbler
+                            - "glass" - drinking glass with beverage
+                            - "mug" - coffee mug or tea cup
+                            - "person_drinking" - someone actively drinking
+                            - "food" - food items (not drinks)
+                            - "electronics" - phone, computer, etc.
+                            - "furniture" - bed, desk, couch
+                            - "screenshot" - photo of a screen
+                            - "other" - anything else unrelated
 
-                            STEP 2 - If a drinking vessel IS present: Verify hydration.
-                            Pass if: Any drinking vessel (full, partially full, OR empty - empty means they drank it!), or person drinking.
-                            Pass for: water, coffee, tea, juice, smoothie, sports drinks, etc.
-                            Fail if: Photo shows no drinking vessel at all.
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 2: DETERMINE PASS/FAIL
+                            ═══════════════════════════════════════════════════════════════
+                            PASS (is_water: true) if:
+                            - Any drinking vessel visible (full, partially full, or empty)
+                            - Person actively drinking
+                            - Water, coffee, tea, juice, smoothie, sports drink - all count!
 
-                            Be lenient - the goal is to encourage hydration, not police it.
+                            FAIL (is_water: false) if:
+                            - No drinking vessel at all
+                            - Only food, no drinks
+                            - Random objects, electronics, furniture
 
-                            Respond ONLY with valid JSON:
-                            {"is_water": boolean, "feedback": "brief message"}
+                            Be lenient - the goal is encouraging hydration!
+
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 3: SPECIFIC FEEDBACK
+                            ═══════════════════════════════════════════════════════════════
+                            - If wrong subject: "I see [what's there], but where's your drink?"
+                            - If passed: Acknowledge what you see ("Nice water bottle!" or "Coffee counts!")
+                            - Empty vessel: "Already finished? That's the spirit!"
+
+                            JSON format:
+                            {"is_water": boolean, "detected_subject": "category", "feedback": "specific message"}
                             """
                         ]
                     ]
@@ -411,20 +522,8 @@ actor ClaudeAPIService {
         request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            let error = APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
-            await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-hydration", statusCode: httpResponse.statusCode)
-            }
-            throw error
-        }
+        // Use retry logic for resilience
+        let data = try await performRequestWithRetry(request, endpoint: "claude/verify-hydration")
 
         let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
 
@@ -456,17 +555,25 @@ actor ClaudeAPIService {
         // Build the prompt based on user's AI instructions
         let userCriteria = customHabit.aiPrompt ?? "Verify that this habit has been completed."
         let prompt = """
-            ROLE: You are a STRICT habit verification AI. Users want honest, exacting feedback.
+            ROLE: You are a sharp-eyed habit verification AI. Be honest, specific, and catch gaming attempts.
 
             TASK: Verify this photo for the custom habit "\(customHabit.name)" using the user's criteria.
 
             User's verification criteria: \(userCriteria)
 
             ═══════════════════════════════════════════════════════════════
-            STEP 1: VERIFY PHOTO RELEVANCE
+            STEP 1: IDENTIFY WHAT'S IN THE PHOTO
             ═══════════════════════════════════════════════════════════════
-            - Photo MUST show something clearly related to "\(customHabit.name)"
-            - If completely unrelated (random object, blank, wrong activity): score = 0
+            Set detected_subject to a brief description of what you actually see.
+            Examples: "person exercising", "notebook with writing", "kitchen counter", "bathroom sink", "random object", "screenshot"
+
+            Gaming detection - FAIL immediately if you see:
+            - Screenshot of another photo or screen
+            - Stock photo / obviously not personal
+            - Completely unrelated to "\(customHabit.name)"
+
+            If unrelated, respond:
+            {"is_verified": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see proof of \(customHabit.name)!"}
 
             ═══════════════════════════════════════════════════════════════
             STEP 2: SCORE THE PHOTO (0-100 points)
@@ -481,31 +588,30 @@ actor ClaudeAPIService {
 
             CRITERIA MATCH (0-40):
               40: Fully meets user's verification criteria
-              30: Mostly meets criteria with minor gaps
+              30: Mostly meets criteria
               20: Partially meets criteria
               10: Barely addresses criteria
-              0:  Doesn't match criteria at all
+              0:  Doesn't match at all
 
             CLARITY & EFFORT (0-20):
-              20: Clear photo, obvious effort made
+              20: Clear photo, obvious effort
               15: Reasonably clear
               10: Somewhat unclear but acceptable
               5:  Poor quality but discernible
               0:  Cannot determine what's shown
 
             ═══════════════════════════════════════════════════════════════
-            STEP 3: CALCULATE AND RESPOND
+            STEP 3: RESPOND WITH SPECIFIC FEEDBACK
             ═══════════════════════════════════════════════════════════════
-            - Total score = sum of all criteria (0-100)
             - is_verified = true ONLY if score >= 65
-            - Feedback should be SPECIFIC based on score tier:
-              * Score >= 85: "Perfect! That's exactly what I'm looking for!"
-              * Score 65-84: Acknowledge completion with encouragement
-              * Score 40-64: Specific feedback on what's missing
+            - Feedback must be SPECIFIC to what you see:
+              * Score >= 85: Celebrate! ("Perfect! That's exactly what I'm looking for!")
+              * Score 65-84: Acknowledge with encouragement
+              * Score 40-64: Name what's missing ("I see X, but I need to see Y")
               * Score < 40: Explain what would count as valid proof
 
-            Respond ONLY with valid JSON:
-            {"is_verified": boolean, "feedback": "specific message"}
+            JSON format (detected_subject required):
+            {"is_verified": boolean, "detected_subject": "brief description", "feedback": "specific message"}
             """
 
         let requestBody: [String: Any] = [
@@ -542,20 +648,8 @@ actor ClaudeAPIService {
         request.addValue(apiKey, forHTTPHeaderField: "x-api-key")
         request.httpBody = try JSONSerialization.data(withJSONObject: requestBody)
 
-        let (data, response) = try await URLSession.shared.data(for: request)
-
-        guard let httpResponse = response as? HTTPURLResponse else {
-            throw APIError.invalidResponse
-        }
-
-        guard httpResponse.statusCode == 200 else {
-            let errorMessage = String(data: data, encoding: .utf8) ?? "Unknown error"
-            let error = APIError.serverError(statusCode: httpResponse.statusCode, message: errorMessage)
-            await MainActor.run {
-                CrashReportingService.shared.recordAPIError(error, endpoint: "claude/verify-custom-habit", statusCode: httpResponse.statusCode)
-            }
-            throw error
-        }
+        // Use retry logic for resilience
+        let data = try await performRequestWithRetry(request, endpoint: "claude/verify-custom-habit")
 
         let claudeResponse = try JSONDecoder().decode(ClaudeResponse.self, from: data)
 
@@ -585,6 +679,9 @@ enum APIError: LocalizedError {
     case invalidURL
     case imageConversionFailed
     case invalidResponse
+    case networkError(underlyingError: Error)
+    case rateLimited
+    case serviceUnavailable
     case serverError(statusCode: Int, message: String)
     case parsingFailed
 
@@ -595,23 +692,54 @@ enum APIError: LocalizedError {
         case .imageConversionFailed:
             return "Couldn't process your photo. Please try again."
         case .invalidResponse:
-            return "Couldn't connect to the server. Please check your connection and try again."
+            return "Couldn't connect to the server. Please check your connection."
+        case .networkError:
+            return "Please check your internet connection and try again."
+        case .rateLimited:
+            return "Please wait a moment and try again."
+        case .serviceUnavailable:
+            return "Service temporarily unavailable. Please try again in a few minutes."
         case .serverError(let code, _):
             // Return user-friendly messages based on status code
             switch code {
             case 400:
                 return "Couldn't process your photo. Please try taking another one."
             case 401, 403:
-                return "Authentication error. Please restart the app and try again."
-            case 429:
-                return "Too many requests. Please wait a moment and try again."
+                // Don't blame the user - this is likely a temporary issue
+                return "Service temporarily unavailable. Please try again."
             case 500...599:
-                return "Server is temporarily unavailable. Please try again later."
+                return "Service temporarily unavailable. Please try again later."
             default:
                 return "Something went wrong. Please try again."
             }
         case .parsingFailed:
             return "Couldn't understand the response. Please try again."
+        }
+    }
+
+    /// Icon name to display for this error type
+    var iconName: String {
+        switch self {
+        case .networkError:
+            return "wifi.exclamationmark"
+        case .rateLimited:
+            return "clock.arrow.circlepath"
+        case .serviceUnavailable, .serverError:
+            return "icloud.slash"
+        default:
+            return "exclamationmark.triangle"
+        }
+    }
+
+    /// Whether this error is likely transient and worth retrying
+    var isRetryable: Bool {
+        switch self {
+        case .networkError, .rateLimited, .serviceUnavailable:
+            return true
+        case .serverError(let code, _):
+            return code >= 500 || code == 429
+        default:
+            return false
         }
     }
 }
