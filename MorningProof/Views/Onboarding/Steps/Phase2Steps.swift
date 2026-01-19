@@ -9,8 +9,12 @@ struct GuardrailStep: View {
     @State private var showHeadline = false
     @State private var showWillpower = false
     @State private var showStrikethrough = false
+    @State private var showStrikethroughGlow = false
+    @State private var willpowerShake = false
+    @State private var willpowerDimmed = false
     @State private var showLessThan = false
     @State private var showSystems = false
+    @State private var systemsPunch = false
     @State private var showSubtextLine1 = false
     @State private var showSubtextLine2 = false
     @State private var showCards = [false, false, false]
@@ -46,32 +50,46 @@ struct GuardrailStep: View {
 
             // Hero headline - willpower < systems (animated word by word)
             HStack(spacing: MPSpacing.md) {
-                // Crossed out "Willpower"
+                // Crossed out "Willpower" with dramatic effects
                 ZStack {
                     Text("Willpower")
                         .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textTertiary)
+                        .opacity(willpowerDimmed ? 0.4 : 1.0)
 
+                    // Red glow behind the strike line
                     Rectangle()
-                        .fill(MPColors.error.opacity(0.8))
-                        .frame(height: 3)
+                        .fill(MPColors.error)
+                        .frame(height: 6)
+                        .blur(radius: 8)
+                        .opacity(showStrikethroughGlow ? 0.8 : 0)
                         .scaleEffect(x: showStrikethrough ? 1 : 0, anchor: .leading)
+                        .rotationEffect(.degrees(-3))
+
+                    // Diagonal slash strikethrough
+                    Rectangle()
+                        .fill(MPColors.error.opacity(0.9))
+                        .frame(height: 4)
+                        .scaleEffect(x: showStrikethrough ? 1 : 0, anchor: .leading)
+                        .rotationEffect(.degrees(-3))
                 }
                 .fixedSize()
                 .opacity(showWillpower ? 1 : 0)
-                .offset(y: showWillpower ? 0 : 20)
+                .offset(x: willpowerShake ? -4 : 0, y: showWillpower ? 0 : 20)
+                .offset(x: willpowerShake ? 4 : 0)
 
                 Text("<")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textTertiary)
                     .opacity(showLessThan ? 1 : 0)
-                    .scaleEffect(showLessThan ? 1 : 0.3)
+                    .scaleEffect(showLessThan ? 1 : 0.1)
 
                 Text("Systems")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .opacity(showSystems ? 1 : 0)
                     .offset(x: showSystems ? 0 : 30)
+                    .scaleEffect(systemsPunch ? 1.1 : 1.0)
             }
             .padding(.horizontal, MPSpacing.xl)
 
@@ -142,20 +160,69 @@ struct GuardrailStep: View {
 
     private func startAnimationSequence() {
         // Phase 1: Headline animation sequence
+
+        // 0.0s - "Willpower" fades in with spring
         withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
             showWillpower = true
         }
 
-        withAnimation(.easeOut(duration: 0.4).delay(0.3)) {
+        // 0.3s - Diagonal slash draws + red glow pulses + haptic
+        withAnimation(.easeOut(duration: 0.25).delay(0.3)) {
             showStrikethrough = true
         }
 
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.5)) {
+        // Glow pulse at impact
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            HapticManager.shared.medium()
+            withAnimation(.easeIn(duration: 0.15)) {
+                showStrikethroughGlow = true
+            }
+            // Fade glow after pulse
+            withAnimation(.easeOut(duration: 0.4).delay(0.15)) {
+                showStrikethroughGlow = false
+            }
+        }
+
+        // 0.5s - Willpower shakes + dims
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Quick shake animation
+            withAnimation(.linear(duration: 0.05)) {
+                willpowerShake = true
+            }
+            withAnimation(.linear(duration: 0.05).delay(0.05)) {
+                willpowerShake = false
+            }
+            withAnimation(.linear(duration: 0.05).delay(0.1)) {
+                willpowerShake = true
+            }
+            withAnimation(.linear(duration: 0.05).delay(0.15)) {
+                willpowerShake = false
+            }
+
+            // Dim after shake
+            withAnimation(.easeOut(duration: 0.3)) {
+                willpowerDimmed = true
+            }
+        }
+
+        // 0.55s - "<" pops in with extra bouncy spring
+        withAnimation(.spring(response: 0.35, dampingFraction: 0.5).delay(0.55)) {
             showLessThan = true
         }
 
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.7)) {
+        // 0.75s - "Systems" slides in from right
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.75)) {
             showSystems = true
+        }
+
+        // 0.9s - "Systems" punch scale (overshoot then settle)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+            withAnimation(.spring(response: 0.2, dampingFraction: 0.4)) {
+                systemsPunch = true
+            }
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6).delay(0.15)) {
+                systemsPunch = false
+            }
         }
 
         // Phase 2: Cards drop in one at a time with generous stagger

@@ -16,27 +16,31 @@ struct OptionalRatingStep: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+                .frame(maxHeight: 120)
 
-            // Text above stars
-            VStack(spacing: MPSpacing.xs) {
-                Text("Enjoying Morning Proof?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+            // Title
+            Text("Enjoying Morning Proof?")
+                .font(.system(size: 28, weight: .bold, design: .rounded))
+                .foregroundColor(MPColors.textPrimary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, MPSpacing.xl)
 
-                Text("Your rating helps others find better mornings")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .multilineTextAlignment(.center)
-            .padding(.horizontal, MPSpacing.xl)
+            Spacer().frame(height: 12)
 
-            Spacer().frame(height: MPSpacing.xxl)
+            // Subtitle
+            Text("Your rating helps others find better mornings")
+                .font(.system(size: 16))
+                .foregroundColor(MPColors.textSecondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, MPSpacing.xl)
+
+            Spacer().frame(height: 48)
 
             // Stars with glow and gentle hover animation
-            HStack(spacing: 14) {
+            HStack(spacing: 16) {
                 ForEach(0..<5, id: \.self) { index in
                     Image(systemName: "star.fill")
-                        .font(.system(size: 44))
+                        .font(.system(size: 48))
                         .foregroundColor(MPColors.accentGold)
                         .shadow(color: MPColors.accentGold.opacity(0.4 + glowIntensity * 0.3), radius: 8 + glowIntensity * 6)
                         .shadow(color: MPColors.accentGold.opacity(0.2 + glowIntensity * 0.15), radius: 16 + glowIntensity * 8)
