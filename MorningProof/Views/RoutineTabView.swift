@@ -215,20 +215,27 @@ struct RoutineTabView: View {
     var customHabitsSection: some View {
         sectionContainer(title: "Custom Habits", icon: "star.fill") {
             if manager.customHabits.isEmpty {
-                HStack {
-                    Text("No custom habits yet")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
-                    Spacer()
-                    Button {
-                        showCreateCustomHabit = true
-                    } label: {
-                        Text("Add")
-                            .font(MPFont.labelSmall())
+                Button {
+                    showCreateCustomHabit = true
+                } label: {
+                    HStack(spacing: MPSpacing.lg) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Add Custom Habit")
+                                .font(MPFont.bodyMedium())
+                                .foregroundColor(MPColors.textPrimary)
+                            Text("Create your own habit to track")
+                                .font(MPFont.labelTiny())
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "plus")
+                            .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(MPColors.primary)
                     }
+                    .padding(.vertical, MPSpacing.sm)
                 }
-                .padding(.vertical, MPSpacing.sm)
             } else {
                 let sortedCustomHabits = manager.customHabits.sorted { habit1, habit2 in
                     let config1 = manager.customHabitConfigs.first { $0.customHabitId == habit1.id }
