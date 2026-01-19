@@ -199,7 +199,8 @@ struct SuccessStoriesStep: View {
                             isPulsing: pulseGlow && index == 2
                         )
                         .opacity(showMilestones[index] ? 1 : 0)
-                        .offset(x: showMilestones[index] ? 0 : -20)
+                        .offset(x: showMilestones[index] ? 0 : -UIScreen.main.bounds.width)
+                        .scaleEffect(showMilestones[index] ? 1.0 : 0.95)
                     }
                 }
             }
@@ -220,9 +221,9 @@ struct SuccessStoriesStep: View {
                 showHeadline = true
             }
 
-            // Milestones appear sequentially
+            // Milestones slide in from left and "lock" into place with bounce
             for i in 0..<3 {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.75).delay(0.4 + Double(i) * 0.2)) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.65).delay(0.5 + Double(i) * 0.25)) {
                     showMilestones[i] = true
                 }
             }
