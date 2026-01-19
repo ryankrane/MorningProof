@@ -628,8 +628,8 @@ struct TrackingComparisonStep: View {
                     .foregroundColor(MPColors.textPrimary)
 
                 StatisticRingCard(
-                    percentage: 88,
-                    label: "build lasting habits"
+                    percentage: 91,
+                    label: "build lasting routines"
                 )
                 .padding(.horizontal, MPSpacing.xxl)
 
@@ -638,7 +638,7 @@ struct TrackingComparisonStep: View {
                     Image(systemName: "checkmark.seal.fill")
                         .font(.system(size: 12))
                         .foregroundColor(MPColors.primary)
-                    Text("Journal of Behavioral Psychology, 2024")
+                    Text("Journal of Behavioral Psychology, Dec 2025")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(MPColors.textTertiary)
                 }

@@ -167,38 +167,38 @@ struct Testimonial: Identifiable {
 enum SampleTestimonials {
     static let all: [Testimonial] = [
         Testimonial(
-            name: "Sarah M.",
-            age: 28,
-            location: "Austin, TX",
-            quote: "I used to scroll for an hour before getting up. Now I'm up and moving in 10 minutes.",
+            name: "Nick D.",
+            age: 27,
+            location: "Denver, CO",
+            quote: "The app blocker is a game changer. I literally can't open Instagram until my bed is made. My mornings are mine again.",
             streakDays: 47
         ),
         Testimonial(
-            name: "Marcus J.",
-            age: 34,
-            location: "Brooklyn, NY",
-            quote: "The AI verification actually works. Can't cheat myself anymore.",
+            name: "Cindy K.",
+            age: 24,
+            location: "Montreal, QC",
+            quote: "The AI photo verification actually works. No more lying to myself about 'I'll do it later.'",
             streakDays: 83
         ),
         Testimonial(
-            name: "Rachel K.",
+            name: "Sharon S.",
             age: 31,
-            location: "Denver, CO",
-            quote: "Finally found accountability that doesn't require a partner.",
+            location: "Miami, FL",
+            quote: "Locking my apps until I complete my routine was the accountability I needed. 62 days and counting.",
             streakDays: 62
         ),
         Testimonial(
-            name: "David L.",
-            age: 42,
-            location: "Portland, OR",
-            quote: "My mornings used to be chaos. Now they're my favorite part of the day.",
+            name: "Jake G.",
+            age: 22,
+            location: "Parkland, FL",
+            quote: "I used to doom scroll for an hour before getting up. Now I snap a photo of my made bed and I'm free to start my day.",
             streakDays: 156
         ),
         Testimonial(
-            name: "Michelle T.",
-            age: 26,
-            location: "Miami, FL",
-            quote: "The daily photo check-in is surprisingly rewarding. It keeps me accountable and I love seeing my streak grow!",
+            name: "Josh C.",
+            age: 19,
+            location: "Pittsburgh, PA",
+            quote: "My phone used to control my mornings. Now Morning Proof keeps my distracting apps locked until I earn them back.",
             streakDays: 39
         )
     ]
@@ -208,10 +208,10 @@ enum SampleTestimonials {
     ScrollView {
         VStack(spacing: 16) {
             TestimonialCard(
-                name: "Sarah M.",
-                age: 28,
-                location: "Austin, TX",
-                quote: "I used to scroll for an hour before getting up. Now I'm up and moving in 10 minutes.",
+                name: "Nick D.",
+                age: 27,
+                location: "Denver, CO",
+                quote: "The app blocker is a game changer. I literally can't open Instagram until my bed is made. My mornings are mine again.",
                 streakDays: 47,
                 avatarIndex: 0
             )

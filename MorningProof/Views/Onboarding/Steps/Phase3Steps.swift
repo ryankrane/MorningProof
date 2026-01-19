@@ -90,7 +90,7 @@ struct HowItWorksRow: View {
 
                 Image(systemName: icon)
                     .font(.system(size: 24))
-                    .foregroundColor(MPColors.primary)
+                    .foregroundColor(.black)
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -168,7 +168,7 @@ struct AIVerificationShowcaseStep: View {
                             RoundedRectangle(cornerRadius: MPRadius.md)
                                 .fill(
                                     LinearGradient(
-                                        colors: [Color(hex: "E8F0FE"), Color(hex: "D4E4FA")],
+                                        colors: [MPColors.primaryLight, MPColors.primary.opacity(0.3)],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
@@ -372,11 +372,6 @@ private struct HighTechScanOverlay: View {
                 // Laser scan line with glow
                 if isScanning {
                     LaserScanLine(position: laserPosition, size: geometry.size)
-                }
-
-                // Analysis grid points
-                if isScanning || isComplete {
-                    AnalysisGrid(isComplete: isComplete, scanProgress: scanProgress)
                 }
 
                 // Pulsing scan border
@@ -632,9 +627,7 @@ struct DoomScrollingSimulatorStep: View {
                         RoundedRectangle(cornerRadius: 44)
                             .stroke(
                                 LinearGradient(
-                                    colors: showLockdown
-                                        ? [Color.red.opacity(0.8), Color.red.opacity(0.4)]
-                                        : [Color(white: 0.35), Color(white: 0.15)],
+                                    colors: [Color(white: 0.35), Color(white: 0.15)],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 ),
