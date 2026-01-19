@@ -405,22 +405,25 @@ struct AnalyzingStep: View {
 
     private func startSmoothProgress() {
         let phaseCount = phases.count
-        let totalDuration: Double = 5.0
 
-        // Smooth progress from 0 to 100%
-        let steps = 100
-        for step in 0...steps {
-            let delay = totalDuration * Double(step) / Double(steps)
-            let progressValue = Double(step) / Double(steps)
+        // PHASE 1: Quick start (0% to 70% in ~4 seconds)
+        let phase1Increments: [(delay: Double, progress: Double)] = [
+            (0.0, 0.02), (0.12, 0.05), (0.28, 0.08), (0.35, 0.11),
+            (0.42, 0.14), (0.65, 0.17), (0.80, 0.21), (0.95, 0.24),
+            (1.05, 0.28), (1.30, 0.31), (1.55, 0.35), (1.70, 0.38),
+            (1.82, 0.42), (1.90, 0.45), (2.20, 0.48), (2.45, 0.51),
+            (2.60, 0.54), (2.80, 0.57), (3.10, 0.60), (3.35, 0.62),
+            (3.50, 0.64), (3.58, 0.66), (3.65, 0.68), (3.90, 0.70),
+        ]
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                withAnimation(.linear(duration: totalDuration / Double(steps))) {
-                    progress = CGFloat(progressValue)
-                    displayedProgress = step
+        for increment in phase1Increments {
+            DispatchQueue.main.asyncAfter(deadline: .now() + increment.delay) {
+                withAnimation(.easeOut(duration: 0.1)) {
+                    progress = CGFloat(increment.progress)
+                    displayedProgress = Int(increment.progress * 100)
                 }
 
-                // Update phase based on progress
-                let phaseIndex = min(Int(progressValue * Double(phaseCount)), phaseCount - 1)
+                let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
                 if phaseIndex != currentPhase {
                     HapticManager.shared.light()
                     withAnimation(.easeInOut(duration: 0.3)) {
@@ -433,8 +436,53 @@ struct AnalyzingStep: View {
             }
         }
 
+        // PHASE 2: Slowing down (70% to 93%)
+        let phase2Start: Double = 4.0
+        let sporadicIncrements: [(delay: Double, progress: Double)] = [
+            (0.0, 0.72), (0.15, 0.74), (0.35, 0.76), (0.50, 0.78),
+            (0.55, 0.79), (0.70, 0.81), (0.95, 0.83), (1.10, 0.85),
+            (1.20, 0.86), (1.35, 0.88), (1.55, 0.89), (1.70, 0.91),
+            (1.85, 0.92), (2.00, 0.93),
+        ]
+
+        for increment in sporadicIncrements {
+            DispatchQueue.main.asyncAfter(deadline: .now() + phase2Start + increment.delay) {
+                withAnimation(.easeOut(duration: 0.12)) {
+                    progress = CGFloat(increment.progress)
+                    displayedProgress = Int(increment.progress * 100)
+                }
+
+                let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
+                if phaseIndex != currentPhase {
+                    HapticManager.shared.light()
+                    withAnimation(.easeInOut(duration: 0.3)) {
+                        if currentPhase >= 0 {
+                            _ = completedSteps.insert(currentPhase)
+                        }
+                        currentPhase = phaseIndex
+                    }
+                }
+            }
+        }
+
+        // PHASE 3: Final crawl (93% to 100%)
+        let phase3Start: Double = 6.0
+        let crawlSteps: [(delay: Double, progress: Double)] = [
+            (0.0, 0.93), (0.5, 0.94), (0.9, 0.95), (1.3, 0.96),
+            (1.6, 0.97), (1.9, 0.98), (2.2, 0.99), (2.5, 1.00),
+        ]
+
+        for step in crawlSteps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + step.delay) {
+                withAnimation(.easeOut(duration: 0.25)) {
+                    progress = CGFloat(step.progress)
+                    displayedProgress = Int(step.progress * 100)
+                }
+            }
+        }
+
         // Show completion state
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + 2.7) {
             HapticManager.shared.success()
             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
                 isComplete = true
@@ -443,7 +491,7 @@ struct AnalyzingStep: View {
         }
 
         // Transition to next screen
-        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.8) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + 3.4) {
             onComplete()
         }
     }
