@@ -16,10 +16,9 @@ struct OptionalRatingStep: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-                .frame(maxHeight: 120)
 
             // Title
-            Text("Enjoying Morning Proof?")
+            Text("Help Us Grow")
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(MPColors.textPrimary)
                 .multilineTextAlignment(.center)
