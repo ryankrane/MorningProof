@@ -159,26 +159,26 @@ struct OnboardingFlowView: View {
                     case 0: WelcomeHeroStep(onContinue: nextStep)
                     case 1: NameStep(data: onboardingData, onContinue: nextStep)
                     case 2: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
+                    case 3: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
 
                     // Phase 2: Problem Agitation (show the solution FIRST)
-                    case 3: GuardrailStep(onContinue: nextStep)
-                    case 4: DoomScrollingSimulatorStep(onContinue: nextStep)
+                    case 4: GuardrailStep(onContinue: nextStep)
+                    case 5: DoomScrollingSimulatorStep(onContinue: nextStep)
 
                     // Phase 3: Solution Setup
-                    case 5: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
+                    case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
                     // TODO: ENABLE ONCE FAMILY CONTROLS APPROVED
-                    // case 6: AppLockingOnboardingStep(onContinue: nextStep)
+                    // case 7: AppLockingOnboardingStep(onContinue: nextStep)
                     // Then increment all case numbers below by 1 and update totalSteps
-                    case 6: HowItWorksStep(onContinue: nextStep)
-                    case 7: AIVerificationShowcaseStep(onContinue: nextStep)
+                    case 7: HowItWorksStep(onContinue: nextStep)
+                    case 8: AIVerificationShowcaseStep(onContinue: nextStep)
 
                     // Phase 4: Social Proof
-                    case 8: YouAreNotAloneStep(onContinue: nextStep)
-                    case 9: SuccessStoriesStep(onContinue: nextStep)
-                    case 10: TrackingComparisonStep(onContinue: nextStep)
+                    case 9: YouAreNotAloneStep(onContinue: nextStep)
+                    case 10: SuccessStoriesStep(onContinue: nextStep)
+                    case 11: TrackingComparisonStep(onContinue: nextStep)
 
                     // Phase 5: Personalization
-                    case 11: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
                     case 12: ObstaclesStep(data: onboardingData, onContinue: nextStep)
                     case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
