@@ -7,9 +7,16 @@ import SwiftUI
 struct GuardrailStep: View {
     let onContinue: () -> Void
     @State private var showHeadline = false
-    @State private var showSubtext = false
+    @State private var showWillpower = false
+    @State private var showStrikethrough = false
+    @State private var showLessThan = false
+    @State private var showSystems = false
+    @State private var showSubtextLine1 = false
+    @State private var showSubtextLine2 = false
     @State private var showCards = [false, false, false]
+    @State private var cardRotations = [Double](repeating: -8, count: 3)
     @State private var pulseIcons = false
+    @State private var showButton = false
 
     private let guardrails: [(title: String, description: String, icon: String, gradient: [Color])] = [
         (
@@ -37,7 +44,7 @@ struct GuardrailStep: View {
             Spacer()
                 .frame(minHeight: 40, maxHeight: 80)
 
-            // Hero headline - willpower < systems
+            // Hero headline - willpower < systems (animated word by word)
             HStack(spacing: MPSpacing.md) {
                 // Crossed out "Willpower"
                 ZStack {
@@ -48,25 +55,30 @@ struct GuardrailStep: View {
                     Rectangle()
                         .fill(MPColors.error.opacity(0.8))
                         .frame(height: 3)
+                        .scaleEffect(x: showStrikethrough ? 1 : 0, anchor: .leading)
                 }
                 .fixedSize()
+                .opacity(showWillpower ? 1 : 0)
+                .offset(y: showWillpower ? 0 : 20)
 
                 Text("<")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textTertiary)
+                    .opacity(showLessThan ? 1 : 0)
+                    .scaleEffect(showLessThan ? 1 : 0.3)
 
                 Text("Systems")
                     .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
+                    .opacity(showSystems ? 1 : 0)
+                    .offset(x: showSystems ? 0 : 30)
             }
-            .opacity(showHeadline ? 1 : 0)
-            .offset(y: showHeadline ? 0 : 15)
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
                 .frame(height: 80)
 
-            // Guardrail cards
+            // Guardrail cards - drop in from top with spring bounce
             VStack(spacing: MPSpacing.md) {
                 ForEach(0..<3, id: \.self) { index in
                     let item = guardrails[index]
@@ -78,7 +90,13 @@ struct GuardrailStep: View {
                         isPulsing: pulseIcons
                     )
                     .opacity(showCards[index] ? 1 : 0)
-                    .offset(x: showCards[index] ? 0 : -30)
+                    .offset(y: showCards[index] ? 0 : -80)
+                    .scaleEffect(showCards[index] ? 1 : 0.85)
+                    .rotation3DEffect(
+                        .degrees(showCards[index] ? 0 : cardRotations[index]),
+                        axis: (x: 1, y: 0, z: 0),
+                        perspective: 0.5
+                    )
                 }
             }
             .padding(.horizontal, MPSpacing.xl)
@@ -86,39 +104,86 @@ struct GuardrailStep: View {
             Spacer()
                 .frame(height: 60)
 
-            // Explanatory text below the cards
-            Text("Your brain will always choose easy over hard —\nSo we remove the choice entirely.")
-                .font(.system(size: 15))
-                .foregroundColor(MPColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .lineSpacing(4)
-                .opacity(showSubtext ? 1 : 0)
-                .offset(y: showSubtext ? 0 : 10)
-                .padding(.horizontal, MPSpacing.xl)
+            // Explanatory text below the cards - two lines animating separately
+            VStack(spacing: 4) {
+                Text("Your brain will always choose easy over hard —")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .opacity(showSubtextLine1 ? 1 : 0)
+                    .blur(radius: showSubtextLine1 ? 0 : 8)
+                    .offset(y: showSubtextLine1 ? 0 : 15)
+
+                Text("So we remove the choice entirely.")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .opacity(showSubtextLine2 ? 1 : 0)
+                    .blur(radius: showSubtextLine2 ? 0 : 8)
+                    .offset(y: showSubtextLine2 ? 0 : 15)
+            }
+            .lineSpacing(4)
+            .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
             MPButton(title: "Show Me How", style: .primary, icon: "shield.checkered") {
                 onContinue()
             }
+            .opacity(showButton ? 1 : 0)
+            .offset(y: showButton ? 0 : 20)
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.6)) {
-                showHeadline = true
+            startAnimationSequence()
+        }
+    }
+
+    private func startAnimationSequence() {
+        // Phase 1: Headline animation sequence
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+            showWillpower = true
+        }
+
+        withAnimation(.easeOut(duration: 0.4).delay(0.3)) {
+            showStrikethrough = true
+        }
+
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.5)) {
+            showLessThan = true
+        }
+
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.7)) {
+            showSystems = true
+        }
+
+        // Phase 2: Cards drop in from top with staggered timing
+        for i in 0..<3 {
+            let delay = 1.0 + Double(i) * 0.15
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.65).delay(delay)) {
+                showCards[i] = true
+                cardRotations[i] = 0
             }
-            withAnimation(.easeOut(duration: 0.5).delay(0.3)) {
-                showSubtext = true
-            }
-            for i in 0..<3 {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.75).delay(0.5 + Double(i) * 0.12)) {
-                    showCards[i] = true
-                }
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                pulseIcons = true
-            }
+        }
+
+        // Phase 3: Subtext fades in with blur effect
+        withAnimation(.easeOut(duration: 0.5).delay(1.6)) {
+            showSubtextLine1 = true
+        }
+
+        withAnimation(.easeOut(duration: 0.5).delay(1.85)) {
+            showSubtextLine2 = true
+        }
+
+        // Phase 4: Button appears
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(2.1)) {
+            showButton = true
+        }
+
+        // Phase 5: Start icon pulse
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.3) {
+            pulseIcons = true
         }
     }
 }
