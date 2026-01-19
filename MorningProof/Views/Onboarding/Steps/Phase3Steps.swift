@@ -930,31 +930,31 @@ private struct LockdownOverlay: View {
 
                 // CTA button
                 if lockSlammed {
-                    VStack(spacing: 8) {
-                        HStack(spacing: 8) {
+                    VStack(spacing: 6) {
+                        HStack(spacing: 6) {
                             Image("AppLogo")
                                 .resizable()
                                 .scaledToFit()
-                                .frame(width: 24, height: 24)
-                                .clipShape(RoundedRectangle(cornerRadius: 5))
+                                .frame(width: 18, height: 18)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
 
                             Text("Finish your routine")
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(.system(size: 10, weight: .semibold))
                                 .foregroundColor(.white)
                                 .lineLimit(1)
                         }
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 9)
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
                         .background(Color(white: 0.22))
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 10)
                                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
                         )
-                        .padding(.horizontal, MPSpacing.lg)
+                        .padding(.horizontal, MPSpacing.xl)
 
                         Text("Verify habits to unlock")
-                            .font(.system(size: 11))
+                            .font(.system(size: 9))
                             .foregroundColor(Color.white.opacity(0.4))
                     }
                     .transition(.opacity.combined(with: .move(edge: .bottom)))
