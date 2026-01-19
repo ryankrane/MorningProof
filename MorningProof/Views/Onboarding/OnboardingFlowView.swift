@@ -155,17 +155,17 @@ struct OnboardingFlowView: View {
                 // Content
                 Group {
                     switch currentStep {
-                    // Phase 1: Hook & Identity
+                    // Phase 1: Hook & Identity (Steps 0-3) — Phase1Steps.swift
                     case 0: WelcomeHeroStep(onContinue: nextStep)
                     case 1: NameStep(data: onboardingData, onContinue: nextStep)
                     case 2: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
                     case 3: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 2: Problem Agitation (show the solution FIRST)
+                    // Phase 2: Problem Agitation (Steps 4-5) — Phase2Steps.swift
                     case 4: GuardrailStep(onContinue: nextStep)
                     case 5: DoomScrollingSimulatorStep(onContinue: nextStep)
 
-                    // Phase 3: Solution Setup
+                    // Phase 3: Solution Setup (Steps 6-8) — Phase3Steps.swift
                     case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
                     // TODO: ENABLE ONCE FAMILY CONTROLS APPROVED
                     // case 7: AppLockingOnboardingStep(onContinue: nextStep)
@@ -173,15 +173,15 @@ struct OnboardingFlowView: View {
                     case 7: HowItWorksStep(onContinue: nextStep)
                     case 8: AIVerificationShowcaseStep(onContinue: nextStep)
 
-                    // Phase 4: Social Proof
+                    // Phase 4: Social Proof (Steps 9-11) — Phase4Steps.swift
                     case 9: YouAreNotAloneStep(onContinue: nextStep)
                     case 10: SuccessStoriesStep(onContinue: nextStep)
                     case 11: TrackingComparisonStep(onContinue: nextStep)
 
-                    // Phase 5: Personalization
+                    // Phase 5: Personalization (Step 12) — Phase5Steps.swift
                     case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 6: Conversion
+                    // Phase 6: Conversion (Steps 13-16) — Phase6Steps.swift
                     case 13: OptionalRatingStep(onContinue: nextStep)
                     case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
                     case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)

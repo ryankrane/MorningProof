@@ -1,8 +1,8 @@
 import SwiftUI
 
-// MARK: - Phase 2: Problem Agitation & Social Proof
+// MARK: - Phase 2: Problem Agitation (Steps 4-5)
 
-// MARK: - Step 5: The Guardrail (Why Morning Proof Works)
+// MARK: - Step 4: The Guardrail (Why Morning Proof Works)
 
 struct GuardrailStep: View {
     let onContinue: () -> Void
@@ -214,477 +214,895 @@ struct GuardrailCard: View {
     }
 }
 
-// MARK: - Step 6: You Are Not Alone
+// MARK: - Step 5: Doom Scrolling Simulator (The "Villain" Reveal)
 
-struct YouAreNotAloneStep: View {
+struct DoomScrollingSimulatorStep: View {
     let onContinue: () -> Void
-    @State private var showContent = false
+
+    @State private var showPhone = false
+    @State private var isScrolling = true
+    @State private var showLockdown = false
+    @State private var lockSlammed = false
     @State private var scrollOffset: CGFloat = 0
 
-    private let testimonials = SampleTestimonials.all
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: MPSpacing.xxl) {
-                VStack(spacing: MPSpacing.md) {
-                    Text("You're not alone")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("Thousands have transformed their mornings")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                .opacity(showContent ? 1 : 0)
-
-                // Continuously scrolling testimonial carousel
-                GeometryReader { geometry in
-                    let cardWidth: CGFloat = geometry.size.width - 60
-
-                    HStack(spacing: MPSpacing.md) {
-                        // Duplicate testimonials for seamless loop
-                        ForEach(0..<testimonials.count * 2, id: \.self) { index in
-                            let testimonial = testimonials[index % testimonials.count]
-                            TestimonialCard(
-                                name: testimonial.name,
-                                age: testimonial.age,
-                                location: testimonial.location,
-                                quote: testimonial.quote,
-                                streakDays: testimonial.streakDays,
-                                avatarIndex: index % testimonials.count
-                            )
-                            .frame(width: cardWidth)
-                        }
-                    }
-                    .offset(x: scrollOffset)
-                    .onAppear {
-                        let singleSetWidth = cardWidth * CGFloat(testimonials.count) + CGFloat(testimonials.count) * MPSpacing.md
-                        withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
-                            scrollOffset = -singleSetWidth
-                        }
-                    }
-                }
-                .frame(height: 280)
-                .clipped()
-                .opacity(showContent ? 1 : 0)
-
-                // Rating stat
-                VStack(spacing: MPSpacing.sm) {
-                    HStack(spacing: 2) {
-                        ForEach(0..<5, id: \.self) { _ in
-                            Image(systemName: "star.fill")
-                                .font(.system(size: 20))
-                                .foregroundColor(MPColors.accentGold)
-                        }
-                    }
-                    Text("4.9 average rating from users")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-                .opacity(showContent ? 1 : 0)
-            }
-
-            Spacer()
-
-            MPButton(title: "Show Me the Proof", style: .primary) {
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-        }
-        .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showContent = true
-            }
-        }
-    }
-}
-
-// MARK: - Step 7: Success Stories (Journey Timeline)
-
-struct SuccessStoriesStep: View {
-    let onContinue: () -> Void
-
-    @State private var showHeadline = false
-    @State private var showMilestones = [false, false, false]
-    @State private var lineProgress: CGFloat = 0
-    @State private var pulseGlow = false
-
-    private let milestones: [(day: String, title: String, description: String, icon: String, gradient: [Color])] = [
-        (
-            "Day 1",
-            "The First Step",
-            "You commit. The app blocks distractions. Your morning begins.",
-            "sunrise.fill",
-            [Color(red: 0.4, green: 0.6, blue: 1.0), Color(red: 0.5, green: 0.7, blue: 1.0)]
-        ),
-        (
-            "Day 5",
-            "Building Momentum",
-            "The routine clicks. Distractions fade. Focus sharpens.",
-            "flame.fill",
-            [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.45, blue: 0.35)]
-        ),
-        (
-            "Day 10",
-            "The New Normal",
-            "Morning mastered. Habits locked in. You're in control.",
-            "trophy.fill",
-            [MPColors.primary, Color(red: 0.6, green: 0.4, blue: 1.0)]
-        )
+    // Simulated social feed items
+    private let feedItems: [(icon: String, color: Color, title: String)] = [
+        ("camera.fill", Color(white: 0.35), "Photos"),
+        ("play.square.fill", .black, "Reels"),
+        ("heart.fill", Color(white: 0.3), "Activity"),
+        ("bubble.left.fill", Color(white: 0.4), "Trending"),
+        ("play.rectangle.fill", .black, "Videos"),
+        ("text.bubble.fill", Color(white: 0.35), "Posts"),
     ]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Hero headline
             VStack(spacing: MPSpacing.sm) {
-                HStack(spacing: 0) {
-                    Text("10 Days")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [MPColors.primary, Color(red: 0.6, green: 0.4, blue: 1.0)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                    Text(" to Transform")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-                }
+                Text("Your Mornings, Protected")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.85)
 
-                Text("Here's what happens when you commit")
+                Text("Finish your routine to unlock your apps")
                     .font(.system(size: 15))
                     .foregroundColor(MPColors.textSecondary)
             }
-            .opacity(showHeadline ? 1 : 0)
-            .offset(y: showHeadline ? 0 : 15)
-            .padding(.horizontal, MPSpacing.xl)
 
-            Spacer()
-                .frame(height: MPSpacing.xxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
-            // Timeline
-            ZStack(alignment: .leading) {
-                // Connecting line (behind milestones)
-                GeometryReader { geometry in
-                    let lineHeight = geometry.size.height - 60
-
-                    // Background line track
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(MPColors.border.opacity(0.3))
-                        .frame(width: 4, height: lineHeight)
-                        .offset(x: 30, y: 30)
-
-                    // Animated gradient line
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.4, green: 0.6, blue: 1.0),
-                                    Color(red: 1.0, green: 0.6, blue: 0.3),
-                                    MPColors.primary
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                        .frame(width: 4, height: lineHeight * lineProgress)
-                        .offset(x: 30, y: 30)
-                }
-
-                // Milestones
-                VStack(spacing: MPSpacing.lg) {
-                    ForEach(0..<3, id: \.self) { index in
-                        let milestone = milestones[index]
-                        JourneyMilestone(
-                            day: milestone.day,
-                            title: milestone.title,
-                            description: milestone.description,
-                            icon: milestone.icon,
-                            gradient: milestone.gradient,
-                            isLast: index == 2,
-                            isPulsing: pulseGlow && index == 2
-                        )
-                        .opacity(showMilestones[index] ? 1 : 0)
-                        .offset(x: showMilestones[index] ? 0 : -20)
-                    }
-                }
-            }
-            .frame(height: 320)
-            .padding(.horizontal, MPSpacing.lg)
-
-            Spacer()
-
-            MPButton(title: "I Want This", style: .primary, icon: "arrow.right") {
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-        }
-        .onAppear {
-            // Headline fades in
-            withAnimation(.easeOut(duration: 0.6)) {
-                showHeadline = true
-            }
-
-            // Milestones appear sequentially
-            for i in 0..<3 {
-                withAnimation(.spring(response: 0.6, dampingFraction: 0.75).delay(0.4 + Double(i) * 0.2)) {
-                    showMilestones[i] = true
-                }
-            }
-
-            // Line animates down
-            withAnimation(.easeInOut(duration: 1.0).delay(0.5)) {
-                lineProgress = 1.0
-            }
-
-            // Glow pulse starts
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
-                pulseGlow = true
-            }
-        }
-    }
-}
-
-// MARK: - Journey Milestone Component
-
-private struct JourneyMilestone: View {
-    let day: String
-    let title: String
-    let description: String
-    let icon: String
-    let gradient: [Color]
-    let isLast: Bool
-    let isPulsing: Bool
-
-    @State private var glowPulse = false
-
-    var body: some View {
-        HStack(spacing: MPSpacing.lg) {
-            // Icon orb with glow
+            // Phone mockup with doom scrolling → lockdown sequence
             ZStack {
-                // Animated glow
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [gradient[0].opacity(0.6), gradient[1].opacity(0.2), Color.clear],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 40
-                        )
-                    )
-                    .frame(width: 80, height: 80)
-                    .scaleEffect(glowPulse ? 1.2 : 1.0)
-                    .opacity(glowPulse ? 0.9 : 0.6)
-
-                // Icon circle
-                Circle()
+                // Phone outer bezel - metallic gradient effect
+                RoundedRectangle(cornerRadius: 44)
                     .fill(
                         LinearGradient(
-                            colors: gradient,
+                            colors: [Color(white: 0.22), Color(white: 0.08), Color(white: 0.15)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 56, height: 56)
-                    .shadow(color: gradient[0].opacity(0.4), radius: 8, x: 0, y: 4)
+                    .frame(width: 200, height: 430)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 44)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [Color(white: 0.35), Color(white: 0.15)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+                    .mpShadow(.large)
 
-                Image(systemName: icon)
-                    .font(.system(size: 24, weight: .semibold))
-                    .foregroundColor(.white)
-            }
-            .frame(width: 64, height: 64)
-            .onChange(of: isPulsing) { _, pulsing in
-                if pulsing {
-                    withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-                        glowPulse = true
+                // Side buttons for realism
+                // Volume buttons (left side)
+                VStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(Color(white: 0.25))
+                        .frame(width: 3, height: 25)
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(Color(white: 0.25))
+                        .frame(width: 3, height: 45)
+                }
+                .offset(x: -99, y: -60)
+
+                // Power button (right side)
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(Color(white: 0.25))
+                    .frame(width: 3, height: 55)
+                    .offset(x: 99, y: -50)
+
+                // Screen content area
+                ZStack {
+                    RoundedRectangle(cornerRadius: 38)
+                        .fill(MPColors.background)
+
+                    // Scrolling social feed OR locked state
+                    if !showLockdown {
+                        // Doom scrolling feed
+                        DoomScrollFeed(
+                            feedItems: feedItems,
+                            scrollOffset: scrollOffset,
+                            isScrolling: isScrolling
+                        )
+                    }
+
+                    // Morning Proof lockdown overlay
+                    if showLockdown {
+                        LockdownOverlay(lockSlammed: lockSlammed)
+                    }
+
+                    // Dynamic Island at top
+                    VStack {
+                        Capsule()
+                            .fill(Color.black)
+                            .frame(width: 85, height: 26)
+                            .padding(.top, 10)
+                        Spacer()
                     }
                 }
+                .frame(width: 184, height: 410)
+                .clipShape(RoundedRectangle(cornerRadius: 38))
             }
-
-            // Content
-            VStack(alignment: .leading, spacing: MPSpacing.sm) {
-                // Day badge + title
-                HStack(spacing: MPSpacing.sm) {
-                    Text(day)
-                        .font(.system(size: 11, weight: .bold))
-                        .foregroundColor(gradient[0])
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 3)
-                        .background(gradient[0].opacity(0.15))
-                        .cornerRadius(4)
-
-                    Text(title)
-                        .font(.system(size: 17, weight: .bold))
-                        .foregroundColor(MPColors.textPrimary)
-                }
-
-                Text(description)
-                    .font(.system(size: 14))
-                    .foregroundColor(MPColors.textSecondary)
-                    .lineSpacing(2)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
-
-            Spacer(minLength: 0)
-        }
-        .padding(MPSpacing.md)
-        .background(
-            RoundedRectangle(cornerRadius: MPRadius.lg)
-                .fill(MPColors.surface)
-                .overlay(
-                    RoundedRectangle(cornerRadius: MPRadius.lg)
-                        .stroke(
-                            LinearGradient(
-                                colors: [gradient[0].opacity(0.3), Color.clear],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-        )
-        .mpShadow(.small)
-    }
-}
-
-// MARK: - Transformation Stat Card
-
-struct TransformationStatCard: View {
-    let value: String
-    let label: String
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        VStack(spacing: MPSpacing.sm) {
-            Image(systemName: icon)
-                .font(.system(size: 20))
-                .foregroundColor(color)
-
-            Text(value)
-                .font(.system(size: 22, weight: .bold, design: .rounded))
-                .foregroundColor(MPColors.textPrimary)
-
-            Text(label)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(MPColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .lineLimit(2)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, MPSpacing.lg)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.md)
-        .mpShadow(.small)
-    }
-}
-
-// MARK: - Milestone Card
-
-struct MilestoneCard: View {
-    let day: String
-    let title: String
-    let icon: String
-    let color: Color
-
-    var body: some View {
-        VStack(spacing: MPSpacing.sm) {
-            ZStack {
-                Circle()
-                    .fill(color.opacity(0.15))
-                    .frame(width: 44, height: 44)
-
-                Image(systemName: icon)
-                    .font(.system(size: 18))
-                    .foregroundColor(color)
-            }
-
-            Text(day)
-                .font(.system(size: 11, weight: .bold))
-                .foregroundColor(color)
-
-            Text(title)
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(MPColors.textSecondary)
-                .lineLimit(1)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, MPSpacing.md)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.md)
-        .mpShadow(.small)
-    }
-}
-
-// MARK: - Step 8: Tracking Comparison
-
-struct TrackingComparisonStep: View {
-    let onContinue: () -> Void
-    @State private var showPills = [false, false, false]
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: MPSpacing.xxl) {
-                Text("The Data Doesn't Lie")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-
-                StatisticRingCard(
-                    percentage: 91,
-                    label: "of users stick with it"
-                )
-                .padding(.horizontal, MPSpacing.xxl)
-
-                // Research citation
-                HStack(spacing: MPSpacing.xs) {
-                    Image(systemName: "checkmark.seal.fill")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.primary)
-                    Text("Journal of Behavioral Psychology, Dec 2025")
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-
-                // Supporting pills - animate in one by one
-                HStack(spacing: MPSpacing.sm) {
-                    StatPillView(value: "10 days", label: "to transform", icon: "bolt.fill")
-                        .opacity(showPills[0] ? 1 : 0)
-                        .offset(y: showPills[0] ? 0 : 15)
-
-                    StatPillView(value: "35 days", label: "avg streak", icon: "flame.fill")
-                        .opacity(showPills[1] ? 1 : 0)
-                        .offset(y: showPills[1] ? 0 : 15)
-
-                    StatPillView(value: "96%", label: "recommend it", icon: "hand.thumbsup.fill")
-                        .opacity(showPills[2] ? 1 : 0)
-                        .offset(y: showPills[2] ? 0 : 15)
-                }
-                .padding(.horizontal, MPSpacing.lg)
-            }
+            .scaleEffect(showPhone ? 1 : 0.8)
+            .opacity(showPhone ? 1 : 0)
 
             Spacer()
 
-            MPButton(title: "Let's Do This", style: .primary) {
+            MPButton(title: "Protect My Mornings", style: .primary, icon: "shield.lefthalf.filled") {
+                HapticManager.shared.medium()
                 onContinue()
             }
+            .disabled(!lockSlammed)
+            .opacity(lockSlammed ? 1 : 0.4)
+            .animation(.easeInOut(duration: 0.3), value: lockSlammed)
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            // Stagger the pill animations
-            for i in 0..<3 {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(1.5 + Double(i) * 0.15)) {
-                    showPills[i] = true
+            startSequence()
+        }
+    }
+
+    private func startSequence() {
+        // Phase 1: Show phone with scrolling feed
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            showPhone = true
+        }
+
+        // Start scroll animation
+        withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+            scrollOffset = -400
+        }
+
+        // Phase 2: After showing doom scrolling, slam down the lock
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            // Stop scrolling
+            withAnimation(.easeOut(duration: 0.3)) {
+                isScrolling = false
+            }
+
+            // Show lockdown overlay
+            withAnimation(.easeIn(duration: 0.2)) {
+                showLockdown = true
+            }
+
+            // Slam the lock with heavy haptic
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                // HEAVY THUD haptic - the dramatic slam
+                HapticManager.shared.flameSlamImpact()
+
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                    lockSlammed = true
                 }
+            }
+        }
+    }
+}
+
+// MARK: - Doom Scroll Feed (Simulated Social Media)
+
+private struct DoomScrollFeed: View {
+    let feedItems: [(icon: String, color: Color, title: String)]
+    let scrollOffset: CGFloat
+    let isScrolling: Bool
+
+    // Post types - cycle through all 6 clipart scenes
+    private static let postTypes: [PostImageType] = [
+        .sunset, .dog, .mountains, .cat, .beach, .forest
+    ]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // App header bar
+            HStack {
+                Image(systemName: "camera")
+                    .font(.system(size: 14))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Text("Instagram")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "paperplane")
+                    .font(.system(size: 14))
+                    .foregroundColor(MPColors.textPrimary)
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .padding(.top, 38) // Space for Dynamic Island
+            .background(Color(white: 0.08))
+
+            // Scrolling feed - contained within remaining space
+            VStack(spacing: 0) {
+                ForEach(0..<8, id: \.self) { index in
+                    CompactFeedPost(
+                        postType: Self.postTypes[index % Self.postTypes.count],
+                        index: index
+                    )
+                }
+            }
+            .offset(y: scrollOffset)
+        }
+        .saturation(isScrolling ? 1 : 0.3)
+        .brightness(isScrolling ? 0 : -0.1)
+    }
+}
+
+// MARK: - Post Image Types
+
+private enum PostImageType: CaseIterable {
+    case sunset
+    case mountains
+    case beach
+    case forest
+    case dog
+    case cat
+}
+
+// MARK: - Clipart Post Images
+
+private struct SunsetImage: View {
+    var body: some View {
+        ZStack {
+            // Sky gradient
+            LinearGradient(
+                colors: [
+                    Color(red: 0.95, green: 0.5, blue: 0.3),
+                    Color(red: 1.0, green: 0.7, blue: 0.4),
+                    Color(red: 0.95, green: 0.4, blue: 0.5)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Sun
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [Color(red: 1.0, green: 0.95, blue: 0.6), Color(red: 1.0, green: 0.7, blue: 0.3)],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: 30
+                    )
+                )
+                .frame(width: 50, height: 50)
+                .offset(y: 25)
+
+            // Horizon water/land
+            VStack(spacing: 0) {
+                Spacer()
+                Rectangle()
+                    .fill(Color(red: 0.2, green: 0.15, blue: 0.25).opacity(0.8))
+                    .frame(height: 35)
+            }
+
+            // Sun reflection on water
+            Ellipse()
+                .fill(Color(red: 1.0, green: 0.8, blue: 0.4).opacity(0.4))
+                .frame(width: 20, height: 50)
+                .offset(y: 55)
+        }
+    }
+}
+
+private struct MountainsImage: View {
+    var body: some View {
+        ZStack {
+            // Sky gradient
+            LinearGradient(
+                colors: [
+                    Color(red: 0.4, green: 0.5, blue: 0.7),
+                    Color(red: 0.7, green: 0.6, blue: 0.75),
+                    Color(red: 0.9, green: 0.7, blue: 0.6)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Back mountain
+            Triangle()
+                .fill(Color(red: 0.35, green: 0.35, blue: 0.45))
+                .frame(width: 140, height: 80)
+                .offset(x: 30, y: 30)
+
+            // Front mountain
+            Triangle()
+                .fill(Color(red: 0.25, green: 0.25, blue: 0.35))
+                .frame(width: 120, height: 90)
+                .offset(x: -20, y: 25)
+
+            // Snow cap on front mountain
+            Triangle()
+                .fill(Color.white.opacity(0.9))
+                .frame(width: 30, height: 22)
+                .offset(x: -20, y: -20)
+        }
+    }
+}
+
+private struct Triangle: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct BeachImage: View {
+    var body: some View {
+        ZStack {
+            // Sky
+            LinearGradient(
+                colors: [
+                    Color(red: 0.5, green: 0.7, blue: 0.9),
+                    Color(red: 0.7, green: 0.85, blue: 0.95)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            VStack(spacing: 0) {
+                Spacer()
+
+                // Ocean
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.2, green: 0.5, blue: 0.7), Color(red: 0.3, green: 0.6, blue: 0.75)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 50)
+
+                // Wave line
+                WavyLine()
+                    .stroke(Color.white.opacity(0.6), lineWidth: 2)
+                    .frame(height: 8)
+                    .offset(y: -20)
+
+                // Sand
+                Rectangle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 0.95, green: 0.85, blue: 0.65), Color(red: 0.9, green: 0.8, blue: 0.55)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    )
+                    .frame(height: 35)
+            }
+
+            // Sun
+            Circle()
+                .fill(Color(red: 1.0, green: 0.95, blue: 0.7))
+                .frame(width: 25, height: 25)
+                .offset(x: 50, y: -35)
+        }
+    }
+}
+
+private struct WavyLine: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        let waveHeight: CGFloat = 4
+        let waveLength: CGFloat = 20
+
+        path.move(to: CGPoint(x: 0, y: rect.midY))
+
+        var x: CGFloat = 0
+        while x < rect.width {
+            path.addQuadCurve(
+                to: CGPoint(x: x + waveLength / 2, y: rect.midY),
+                control: CGPoint(x: x + waveLength / 4, y: rect.midY - waveHeight)
+            )
+            path.addQuadCurve(
+                to: CGPoint(x: x + waveLength, y: rect.midY),
+                control: CGPoint(x: x + 3 * waveLength / 4, y: rect.midY + waveHeight)
+            )
+            x += waveLength
+        }
+
+        return path
+    }
+}
+
+private struct ForestImage: View {
+    var body: some View {
+        ZStack {
+            // Sky gradient
+            LinearGradient(
+                colors: [
+                    Color(red: 0.4, green: 0.55, blue: 0.5),
+                    Color(red: 0.6, green: 0.7, blue: 0.55)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Ground
+            VStack {
+                Spacer()
+                Rectangle()
+                    .fill(Color(red: 0.2, green: 0.3, blue: 0.2))
+                    .frame(height: 30)
+            }
+
+            // Trees - back row
+            HStack(spacing: 15) {
+                TreeShape()
+                    .fill(Color(red: 0.15, green: 0.3, blue: 0.2))
+                    .frame(width: 35, height: 70)
+                TreeShape()
+                    .fill(Color(red: 0.15, green: 0.3, blue: 0.2))
+                    .frame(width: 40, height: 80)
+                TreeShape()
+                    .fill(Color(red: 0.15, green: 0.3, blue: 0.2))
+                    .frame(width: 35, height: 65)
+            }
+            .offset(y: 10)
+
+            // Trees - front row
+            HStack(spacing: 25) {
+                TreeShape()
+                    .fill(Color(red: 0.1, green: 0.25, blue: 0.15))
+                    .frame(width: 45, height: 90)
+                TreeShape()
+                    .fill(Color(red: 0.1, green: 0.25, blue: 0.15))
+                    .frame(width: 50, height: 100)
+            }
+            .offset(y: 20)
+        }
+    }
+}
+
+private struct TreeShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        // Simple pine tree shape
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY - 10))
+        path.addLine(to: CGPoint(x: rect.midX + 5, y: rect.maxY - 10))
+        path.addLine(to: CGPoint(x: rect.midX + 5, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX - 5, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX - 5, y: rect.maxY - 10))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY - 10))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct DogImage: View {
+    var body: some View {
+        ZStack {
+            // Background
+            LinearGradient(
+                colors: [Color(red: 0.85, green: 0.8, blue: 0.75), Color(red: 0.75, green: 0.7, blue: 0.65)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Dog face
+            VStack(spacing: 0) {
+                // Ears
+                HStack(spacing: 40) {
+                    DogEar()
+                        .fill(Color(red: 0.6, green: 0.45, blue: 0.3))
+                        .frame(width: 25, height: 35)
+                        .rotationEffect(.degrees(-15))
+                    DogEar()
+                        .fill(Color(red: 0.6, green: 0.45, blue: 0.3))
+                        .frame(width: 25, height: 35)
+                        .rotationEffect(.degrees(15))
+                }
+                .offset(y: 15)
+
+                // Head
+                Ellipse()
+                    .fill(Color(red: 0.75, green: 0.6, blue: 0.45))
+                    .frame(width: 70, height: 60)
+
+                // Snout
+                Ellipse()
+                    .fill(Color(red: 0.85, green: 0.75, blue: 0.65))
+                    .frame(width: 35, height: 25)
+                    .offset(y: -20)
+            }
+            .offset(y: 10)
+
+            // Eyes
+            HStack(spacing: 20) {
+                Circle()
+                    .fill(Color(red: 0.2, green: 0.15, blue: 0.1))
+                    .frame(width: 10, height: 10)
+                Circle()
+                    .fill(Color(red: 0.2, green: 0.15, blue: 0.1))
+                    .frame(width: 10, height: 10)
+            }
+            .offset(y: -5)
+
+            // Nose
+            Ellipse()
+                .fill(Color(red: 0.15, green: 0.1, blue: 0.1))
+                .frame(width: 12, height: 9)
+                .offset(y: 15)
+
+            // Tongue
+            Ellipse()
+                .fill(Color(red: 0.9, green: 0.5, blue: 0.5))
+                .frame(width: 10, height: 15)
+                .offset(y: 30)
+        }
+    }
+}
+
+private struct DogEar: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addQuadCurve(
+            to: CGPoint(x: rect.maxX, y: rect.maxY),
+            control: CGPoint(x: rect.maxX + 5, y: rect.midY)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.minX, y: rect.maxY),
+            control: CGPoint(x: rect.midX, y: rect.maxY + 5)
+        )
+        path.addQuadCurve(
+            to: CGPoint(x: rect.midX, y: rect.minY),
+            control: CGPoint(x: rect.minX - 5, y: rect.midY)
+        )
+        return path
+    }
+}
+
+private struct CatImage: View {
+    var body: some View {
+        ZStack {
+            // Background
+            LinearGradient(
+                colors: [Color(red: 0.75, green: 0.75, blue: 0.8), Color(red: 0.65, green: 0.65, blue: 0.7)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Cat face
+            VStack(spacing: 0) {
+                // Ears
+                HStack(spacing: 35) {
+                    CatEar()
+                        .fill(Color(red: 0.5, green: 0.5, blue: 0.55))
+                        .frame(width: 25, height: 30)
+                        .rotationEffect(.degrees(-10))
+                    CatEar()
+                        .fill(Color(red: 0.5, green: 0.5, blue: 0.55))
+                        .frame(width: 25, height: 30)
+                        .rotationEffect(.degrees(10))
+                        .scaleEffect(x: -1)
+                }
+                .offset(y: 20)
+
+                // Head
+                Ellipse()
+                    .fill(Color(red: 0.6, green: 0.6, blue: 0.65))
+                    .frame(width: 65, height: 55)
+            }
+            .offset(y: 5)
+
+            // Inner ears
+            HStack(spacing: 35) {
+                CatEar()
+                    .fill(Color(red: 0.85, green: 0.7, blue: 0.7))
+                    .frame(width: 12, height: 15)
+                    .rotationEffect(.degrees(-10))
+                CatEar()
+                    .fill(Color(red: 0.85, green: 0.7, blue: 0.7))
+                    .frame(width: 12, height: 15)
+                    .rotationEffect(.degrees(10))
+                    .scaleEffect(x: -1)
+            }
+            .offset(y: -25)
+
+            // Eyes
+            HStack(spacing: 18) {
+                CatEye()
+                    .fill(Color(red: 0.4, green: 0.6, blue: 0.3))
+                    .frame(width: 14, height: 16)
+                CatEye()
+                    .fill(Color(red: 0.4, green: 0.6, blue: 0.3))
+                    .frame(width: 14, height: 16)
+            }
+            .offset(y: -2)
+
+            // Pupils
+            HStack(spacing: 22) {
+                Capsule()
+                    .fill(Color.black)
+                    .frame(width: 3, height: 10)
+                Capsule()
+                    .fill(Color.black)
+                    .frame(width: 3, height: 10)
+            }
+            .offset(y: -2)
+
+            // Nose
+            CatNose()
+                .fill(Color(red: 0.85, green: 0.6, blue: 0.6))
+                .frame(width: 10, height: 8)
+                .offset(y: 12)
+
+            // Whiskers
+            HStack(spacing: 30) {
+                VStack(spacing: 4) {
+                    Capsule().fill(Color.white.opacity(0.6)).frame(width: 20, height: 1.5).rotationEffect(.degrees(-10))
+                    Capsule().fill(Color.white.opacity(0.6)).frame(width: 22, height: 1.5)
+                    Capsule().fill(Color.white.opacity(0.6)).frame(width: 20, height: 1.5).rotationEffect(.degrees(10))
+                }
+                VStack(spacing: 4) {
+                    Capsule().fill(Color.white.opacity(0.6)).frame(width: 20, height: 1.5).rotationEffect(.degrees(10))
+                    Capsule().fill(Color.white.opacity(0.6)).frame(width: 22, height: 1.5)
+                    Capsule().fill(Color.white.opacity(0.6)).frame(width: 20, height: 1.5).rotationEffect(.degrees(-10))
+                }
+            }
+            .offset(y: 18)
+        }
+    }
+}
+
+private struct CatEar: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct CatEye: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.addEllipse(in: rect)
+        return path
+    }
+}
+
+private struct CatNose: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+// MARK: - Post Image View
+
+private struct PostImage: View {
+    let type: PostImageType
+
+    var body: some View {
+        Group {
+            switch type {
+            case .sunset:
+                SunsetImage()
+            case .mountains:
+                MountainsImage()
+            case .beach:
+                BeachImage()
+            case .forest:
+                ForestImage()
+            case .dog:
+                DogImage()
+            case .cat:
+                CatImage()
+            }
+        }
+        .clipped()
+    }
+}
+
+// MARK: - Compact Feed Post (fits better in phone mockup)
+
+private struct CompactFeedPost: View {
+    let postType: PostImageType
+    let index: Int
+
+    private var likeCount: String {
+        ["1,247", "892", "3.4k", "567", "2,103", "438"][index % 6]
+    }
+
+    private var usernameWidth: CGFloat {
+        [45, 55, 40, 50, 60, 42][index % 6]
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            // User header row
+            HStack(spacing: 6) {
+                // Profile pic with story ring
+                Circle()
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color(red: 0.95, green: 0.3, blue: 0.5), Color(red: 1.0, green: 0.6, blue: 0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+                    .frame(width: 22, height: 22)
+                    .overlay(
+                        Circle()
+                            .fill(Color(white: 0.3))
+                            .frame(width: 18, height: 18)
+                    )
+
+                // Username placeholder
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.7))
+                    .frame(width: usernameWidth, height: 7)
+
+                Spacer()
+
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 10))
+                    .foregroundColor(.white.opacity(0.5))
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 6)
+
+            // Post image - clipart style
+            PostImage(type: postType)
+                .frame(height: 130)
+
+            // Action bar
+            HStack(spacing: 10) {
+                Image(systemName: "heart")
+                Image(systemName: "bubble.right")
+                Image(systemName: "paperplane")
+                Spacer()
+                Image(systemName: "bookmark")
+            }
+            .font(.system(size: 13))
+            .foregroundColor(.white)
+            .padding(.horizontal, 8)
+            .padding(.top, 7)
+            .padding(.bottom, 4)
+
+            // Like count
+            Text("\(likeCount) likes")
+                .font(.system(size: 9, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 8)
+                .padding(.bottom, 3)
+
+            // Caption line
+            HStack(spacing: 3) {
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color.white.opacity(0.6))
+                    .frame(width: 35, height: 6)
+                RoundedRectangle(cornerRadius: 1.5)
+                    .fill(Color.white.opacity(0.35))
+                    .frame(width: 70, height: 6)
+            }
+            .padding(.horizontal, 8)
+            .padding(.bottom, 8)
+        }
+        .background(Color(white: 0.08))
+    }
+}
+
+// MARK: - Lockdown Overlay
+
+private struct LockdownOverlay: View {
+    let lockSlammed: Bool
+
+    var body: some View {
+        ZStack {
+            // Dark overlay with subtle gradient
+            LinearGradient(
+                colors: [Color.black.opacity(0.9), Color.black.opacity(0.85)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Locked content
+            VStack(spacing: 0) {
+                Spacer().frame(height: 50)
+
+                // Lock icon that slams in at top of overlay
+                ZStack {
+                    // Glow effect behind lock
+                    Circle()
+                        .fill(Color.red.opacity(0.3))
+                        .frame(width: 80, height: 80)
+                        .blur(radius: 15)
+
+                    // Lock circle
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.red, Color(red: 0.8, green: 0.1, blue: 0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                        .shadow(color: .red.opacity(0.5), radius: 10, x: 0, y: 4)
+
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                .scaleEffect(lockSlammed ? 1 : 2.5)
+                .opacity(lockSlammed ? 1 : 0)
+
+                Spacer().frame(height: MPSpacing.lg)
+
+                // App locked text
+                VStack(spacing: 6) {
+                    Text("Apps Locked")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+
+                    Text("Complete your morning routine\nto unlock Instagram")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+                .opacity(lockSlammed ? 1 : 0)
+
+                Spacer()
+
+                // CTA button
+                if lockSlammed {
+                    VStack(spacing: 6) {
+                        HStack(spacing: 6) {
+                            Image("AppLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 18, height: 18)
+                                .clipShape(RoundedRectangle(cornerRadius: 4))
+
+                            Text("Finish your routine")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.white)
+                                .lineLimit(1)
+                        }
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 7)
+                        .background(Color(white: 0.22))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                        )
+                        .padding(.horizontal, MPSpacing.xl)
+
+                        Text("Verify habits to unlock")
+                            .font(.system(size: 9))
+                            .foregroundColor(Color.white.opacity(0.4))
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+
+                Spacer().frame(height: MPSpacing.lg)
             }
         }
     }

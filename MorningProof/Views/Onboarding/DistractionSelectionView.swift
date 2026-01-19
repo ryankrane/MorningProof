@@ -685,8 +685,8 @@ struct DistractionSelectionView: View {
             }
         }
 
-        // Continue to next screen
-        DispatchQueue.main.asyncAfter(deadline: .now() + completionDelay + 0.8) {
+        // Continue to next screen (pause longer to let user see "Apps Locked!" success state)
+        DispatchQueue.main.asyncAfter(deadline: .now() + completionDelay + 1.6) {
             onContinue(selectedDistractions)
         }
     }

@@ -1,9 +1,9 @@
 import SwiftUI
 import AuthenticationServices
 
-// MARK: - Phase 1: Hook & Personalization
+// MARK: - Phase 1: Hook & Identity (Steps 0-3)
 
-// MARK: - Step 1: Welcome Hero
+// MARK: - Step 0: Welcome Hero
 
 struct WelcomeHeroStep: View {
     let onContinue: () -> Void
@@ -205,7 +205,7 @@ struct WelcomeHeroStep: View {
     }
 }
 
-// MARK: - Step 2: Name
+// MARK: - Step 1: Name
 
 struct NameStep: View {
     @ObservedObject var data: OnboardingData
@@ -216,6 +216,7 @@ struct NameStep: View {
     @State private var iconDeparting = false
     @State private var sparkles: [SparkleParticle] = []
     @State private var fadeOut = false
+    @State private var previousNameLength = 0
 
     struct SparkleParticle: Identifiable {
         let id = UUID()
@@ -310,6 +311,19 @@ struct NameStep: View {
                         if !data.userName.isEmpty {
                             confirmName()
                         }
+                    }
+                    .onChange(of: data.userName) { oldValue, newValue in
+                        // Detect autofill: name length increases by more than 1 character at once
+                        let lengthDifference = newValue.count - previousNameLength
+                        if lengthDifference > 1 && !newValue.isEmpty && !hasConfirmedName {
+                            // Autofill detected - auto-proceed after a brief delay
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                if !hasConfirmedName {
+                                    confirmName()
+                                }
+                            }
+                        }
+                        previousNameLength = newValue.count
                     }
 
                 HStack(spacing: MPSpacing.xs) {
@@ -428,64 +442,7 @@ struct NameStep: View {
     }
 }
 
-// MARK: - Step 3: Gender
-
-struct GenderStep: View {
-    @ObservedObject var data: OnboardingData
-    let onContinue: () -> Void
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: MPSpacing.md) {
-                Text("What's your gender?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text("This helps us personalize your experience")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            VStack(spacing: MPSpacing.md) {
-                ForEach(OnboardingData.Gender.allCases, id: \.rawValue) { gender in
-                    OnboardingOptionButton(
-                        title: gender.rawValue,
-                        icon: gender.icon,
-                        isSelected: data.gender == gender
-                    ) {
-                        data.gender = gender
-                    }
-                }
-            }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            VStack(spacing: MPSpacing.md) {
-                MPButton(title: "Continue", style: .primary, isDisabled: data.gender == nil) {
-                    onContinue()
-                }
-
-                Button {
-                    data.gender = .preferNotToSay
-                    onContinue()
-                } label: {
-                    Text("Skip")
-                        .font(.system(size: 15))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-        }
-    }
-}
-
-// MARK: - Step 4: Morning Struggle
+// MARK: - Step 2: Morning Struggle
 
 struct MorningStruggleStep: View {
     @ObservedObject var data: OnboardingData
@@ -540,5 +497,189 @@ struct MorningStruggleStep: View {
         .onAppear {
             appeared = true
         }
+    }
+}
+
+// MARK: - Step 3: Desired Outcome
+
+struct DesiredOutcomeStep: View {
+    @ObservedObject var data: OnboardingData
+    let onContinue: () -> Void
+
+    @State private var appeared = false
+    @State private var selectedAnimating: Set<OnboardingData.DesiredOutcome> = []
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                TargetWithArrowIcon(size: 60)
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.5)
+
+                Text("What would you like\nto accomplish?")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+
+                Text("Select all that apply")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
+                ForEach(Array(OnboardingData.DesiredOutcome.allCases.enumerated()), id: \.element.rawValue) { index, outcome in
+                    OnboardingGridButtonWithBadge(
+                        title: outcome.rawValue,
+                        icon: outcome.icon,
+                        isSelected: data.desiredOutcomes.contains(outcome),
+                        badge: nil
+                    ) {
+                        // Haptic feedback
+                        HapticManager.shared.light()
+
+                        // Toggle selection with bounce animation
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            if data.desiredOutcomes.contains(outcome) {
+                                data.desiredOutcomes.remove(outcome)
+                            } else {
+                                data.desiredOutcomes.insert(outcome)
+                            }
+                            selectedAnimating.insert(outcome)
+                        }
+
+                        // Remove from animating set after animation completes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            selectedAnimating.remove(outcome)
+                        }
+                    }
+                    .scaleEffect(selectedAnimating.contains(outcome) ? 1.05 : 1.0)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 20)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.08),
+                        value: appeared
+                    )
+                }
+            }
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer()
+
+            MPButton(title: "That's my goal", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                appeared = true
+            }
+        }
+    }
+}
+
+// MARK: - Target with Arrow Icon
+
+private struct TargetWithArrowIcon: View {
+    let size: CGFloat
+
+    private let targetRed = Color(red: 0.85, green: 0.2, blue: 0.2)
+    private let arrowColor = Color(white: 0.15)
+
+    var body: some View {
+        ZStack {
+            // Outer red ring
+            Circle()
+                .fill(targetRed)
+                .frame(width: size, height: size)
+
+            // White ring
+            Circle()
+                .fill(Color.white)
+                .frame(width: size * 0.75, height: size * 0.75)
+
+            // Middle red ring
+            Circle()
+                .fill(targetRed)
+                .frame(width: size * 0.5, height: size * 0.5)
+
+            // Inner white ring
+            Circle()
+                .fill(Color.white)
+                .frame(width: size * 0.28, height: size * 0.28)
+
+            // Center bullseye (red)
+            Circle()
+                .fill(targetRed)
+                .frame(width: size * 0.12, height: size * 0.12)
+
+            // Arrow hitting the bullseye (diagonal from top-right)
+            DartArrow(size: size, color: arrowColor)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Dart Arrow Component
+
+private struct DartArrow: View {
+    let size: CGFloat
+    let color: Color
+
+    var body: some View {
+        // Arrow shaft with arrowhead
+        Path { path in
+            let scale = size / 60.0 // Base scale factor
+
+            // Arrow tip lands at center, shaft extends to upper-right
+            let tipX = size * 0.5
+            let tipY = size * 0.5
+            let endX = size * 0.92
+            let endY = size * 0.08
+
+            // Main shaft line
+            path.move(to: CGPoint(x: endX, y: endY))
+            path.addLine(to: CGPoint(x: tipX + 2 * scale, y: tipY - 2 * scale))
+        }
+        .stroke(color, style: StrokeStyle(lineWidth: 2.5, lineCap: .round))
+
+        // Arrowhead (filled triangle)
+        Path { path in
+            let scale = size / 60.0
+            let tipX = size * 0.5
+            let tipY = size * 0.5
+
+            // Triangle pointing toward center
+            path.move(to: CGPoint(x: tipX, y: tipY))
+            path.addLine(to: CGPoint(x: tipX + 12 * scale, y: tipY - 6 * scale))
+            path.addLine(to: CGPoint(x: tipX + 6 * scale, y: tipY - 12 * scale))
+            path.closeSubpath()
+        }
+        .fill(color)
+
+        // Fletching (tail feathers) - two small triangles at back
+        Path { path in
+            let scale = size / 60.0
+            let endX = size * 0.92
+            let endY = size * 0.08
+
+            // Upper-left feather
+            path.move(to: CGPoint(x: endX - 4 * scale, y: endY + 4 * scale))
+            path.addLine(to: CGPoint(x: endX - 12 * scale, y: endY - 2 * scale))
+            path.addLine(to: CGPoint(x: endX - 6 * scale, y: endY + 2 * scale))
+            path.closeSubpath()
+
+            // Lower-right feather
+            path.move(to: CGPoint(x: endX - 4 * scale, y: endY + 4 * scale))
+            path.addLine(to: CGPoint(x: endX + 2 * scale, y: endY + 12 * scale))
+            path.addLine(to: CGPoint(x: endX - 2 * scale, y: endY + 6 * scale))
+            path.closeSubpath()
+        }
+        .fill(color)
     }
 }
