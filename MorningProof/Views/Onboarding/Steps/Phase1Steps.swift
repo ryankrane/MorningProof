@@ -171,7 +171,7 @@ struct WelcomeHeroStep: View {
                     authManager.continueAnonymously()
                     onContinue()
                 } label: {
-                    Text("Continue without account")
+                    Text("Skip for now")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(MPColors.primary)
                 }
@@ -299,6 +299,7 @@ struct NameStep: View {
                     .font(.system(size: 24, weight: .medium))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
+                    .textContentType(.givenName)
                     .padding(MPSpacing.xl)
                     .background(MPColors.surface)
                     .cornerRadius(MPRadius.lg)
@@ -329,7 +330,7 @@ struct NameStep: View {
             // Button section - fades out when name confirmed
             VStack(spacing: MPSpacing.md) {
                 MPButton(
-                    title: data.userName.isEmpty ? "Skip" : "Continue",
+                    title: data.userName.isEmpty ? "Skip for now" : "Let's go!",
                     style: .primary
                 ) {
                     if data.userName.isEmpty {
@@ -527,7 +528,7 @@ struct MorningStruggleStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary, isDisabled: data.morningStruggles.isEmpty) {
+            MPButton(title: "That's me", style: .primary, isDisabled: data.morningStruggles.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)

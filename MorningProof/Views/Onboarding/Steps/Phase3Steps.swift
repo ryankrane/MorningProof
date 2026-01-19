@@ -252,7 +252,7 @@ struct AIVerificationShowcaseStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary) {
+            MPButton(title: "Love It", style: .primary) {
                 stopHaptics()
                 onContinue()
             }
@@ -729,7 +729,7 @@ struct DoomScrollingSimulatorStep: View {
 
             Spacer()
 
-            MPButton(title: "Stop This Now", style: .primary, icon: "lock.shield.fill") {
+            MPButton(title: "Protect My Mornings", style: .primary, icon: "lock.shield.fill") {
                 HapticManager.shared.medium()
                 onContinue()
             }
@@ -1045,7 +1045,7 @@ struct DesiredOutcomeStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
+            MPButton(title: "That's my goal", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -1115,7 +1115,7 @@ struct ObstaclesStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary, isDisabled: data.obstacles.isEmpty) {
+            MPButton(title: "Help Me Overcome This", style: .primary, isDisabled: data.obstacles.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)

@@ -1,5 +1,278 @@
 import SwiftUI
 
+// MARK: - ============================================================
+// MARK: - FAMILY CONTROLS VERSION (Real App Icons)
+// MARK: - ============================================================
+// TODO: ENABLE THIS ONCE APPLE APPROVES FAMILY CONTROLS
+// Change `#if false` to `#if true` below
+// This version uses Apple's FamilyActivitySelection picker which shows
+// real app icons from the user's device - much better UX!
+// ============================================================
+
+#if false // DISABLED - Waiting for Family Controls approval
+
+import FamilyControls
+
+struct DistractionSelectionView: View {
+    let onContinue: (FamilyActivitySelection) -> Void
+
+    @StateObject private var screenTimeManager = ScreenTimeManager.shared
+    @State private var selection = FamilyActivitySelection()
+    @State private var showPicker = false
+    @State private var showContent = false
+    @State private var showCards = [false, false, false]
+    @State private var isRequesting = false
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: MPSpacing.xxl) {
+                // Header
+                VStack(spacing: MPSpacing.md) {
+                    ZStack {
+                        // Animated glow
+                        Circle()
+                            .fill(
+                                RadialGradient(
+                                    colors: [Color.red.opacity(0.4), Color.clear],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 50
+                                )
+                            )
+                            .frame(width: 100, height: 100)
+
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 1.0, green: 0.35, blue: 0.2), Color(red: 0.9, green: 0.2, blue: 0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 72, height: 72)
+
+                        Image(systemName: "lock.shield.fill")
+                            .font(.system(size: 32, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .opacity(showContent ? 1 : 0)
+                    .scaleEffect(showContent ? 1 : 0.8)
+
+                    Text("Lock Your Time-Wasters")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("Choose apps to block until your\nmorning habits are complete")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                }
+                .opacity(showContent ? 1 : 0)
+                .offset(y: showContent ? 0 : 15)
+
+                // Feature cards
+                VStack(spacing: MPSpacing.md) {
+                    DistractionFeatureRow(
+                        icon: "app.badge.fill",
+                        title: "Your Real Apps",
+                        description: "Select from apps actually on your phone",
+                        color: MPColors.primary,
+                        isVisible: showCards[0]
+                    )
+
+                    DistractionFeatureRow(
+                        icon: "sunrise.fill",
+                        title: "Morning Only",
+                        description: "Apps unlock once you complete habits",
+                        color: Color(red: 1.0, green: 0.6, blue: 0.3),
+                        isVisible: showCards[1]
+                    )
+
+                    DistractionFeatureRow(
+                        icon: "hand.raised.fill",
+                        title: "You're In Control",
+                        description: "Change selections anytime in Settings",
+                        color: MPColors.success,
+                        isVisible: showCards[2]
+                    )
+                }
+                .padding(.horizontal, MPSpacing.xl)
+
+                // Selected count badge
+                if !selection.applicationTokens.isEmpty || !selection.categoryTokens.isEmpty {
+                    let count = selection.applicationTokens.count + selection.categoryTokens.count
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .foregroundColor(MPColors.success)
+                        Text("\(count) app\(count == 1 ? "" : "s")/categor\(count == 1 ? "y" : "ies") selected")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(MPColors.success)
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                }
+            }
+
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                // Main action button
+                if screenTimeManager.isAuthorized {
+                    // Already authorized - show picker button
+                    Button {
+                        showPicker = true
+                    } label: {
+                        HStack(spacing: MPSpacing.sm) {
+                            Image(systemName: "apps.iphone")
+                                .font(.system(size: 18, weight: .semibold))
+                            Text(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
+                                 ? "Choose Apps to Block"
+                                 : "Change Selection")
+                                .font(.system(size: 17, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: MPButtonHeight.lg)
+                        .background(
+                            LinearGradient(
+                                colors: [Color(red: 1.0, green: 0.35, blue: 0.2), Color(red: 0.9, green: 0.2, blue: 0.15)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .cornerRadius(MPRadius.lg)
+                        .shadow(color: Color.red.opacity(0.3), radius: 10, x: 0, y: 4)
+                    }
+                    .familyActivityPicker(isPresented: $showPicker, selection: $selection)
+                } else {
+                    // Need authorization first
+                    Button {
+                        requestAuthorization()
+                    } label: {
+                        HStack(spacing: MPSpacing.sm) {
+                            if isRequesting {
+                                ProgressView()
+                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                            } else {
+                                Image(systemName: "lock.shield.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                            }
+                            Text(isRequesting ? "Connecting..." : "Connect Screen Time")
+                                .font(.system(size: 17, weight: .bold))
+                        }
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: MPButtonHeight.lg)
+                        .background(MPColors.primary)
+                        .cornerRadius(MPRadius.lg)
+                    }
+                    .disabled(isRequesting)
+                }
+
+                // Continue/Skip button
+                Button {
+                    screenTimeManager.saveSelectedApps(selection)
+                    onContinue(selection)
+                } label: {
+                    Text(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
+                         ? "Skip for now"
+                         : "Continue")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
+                                        ? MPColors.textTertiary
+                                        : MPColors.primary)
+                }
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.5)) {
+                showContent = true
+            }
+            for i in 0..<3 {
+                withAnimation(.easeOut(duration: 0.4).delay(0.3 + Double(i) * 0.12)) {
+                    showCards[i] = true
+                }
+            }
+            // Load any previously selected apps
+            selection = screenTimeManager.selectedApps
+        }
+    }
+
+    private func requestAuthorization() {
+        isRequesting = true
+        Task {
+            do {
+                try await screenTimeManager.requestAuthorization()
+                await MainActor.run {
+                    isRequesting = false
+                    if screenTimeManager.isAuthorized {
+                        // Auto-show picker after authorization
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showPicker = true
+                        }
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isRequesting = false
+                }
+            }
+        }
+    }
+}
+
+private struct DistractionFeatureRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    let color: Color
+    let isVisible: Bool
+
+    var body: some View {
+        HStack(spacing: MPSpacing.md) {
+            ZStack {
+                Circle()
+                    .fill(color.opacity(0.15))
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(color)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer()
+        }
+        .padding(MPSpacing.md)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.md)
+        .opacity(isVisible ? 1 : 0)
+        .offset(x: isVisible ? 0 : -20)
+    }
+}
+
+#else
+
+// MARK: - ============================================================
+// MARK: - FALLBACK VERSION (SF Symbols - No Family Controls)
+// MARK: - ============================================================
+// This version uses SF Symbols instead of real app icons.
+// Used while waiting for Family Controls approval.
+// ============================================================
+
 // MARK: - Distraction Model
 
 struct DistractionType: Identifiable, Hashable {
@@ -29,18 +302,29 @@ struct DistractionType: Identifiable, Hashable {
 struct DistractionCard: View {
     let distraction: DistractionType
     let isSelected: Bool
+    let index: Int
     let onTap: () -> Void
 
     @State private var lockScale: CGFloat = 0
     @State private var lockRotation: Double = -30
+    @State private var floatOffset: CGFloat = 0
+    @State private var glowScale: CGFloat = 1.0
+    @State private var isVisible = false
+
+    // Each card gets a unique float timing
+    private var floatDuration: Double {
+        2.0 + Double(index % 4) * 0.3
+    }
+
+    private var floatDelay: Double {
+        Double(index) * 0.1
+    }
 
     var body: some View {
         Button(action: {
             if !isSelected {
-                // Heavy THUD haptic when locking an app
                 HapticManager.shared.heavyTap()
             } else {
-                // Light haptic when unlocking
                 HapticManager.shared.light()
             }
             onTap()
@@ -48,17 +332,42 @@ struct DistractionCard: View {
             ZStack {
                 // Base card
                 VStack(spacing: MPSpacing.sm) {
-                    // App icon
+                    // App icon with glow and float
                     ZStack {
+                        // Glow behind icon
                         Circle()
-                            .fill(distraction.color.opacity(isSelected ? 0.2 : 1.0))
+                            .fill(
+                                RadialGradient(
+                                    colors: [distraction.color.opacity(0.5), distraction.color.opacity(0)],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 40
+                                )
+                            )
+                            .frame(width: 70, height: 70)
+                            .scaleEffect(glowScale)
+                            .opacity(isSelected ? 0 : 0.6)
+
+                        // Main icon circle
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: isSelected
+                                        ? [distraction.color.opacity(0.2), distraction.color.opacity(0.1)]
+                                        : [distraction.color, distraction.color.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
                             .frame(width: 56, height: 56)
+                            .shadow(color: isSelected ? .clear : distraction.color.opacity(0.4), radius: 8, x: 0, y: 4)
 
                         Image(systemName: distraction.icon)
-                            .font(.system(size: 24))
-                            .foregroundColor(isSelected ? distraction.color.opacity(0.5) : .white)
+                            .font(.system(size: 24, weight: .medium))
+                            .foregroundColor(isSelected ? distraction.color.opacity(0.4) : .white)
                     }
-                    .saturation(isSelected ? 0 : 1) // Grayscale when selected
+                    .offset(y: isSelected ? 0 : floatOffset)
+                    .saturation(isSelected ? 0.3 : 1)
 
                     Text(distraction.name)
                         .font(.system(size: 12, weight: .semibold))
@@ -70,26 +379,42 @@ struct DistractionCard: View {
                 .background(
                     RoundedRectangle(cornerRadius: MPRadius.lg)
                         .fill(MPColors.surface)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: MPRadius.lg)
-                        .stroke(isSelected ? Color.red.opacity(0.6) : Color.clear, lineWidth: 2.5)
+                        .overlay(
+                            // Subtle gradient border when not selected
+                            RoundedRectangle(cornerRadius: MPRadius.lg)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: isSelected
+                                            ? [Color.red.opacity(0.6), Color.red.opacity(0.3)]
+                                            : [distraction.color.opacity(0.2), Color.clear],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: isSelected ? 2 : 1
+                                )
+                        )
                 )
                 .overlay(
                     // Red tint overlay when jailed
                     RoundedRectangle(cornerRadius: MPRadius.lg)
-                        .fill(Color.red.opacity(isSelected ? 0.08 : 0))
+                        .fill(Color.red.opacity(isSelected ? 0.1 : 0))
                 )
-                .saturation(isSelected ? 0.3 : 1) // Desaturate entire card
 
                 // Lock icon overlay
                 if isSelected {
                     ZStack {
                         // Lock background glow
                         Circle()
-                            .fill(Color.red.opacity(0.9))
+                            .fill(
+                                RadialGradient(
+                                    colors: [Color.red, Color.red.opacity(0.8)],
+                                    center: .center,
+                                    startRadius: 0,
+                                    endRadius: 20
+                                )
+                            )
                             .frame(width: 36, height: 36)
-                            .shadow(color: .red.opacity(0.5), radius: 8, x: 0, y: 2)
+                            .shadow(color: .red.opacity(0.6), radius: 10, x: 0, y: 2)
 
                         Image(systemName: "lock.fill")
                             .font(.system(size: 16, weight: .bold))
@@ -97,20 +422,40 @@ struct DistractionCard: View {
                     }
                     .scaleEffect(lockScale)
                     .rotationEffect(.degrees(lockRotation))
-                    .offset(y: -8) // Center on the icon
+                    .offset(y: -8)
                 }
             }
         }
         .buttonStyle(ScaleButtonStyle())
+        .opacity(isVisible ? 1 : 0)
+        .offset(y: isVisible ? 0 : 20)
+        .onAppear {
+            // Staggered entrance
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.3 + Double(index) * 0.05)) {
+                isVisible = true
+            }
+
+            // Start floating animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + floatDelay + 0.5) {
+                withAnimation(.easeInOut(duration: floatDuration).repeatForever(autoreverses: true)) {
+                    floatOffset = -6
+                }
+            }
+
+            // Start glow pulse
+            DispatchQueue.main.asyncAfter(deadline: .now() + floatDelay + 0.3) {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    glowScale = 1.15
+                }
+            }
+        }
         .onChange(of: isSelected) { _, newValue in
             if newValue {
-                // Animate lock slamming down
                 withAnimation(.spring(response: 0.35, dampingFraction: 0.5, blendDuration: 0)) {
                     lockScale = 1.0
                     lockRotation = 0
                 }
             } else {
-                // Reset lock animation
                 lockScale = 0
                 lockRotation = -30
             }
@@ -134,7 +479,8 @@ struct DistractionSelectionView: View {
     let onContinue: (Set<DistractionType>) -> Void
 
     @State private var selectedDistractions: Set<DistractionType> = []
-    @State private var hasAppeared = false
+    @State private var showHeader = false
+    @State private var showSubtext = false
 
     private let columns = [
         GridItem(.flexible(), spacing: MPSpacing.md),
@@ -144,30 +490,35 @@ struct DistractionSelectionView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            ScrollView {
+            ScrollView(showsIndicators: false) {
                 VStack(spacing: MPSpacing.xxl) {
-                    // Header
+                    // Header with animation
                     VStack(spacing: MPSpacing.md) {
                         Text("Lock your biggest time-wasters")
-                            .font(.system(size: 26, weight: .bold))
+                            .font(.system(size: 26, weight: .bold, design: .rounded))
                             .foregroundColor(MPColors.textPrimary)
                             .multilineTextAlignment(.center)
+                            .opacity(showHeader ? 1 : 0)
+                            .offset(y: showHeader ? 0 : 15)
 
                         Text("Choose the apps that steal your mornings.\nThey stay locked until your habits are done.")
                             .font(.system(size: 15))
                             .foregroundColor(MPColors.textSecondary)
                             .multilineTextAlignment(.center)
                             .lineSpacing(2)
+                            .opacity(showSubtext ? 1 : 0)
+                            .offset(y: showSubtext ? 0 : 10)
                     }
                     .padding(.top, MPSpacing.xl)
                     .padding(.horizontal, MPSpacing.lg)
 
                     // Grid of distraction cards
                     LazyVGrid(columns: columns, spacing: MPSpacing.md) {
-                        ForEach(DistractionType.allDistractions) { distraction in
+                        ForEach(Array(DistractionType.allDistractions.enumerated()), id: \.element.id) { index, distraction in
                             DistractionCard(
                                 distraction: distraction,
-                                isSelected: selectedDistractions.contains(distraction)
+                                isSelected: selectedDistractions.contains(distraction),
+                                index: index
                             ) {
                                 toggleSelection(distraction)
                             }
@@ -198,7 +549,7 @@ struct DistractionSelectionView: View {
                             HapticManager.shared.light()
                             onContinue(selectedDistractions)
                         }) {
-                            Text("I have no distractions")
+                            Text("I'll set this up later")
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(MPColors.textSecondary)
                                 .frame(maxWidth: .infinity)
@@ -247,6 +598,14 @@ struct DistractionSelectionView: View {
             }
         }
         .background(MPColors.background)
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.5)) {
+                showHeader = true
+            }
+            withAnimation(.easeOut(duration: 0.4).delay(0.15)) {
+                showSubtext = true
+            }
+        }
     }
 
     private func toggleSelection(_ distraction: DistractionType) {
@@ -266,3 +625,5 @@ struct DistractionSelectionView: View {
     }
     .preferredColorScheme(.dark)
 }
+
+#endif // End FALLBACK VERSION

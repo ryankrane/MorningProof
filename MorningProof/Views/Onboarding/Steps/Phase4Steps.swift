@@ -78,7 +78,7 @@ struct PermissionsStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                MPButton(title: "Continue", style: .primary) {
+                MPButton(title: "All Set", style: .primary) {
                     onContinue()
                 }
 
@@ -591,7 +591,7 @@ struct YourHabitsStep: View {
 
             Spacer()
 
-            MPButton(title: "Lock It In", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+            MPButton(title: "Activate My Routine", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)

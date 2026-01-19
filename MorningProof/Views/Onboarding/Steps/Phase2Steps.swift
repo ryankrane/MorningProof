@@ -91,7 +91,7 @@ struct GuardrailStep: View {
 
             Spacer()
 
-            MPButton(title: "Set Up My Guardrails", style: .primary, icon: "shield.checkered") {
+            MPButton(title: "Show Me How", style: .primary, icon: "shield.checkered") {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -277,7 +277,7 @@ struct YouAreNotAloneStep: View {
 
             Spacer()
 
-            MPButton(title: "See the results", style: .primary) {
+            MPButton(title: "Show Me the Proof", style: .primary) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -409,7 +409,7 @@ struct SuccessStoriesStep: View {
 
             Spacer()
 
-            MPButton(title: "Start My Journey", style: .primary, icon: "arrow.right") {
+            MPButton(title: "I Want This", style: .primary, icon: "arrow.right") {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -656,7 +656,7 @@ struct TrackingComparisonStep: View {
 
             Spacer()
 
-            MPButton(title: "I'm Ready", style: .primary) {
+            MPButton(title: "Let's Do This", style: .primary) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
