@@ -93,6 +93,7 @@ xcodebuild -project MorningProof.xcodeproj -scheme MorningProof -destination 'pl
 - **Onboarding animations**: Don't use `.animation()` on a ZStack/Group containing a switch statement for step transitions - it causes views to overlap. Use `.id(currentStep)` instead to force SwiftUI to replace the view entirely
 - **StoreKit async sequences**: Calling `Transaction.currentEntitlements` immediately at app launch can cause freezing in simulator. Added a 2-second delay before Superwall sync in `MorningProofApp.swift` to avoid startup issues
 - **Hold-to-complete gestures in ScrollView**: SwiftUI gestures (`LongPressGesture`, `DragGesture`) block ScrollView scrolling because they don't have access to UIKit's gesture recognizer properties. The fix is to use a UIKit-based `UILongPressGestureRecognizer` via `UIViewRepresentable` with: (1) `cancelsTouchesInView = false` to allow touches to pass to ScrollView, (2) `allowableMovement = 10` to fail when scrolling, (3) `shouldRequireFailureOf` returning true for `UIPanGestureRecognizer` to give scrolling priority. See `HoldGestureView.swift`
+- **New Swift files require xcodegen**: After creating new `.swift` files, run `xcodegen generate` to add them to the Xcode project. The project uses xcodegen to manage the xcodeproj - files won't compile until added to the project.
 
 ## TEMPORARILY DISABLED: Screen Time / App Blocking Feature
 The Screen Time (Family Controls) feature is temporarily disabled while waiting for Apple to approve all bundle IDs. To re-enable once approved:

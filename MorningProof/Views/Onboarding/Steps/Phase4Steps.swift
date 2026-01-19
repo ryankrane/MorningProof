@@ -281,6 +281,8 @@ struct AnalyzingStep: View {
     @State private var completedSteps: Set<Int> = []
     @State private var showContent = false
     @State private var isComplete = false
+    @State private var phaseRowCenters: [Int: CGPoint] = [:]
+    @State private var burstTarget: CGPoint? = nil
 
     private var userName: String { data.userName }
 
@@ -292,104 +294,87 @@ struct AnalyzingStep: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                Spacer()
 
-            // Simple filling circle
-            ZStack {
-                // Background circle
-                Circle()
-                    .fill(MPColors.progressBg)
-                    .frame(width: 180, height: 180)
+                // Neural Network Particle Cloud or Checkmark when complete
+                ZStack {
+                    if isComplete {
+                        // Completion checkmark
+                        ZStack {
+                            Circle()
+                                .fill(MPColors.success)
+                                .frame(width: 100, height: 100)
 
-                // Filling progress circle
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .fill(
-                        AngularGradient(
-                            colors: [MPColors.primary.opacity(0.7), MPColors.primary, MPColors.accent],
-                            center: .center,
-                            startAngle: .degrees(-90),
-                            endAngle: .degrees(270)
-                        )
-                    )
-                    .frame(width: 180, height: 180)
-                    .rotationEffect(.degrees(-90))
-
-                // Progress ring stroke (track)
-                Circle()
-                    .stroke(MPColors.progressBg, lineWidth: 14)
-                    .frame(width: 180, height: 180)
-
-                // Progress ring stroke (filled)
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(
-                        LinearGradient(
-                            colors: [MPColors.primary, MPColors.accent],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        ),
-                        style: StrokeStyle(lineWidth: 14, lineCap: .round)
-                    )
-                    .frame(width: 180, height: 180)
-                    .rotationEffect(.degrees(-90))
-                    .shadow(color: MPColors.primary.opacity(0.5), radius: 8, x: 0, y: 0)
-
-                // Center content - shows percentage or checkmark when complete
-                if isComplete {
-                    Image(systemName: "checkmark")
-                        .font(.system(size: 48, weight: .bold))
-                        .foregroundColor(.white)
+                            Image(systemName: "checkmark")
+                                .font(.system(size: 48, weight: .bold))
+                                .foregroundColor(.white)
+                        }
                         .transition(.scale.combined(with: .opacity))
-                } else {
-                    VStack(spacing: 2) {
-                        Text("\(displayedProgress)%")
-                            .font(.system(size: 40, weight: .bold, design: .rounded))
-                            .foregroundColor(.white)
-                            .contentTransition(.numericText())
+                    } else {
+                        NeuralLoadingView(
+                            progress: Double(progress),
+                            isProcessing: !isComplete,
+                            burstTarget: $burstTarget
+                        )
                     }
                 }
-            }
-            .opacity(showContent ? 1 : 0)
-            .scaleEffect(showContent ? 1 : 0.8)
+                .frame(width: 220, height: 220)
+                .opacity(showContent ? 1 : 0)
+                .scaleEffect(showContent ? 1 : 0.8)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                Spacer().frame(height: MPSpacing.xxl)
 
-            // Title
-            VStack(spacing: MPSpacing.xs) {
-                Text("Building Your Plan")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+                // Title
+                VStack(spacing: MPSpacing.xs) {
+                    Text("Building Your Plan")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-                if !userName.isEmpty {
-                    Text("Hang tight, \(userName)")
-                        .font(.system(size: 15))
-                        .foregroundColor(MPColors.textSecondary)
+                    if !userName.isEmpty {
+                        Text("Hang tight, \(userName)")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textSecondary)
+                    }
                 }
-            }
-            .opacity(showContent ? 1 : 0)
-            .offset(y: showContent ? 0 : 10)
+                .opacity(showContent ? 1 : 0)
+                .offset(y: showContent ? 0 : 10)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                Spacer().frame(height: MPSpacing.xxl)
 
-            // Phase checklist
-            VStack(spacing: MPSpacing.sm) {
-                ForEach(0..<phases.count, id: \.self) { index in
-                    AnalyzingPhaseRow(
-                        title: phases[index].title,
-                        icon: phases[index].icon,
-                        isActive: currentPhase == index,
-                        isCompleted: completedSteps.contains(index)
-                    )
-                    .opacity(showContent ? 1 : 0)
-                    .offset(x: showContent ? 0 : -20)
-                    .animation(.easeOut(duration: 0.4).delay(0.1 + Double(index) * 0.1), value: showContent)
+                // Phase checklist
+                VStack(spacing: MPSpacing.sm) {
+                    ForEach(0..<phases.count, id: \.self) { index in
+                        AnalyzingPhaseRow(
+                            title: phases[index].title,
+                            icon: phases[index].icon,
+                            isActive: currentPhase == index,
+                            isCompleted: completedSteps.contains(index)
+                        )
+                        .background(
+                            GeometryReader { rowGeometry in
+                                Color.clear
+                                    .onAppear {
+                                        // Calculate center of row in view coordinates
+                                        let frame = rowGeometry.frame(in: .named("analyzingStep"))
+                                        phaseRowCenters[index] = CGPoint(
+                                            x: frame.midX,
+                                            y: frame.midY
+                                        )
+                                    }
+                            }
+                        )
+                        .opacity(showContent ? 1 : 0)
+                        .offset(x: showContent ? 0 : -20)
+                        .animation(.easeOut(duration: 0.4).delay(0.1 + Double(index) * 0.1), value: showContent)
+                    }
                 }
-            }
-            .padding(.horizontal, MPSpacing.xxl)
+                .padding(.horizontal, MPSpacing.xxl)
 
-            Spacer()
+                Spacer()
+            }
+            .coordinateSpace(name: "analyzingStep")
         }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
@@ -426,6 +411,10 @@ struct AnalyzingStep: View {
                 let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
                 if phaseIndex != currentPhase {
                     HapticManager.shared.light()
+                    // Trigger burst toward the completed phase row
+                    if let targetPoint = phaseRowCenters[currentPhase] {
+                        burstTarget = targetPoint
+                    }
                     withAnimation(.easeInOut(duration: 0.3)) {
                         if currentPhase >= 0 {
                             _ = completedSteps.insert(currentPhase)
@@ -455,6 +444,10 @@ struct AnalyzingStep: View {
                 let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
                 if phaseIndex != currentPhase {
                     HapticManager.shared.light()
+                    // Trigger burst toward the completed phase row
+                    if let targetPoint = phaseRowCenters[currentPhase] {
+                        burstTarget = targetPoint
+                    }
                     withAnimation(.easeInOut(duration: 0.3)) {
                         if currentPhase >= 0 {
                             _ = completedSteps.insert(currentPhase)
@@ -533,6 +526,7 @@ struct AnalyzingPhaseRow: View {
         }
     }
 }
+
 
 // MARK: - Step 16: Your Habits
 
