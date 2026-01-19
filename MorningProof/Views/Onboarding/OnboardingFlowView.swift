@@ -34,21 +34,21 @@ class OnboardingData: ObservableObject {
     }
 
     enum MorningStruggle: String, CaseIterable {
-        case cantWakeUp = "I can't wake up on time"
-        case wasteScrolling = "I waste mornings scrolling"
-        case feelGroggy = "I feel groggy until noon"
-        case lackConsistency = "I lack consistency"
         case noRoutine = "I don't have a routine"
-        case hitSnooze = "I hit snooze too much"
+        case scrollInBed = "I scroll in bed for way too long"
+        case feelBehind = "I feel behind before the day even starts"
+        case knowButDont = "I know what to do but don't do it"
+        case lackConsistency = "I lack consistency"
+        case morningsBattle = "Mornings feel like a battle"
 
         var icon: String {
             switch self {
-            case .cantWakeUp: return "alarm.fill"
-            case .wasteScrolling: return "iphone"
-            case .lackConsistency: return "arrow.triangle.2.circlepath"
-            case .feelGroggy: return "moon.zzz.fill"
             case .noRoutine: return "list.bullet.clipboard"
-            case .hitSnooze: return "hand.tap.fill"
+            case .scrollInBed: return "iphone"
+            case .feelBehind: return "clock.badge.exclamationmark"
+            case .knowButDont: return "brain.head.profile"
+            case .lackConsistency: return "arrow.triangle.2.circlepath"
+            case .morningsBattle: return "figure.boxing"
             }
         }
     }
@@ -93,21 +93,21 @@ class OnboardingData: ObservableObject {
     }
 
     enum DesiredOutcome: String, CaseIterable {
-        case moreEnergy = "More energy"
-        case betterFocus = "Better focus"
-        case improvedMood = "Improved mood"
-        case increasedProductivity = "Increased productivity"
-        case betterHealth = "Better health"
-        case selfDiscipline = "Self-discipline"
+        case feelInControl = "Feel in control"
+        case increaseProductivity = "Increase productivity"
+        case buildSelfDiscipline = "Build self-discipline"
+        case buildLastingHabits = "Build lasting habits"
+        case improveMood = "Improve mood"
+        case improveFocus = "Improve focus"
 
         var icon: String {
             switch self {
-            case .moreEnergy: return "bolt.fill"
-            case .betterFocus: return "target"
-            case .improvedMood: return "face.smiling.fill"
-            case .increasedProductivity: return "chart.line.uptrend.xyaxis"
-            case .betterHealth: return "heart.fill"
-            case .selfDiscipline: return "flame.fill"
+            case .feelInControl: return "hand.raised.fill"
+            case .increaseProductivity: return "chart.line.uptrend.xyaxis"
+            case .buildSelfDiscipline: return "flame.fill"
+            case .buildLastingHabits: return "hammer.fill"
+            case .improveMood: return "face.smiling.fill"
+            case .improveFocus: return "target"
             }
         }
     }

@@ -1048,16 +1048,32 @@ struct DesiredOutcomeStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
 
-    private let popularOutcomes: Set<OnboardingData.DesiredOutcome> = [.moreEnergy, .betterFocus, .selfDiscipline]
+    @State private var appeared = false
+    @State private var selectedAnimating: Set<OnboardingData.DesiredOutcome> = []
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                Image(systemName: "star.fill")
-                    .font(.system(size: 50))
-                    .foregroundColor(MPColors.accentGold)
+                ZStack {
+                    // Outer ring
+                    Circle()
+                        .stroke(Color.red.opacity(0.3), lineWidth: 4)
+                        .frame(width: 54, height: 54)
+
+                    // Middle ring
+                    Circle()
+                        .stroke(Color.red.opacity(0.5), lineWidth: 3)
+                        .frame(width: 38, height: 38)
+
+                    // Inner filled circle
+                    Circle()
+                        .fill(Color.red)
+                        .frame(width: 20, height: 20)
+                }
+                .opacity(appeared ? 1 : 0)
+                .scaleEffect(appeared ? 1 : 0.5)
 
                 Text("What would you like\nto accomplish?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -1072,19 +1088,38 @@ struct DesiredOutcomeStep: View {
             Spacer().frame(height: MPSpacing.xxl)
 
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                ForEach(OnboardingData.DesiredOutcome.allCases, id: \.rawValue) { outcome in
+                ForEach(Array(OnboardingData.DesiredOutcome.allCases.enumerated()), id: \.element.rawValue) { index, outcome in
                     OnboardingGridButtonWithBadge(
                         title: outcome.rawValue,
                         icon: outcome.icon,
                         isSelected: data.desiredOutcomes.contains(outcome),
                         badge: nil
                     ) {
-                        if data.desiredOutcomes.contains(outcome) {
-                            data.desiredOutcomes.remove(outcome)
-                        } else {
-                            data.desiredOutcomes.insert(outcome)
+                        // Haptic feedback
+                        HapticManager.shared.light()
+
+                        // Toggle selection with bounce animation
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                            if data.desiredOutcomes.contains(outcome) {
+                                data.desiredOutcomes.remove(outcome)
+                            } else {
+                                data.desiredOutcomes.insert(outcome)
+                            }
+                            selectedAnimating.insert(outcome)
+                        }
+
+                        // Remove from animating set after animation completes
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            selectedAnimating.remove(outcome)
                         }
                     }
+                    .scaleEffect(selectedAnimating.contains(outcome) ? 1.05 : 1.0)
+                    .opacity(appeared ? 1 : 0)
+                    .offset(y: appeared ? 0 : 20)
+                    .animation(
+                        .spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.08),
+                        value: appeared
+                    )
                 }
             }
             .padding(.horizontal, MPSpacing.xl)
@@ -1096,6 +1131,11 @@ struct DesiredOutcomeStep: View {
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
+        }
+        .onAppear {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                appeared = true
+            }
         }
     }
 }

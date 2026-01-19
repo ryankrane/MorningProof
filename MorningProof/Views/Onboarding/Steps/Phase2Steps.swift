@@ -42,21 +42,21 @@ struct GuardrailStep: View {
                 // Crossed out "Willpower"
                 ZStack {
                     Text("Willpower")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textTertiary)
 
                     Rectangle()
                         .fill(MPColors.error.opacity(0.8))
-                        .frame(height: 2.5)
+                        .frame(height: 3)
                 }
                 .fixedSize()
 
                 Text("<")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textTertiary)
 
                 Text("Systems")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 34, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
             }
             .opacity(showHeadline ? 1 : 0)
@@ -197,7 +197,6 @@ struct GuardrailCard: View {
                 .fill(MPColors.surface)
         )
         .overlay(
-            // Gradient border around the whole card
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .stroke(
                     LinearGradient(
@@ -207,6 +206,10 @@ struct GuardrailCard: View {
                     ),
                     lineWidth: 1.5
                 )
+        )
+        .shadow(
+            color: gradient[0].opacity(glowPulse ? 0.4 : 0.15),
+            radius: glowPulse ? 12 : 6
         )
     }
 }
