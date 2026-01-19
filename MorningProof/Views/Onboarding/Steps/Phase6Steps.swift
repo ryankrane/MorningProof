@@ -10,97 +10,71 @@ struct OptionalRatingStep: View {
     let onContinue: () -> Void
     @State private var starsVisible = [false, false, false, false, false]
     @State private var buttonEnabled = false
-    @State private var glowPulse = false
-    @State private var sparkles: [RatingSparkle] = []
-    @State private var sparkleTimer: Timer?
+    @State private var hoverOffset: CGFloat = 0
+    @State private var glowIntensity: CGFloat = 0
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            // Stars with warm glow backdrop
-            ZStack {
-                // Golden radial glow behind stars
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [
-                                MPColors.accentGold.opacity(glowPulse ? 0.4 : 0.3),
-                                MPColors.accentGold.opacity(glowPulse ? 0.2 : 0.12),
-                                Color.clear
-                            ],
-                            center: .center,
-                            startRadius: 0,
-                            endRadius: 140
-                        )
-                    )
-                    .frame(width: 300, height: 200)
-                    .scaleEffect(glowPulse ? 1.08 : 1.0)
-                    .opacity(starsVisible[4] ? 1 : 0)
-
-                // Floating sparkles
-                ForEach(sparkles) { sparkle in
-                    Circle()
-                        .fill(Color.white)
-                        .frame(width: sparkle.size, height: sparkle.size)
-                        .opacity(sparkle.opacity)
-                        .offset(x: sparkle.x, y: sparkle.y)
-                }
-
-                // Stars
-                HStack(spacing: 12) {
-                    ForEach(0..<5, id: \.self) { index in
-                        Image(systemName: "star.fill")
-                            .font(.system(size: 44))
-                            .foregroundColor(MPColors.accentGold)
-                            .opacity(starsVisible[index] ? 1 : 0)
-                            .scaleEffect(starsVisible[index] ? 1 : 0.5)
-                            .shadow(color: MPColors.accentGold.opacity(0.5), radius: starsVisible[index] ? 8 : 0)
-                    }
+            // Stars with glow and gentle hover animation
+            HStack(spacing: 16) {
+                ForEach(0..<5, id: \.self) { index in
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 48))
+                        .foregroundColor(MPColors.accentGold)
+                        .shadow(color: MPColors.accentGold.opacity(0.4 + glowIntensity * 0.3), radius: 8 + glowIntensity * 6)
+                        .shadow(color: MPColors.accentGold.opacity(0.2 + glowIntensity * 0.15), radius: 16 + glowIntensity * 8)
+                        .opacity(starsVisible[index] ? 1 : 0)
+                        .scaleEffect(starsVisible[index] ? 1 : 0.3)
+                        .offset(y: starsVisible[index] ? hoverOffset : 30)
                 }
             }
-            .frame(height: 200)
+            .padding(.vertical, MPSpacing.xxxl)
 
-            Spacer().frame(height: MPSpacing.xxl)
+            Spacer().frame(height: MPSpacing.xl)
 
             VStack(spacing: MPSpacing.sm) {
-                Text("Help others find better mornings")
-                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                Text("Help others find\nbetter mornings")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
+                    .lineSpacing(4)
 
                 Text("Your review makes a difference")
                     .font(.system(size: 16))
                     .foregroundColor(MPColors.textSecondary)
             }
-            .padding(.horizontal, MPSpacing.lg)
+            .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
             MPButton(title: "Done", style: .primary, isDisabled: !buttonEnabled) {
-                sparkleTimer?.invalidate()
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            // Animate stars in one by one
+            // Animate stars in one by one with stagger
             for i in 0..<5 {
-                withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(i) * 0.1)) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.65).delay(Double(i) * 0.12)) {
                     starsVisible[i] = true
                 }
             }
 
-            // Start glow pulse and sparkles after stars finish appearing
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
-                startGlowPulse()
-                initializeSparkles()
-                startSparkleAnimation()
+            // Start hover animation after stars appear
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    hoverOffset = -8
+                }
+                withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
+                    glowIntensity = 1
+                }
             }
 
-            // Show review prompt after 0.5 seconds
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            // Show review prompt after stars finish appearing
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 requestReview()
             }
 
@@ -111,9 +85,6 @@ struct OptionalRatingStep: View {
                 }
             }
         }
-        .onDisappear {
-            sparkleTimer?.invalidate()
-        }
     }
 
     private func requestReview() {
@@ -121,59 +92,6 @@ struct OptionalRatingStep: View {
             SKStoreReviewController.requestReview(in: scene)
         }
     }
-
-    private func startGlowPulse() {
-        withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
-            glowPulse = true
-        }
-    }
-
-    private func initializeSparkles() {
-        sparkles = (0..<6).map { _ in
-            let baseX = CGFloat.random(in: -120...120)
-            let baseY = CGFloat.random(in: -60...60)
-            return RatingSparkle(
-                x: baseX,
-                y: baseY,
-                size: CGFloat.random(in: 2...4),
-                opacity: Double.random(in: 0.3...0.7),
-                baseX: baseX,
-                baseY: baseY
-            )
-        }
-    }
-
-    private func startSparkleAnimation() {
-        sparkleTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            withAnimation(.linear(duration: 0.05)) {
-                for i in sparkles.indices {
-                    // Gentle floating motion
-                    let time = Date().timeIntervalSinceReferenceDate
-                    let offsetX = sin(time * 0.8 + Double(i) * 1.2) * 15
-                    let offsetY = cos(time * 0.6 + Double(i) * 0.9) * 10
-
-                    sparkles[i].x = sparkles[i].baseX + CGFloat(offsetX)
-                    sparkles[i].y = sparkles[i].baseY + CGFloat(offsetY)
-
-                    // Subtle opacity fade
-                    let opacityWave = (sin(time * 1.5 + Double(i) * 2.0) + 1) / 2
-                    sparkles[i].opacity = 0.2 + opacityWave * 0.5
-                }
-            }
-        }
-    }
-}
-
-// MARK: - Rating Sparkle Model
-
-struct RatingSparkle: Identifiable {
-    let id = UUID()
-    var x: CGFloat
-    var y: CGFloat
-    var size: CGFloat
-    var opacity: Double
-    var baseX: CGFloat
-    var baseY: CGFloat
 }
 
 // MARK: - Step 14: Analyzing

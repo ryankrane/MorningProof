@@ -221,20 +221,20 @@ struct SuccessStoriesStep: View {
                 showHeadline = true
             }
 
-            // Milestones slide in from left and "lock" into place with bounce
+            // Milestones slide in one at a time with generous stagger
             for i in 0..<3 {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.65).delay(0.5 + Double(i) * 0.25)) {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.65).delay(0.6 + Double(i) * 0.5)) {
                     showMilestones[i] = true
                 }
             }
 
-            // Line animates down
-            withAnimation(.easeInOut(duration: 1.0).delay(0.5)) {
+            // Line animates down (synced with milestone timing)
+            withAnimation(.easeInOut(duration: 1.5).delay(0.6)) {
                 lineProgress = 1.0
             }
 
-            // Glow pulse starts
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            // Glow pulse starts after all milestones have landed
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
                 pulseGlow = true
             }
         }
