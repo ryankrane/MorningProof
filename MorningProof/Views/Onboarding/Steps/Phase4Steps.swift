@@ -23,12 +23,12 @@ struct PermissionsStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                Text("Supercharge your tracking")
+                Text("Complete Your Setup")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
-                Text("Enable these for the best experience")
-                    .font(.system(size: 16))
+                Text("These unlock the full experience")
+                    .font(.system(size: 15))
                     .foregroundColor(MPColors.textSecondary)
             }
 
@@ -60,6 +60,8 @@ struct PermissionsStep: View {
                 }
 
                 // App Locking permission card
+                // TODO: REMOVE THIS CARD once AppLockingOnboardingStep is enabled
+                // (We'll have already asked for Screen Time permission on the dedicated step)
                 PermissionCard(
                     icon: "lock.shield.fill",
                     iconColor: MPColors.accentGold,
@@ -300,13 +302,13 @@ struct AnalyzingStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.sm) {
-                Text("Creating Your Routine")
+                Text("Building Your Battle Plan")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
                 if !userName.isEmpty {
                     Text("Almost there, \(userName)")
-                        .font(.system(size: 16))
+                        .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                 }
             }
@@ -589,7 +591,7 @@ struct YourHabitsStep: View {
 
             Spacer()
 
-            MPButton(title: "Let's Get Started", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+            MPButton(title: "Lock It In", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)

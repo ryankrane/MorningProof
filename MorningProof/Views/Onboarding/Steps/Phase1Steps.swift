@@ -51,7 +51,7 @@ struct WelcomeHeroStep: View {
                     // Headlines - centered, same font size
                     VStack(spacing: MPSpacing.sm) {
                         // Primary headline with shimmer
-                        Text("Lock Your Distractions.")
+                        Text("Lock Your Distractions")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundColor(MPColors.textPrimary)
                             .fixedSize(horizontal: true, vertical: false)
@@ -69,7 +69,7 @@ struct WelcomeHeroStep: View {
                                     endPoint: UnitPoint(x: shimmerPhase + 0.3, y: 0.5)
                                 )
                                 .mask(
-                                    Text("Lock Your Distractions.")
+                                    Text("Lock Your Distractions")
                                         .font(.system(size: 32, weight: .bold, design: .rounded))
                                         .fixedSize(horizontal: true, vertical: false)
                                 )
@@ -77,22 +77,44 @@ struct WelcomeHeroStep: View {
                             .opacity(animateContent ? 1 : 0)
                             .offset(y: animateContent ? 0 : 12)
 
-                        // Secondary tagline - same font size, accented color
-                        Text("Take Back Your Morning.")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        MPColors.primary.opacity(0.9),
-                                        MPColors.primary.opacity(0.7)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
+                        // Secondary tagline - vibrant gradient with glow
+                        ZStack {
+                            // Glow layer
+                            Text("Take Back Your Morning")
+                                .font(.system(size: 32, weight: .bold, design: .rounded))
+                                .fixedSize(horizontal: true, vertical: false)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(red: 0.75, green: 0.55, blue: 1.0),
+                                            MPColors.primary
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
                                 )
-                            )
-                            .opacity(animateContent ? 1 : 0)
-                            .offset(y: animateContent ? 0 : 10)
-                            .animation(.easeOut(duration: 0.8).delay(0.15), value: animateContent)
+                                .blur(radius: 12)
+                                .opacity(0.6)
+
+                            // Main text
+                            Text("Take Back Your Morning")
+                                .font(.system(size: 32, weight: .bold, design: .rounded))
+                                .fixedSize(horizontal: true, vertical: false)
+                                .foregroundStyle(
+                                    LinearGradient(
+                                        colors: [
+                                            Color(red: 0.8, green: 0.6, blue: 1.0),
+                                            MPColors.primary,
+                                            Color(red: 0.6, green: 0.4, blue: 0.9)
+                                        ],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        }
+                        .opacity(animateContent ? 1 : 0)
+                        .offset(y: animateContent ? 0 : 10)
+                        .animation(.easeOut(duration: 0.8).delay(0.15), value: animateContent)
                     }
                 }
                 .padding(.horizontal, MPSpacing.xl)
@@ -191,18 +213,59 @@ struct NameStep: View {
     @FocusState private var isNameFocused: Bool
     @State private var hasConfirmedName = false
     @State private var showGreeting = false
+    @State private var iconDeparting = false
+    @State private var sparkles: [SparkleParticle] = []
+    @State private var fadeOut = false
+
+    struct SparkleParticle: Identifiable {
+        let id = UUID()
+        var x: CGFloat
+        var y: CGFloat
+        var scale: CGFloat
+        var opacity: Double
+        var rotation: Double
+    }
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: MPSpacing.lg) {
-                Image(systemName: "person.circle.fill")
-                    .font(.system(size: 60))
+        ZStack {
+            // Sparkle particles layer
+            ForEach(sparkles) { sparkle in
+                Image(systemName: "sparkle")
+                    .font(.system(size: 12))
                     .foregroundColor(MPColors.primary)
+                    .scaleEffect(sparkle.scale)
+                    .opacity(sparkle.opacity)
+                    .rotationEffect(.degrees(sparkle.rotation))
+                    .position(x: sparkle.x, y: sparkle.y)
+            }
 
-                // Morphing text - switches between prompt and greeting
-                ZStack {
+            VStack(spacing: 0) {
+                Spacer()
+
+                VStack(spacing: MPSpacing.lg) {
+                    // Animated icon that floats away
+                    GeometryReader { geo in
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 60))
+                            .foregroundColor(MPColors.primary)
+                            .frame(maxWidth: .infinity)
+                            .scaleEffect(iconDeparting ? 0.3 : 1.0)
+                            .opacity(iconDeparting ? 0 : 1)
+                            .offset(y: iconDeparting ? -150 : 0)
+                            .blur(radius: iconDeparting ? 2 : 0)
+                            .onChange(of: iconDeparting) { _, departing in
+                                if departing {
+                                    // Create sparkles at icon position
+                                    let centerX = geo.frame(in: .global).midX
+                                    let centerY = geo.frame(in: .global).midY
+                                    createSparkles(at: centerX, y: centerY)
+                                }
+                            }
+                    }
+                    .frame(height: 60)
+
+                    // Morphing text - switches between prompt and greeting
+                    ZStack {
                     // Initial prompt
                     VStack(spacing: MPSpacing.sm) {
                         Text("Let's make this personal")
@@ -294,20 +357,72 @@ struct NameStep: View {
                 isNameFocused = true
             }
         }
+        } // Close VStack
+        .opacity(fadeOut ? 0 : 1)
+        .scaleEffect(fadeOut ? 0.95 : 1)
+        .animation(.easeOut(duration: 0.4), value: fadeOut)
     }
 
     private func confirmName() {
         isNameFocused = false
         hasConfirmedName = true
 
+        // Start icon departure animation
+        withAnimation(.easeOut(duration: 0.6)) {
+            iconDeparting = true
+        }
+
         // Show greeting after input fades
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             showGreeting = true
         }
 
-        // Auto-advance after greeting is shown (1.7s = 25% faster than 2.25s)
+        // Fade out before advancing
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
+            fadeOut = true
+        }
+
+        // Auto-advance after fade out completes
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
             onContinue()
+        }
+    }
+
+    private func createSparkles(at x: CGFloat, y: CGFloat) {
+        // Create 8 sparkles that burst outward
+        for i in 0..<8 {
+            let angle = Double(i) * (360.0 / 8.0) * .pi / 180.0
+            let distance: CGFloat = CGFloat.random(in: 40...80)
+            let targetX = x + cos(angle) * distance
+            let targetY = y + sin(angle) * distance
+
+            let sparkle = SparkleParticle(
+                x: x,
+                y: y,
+                scale: 0.5,
+                opacity: 1.0,
+                rotation: Double.random(in: 0...360)
+            )
+            sparkles.append(sparkle)
+            let index = sparkles.count - 1
+
+            // Animate sparkle outward
+            withAnimation(.easeOut(duration: 0.5)) {
+                sparkles[index].x = targetX
+                sparkles[index].y = targetY
+                sparkles[index].scale = CGFloat.random(in: 0.8...1.2)
+                sparkles[index].rotation += Double.random(in: 90...180)
+            }
+
+            // Fade out sparkle
+            withAnimation(.easeOut(duration: 0.4).delay(0.3)) {
+                sparkles[index].opacity = 0
+            }
+        }
+
+        // Clean up sparkles after animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+            sparkles.removeAll()
         }
     }
 }
@@ -374,6 +489,7 @@ struct GenderStep: View {
 struct MorningStruggleStep: View {
     @ObservedObject var data: OnboardingData
     let onContinue: () -> Void
+    @State private var appeared = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -416,6 +532,12 @@ struct MorningStruggleStep: View {
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
+        }
+        .opacity(appeared ? 1 : 0)
+        .offset(y: appeared ? 0 : 20)
+        .animation(.easeOut(duration: 0.4), value: appeared)
+        .onAppear {
+            appeared = true
         }
     }
 }

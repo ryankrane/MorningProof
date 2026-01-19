@@ -74,6 +74,12 @@ enum MPColors {
         startPoint: .bottom,
         endPoint: .top
     )
+
+    // Onboarding gradients - used for guardrail cards and journey milestones
+    static let guardrailBlue: [Color] = [Color(red: 0.4, green: 0.5, blue: 1.0), Color(red: 0.6, green: 0.4, blue: 1.0)]
+    static let guardrailOrange: [Color] = [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.45, blue: 0.35)]
+    static let journeyBlue: [Color] = [Color(red: 0.4, green: 0.6, blue: 1.0), Color(red: 0.5, green: 0.7, blue: 1.0)]
+    static let journeyOrange: [Color] = [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.45, blue: 0.35)]
 }
 
 // MARK: - Typography

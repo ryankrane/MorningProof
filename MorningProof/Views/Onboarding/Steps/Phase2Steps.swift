@@ -7,148 +7,173 @@ import SwiftUI
 struct GuardrailStep: View {
     let onContinue: () -> Void
     @State private var showHeadline = false
+    @State private var showSubtext = false
     @State private var showCards = [false, false, false]
+    @State private var pulseIcons = false
 
-    private let frictionCards: [(title: String, tagline: String, description: String, icon: String, color: Color)] = [
+    private let guardrails: [(title: String, description: String, icon: String, gradient: [Color])] = [
         (
-            "The Dopamine Gate",
-            "Earned Access",
-            "You shouldn't get a 'win' (scrolling) before you've even moved. We gate your distractions until you've actually earned them.",
+            "Gate Your Dopamine",
+            "No scrolling until you've earned it. We block distracting apps until your habits are verified.",
             "lock.shield.fill",
-            Color(red: 0.4, green: 0.6, blue: 1.0) // Blue
+            [Color(red: 0.4, green: 0.5, blue: 1.0), Color(red: 0.6, green: 0.4, blue: 1.0)]
         ),
         (
-            "The Proof Gap",
-            "Hard Evidence",
-            "Intentions are cheap. A checklist is just a list of lies you tell yourself. We require physical, AI-verified proof that the work is done.",
-            "viewfinder",
-            MPColors.accent // Gold/Orange
+            "Require Real Proof",
+            "No more lying to yourself. AI verifies your habits with photo evidence—not just checkboxes.",
+            "camera.viewfinder",
+            [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.4, blue: 0.5)]
         ),
         (
-            "The Path of Resistance",
-            "Forced Accountability",
-            "Without a barrier, you'll always choose the path of least resistance. We create the friction you need to stay on track.",
-            "figure.walk.motion",
-            MPColors.primary // Teal
+            "Create Friction",
+            "Make the wrong choice hard. We add just enough resistance to keep you on track.",
+            "figure.run",
+            [MPColors.primary, Color(red: 0.5, green: 0.8, blue: 0.9)]
         )
     ]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-                .frame(height: MPSpacing.xxl)
 
-            // Headline Section
-            VStack(spacing: MPSpacing.md) {
-                Text("Willpower is a")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                +
-                Text(" losing game.")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.error)
+            // Hero headline
+            VStack(spacing: MPSpacing.lg) {
+                // Crossed out "Willpower" effect
+                VStack(spacing: MPSpacing.xs) {
+                    ZStack {
+                        Text("Willpower")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(MPColors.textTertiary)
 
-                Text("Your brain is wired to choose the screen over the routine.")
+                        Rectangle()
+                            .fill(MPColors.error.opacity(0.8))
+                            .frame(height: 2)
+                            .offset(y: 1)
+                    }
+                    .fixedSize()
+
+                    Text("Systems Win.")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                }
+                .opacity(showHeadline ? 1 : 0)
+                .offset(y: showHeadline ? 0 : 15)
+
+                Text("Your brain will always choose easy over hard.\nSo we remove the choice entirely.")
                     .font(.system(size: 15))
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
-
-                Text("We just change the rules.")
-                    .font(.system(size: 15, weight: .semibold))
-                    .foregroundColor(MPColors.textPrimary)
+                    .lineSpacing(4)
+                    .opacity(showSubtext ? 1 : 0)
+                    .offset(y: showSubtext ? 0 : 10)
             }
             .padding(.horizontal, MPSpacing.xl)
-            .opacity(showHeadline ? 1 : 0)
-            .offset(y: showHeadline ? 0 : 10)
 
             Spacer()
                 .frame(height: MPSpacing.xxl)
 
-            // Friction Cards
+            // Guardrail cards
             VStack(spacing: MPSpacing.lg) {
                 ForEach(0..<3, id: \.self) { index in
-                    let card = frictionCards[index]
-                    FrictionCard(
-                        title: card.title,
-                        tagline: card.tagline,
-                        description: card.description,
-                        icon: card.icon,
-                        accentColor: card.color
+                    let item = guardrails[index]
+                    GuardrailCard(
+                        title: item.title,
+                        description: item.description,
+                        icon: item.icon,
+                        gradient: item.gradient,
+                        isPulsing: pulseIcons
                     )
                     .opacity(showCards[index] ? 1 : 0)
-                    .offset(y: showCards[index] ? 0 : 20)
+                    .offset(x: showCards[index] ? 0 : -30)
                 }
             }
             .padding(.horizontal, MPSpacing.xl)
 
             Spacer()
 
-            MPButton(title: "Set My Guardrails", style: .primary, icon: "shield.checkered") {
+            MPButton(title: "Set Up My Guardrails", style: .primary, icon: "shield.checkered") {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            // Animate headline first
-            withAnimation(.easeOut(duration: 0.5).delay(0.2)) {
+            withAnimation(.easeOut(duration: 0.6)) {
                 showHeadline = true
             }
-            // Stagger cards
+            withAnimation(.easeOut(duration: 0.5).delay(0.3)) {
+                showSubtext = true
+            }
             for i in 0..<3 {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(0.5 + Double(i) * 0.15)) {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.75).delay(0.5 + Double(i) * 0.12)) {
                     showCards[i] = true
                 }
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                pulseIcons = true
             }
         }
     }
 }
 
-// MARK: - Friction Card Component
+// MARK: - Guardrail Card Component
 
-struct FrictionCard: View {
+struct GuardrailCard: View {
     let title: String
-    let tagline: String
     let description: String
     let icon: String
-    let accentColor: Color
+    let gradient: [Color]
+    let isPulsing: Bool
+
+    @State private var glowPulse = false
 
     var body: some View {
-        HStack(alignment: .top, spacing: MPSpacing.lg) {
-            // Icon with glow effect
+        HStack(spacing: MPSpacing.md) {
+            // Glowing icon orb
             ZStack {
-                // Outer glow
+                // Animated glow
                 Circle()
-                    .fill(accentColor.opacity(0.2))
-                    .frame(width: 64, height: 64)
-                    .blur(radius: 8)
+                    .fill(
+                        RadialGradient(
+                            colors: [gradient[0].opacity(0.5), gradient[1].opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 30
+                        )
+                    )
+                    .frame(width: 60, height: 60)
+                    .scaleEffect(glowPulse ? 1.15 : 1.0)
+                    .opacity(glowPulse ? 0.8 : 0.5)
 
-                // Icon container
-                RoundedRectangle(cornerRadius: MPRadius.md)
-                    .fill(accentColor.opacity(0.15))
-                    .frame(width: 52, height: 52)
+                // Icon circle
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gradient,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 44, height: 44)
 
                 Image(systemName: icon)
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(accentColor)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundColor(.white)
             }
-            .frame(width: 52, height: 52) // Constrain the ZStack to prevent layout issues
-
-            VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                // Title row with tagline
-                HStack(spacing: MPSpacing.sm) {
-                    Text(title)
-                        .font(.system(size: 16, weight: .bold))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("•")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.textTertiary)
-
-                    Text(tagline)
-                        .font(.system(size: 12, weight: .semibold))
-                        .foregroundColor(accentColor)
+            .frame(width: 52, height: 52)
+            .onChange(of: isPulsing) { _, pulsing in
+                if pulsing {
+                    withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                        glowPulse = true
+                    }
                 }
+            }
+
+            // Content
+            VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
 
                 Text(description)
                     .font(.system(size: 13))
@@ -156,22 +181,25 @@ struct FrictionCard: View {
                     .lineSpacing(2)
                     .fixedSize(horizontal: false, vertical: true)
             }
-        }
-        .padding(MPSpacing.xl)
-        .background(
-            ZStack {
-                MPColors.surface
 
-                // Gradient glow from top-left
-                LinearGradient(
-                    colors: [accentColor.opacity(0.12), Color.clear],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
+            Spacer(minLength: 0)
+        }
+        .padding(MPSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: MPRadius.lg)
+                        .stroke(
+                            LinearGradient(
+                                colors: [gradient[0].opacity(0.3), Color.clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
                 )
-            }
         )
-        .cornerRadius(MPRadius.lg)
-        .mpShadow(.small)
     }
 }
 
@@ -263,81 +291,255 @@ struct YouAreNotAloneStep: View {
     }
 }
 
-// MARK: - Step 7: Success Stories
+// MARK: - Step 7: Success Stories (Journey Timeline)
 
 struct SuccessStoriesStep: View {
     let onContinue: () -> Void
-    @State private var showContent = false
-    @State private var showStats = false
+
+    @State private var showHeadline = false
+    @State private var showMilestones = [false, false, false]
+    @State private var lineProgress: CGFloat = 0
+    @State private var pulseGlow = false
+
+    private let milestones: [(day: String, title: String, description: String, icon: String, gradient: [Color])] = [
+        (
+            "Day 1",
+            "The First Step",
+            "You commit. The app blocks distractions. Your morning begins.",
+            "sunrise.fill",
+            [Color(red: 0.4, green: 0.6, blue: 1.0), Color(red: 0.5, green: 0.7, blue: 1.0)]
+        ),
+        (
+            "Day 5",
+            "Building Momentum",
+            "The routine clicks. Snooze becomes rare. Energy returns.",
+            "flame.fill",
+            [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.45, blue: 0.35)]
+        ),
+        (
+            "Day 10",
+            "The New Normal",
+            "Morning mastered. Habits locked in. You're in control.",
+            "trophy.fill",
+            [MPColors.primary, Color(red: 0.6, green: 0.4, blue: 1.0)]
+        )
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: MPSpacing.xxl) {
-                VStack(spacing: MPSpacing.md) {
-                    Text("Your first 10 days")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+            // Hero headline
+            VStack(spacing: MPSpacing.sm) {
+                HStack(spacing: 0) {
+                    Text("10 Days")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [MPColors.primary, Color(red: 0.6, green: 0.4, blue: 1.0)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                    Text(" to Transform")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
-
-                    Text("Based on tracked user data")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
                 }
-                .opacity(showContent ? 1 : 0)
 
-                // Before/After comparison
-                BeforeAfterCard(
-                    beforeTitle: "Day 1",
-                    beforeItems: ["Struggle to get out of bed", "Rush through morning", "Feel groggy until noon"],
-                    afterTitle: "Day 10",
-                    afterItems: ["Morning routine complete", "Calm, productive mornings", "Energized all afternoon"]
-                )
-                .padding(.horizontal, MPSpacing.xl)
-                .opacity(showContent ? 1 : 0)
-
-                // Success metrics
-                HStack(spacing: MPSpacing.lg) {
-                    TransformationStatCard(
-                        value: "89%",
-                        label: "snooze less by day 10",
-                        icon: "alarm.fill",
-                        color: MPColors.accent
-                    )
-                    TransformationStatCard(
-                        value: "3.7x",
-                        label: "more consistent than before",
-                        icon: "flame.fill",
-                        color: MPColors.primary
-                    )
-                    TransformationStatCard(
-                        value: "80%",
-                        label: "feel more productive",
-                        icon: "bolt.fill",
-                        color: MPColors.accentGold
-                    )
-                }
-                .padding(.horizontal, MPSpacing.xl)
-                .opacity(showStats ? 1 : 0)
-                .offset(y: showStats ? 0 : 20)
+                Text("Here's what happens when you commit")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
             }
+            .opacity(showHeadline ? 1 : 0)
+            .offset(y: showHeadline ? 0 : 15)
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer()
+                .frame(height: MPSpacing.xxl)
+
+            // Timeline
+            ZStack(alignment: .leading) {
+                // Connecting line (behind milestones)
+                GeometryReader { geometry in
+                    let lineHeight = geometry.size.height - 60
+
+                    // Background line track
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(MPColors.border.opacity(0.3))
+                        .frame(width: 4, height: lineHeight)
+                        .offset(x: 30, y: 30)
+
+                    // Animated gradient line
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 0.4, green: 0.6, blue: 1.0),
+                                    Color(red: 1.0, green: 0.6, blue: 0.3),
+                                    MPColors.primary
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 4, height: lineHeight * lineProgress)
+                        .offset(x: 30, y: 30)
+                }
+
+                // Milestones
+                VStack(spacing: MPSpacing.lg) {
+                    ForEach(0..<3, id: \.self) { index in
+                        let milestone = milestones[index]
+                        JourneyMilestone(
+                            day: milestone.day,
+                            title: milestone.title,
+                            description: milestone.description,
+                            icon: milestone.icon,
+                            gradient: milestone.gradient,
+                            isLast: index == 2,
+                            isPulsing: pulseGlow && index == 2
+                        )
+                        .opacity(showMilestones[index] ? 1 : 0)
+                        .offset(x: showMilestones[index] ? 0 : -20)
+                    }
+                }
+            }
+            .frame(height: 320)
+            .padding(.horizontal, MPSpacing.lg)
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary) {
+            MPButton(title: "Start My Journey", style: .primary, icon: "arrow.right") {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) {
-                showContent = true
+            // Headline fades in
+            withAnimation(.easeOut(duration: 0.6)) {
+                showHeadline = true
             }
-            withAnimation(.easeOut(duration: 0.5).delay(0.4)) {
-                showStats = true
+
+            // Milestones appear sequentially
+            for i in 0..<3 {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.75).delay(0.4 + Double(i) * 0.2)) {
+                    showMilestones[i] = true
+                }
+            }
+
+            // Line animates down
+            withAnimation(.easeInOut(duration: 1.0).delay(0.5)) {
+                lineProgress = 1.0
+            }
+
+            // Glow pulse starts
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                pulseGlow = true
             }
         }
+    }
+}
+
+// MARK: - Journey Milestone Component
+
+private struct JourneyMilestone: View {
+    let day: String
+    let title: String
+    let description: String
+    let icon: String
+    let gradient: [Color]
+    let isLast: Bool
+    let isPulsing: Bool
+
+    @State private var glowPulse = false
+
+    var body: some View {
+        HStack(spacing: MPSpacing.lg) {
+            // Icon orb with glow
+            ZStack {
+                // Animated glow
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [gradient[0].opacity(0.6), gradient[1].opacity(0.2), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: 40
+                        )
+                    )
+                    .frame(width: 80, height: 80)
+                    .scaleEffect(glowPulse ? 1.2 : 1.0)
+                    .opacity(glowPulse ? 0.9 : 0.6)
+
+                // Icon circle
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: gradient,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 56, height: 56)
+                    .shadow(color: gradient[0].opacity(0.4), radius: 8, x: 0, y: 4)
+
+                Image(systemName: icon)
+                    .font(.system(size: 24, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .frame(width: 64, height: 64)
+            .onChange(of: isPulsing) { _, pulsing in
+                if pulsing {
+                    withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                        glowPulse = true
+                    }
+                }
+            }
+
+            // Content
+            VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                // Day badge + title
+                HStack(spacing: MPSpacing.sm) {
+                    Text(day)
+                        .font(.system(size: 11, weight: .bold, design: .monospaced))
+                        .foregroundColor(gradient[0])
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(gradient[0].opacity(0.15))
+                        .cornerRadius(4)
+
+                    Text(title)
+                        .font(.system(size: 17, weight: .bold))
+                        .foregroundColor(MPColors.textPrimary)
+                }
+
+                Text(description)
+                    .font(.system(size: 14))
+                    .foregroundColor(MPColors.textSecondary)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(MPSpacing.md)
+        .background(
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .fill(MPColors.surface)
+                .overlay(
+                    RoundedRectangle(cornerRadius: MPRadius.lg)
+                        .stroke(
+                            LinearGradient(
+                                colors: [gradient[0].opacity(0.3), Color.clear],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            ),
+                            lineWidth: 1
+                        )
+                )
+        )
+        .mpShadow(.small)
     }
 }
 
@@ -421,15 +623,9 @@ struct TrackingComparisonStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.xxl) {
-                VStack(spacing: MPSpacing.sm) {
-                    Text("Tracking works")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("Here's what the data shows")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
-                }
+                Text("The Data Doesn't Lie")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
 
                 StatisticRingCard(
                     percentage: 88,
@@ -460,7 +656,7 @@ struct TrackingComparisonStep: View {
 
             Spacer()
 
-            MPButton(title: "Continue", style: .primary) {
+            MPButton(title: "I'm Ready", style: .primary) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)

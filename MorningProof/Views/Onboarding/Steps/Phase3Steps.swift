@@ -126,33 +126,43 @@ struct AIVerificationShowcaseStep: View {
     @State private var showScan = false
     @State private var showScore = false
     @State private var scanProgress: CGFloat = 0
+    @State private var showUnlockMessage = false
+    @State private var hapticTimer: Timer?
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: MPSpacing.xxl) {
+            VStack(spacing: MPSpacing.xl) {
                 VStack(spacing: MPSpacing.md) {
                     Text("AI-Powered Verification")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
 
-                    Text("Snap a photo, we'll verify it")
-                        .font(.system(size: 16))
+                    Text("No excuses. Photo proof locks in your commitment.")
+                        .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
+                        .multilineTextAlignment(.center)
                 }
 
-                // Phone mockup
+                // Phone mockup with high-tech scan
                 ZStack {
-                    // Phone frame
+                    // Phone frame with subtle glow during scan
                     RoundedRectangle(cornerRadius: 30)
                         .fill(MPColors.surface)
-                        .frame(width: 220, height: 300)
+                        .frame(width: 240, height: 320)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 30)
+                                .stroke(
+                                    showScan && !showScore ? MPColors.accent.opacity(0.5) : Color.clear,
+                                    lineWidth: 2
+                                )
+                        )
                         .mpShadow(.large)
 
                     // Screen content
-                    VStack(spacing: MPSpacing.lg) {
-                        // Stylized bed illustration with AI scanning
+                    VStack(spacing: MPSpacing.md) {
+                        // Bed illustration with laser scanning
                         ZStack {
                             // Background
                             RoundedRectangle(cornerRadius: MPRadius.md)
@@ -163,20 +173,21 @@ struct AIVerificationShowcaseStep: View {
                                         endPoint: .bottom
                                     )
                                 )
-                                .frame(width: 180, height: 140)
+                                .frame(width: 200, height: 150)
 
                             // Cartoon bed illustration
                             CartoonBedIllustration()
-                                .frame(width: 160, height: 110)
+                                .frame(width: 180, height: 120)
 
-                            // AI scanning overlay
+                            // High-tech laser scanning overlay
                             if showScan || showScore {
-                                AIScanningOverlay(
+                                HighTechScanOverlay(
                                     isScanning: showScan && !showScore,
                                     isComplete: showScore,
                                     scanProgress: scanProgress
                                 )
-                                .frame(width: 180, height: 140)
+                                .frame(width: 200, height: 150)
+                                .clipShape(RoundedRectangle(cornerRadius: MPRadius.md))
                             }
                         }
 
@@ -184,52 +195,57 @@ struct AIVerificationShowcaseStep: View {
                         if showScore {
                             VStack(spacing: MPSpacing.sm) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 44))
+                                    .font(.system(size: 48))
                                     .foregroundColor(MPColors.success)
+                                    .shadow(color: MPColors.success.opacity(0.5), radius: 10)
 
                                 Text("Bed Made!")
-                                    .font(.system(size: 18, weight: .bold))
+                                    .font(.system(size: 20, weight: .bold))
                                     .foregroundColor(MPColors.textPrimary)
                             }
                             .transition(.scale.combined(with: .opacity))
                         } else if showScan {
-                            VStack(spacing: MPSpacing.xs) {
-                                ProgressView()
-                                    .tint(MPColors.accent)
+                            VStack(spacing: MPSpacing.sm) {
+                                // Scanning percentage
+                                Text("\(Int(scanProgress * 100))%")
+                                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                                    .foregroundColor(MPColors.accent)
+                                    .contentTransition(.numericText())
+
                                 Text("Analyzing...")
                                     .font(.system(size: 14, weight: .medium))
                                     .foregroundColor(MPColors.textSecondary)
                             }
                         }
                     }
-                    .frame(width: 200, height: 260)
+                    .frame(width: 220, height: 280)
                 }
                 .scaleEffect(showPhone ? 1 : 0.8)
                 .opacity(showPhone ? 1 : 0)
 
-                // Features
+                // Unlock message - appears after verification
+                if showUnlockMessage {
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: "lock.open.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(MPColors.success)
+
+                        Text("Once verified, your apps unlock instantly")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(MPColors.success)
+                    }
+                    .padding(.horizontal, MPSpacing.lg)
+                    .padding(.vertical, MPSpacing.md)
+                    .background(MPColors.success.opacity(0.1))
+                    .cornerRadius(MPRadius.full)
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+
+                // Features row
                 HStack(spacing: MPSpacing.xl) {
-                    VStack(spacing: 4) {
-                        Image(systemName: "bolt.fill")
-                            .foregroundColor(MPColors.accent)
-                        Text("Instant")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textSecondary)
-                    }
-                    VStack(spacing: 4) {
-                        Image(systemName: "eye.fill")
-                            .foregroundColor(MPColors.accent)
-                        Text("No cheating")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textSecondary)
-                    }
-                    VStack(spacing: 4) {
-                        Image(systemName: "lock.shield.fill")
-                            .foregroundColor(MPColors.accent)
-                        Text("Private")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textSecondary)
-                    }
+                    FeaturePill(icon: "bolt.fill", text: "Instant")
+                    FeaturePill(icon: "eye.fill", text: "No cheating")
+                    FeaturePill(icon: "lock.shield.fill", text: "Private")
                 }
                 .opacity(showScore ? 1 : 0)
             }
@@ -237,24 +253,228 @@ struct AIVerificationShowcaseStep: View {
             Spacer()
 
             MPButton(title: "Continue", style: .primary) {
+                stopHaptics()
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                showPhone = true
+            startVerificationSequence()
+        }
+        .onDisappear {
+            stopHaptics()
+        }
+    }
+
+    private func startVerificationSequence() {
+        // Show phone
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            showPhone = true
+        }
+
+        // Start scanning after delay
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            showScan = true
+            startHapticPulses()
+
+            // Animate scan progress
+            animateScanProgress()
+        }
+
+        // Complete scan and show result
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            stopHaptics()
+
+            // Success "jingle" haptic when AI verifies the photo
+            HapticManager.shared.success()
+
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                showScore = true
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                showScan = true
-                withAnimation(.linear(duration: 1.5)) {
-                    scanProgress = 1.0
+        }
+
+        // Show unlock message
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                showUnlockMessage = true
+            }
+        }
+    }
+
+    private func animateScanProgress() {
+        // Smooth progress animation over 2.5 seconds
+        let duration: Double = 2.5
+        let steps = 50
+        let stepDuration = duration / Double(steps)
+
+        for i in 0...steps {
+            DispatchQueue.main.asyncAfter(deadline: .now() + stepDuration * Double(i)) {
+                withAnimation(.linear(duration: stepDuration)) {
+                    scanProgress = CGFloat(i) / CGFloat(steps)
                 }
             }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    showScore = true
+        }
+    }
+
+    private func startHapticPulses() {
+        let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.prepare()
+
+        hapticTimer = Timer.scheduledTimer(withTimeInterval: 0.3, repeats: true) { _ in
+            generator.impactOccurred(intensity: 0.4)
+            generator.prepare()
+        }
+    }
+
+    private func stopHaptics() {
+        hapticTimer?.invalidate()
+        hapticTimer = nil
+    }
+}
+
+// MARK: - Feature Pill
+
+private struct FeaturePill: View {
+    let icon: String
+    let text: String
+
+    var body: some View {
+        VStack(spacing: 4) {
+            Image(systemName: icon)
+                .font(.system(size: 16))
+                .foregroundColor(MPColors.accent)
+            Text(text)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(MPColors.textSecondary)
+        }
+    }
+}
+
+// MARK: - High-Tech Scan Overlay
+
+private struct HighTechScanOverlay: View {
+    let isScanning: Bool
+    let isComplete: Bool
+    let scanProgress: CGFloat
+
+    @State private var laserPosition: CGFloat = 0
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Corner brackets
+                CornerBrackets(
+                    color: isComplete ? MPColors.success : MPColors.accent,
+                    isComplete: isComplete
+                )
+
+                // Laser scan line with glow
+                if isScanning {
+                    LaserScanLine(position: laserPosition, size: geometry.size)
+                }
+
+                // Analysis grid points
+                if isScanning || isComplete {
+                    AnalysisGrid(isComplete: isComplete, scanProgress: scanProgress)
+                }
+
+                // Pulsing scan border
+                if isScanning {
+                    RoundedRectangle(cornerRadius: MPRadius.md)
+                        .stroke(MPColors.accent.opacity(0.4), lineWidth: 1)
+                        .scaleEffect(1.0 + sin(scanProgress * .pi * 4) * 0.01)
+                }
+            }
+        }
+        .onAppear {
+            if isScanning {
+                startLaserAnimation()
+            }
+        }
+        .onChange(of: isScanning) { _, newValue in
+            if newValue {
+                startLaserAnimation()
+            }
+        }
+    }
+
+    private func startLaserAnimation() {
+        laserPosition = 0
+        withAnimation(.easeInOut(duration: 1.0).repeatForever(autoreverses: true)) {
+            laserPosition = 1.0
+        }
+    }
+}
+
+// MARK: - Laser Scan Line
+
+private struct LaserScanLine: View {
+    let position: CGFloat
+    let size: CGSize
+
+    var body: some View {
+        let y = size.height * position
+
+        ZStack {
+            // Main laser line
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            MPColors.accent.opacity(0),
+                            MPColors.accent,
+                            MPColors.accent,
+                            MPColors.accent.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: size.width - 20, height: 2)
+
+            // Glow effect
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [
+                            MPColors.accent.opacity(0),
+                            MPColors.accent.opacity(0.6),
+                            MPColors.accent.opacity(0)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .frame(width: size.width - 20, height: 20)
+                .blur(radius: 8)
+        }
+        .position(x: size.width / 2, y: y)
+    }
+}
+
+// MARK: - Analysis Grid
+
+private struct AnalysisGrid: View {
+    let isComplete: Bool
+    let scanProgress: CGFloat
+
+    var body: some View {
+        GeometryReader { geometry in
+            ZStack {
+                // Grid of analysis points
+                ForEach(0..<6, id: \.self) { index in
+                    let row = index / 3
+                    let col = index % 3
+                    let x = geometry.size.width * (0.2 + CGFloat(col) * 0.3)
+                    let y = geometry.size.height * (0.3 + CGFloat(row) * 0.4)
+                    let threshold = CGFloat(index + 1) / 7.0
+
+                    AnalysisPoint(isComplete: isComplete)
+                        .position(x: x, y: y)
+                        .opacity(scanProgress > threshold ? 1 : 0)
+                        .scaleEffect(scanProgress > threshold ? 1 : 0.5)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: scanProgress > threshold)
                 }
             }
         }
@@ -270,74 +490,6 @@ private struct CartoonBedIllustration: View {
             .aspectRatio(contentMode: .fit)
             .scaleEffect(1.25)
             .clipped()
-    }
-}
-
-// MARK: - AI Scanning Overlay
-
-private struct AIScanningOverlay: View {
-    let isScanning: Bool
-    let isComplete: Bool
-    let scanProgress: CGFloat
-
-    @State private var scanLineOffset: CGFloat = -1
-
-    var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                // Corner brackets (viewfinder style)
-                CornerBrackets(
-                    color: isComplete ? MPColors.success : MPColors.accent,
-                    isComplete: isComplete
-                )
-
-                // Scanning line
-                if isScanning {
-                    Rectangle()
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    MPColors.accent.opacity(0),
-                                    MPColors.accent.opacity(0.8),
-                                    MPColors.accent.opacity(0)
-                                ],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .frame(height: 3)
-                        .offset(y: geometry.size.height * scanLineOffset)
-                }
-
-                // Analysis points
-                if isScanning || isComplete {
-                    AnalysisPoints(isComplete: isComplete, scanProgress: scanProgress)
-                }
-
-                // Pulsing border during scan
-                if isScanning {
-                    RoundedRectangle(cornerRadius: MPRadius.md)
-                        .stroke(MPColors.accent.opacity(0.5), lineWidth: 2)
-                        .scaleEffect(1.0 + scanProgress * 0.03)
-                        .opacity(1.0 - scanProgress * 0.5)
-                }
-            }
-        }
-        .onAppear {
-            if isScanning {
-                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                    scanLineOffset = 1
-                }
-            }
-        }
-        .onChange(of: isScanning) { _, newValue in
-            if newValue {
-                scanLineOffset = -1
-                withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-                    scanLineOffset = 1
-                }
-            }
-        }
     }
 }
 
@@ -390,38 +542,6 @@ private struct CornerBracket: View {
     }
 }
 
-private struct AnalysisPoints: View {
-    let isComplete: Bool
-    let scanProgress: CGFloat
-
-    var body: some View {
-        GeometryReader { geometry in
-            // Small dots at key analysis points
-            ZStack {
-                // Pillow area
-                AnalysisPoint(isComplete: isComplete)
-                    .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.25)
-                    .opacity(scanProgress > 0.3 ? 1 : 0)
-
-                // Blanket center
-                AnalysisPoint(isComplete: isComplete)
-                    .position(x: geometry.size.width * 0.5, y: geometry.size.height * 0.55)
-                    .opacity(scanProgress > 0.5 ? 1 : 0)
-
-                // Left edge
-                AnalysisPoint(isComplete: isComplete)
-                    .position(x: geometry.size.width * 0.25, y: geometry.size.height * 0.6)
-                    .opacity(scanProgress > 0.7 ? 1 : 0)
-
-                // Right edge
-                AnalysisPoint(isComplete: isComplete)
-                    .position(x: geometry.size.width * 0.75, y: geometry.size.height * 0.6)
-                    .opacity(scanProgress > 0.9 ? 1 : 0)
-            }
-        }
-    }
-}
-
 private struct AnalysisPoint: View {
     let isComplete: Bool
 
@@ -451,6 +571,426 @@ private struct AnalysisPoint: View {
                 withAnimation(.none) {
                     isPulsing = false
                 }
+            }
+        }
+    }
+}
+
+// MARK: - Step 10.5: Doom Scrolling Simulator (The "Villain" Reveal)
+
+struct DoomScrollingSimulatorStep: View {
+    let onContinue: () -> Void
+
+    @State private var showPhone = false
+    @State private var isScrolling = true
+    @State private var showLockdown = false
+    @State private var lockSlammed = false
+    @State private var scrollOffset: CGFloat = 0
+    @State private var showMessage = false
+
+    // Simulated social feed items
+    private let feedItems: [(icon: String, color: Color, title: String)] = [
+        ("camera.fill", Color(red: 0.88, green: 0.19, blue: 0.42), "Photos"),
+        ("play.square.fill", .black, "Reels"),
+        ("heart.fill", Color(red: 0.88, green: 0.19, blue: 0.42), "Activity"),
+        ("bubble.left.fill", Color(red: 0.11, green: 0.63, blue: 0.95), "Trending"),
+        ("play.rectangle.fill", .red, "Videos"),
+        ("text.bubble.fill", Color(red: 1.0, green: 0.27, blue: 0.0), "Posts"),
+    ]
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                Text("This Is Stealing\nYour Morning")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .minimumScaleFactor(0.85)
+
+                Text("Instead of starting your routine...")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Phone mockup with doom scrolling → lockdown sequence
+            ZStack {
+                // Phone outer bezel - metallic gradient effect
+                RoundedRectangle(cornerRadius: 44)
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(white: 0.22), Color(white: 0.08), Color(white: 0.15)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 200, height: 430)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 44)
+                            .stroke(
+                                LinearGradient(
+                                    colors: showLockdown
+                                        ? [Color.red.opacity(0.8), Color.red.opacity(0.4)]
+                                        : [Color(white: 0.35), Color(white: 0.15)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                ),
+                                lineWidth: 2
+                            )
+                    )
+                    .mpShadow(.large)
+
+                // Side buttons for realism
+                // Volume buttons (left side)
+                VStack(spacing: 12) {
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(Color(white: 0.25))
+                        .frame(width: 3, height: 25)
+                    RoundedRectangle(cornerRadius: 1)
+                        .fill(Color(white: 0.25))
+                        .frame(width: 3, height: 45)
+                }
+                .offset(x: -99, y: -60)
+
+                // Power button (right side)
+                RoundedRectangle(cornerRadius: 1)
+                    .fill(Color(white: 0.25))
+                    .frame(width: 3, height: 55)
+                    .offset(x: 99, y: -50)
+
+                // Screen content area
+                RoundedRectangle(cornerRadius: 38)
+                    .fill(MPColors.background)
+                    .frame(width: 184, height: 410)
+                    .overlay(
+                        ZStack {
+                            // Scrolling social feed OR locked state
+                            if !showLockdown {
+                                // Doom scrolling feed
+                                DoomScrollFeed(
+                                    feedItems: feedItems,
+                                    scrollOffset: scrollOffset,
+                                    isScrolling: isScrolling
+                                )
+                            }
+
+                            // Morning Proof lockdown overlay
+                            if showLockdown {
+                                LockdownOverlay(
+                                    lockSlammed: lockSlammed,
+                                    showMessage: showMessage
+                                )
+                            }
+
+                            // Dynamic Island at top
+                            VStack {
+                                Capsule()
+                                    .fill(Color.black)
+                                    .frame(width: 85, height: 26)
+                                    .padding(.top, 10)
+                                Spacer()
+                            }
+                        }
+                        .clipShape(RoundedRectangle(cornerRadius: 38))
+                    )
+            }
+            .scaleEffect(showPhone ? 1 : 0.8)
+            .opacity(showPhone ? 1 : 0)
+
+            Spacer().frame(height: MPSpacing.xl)
+
+            // Status message
+            if showMessage {
+                VStack(spacing: MPSpacing.sm) {
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: "shield.lefthalf.filled")
+                            .font(.system(size: 18))
+                            .foregroundColor(MPColors.primary)
+
+                        Text("Morning Proof protects your mornings")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(MPColors.textPrimary)
+                    }
+
+                    Text("Complete your habits first, then scroll")
+                        .font(.system(size: 14))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .padding(.horizontal, MPSpacing.lg)
+                .padding(.vertical, MPSpacing.md)
+                .background(MPColors.surface)
+                .cornerRadius(MPRadius.lg)
+                .mpShadow(.small)
+                .transition(.opacity.combined(with: .move(edge: .bottom)))
+            }
+
+            Spacer()
+
+            MPButton(title: "Stop This Now", style: .primary, icon: "lock.shield.fill") {
+                HapticManager.shared.medium()
+                onContinue()
+            }
+            .padding(.horizontal, MPSpacing.xxxl)
+            .padding(.bottom, 50)
+        }
+        .onAppear {
+            startSequence()
+        }
+    }
+
+    private func startSequence() {
+        // Phase 1: Show phone with scrolling feed
+        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+            showPhone = true
+        }
+
+        // Start scroll animation
+        withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+            scrollOffset = -400
+        }
+
+        // Phase 2: After showing doom scrolling, slam down the lock
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            // Stop scrolling
+            withAnimation(.easeOut(duration: 0.3)) {
+                isScrolling = false
+            }
+
+            // Show lockdown overlay
+            withAnimation(.easeIn(duration: 0.2)) {
+                showLockdown = true
+            }
+
+            // Slam the lock with heavy haptic
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                // HEAVY THUD haptic - the dramatic slam
+                HapticManager.shared.flameSlamImpact()
+
+                withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                    lockSlammed = true
+                }
+            }
+        }
+
+        // Phase 3: Show reassuring message
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3.2) {
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                showMessage = true
+            }
+        }
+    }
+}
+
+// MARK: - Doom Scroll Feed (Simulated Social Media)
+
+private struct DoomScrollFeed: View {
+    let feedItems: [(icon: String, color: Color, title: String)]
+    let scrollOffset: CGFloat
+    let isScrolling: Bool
+
+    var body: some View {
+        VStack(spacing: 0) {
+            // App header bar
+            HStack {
+                Image(systemName: "camera.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Text("Instagram")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Spacer()
+
+                Image(systemName: "paperplane.fill")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textPrimary)
+            }
+            .padding(.horizontal, MPSpacing.sm)
+            .padding(.vertical, 8)
+            .padding(.top, 30) // Space for Dynamic Island
+            .background(MPColors.surface)
+
+            // Scrolling feed
+            GeometryReader { geo in
+                VStack(spacing: MPSpacing.sm) {
+                    ForEach(0..<12, id: \.self) { index in
+                        FeedPostPlaceholder(
+                            item: feedItems[index % feedItems.count],
+                            index: index
+                        )
+                    }
+                }
+                .offset(y: scrollOffset)
+            }
+            .clipped()
+        }
+        .saturation(isScrolling ? 1 : 0.3)
+        .brightness(isScrolling ? 0 : -0.1)
+    }
+}
+
+// MARK: - Feed Post Placeholder
+
+private struct FeedPostPlaceholder: View {
+    let item: (icon: String, color: Color, title: String)
+    let index: Int
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            // User header
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(item.color.opacity(0.3))
+                    .frame(width: 26, height: 26)
+                    .overlay(
+                        Image(systemName: "person.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(item.color)
+                    )
+
+                VStack(alignment: .leading, spacing: 2) {
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(MPColors.textTertiary.opacity(0.3))
+                        .frame(width: 60, height: 8)
+                    RoundedRectangle(cornerRadius: 2)
+                        .fill(MPColors.textTertiary.opacity(0.2))
+                        .frame(width: 40, height: 6)
+                }
+
+                Spacer()
+
+                Image(systemName: "ellipsis")
+                    .font(.system(size: 12))
+                    .foregroundColor(MPColors.textTertiary)
+            }
+            .padding(.horizontal, MPSpacing.sm)
+
+            // Post image placeholder
+            Rectangle()
+                .fill(
+                    LinearGradient(
+                        colors: [item.color.opacity(0.15), item.color.opacity(0.25)],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .frame(height: 140)
+                .overlay(
+                    Image(systemName: item.icon)
+                        .font(.system(size: 32))
+                        .foregroundColor(item.color.opacity(0.4))
+                )
+
+            // Action bar
+            HStack(spacing: MPSpacing.md) {
+                Image(systemName: "heart")
+                Image(systemName: "bubble.right")
+                Image(systemName: "paperplane")
+                Spacer()
+                Image(systemName: "bookmark")
+            }
+            .font(.system(size: 14))
+            .foregroundColor(MPColors.textSecondary)
+            .padding(.horizontal, MPSpacing.sm)
+        }
+    }
+}
+
+// MARK: - Lockdown Overlay
+
+private struct LockdownOverlay: View {
+    let lockSlammed: Bool
+    let showMessage: Bool
+
+    var body: some View {
+        ZStack {
+            // Dark overlay with subtle gradient
+            LinearGradient(
+                colors: [Color.black.opacity(0.9), Color.black.opacity(0.85)],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // Locked content
+            VStack(spacing: 0) {
+                Spacer().frame(height: 50)
+
+                // Lock icon that slams in at top of overlay
+                ZStack {
+                    // Glow effect behind lock
+                    Circle()
+                        .fill(Color.red.opacity(0.3))
+                        .frame(width: 80, height: 80)
+                        .blur(radius: 15)
+
+                    // Lock circle
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [Color.red, Color(red: 0.8, green: 0.1, blue: 0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 56, height: 56)
+                        .shadow(color: .red.opacity(0.5), radius: 10, x: 0, y: 4)
+
+                    Image(systemName: "lock.fill")
+                        .font(.system(size: 26, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                .scaleEffect(lockSlammed ? 1 : 2.5)
+                .opacity(lockSlammed ? 1 : 0)
+
+                Spacer().frame(height: MPSpacing.lg)
+
+                // App locked text
+                VStack(spacing: 6) {
+                    Text("Apps Locked")
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundColor(.white)
+
+                    Text("Complete your routine\nto unlock")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color.white.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                        .lineSpacing(2)
+                }
+                .opacity(lockSlammed ? 1 : 0)
+
+                Spacer()
+
+                // CTA button
+                if lockSlammed {
+                    VStack(spacing: 8) {
+                        RoundedRectangle(cornerRadius: 14)
+                            .fill(MPColors.primary)
+                            .frame(height: 44)
+                            .overlay(
+                                HStack(spacing: 6) {
+                                    Image(systemName: "camera.viewfinder")
+                                        .font(.system(size: 15))
+                                    Text("Open Morning Proof")
+                                        .font(.system(size: 14, weight: .semibold))
+                                }
+                                .foregroundColor(.white)
+                            )
+                            .padding(.horizontal, MPSpacing.md)
+
+                        Text("Verify habits to unlock")
+                            .font(.system(size: 11))
+                            .foregroundColor(Color.white.opacity(0.5))
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                }
+
+                Spacer().frame(height: MPSpacing.lg)
             }
         }
     }
@@ -583,3 +1123,218 @@ struct ObstaclesStep: View {
         }
     }
 }
+
+// MARK: - App Locking Onboarding Step (Screen Time Permission)
+// ============================================================
+// TODO: ENABLE THIS ONCE APPLE APPROVES FAMILY CONTROLS
+// To enable:
+// 1. Change `#if false` to `#if true` below
+// 2. In OnboardingFlowView.swift: uncomment `import FamilyControls`
+// 3. In OnboardingFlowView.swift: add this step to the switch statement
+// 4. In ScreenTimeManager.swift: change `#if false` to `#if true`
+// ============================================================
+
+#if false // DISABLED - Waiting for Family Controls approval
+
+import FamilyControls
+
+struct AppLockingOnboardingStep: View {
+    let onContinue: () -> Void
+
+    @StateObject private var screenTimeManager = ScreenTimeManager.shared
+    @State private var showContent = false
+    @State private var showFeatures = [false, false, false]
+    @State private var isRequesting = false
+    @State private var showError = false
+    @State private var errorMessage = ""
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            VStack(spacing: MPSpacing.xxl) {
+                // Header
+                VStack(spacing: MPSpacing.md) {
+                    // Apple Screen Time icon
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color(red: 0.4, green: 0.5, blue: 1.0), Color(red: 0.6, green: 0.4, blue: 1.0)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+
+                        Image(systemName: "hourglass")
+                            .font(.system(size: 36, weight: .semibold))
+                            .foregroundColor(.white)
+                    }
+                    .opacity(showContent ? 1 : 0)
+                    .scaleEffect(showContent ? 1 : 0.8)
+
+                    Text("Block Distractions")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("We use Apple's Screen Time to keep you focused")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                }
+                .opacity(showContent ? 1 : 0)
+                .offset(y: showContent ? 0 : 15)
+
+                // Feature list
+                VStack(spacing: MPSpacing.md) {
+                    ScreenTimeFeatureRow(
+                        icon: "lock.shield.fill",
+                        title: "Official Apple API",
+                        description: "Secure, private, built into iOS",
+                        isVisible: showFeatures[0]
+                    )
+
+                    ScreenTimeFeatureRow(
+                        icon: "app.badge.checkmark.fill",
+                        title: "You Choose Apps",
+                        description: "Only block what you select",
+                        isVisible: showFeatures[1]
+                    )
+
+                    ScreenTimeFeatureRow(
+                        icon: "sunrise.fill",
+                        title: "Morning Only",
+                        description: "Unlocks when you complete habits",
+                        isVisible: showFeatures[2]
+                    )
+                }
+                .padding(.horizontal, MPSpacing.xl)
+
+                // Privacy note
+                HStack(spacing: MPSpacing.sm) {
+                    Image(systemName: "hand.raised.fill")
+                        .font(.system(size: 14))
+                        .foregroundColor(MPColors.primary)
+                    Text("We never see which apps you use")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .opacity(showFeatures[2] ? 1 : 0)
+            }
+
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                // Error message
+                if showError {
+                    Text(errorMessage)
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.error)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, MPSpacing.xl)
+                }
+
+                // Connect button
+                MPButton(
+                    title: isRequesting ? "Connecting..." : "Connect Screen Time",
+                    style: .primary,
+                    icon: "hourglass",
+                    isDisabled: isRequesting
+                ) {
+                    requestPermission()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+
+                // Skip button
+                Button {
+                    onContinue()
+                } label: {
+                    Text("Skip for now")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .padding(.bottom, 30)
+            }
+            .padding(.bottom, 20)
+        }
+        .onAppear {
+            withAnimation(.easeOut(duration: 0.5)) {
+                showContent = true
+            }
+            for i in 0..<3 {
+                withAnimation(.easeOut(duration: 0.4).delay(0.3 + Double(i) * 0.15)) {
+                    showFeatures[i] = true
+                }
+            }
+        }
+    }
+
+    private func requestPermission() {
+        isRequesting = true
+        showError = false
+
+        Task {
+            do {
+                try await screenTimeManager.requestAuthorization()
+                await MainActor.run {
+                    isRequesting = false
+                    if screenTimeManager.isAuthorized {
+                        onContinue()
+                    } else {
+                        errorMessage = "Permission not granted. You can enable this later in Settings."
+                        showError = true
+                    }
+                }
+            } catch {
+                await MainActor.run {
+                    isRequesting = false
+                    errorMessage = "Something went wrong. You can try again in Settings."
+                    showError = true
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Screen Time Feature Row
+
+private struct ScreenTimeFeatureRow: View {
+    let icon: String
+    let title: String
+    let description: String
+    let isVisible: Bool
+
+    var body: some View {
+        HStack(spacing: MPSpacing.md) {
+            ZStack {
+                Circle()
+                    .fill(MPColors.primaryLight)
+                    .frame(width: 44, height: 44)
+
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(MPColors.primary)
+            }
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text(description)
+                    .font(.system(size: 13))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
+            Spacer()
+        }
+        .padding(MPSpacing.md)
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.md)
+        .opacity(isVisible ? 1 : 0)
+        .offset(x: isVisible ? 0 : -20)
+    }
+}
+
+#endif // End DISABLED - Family Controls

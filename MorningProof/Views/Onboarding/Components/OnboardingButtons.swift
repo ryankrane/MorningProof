@@ -9,7 +9,10 @@ struct OnboardingOptionButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticManager.shared.light()
+            action()
+        }) {
             HStack(spacing: MPSpacing.lg) {
                 ZStack {
                     Circle()
@@ -52,12 +55,19 @@ struct OnboardingGridButton: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticManager.shared.light()
+            action()
+        }) {
             VStack(spacing: MPSpacing.sm) {
                 ZStack {
                     Circle()
-                        .fill(isSelected ? MPColors.primaryLight : MPColors.surfaceSecondary)
+                        .fill(MPColors.surfaceSecondary)
                         .frame(width: 44, height: 44)
+                        .overlay(
+                            Circle()
+                                .stroke(isSelected ? MPColors.primary : Color.clear, lineWidth: 2)
+                        )
 
                     Image(systemName: icon)
                         .font(.system(size: 18))
@@ -65,7 +75,7 @@ struct OnboardingGridButton: View {
                 }
 
                 Text(title)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
@@ -96,13 +106,20 @@ struct OnboardingGridButtonWithBadge: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticManager.shared.light()
+            action()
+        }) {
             VStack(spacing: MPSpacing.sm) {
                 ZStack(alignment: .topTrailing) {
                     ZStack {
                         Circle()
-                            .fill(isSelected ? MPColors.primaryLight : MPColors.surfaceSecondary)
+                            .fill(MPColors.surfaceSecondary)
                             .frame(width: 44, height: 44)
+                            .overlay(
+                                Circle()
+                                    .stroke(isSelected ? MPColors.primary : Color.clear, lineWidth: 2)
+                            )
 
                         Image(systemName: icon)
                             .font(.system(size: 18))
@@ -122,7 +139,7 @@ struct OnboardingGridButtonWithBadge: View {
                 }
 
                 Text(title)
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 14, weight: .medium))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
                     .lineLimit(2)
