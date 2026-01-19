@@ -808,64 +808,137 @@ private struct FeedPostPlaceholder: View {
     let item: (icon: String, color: Color, title: String)
     let index: Int
 
+    // Different "photo" styles for variety
+    private var postGradient: LinearGradient {
+        let gradients: [LinearGradient] = [
+            // Sunset/beach vibes
+            LinearGradient(colors: [Color(red: 0.95, green: 0.6, blue: 0.5), Color(red: 0.9, green: 0.4, blue: 0.3)], startPoint: .top, endPoint: .bottom),
+            // Nature/forest
+            LinearGradient(colors: [Color(red: 0.3, green: 0.5, blue: 0.4), Color(red: 0.2, green: 0.4, blue: 0.35)], startPoint: .topLeading, endPoint: .bottomTrailing),
+            // City/urban blue
+            LinearGradient(colors: [Color(red: 0.4, green: 0.5, blue: 0.65), Color(red: 0.3, green: 0.35, blue: 0.5)], startPoint: .top, endPoint: .bottom),
+            // Food/warm
+            LinearGradient(colors: [Color(red: 0.85, green: 0.7, blue: 0.5), Color(red: 0.75, green: 0.55, blue: 0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+            // Purple vibes
+            LinearGradient(colors: [Color(red: 0.5, green: 0.4, blue: 0.6), Color(red: 0.4, green: 0.3, blue: 0.55)], startPoint: .top, endPoint: .bottom),
+            // Golden hour
+            LinearGradient(colors: [Color(red: 0.9, green: 0.75, blue: 0.5), Color(red: 0.85, green: 0.6, blue: 0.4)], startPoint: .topLeading, endPoint: .bottomTrailing),
+        ]
+        return gradients[index % gradients.count]
+    }
+
+    // Username widths for variety
+    private var usernameWidth: CGFloat {
+        [55, 70, 48, 62, 75, 52][index % 6]
+    }
+
+    // Like counts for variety
+    private var likeCount: String {
+        ["1,247", "892", "3.4k", "567", "2,103", "438"][index % 6]
+    }
+
+    // Caption widths for variety
+    private var captionWidths: (CGFloat, CGFloat) {
+        [(120, 80), (100, 60), (140, 95), (110, 70), (130, 85), (95, 55)][index % 6]
+    }
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 0) {
             // User header
-            HStack(spacing: 6) {
+            HStack(spacing: 8) {
+                // Profile pic with gradient ring (like IG stories)
                 Circle()
-                    .fill(item.color.opacity(0.3))
-                    .frame(width: 26, height: 26)
+                    .strokeBorder(
+                        LinearGradient(
+                            colors: [Color(red: 0.95, green: 0.3, blue: 0.5), Color(red: 1.0, green: 0.6, blue: 0.2)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        lineWidth: 1.5
+                    )
+                    .frame(width: 28, height: 28)
                     .overlay(
-                        Image(systemName: "person.fill")
-                            .font(.system(size: 11))
-                            .foregroundColor(item.color)
+                        Circle()
+                            .fill(Color(white: 0.25))
+                            .frame(width: 24, height: 24)
                     )
 
-                VStack(alignment: .leading, spacing: 2) {
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(MPColors.textTertiary.opacity(0.3))
-                        .frame(width: 60, height: 8)
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(MPColors.textTertiary.opacity(0.2))
-                        .frame(width: 40, height: 6)
-                }
+                // Username placeholder
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.7))
+                    .frame(width: usernameWidth, height: 9)
 
                 Spacer()
 
                 Image(systemName: "ellipsis")
                     .font(.system(size: 12))
-                    .foregroundColor(MPColors.textTertiary)
+                    .foregroundColor(.white.opacity(0.6))
             }
-            .padding(.horizontal, MPSpacing.sm)
+            .padding(.horizontal, 10)
+            .padding(.vertical, 8)
 
-            // Post image placeholder
-            Rectangle()
-                .fill(
-                    LinearGradient(
-                        colors: [item.color.opacity(0.15), item.color.opacity(0.25)],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(height: 140)
-                .overlay(
-                    Image(systemName: item.icon)
-                        .font(.system(size: 32))
-                        .foregroundColor(item.color.opacity(0.4))
-                )
+            // Post image - abstract photo placeholder
+            ZStack {
+                Rectangle()
+                    .fill(postGradient)
+
+                // Abstract shapes to simulate photo content
+                GeometryReader { geo in
+                    // Horizon line or abstract element
+                    Circle()
+                        .fill(Color.white.opacity(0.15))
+                        .frame(width: geo.size.width * 0.3, height: geo.size.width * 0.3)
+                        .offset(x: geo.size.width * 0.1, y: geo.size.height * 0.2)
+
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Color.black.opacity(0.1))
+                        .frame(width: geo.size.width * 0.4, height: geo.size.height * 0.25)
+                        .offset(x: geo.size.width * 0.5, y: geo.size.height * 0.6)
+                }
+            }
+            .frame(height: 150)
 
             // Action bar
-            HStack(spacing: MPSpacing.md) {
+            HStack(spacing: 14) {
                 Image(systemName: "heart")
                 Image(systemName: "bubble.right")
                 Image(systemName: "paperplane")
                 Spacer()
                 Image(systemName: "bookmark")
             }
-            .font(.system(size: 14))
-            .foregroundColor(MPColors.textSecondary)
-            .padding(.horizontal, MPSpacing.sm)
+            .font(.system(size: 16))
+            .foregroundColor(.white)
+            .padding(.horizontal, 10)
+            .padding(.top, 10)
+            .padding(.bottom, 6)
+
+            // Like count
+            Text("\(likeCount) likes")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.white)
+                .padding(.horizontal, 10)
+                .padding(.bottom, 4)
+
+            // Caption placeholder (scribble lines)
+            HStack(spacing: 4) {
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.6))
+                    .frame(width: 45, height: 8)
+                RoundedRectangle(cornerRadius: 2)
+                    .fill(Color.white.opacity(0.4))
+                    .frame(width: captionWidths.0, height: 8)
+            }
+            .padding(.horizontal, 10)
+            .padding(.bottom, 3)
+
+            // Second line of caption
+            RoundedRectangle(cornerRadius: 2)
+                .fill(Color.white.opacity(0.3))
+                .frame(width: captionWidths.1, height: 8)
+                .padding(.horizontal, 10)
+                .padding(.bottom, 10)
         }
+        .background(Color(white: 0.08))
     }
 }
 
