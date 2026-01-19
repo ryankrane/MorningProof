@@ -704,6 +704,9 @@ struct DoomScrollingSimulatorStep: View {
                 HapticManager.shared.medium()
                 onContinue()
             }
+            .disabled(!lockSlammed)
+            .opacity(lockSlammed ? 1 : 0.4)
+            .animation(.easeInOut(duration: 0.3), value: lockSlammed)
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
