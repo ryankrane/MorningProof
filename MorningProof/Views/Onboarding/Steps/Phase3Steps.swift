@@ -6,13 +6,13 @@ import SwiftUI
 
 struct HowItWorksStep: View {
     let onContinue: () -> Void
-    @State private var showSteps = [false, false, false]
+    @State private var showSteps = [false, false, false, false]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: MPSpacing.xxl) {
+            VStack(spacing: MPSpacing.xl) {
                 VStack(spacing: MPSpacing.md) {
                     Text("Morning Proof is different")
                         .font(.system(size: 28, weight: .bold, design: .rounded))
@@ -23,7 +23,7 @@ struct HowItWorksStep: View {
                         .foregroundColor(MPColors.textSecondary)
                 }
 
-                VStack(spacing: MPSpacing.xl) {
+                VStack(spacing: MPSpacing.md) {
                     HowItWorksRow(
                         number: "1",
                         title: "Set your habits",
@@ -34,26 +34,34 @@ struct HowItWorksStep: View {
 
                     HowItWorksRow(
                         number: "2",
-                        title: "Prove them",
-                        description: "AI verifies you actually did it",
-                        icon: "camera.viewfinder",
+                        title: "Lock distractions",
+                        description: "Apps blocked until you're done",
+                        icon: "lock.shield.fill",
                         isVisible: showSteps[1]
                     )
 
                     HowItWorksRow(
                         number: "3",
+                        title: "Prove it",
+                        description: "AI verifies you actually did it",
+                        icon: "camera.viewfinder",
+                        isVisible: showSteps[2]
+                    )
+
+                    HowItWorksRow(
+                        number: "4",
                         title: "Build your streak",
                         description: "Stay consistent, see progress",
                         icon: "flame.fill",
-                        isVisible: showSteps[2]
+                        isVisible: showSteps[3]
                     )
                 }
-                .padding(.horizontal, MPSpacing.xl)
+                .padding(.horizontal, MPSpacing.lg)
 
                 Text("No more lying to yourself")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(MPColors.accent)
-                    .opacity(showSteps[2] ? 1 : 0)
+                    .opacity(showSteps[3] ? 1 : 0)
             }
 
             Spacer()
@@ -65,8 +73,8 @@ struct HowItWorksStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            for i in 0..<3 {
-                withAnimation(.easeOut(duration: 0.5).delay(Double(i) * 0.3)) {
+            for i in 0..<4 {
+                withAnimation(.easeOut(duration: 0.45).delay(Double(i) * 0.25)) {
                     showSteps[i] = true
                 }
             }
@@ -252,7 +260,7 @@ struct AIVerificationShowcaseStep: View {
 
             Spacer()
 
-            MPButton(title: "Love It", style: .primary) {
+            MPButton(title: "Continue", style: .primary) {
                 stopHaptics()
                 onContinue()
             }
@@ -363,9 +371,9 @@ private struct HighTechScanOverlay: View {
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Corner brackets
+                // Corner brackets - use dark color for visibility against purple gradient
                 CornerBrackets(
-                    color: isComplete ? MPColors.success : MPColors.accent,
+                    color: isComplete ? MPColors.success : Color.black.opacity(0.6),
                     isComplete: isComplete
                 )
 
@@ -585,12 +593,12 @@ struct DoomScrollingSimulatorStep: View {
 
     // Simulated social feed items
     private let feedItems: [(icon: String, color: Color, title: String)] = [
-        ("camera.fill", Color(red: 0.88, green: 0.19, blue: 0.42), "Photos"),
+        ("camera.fill", Color(white: 0.35), "Photos"),
         ("play.square.fill", .black, "Reels"),
-        ("heart.fill", Color(red: 0.88, green: 0.19, blue: 0.42), "Activity"),
-        ("bubble.left.fill", Color(red: 0.11, green: 0.63, blue: 0.95), "Trending"),
-        ("play.rectangle.fill", .red, "Videos"),
-        ("text.bubble.fill", Color(red: 1.0, green: 0.27, blue: 0.0), "Posts"),
+        ("heart.fill", Color(white: 0.3), "Activity"),
+        ("bubble.left.fill", Color(white: 0.4), "Trending"),
+        ("play.rectangle.fill", .black, "Videos"),
+        ("text.bubble.fill", Color(white: 0.35), "Posts"),
     ]
 
     var body: some View {
@@ -1024,7 +1032,7 @@ struct DesiredOutcomeStep: View {
                         title: outcome.rawValue,
                         icon: outcome.icon,
                         isSelected: data.desiredOutcomes.contains(outcome),
-                        badge: popularOutcomes.contains(outcome) ? "Popular" : nil
+                        badge: nil
                     ) {
                         if data.desiredOutcomes.contains(outcome) {
                             data.desiredOutcomes.remove(outcome)

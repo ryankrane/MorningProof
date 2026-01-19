@@ -129,32 +129,31 @@ struct ProgressGraphView: View {
     }
 }
 
-/// Before/After comparison card
+/// Before/After comparison card with morphing X-to-checkmark animation
 struct BeforeAfterCard: View {
     let beforeTitle: String
     let beforeItems: [String]
     let afterTitle: String
     let afterItems: [String]
 
-    @State private var showAfter = false
+    @State private var morphProgress: [CGFloat] = []
+    @State private var showCard = false
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
-            // Before
+            // Before side
             VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                // Header with morphing icon
                 HStack(spacing: MPSpacing.xs) {
-                    Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(MPColors.error)
+                    MorphingIcon(progress: morphProgress.isEmpty ? 0 : morphProgress[0])
                     Text(beforeTitle)
                         .font(.system(size: 14, weight: .bold))
                         .foregroundColor(MPColors.textPrimary)
                 }
 
-                ForEach(beforeItems, id: \.self) { item in
+                ForEach(Array(beforeItems.enumerated()), id: \.offset) { index, item in
                     HStack(spacing: MPSpacing.xs) {
-                        Circle()
-                            .fill(MPColors.error.opacity(0.3))
-                            .frame(width: 6, height: 6)
+                        MorphingBullet(progress: morphProgress.count > index + 1 ? morphProgress[index + 1] : 0)
                         Text(item)
                             .font(.system(size: 12))
                             .foregroundColor(MPColors.textSecondary)
@@ -163,15 +162,18 @@ struct BeforeAfterCard: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(MPSpacing.md)
-            .background(MPColors.errorLight.opacity(0.3))
-            .cornerRadius(MPRadius.md)
+            .background(
+                // Background morphs from red to green
+                RoundedRectangle(cornerRadius: MPRadius.md)
+                    .fill(morphingBackgroundColor)
+            )
 
-            // Arrow
+            // Arrow that pulses when morphing starts
             Image(systemName: "arrow.right")
                 .font(.system(size: 16, weight: .bold))
-                .foregroundColor(MPColors.textTertiary)
+                .foregroundColor(morphProgress.first ?? 0 > 0.5 ? MPColors.success : MPColors.textTertiary)
 
-            // After
+            // After side
             VStack(alignment: .leading, spacing: MPSpacing.sm) {
                 HStack(spacing: MPSpacing.xs) {
                     Image(systemName: "checkmark.circle.fill")
@@ -196,14 +198,78 @@ struct BeforeAfterCard: View {
             .padding(MPSpacing.md)
             .background(MPColors.successLight.opacity(0.3))
             .cornerRadius(MPRadius.md)
-            .opacity(showAfter ? 1 : 0)
-            .offset(x: showAfter ? 0 : 20)
+            .opacity(showCard ? 1 : 0)
+            .offset(x: showCard ? 0 : 20)
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5).delay(0.5)) {
-                showAfter = true
+            // Initialize morph progress array (header + each item)
+            morphProgress = Array(repeating: 0, count: beforeItems.count + 1)
+
+            // Show the after card first
+            withAnimation(.easeOut(duration: 0.5).delay(0.3)) {
+                showCard = true
+            }
+
+            // Then start the morphing animation with staggered delays
+            let totalItems = beforeItems.count + 1
+            for i in 0..<totalItems {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(1.0 + Double(i) * 0.25)) {
+                    morphProgress[i] = 1.0
+                }
             }
         }
+    }
+
+    private var morphingBackgroundColor: Color {
+        let avgProgress = morphProgress.isEmpty ? 0 : morphProgress.reduce(0, +) / CGFloat(morphProgress.count)
+        return Color(
+            red: 0.95 - avgProgress * 0.15,
+            green: 0.85 + avgProgress * 0.1,
+            blue: 0.85 + avgProgress * 0.05
+        ).opacity(0.4)
+    }
+}
+
+/// Icon that morphs from X to checkmark
+private struct MorphingIcon: View {
+    let progress: CGFloat
+
+    var body: some View {
+        ZStack {
+            // X icon (fades out and shrinks)
+            Image(systemName: "xmark.circle.fill")
+                .font(.system(size: 18))
+                .foregroundColor(MPColors.error)
+                .opacity(1 - progress)
+                .scaleEffect(1 - progress * 0.3)
+                .rotationEffect(.degrees(Double(-progress) * 180.0))
+
+            // Checkmark icon (fades in and grows)
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 18))
+                .foregroundColor(MPColors.success)
+                .opacity(progress)
+                .scaleEffect(0.7 + progress * 0.3)
+                .rotationEffect(.degrees(Double(1 - progress) * 180.0))
+        }
+    }
+}
+
+/// Bullet that morphs from red to green
+private struct MorphingBullet: View {
+    let progress: CGFloat
+
+    var body: some View {
+        Circle()
+            .fill(
+                Color(
+                    red: 0.9 - progress * 0.5,
+                    green: 0.3 + progress * 0.5,
+                    blue: 0.3
+                ).opacity(0.3 + progress * 0.2)
+            )
+            .frame(width: 6, height: 6)
+            .scaleEffect(1 + progress * 0.3)
     }
 }
 

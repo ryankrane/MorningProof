@@ -33,7 +33,10 @@ struct TestimonialCard: View {
                 .font(.system(size: 17, weight: .medium))
                 .foregroundColor(MPColors.textPrimary)
                 .lineSpacing(6)
-                .fixedSize(horizontal: false, vertical: true)
+                .lineLimit(4)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Spacer(minLength: 0)
 
             // User info row
             HStack(spacing: MPSpacing.md) {
@@ -78,6 +81,7 @@ struct TestimonialCard: View {
             }
         }
         .padding(MPSpacing.xl)
+        .frame(height: 200)
         .background(MPColors.surface)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)
@@ -168,35 +172,35 @@ enum SampleTestimonials {
     static let all: [Testimonial] = [
         Testimonial(
             name: "Nick D.",
-            age: 27,
+            age: 29,
             location: "Denver, CO",
             quote: "The app blocker is a game changer. I literally can't open Instagram until my bed is made. My mornings are mine again.",
             streakDays: 47
         ),
         Testimonial(
             name: "Cindy K.",
-            age: 24,
+            age: 34,
             location: "Montreal, QC",
             quote: "The AI photo verification actually works. No more lying to myself about 'I'll do it later.'",
             streakDays: 83
         ),
         Testimonial(
             name: "Sharon S.",
-            age: 31,
+            age: 24,
             location: "Miami, FL",
             quote: "Locking my apps until I complete my routine was the accountability I needed. 62 days and counting.",
             streakDays: 62
         ),
         Testimonial(
             name: "Jake G.",
-            age: 22,
+            age: 18,
             location: "Parkland, FL",
             quote: "I used to doom scroll for an hour before getting up. Now I snap a photo of my made bed and I'm free to start my day.",
             streakDays: 156
         ),
         Testimonial(
             name: "Josh C.",
-            age: 19,
+            age: 21,
             location: "Pittsburgh, PA",
             quote: "My phone used to control my mornings. Now Morning Proof keeps my distracting apps locked until I earn them back.",
             streakDays: 39
@@ -209,7 +213,7 @@ enum SampleTestimonials {
         VStack(spacing: 16) {
             TestimonialCard(
                 name: "Nick D.",
-                age: 27,
+                age: 29,
                 location: "Denver, CO",
                 quote: "The app blocker is a game changer. I literally can't open Instagram until my bed is made. My mornings are mine again.",
                 streakDays: 47,

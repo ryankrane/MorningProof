@@ -20,7 +20,7 @@ struct GuardrailStep: View {
         ),
         (
             "Require Real Proof",
-            "No more lying to yourself. AI verifies your habits with photo evidence—not just checkboxes.",
+            "No more lying to yourself. AI verifies your habits with photo evidence - not just checkboxes.",
             "camera.viewfinder",
             [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.4, blue: 0.5)]
         ),
@@ -189,16 +189,30 @@ struct GuardrailCard: View {
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.surface)
                 .overlay(
+                    // Subtle gradient border around the card
                     RoundedRectangle(cornerRadius: MPRadius.lg)
                         .stroke(
                             LinearGradient(
-                                colors: [gradient[0].opacity(0.3), Color.clear],
+                                colors: [gradient[0].opacity(0.25), gradient[1].opacity(0.08), Color.clear],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
                             lineWidth: 1
                         )
                 )
+                .overlay(alignment: .leading) {
+                    // Colored accent line on the left
+                    Capsule()
+                        .fill(
+                            LinearGradient(
+                                colors: gradient,
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .frame(width: 3)
+                        .padding(.vertical, 12)
+                }
         )
     }
 }
@@ -616,7 +630,7 @@ struct MilestoneCard: View {
 
 struct TrackingComparisonStep: View {
     let onContinue: () -> Void
-    @State private var showPills = false
+    @State private var showPills = [false, false, false]
 
     var body: some View {
         VStack(spacing: 0) {
@@ -629,7 +643,7 @@ struct TrackingComparisonStep: View {
 
                 StatisticRingCard(
                     percentage: 91,
-                    label: "build lasting routines"
+                    label: "of users stick with it"
                 )
                 .padding(.horizontal, MPSpacing.xxl)
 
@@ -643,15 +657,21 @@ struct TrackingComparisonStep: View {
                         .foregroundColor(MPColors.textTertiary)
                 }
 
-                // Supporting pills
+                // Supporting pills - animate in one by one
                 HStack(spacing: MPSpacing.sm) {
                     StatPillView(value: "10 days", label: "to transform", icon: "bolt.fill")
+                        .opacity(showPills[0] ? 1 : 0)
+                        .offset(y: showPills[0] ? 0 : 15)
+
                     StatPillView(value: "35 days", label: "avg streak", icon: "flame.fill")
+                        .opacity(showPills[1] ? 1 : 0)
+                        .offset(y: showPills[1] ? 0 : 15)
+
                     StatPillView(value: "96%", label: "recommend it", icon: "hand.thumbsup.fill")
+                        .opacity(showPills[2] ? 1 : 0)
+                        .offset(y: showPills[2] ? 0 : 15)
                 }
                 .padding(.horizontal, MPSpacing.lg)
-                .opacity(showPills ? 1 : 0)
-                .offset(y: showPills ? 0 : 10)
             }
 
             Spacer()
@@ -663,8 +683,11 @@ struct TrackingComparisonStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(1.5)) {
-                showPills = true
+            // Stagger the pill animations
+            for i in 0..<3 {
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(1.5 + Double(i) * 0.15)) {
+                    showPills[i] = true
+                }
             }
         }
     }

@@ -40,7 +40,7 @@ struct PermissionsStep: View {
                     icon: "heart.fill",
                     iconColor: MPColors.error,
                     title: "Apple Health",
-                    description: "Skip manual check-ins—we pull your data automatically",
+                    description: "Skip manual check-ins - we pull your data automatically",
                     isEnabled: data.healthConnected,
                     isLoading: isRequestingHealth
                 ) {
@@ -198,64 +198,63 @@ struct PermissionCard: View {
 struct OptionalRatingStep: View {
     let onContinue: () -> Void
     @State private var hasRequestedReview = false
+    @State private var starsVisible = [false, false, false, false, false]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            ZStack {
-                Circle()
-                    .fill(MPColors.accentLight)
-                    .frame(width: 100, height: 100)
-
-                Image(systemName: "heart.fill")
-                    .font(.system(size: 44))
-                    .foregroundColor(MPColors.accent)
-            }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            VStack(spacing: MPSpacing.md) {
-                Text("Help us grow")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text("Your rating helps others\ndiscover Morning Proof")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            HStack(spacing: MPSpacing.sm) {
-                ForEach(0..<5, id: \.self) { _ in
+            // Stars as hero visual
+            HStack(spacing: 12) {
+                ForEach(0..<5, id: \.self) { index in
                     Image(systemName: "star.fill")
-                        .font(.system(size: 32))
+                        .font(.system(size: 44))
                         .foregroundColor(MPColors.accentGold)
+                        .opacity(starsVisible[index] ? 1 : 0)
+                        .scaleEffect(starsVisible[index] ? 1 : 0.5)
                 }
             }
             .onTapGesture {
                 requestReview()
             }
 
+            Spacer().frame(height: MPSpacing.xxl)
+
+            VStack(spacing: MPSpacing.sm) {
+                Text("Enjoying the app?")
+                    .font(.system(size: 26, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Your rating helps others find us")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                MPButton(title: "Rate Morning Proof", style: .primary, icon: "star.fill") {
+                MPButton(title: "Leave a Rating", style: .primary) {
                     requestReview()
                 }
 
                 Button {
                     onContinue()
                 } label: {
-                    Text("Maybe later")
-                        .font(.system(size: 15))
+                    Text("Skip")
+                        .font(.system(size: 15, weight: .medium))
                         .foregroundColor(MPColors.textTertiary)
                 }
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
+        }
+        .onAppear {
+            // Animate stars in one by one
+            for i in 0..<5 {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(Double(i) * 0.1)) {
+                    starsVisible[i] = true
+                }
+            }
         }
     }
 
@@ -277,107 +276,105 @@ struct AnalyzingStep: View {
     let onComplete: () -> Void
 
     @State private var progress: CGFloat = 0
+    @State private var displayedProgress: Int = 0
     @State private var currentPhase = 0
     @State private var completedSteps: Set<Int> = []
-    @State private var rotationAngle: Double = 0
-    @State private var glowOpacity: Double = 0.3
+    @State private var showContent = false
+    @State private var isComplete = false
 
     private var userName: String { data.userName }
 
-    private var phases: [(title: String, icon: String)] {
-        let struggleCount = data.morningStruggles.count
-        let goalCount = data.desiredOutcomes.count
-        let obstacleCount = data.obstacles.count
-
-        return [
-            (title: struggleCount > 0 ? "Analyzing \(struggleCount) morning challenge\(struggleCount == 1 ? "" : "s")" : "Analyzing your responses", icon: "doc.text.magnifyingglass"),
-            (title: obstacleCount > 0 ? "Finding solutions for \(obstacleCount) obstacle\(obstacleCount == 1 ? "" : "s")" : "Identifying your patterns", icon: "brain.head.profile"),
-            (title: goalCount > 0 ? "Matching habits to \(goalCount) goal\(goalCount == 1 ? "" : "s")" : "Selecting optimal habits", icon: "target"),
-            (title: "Building your personalized routine", icon: "checkmark.seal")
-        ]
-    }
+    private let phases: [(title: String, icon: String)] = [
+        (title: "Analyzing your responses", icon: "magnifyingglass"),
+        (title: "Identifying patterns", icon: "brain.head.profile"),
+        (title: "Selecting habits", icon: "target"),
+        (title: "Finalizing your plan", icon: "checkmark.seal.fill")
+    ]
 
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
 
-            VStack(spacing: MPSpacing.sm) {
-                Text("Building Your Battle Plan")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+            // Simple filling circle
+            ZStack {
+                // Background circle
+                Circle()
+                    .fill(MPColors.progressBg)
+                    .frame(width: 180, height: 180)
+
+                // Filling progress circle
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .fill(
+                        AngularGradient(
+                            colors: [MPColors.primary.opacity(0.7), MPColors.primary, MPColors.accent],
+                            center: .center,
+                            startAngle: .degrees(-90),
+                            endAngle: .degrees(270)
+                        )
+                    )
+                    .frame(width: 180, height: 180)
+                    .rotationEffect(.degrees(-90))
+
+                // Progress ring stroke (track)
+                Circle()
+                    .stroke(MPColors.progressBg, lineWidth: 14)
+                    .frame(width: 180, height: 180)
+
+                // Progress ring stroke (filled)
+                Circle()
+                    .trim(from: 0, to: progress)
+                    .stroke(
+                        LinearGradient(
+                            colors: [MPColors.primary, MPColors.accent],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        ),
+                        style: StrokeStyle(lineWidth: 14, lineCap: .round)
+                    )
+                    .frame(width: 180, height: 180)
+                    .rotationEffect(.degrees(-90))
+                    .shadow(color: MPColors.primary.opacity(0.5), radius: 8, x: 0, y: 0)
+
+                // Center content - shows percentage or checkmark when complete
+                if isComplete {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 48, weight: .bold))
+                        .foregroundColor(.white)
+                        .transition(.scale.combined(with: .opacity))
+                } else {
+                    VStack(spacing: 2) {
+                        Text("\(displayedProgress)%")
+                            .font(.system(size: 40, weight: .bold, design: .rounded))
+                            .foregroundColor(.white)
+                            .contentTransition(.numericText())
+                    }
+                }
+            }
+            .opacity(showContent ? 1 : 0)
+            .scaleEffect(showContent ? 1 : 0.8)
+
+            Spacer().frame(height: MPSpacing.xxl)
+
+            // Title
+            VStack(spacing: MPSpacing.xs) {
+                Text("Building Your Plan")
+                    .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
 
                 if !userName.isEmpty {
-                    Text("Almost there, \(userName)")
+                    Text("Hang tight, \(userName)")
                         .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                 }
             }
+            .opacity(showContent ? 1 : 0)
+            .offset(y: showContent ? 0 : 10)
 
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            // Progress circle with enhanced animation
-            ZStack {
-                // Outer glow
-                Circle()
-                    .fill(
-                        RadialGradient(
-                            colors: [MPColors.accent.opacity(glowOpacity), MPColors.accent.opacity(0)],
-                            center: .center,
-                            startRadius: 50,
-                            endRadius: 90
-                        )
-                    )
-                    .frame(width: 180, height: 180)
-
-                // Rotating dashed outer ring
-                Circle()
-                    .stroke(MPColors.accent.opacity(0.3), style: StrokeStyle(lineWidth: 2, dash: [4, 8]))
-                    .frame(width: 150, height: 150)
-                    .rotationEffect(.degrees(rotationAngle))
-
-                // Rotating dashed inner accent ring
-                Circle()
-                    .stroke(MPColors.primary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [2, 6]))
-                    .frame(width: 130, height: 130)
-                    .rotationEffect(.degrees(-rotationAngle * 0.7))
-
-                // Background track
-                Circle()
-                    .stroke(MPColors.progressBg, lineWidth: 10)
-                    .frame(width: 110, height: 110)
-
-                // Progress ring
-                Circle()
-                    .trim(from: 0, to: progress)
-                    .stroke(
-                        AngularGradient(
-                            colors: [MPColors.primary, MPColors.accent, MPColors.primary],
-                            center: .center,
-                            startAngle: .degrees(0),
-                            endAngle: .degrees(360)
-                        ),
-                        style: StrokeStyle(lineWidth: 10, lineCap: .round)
-                    )
-                    .frame(width: 110, height: 110)
-                    .rotationEffect(.degrees(-90))
-                    .shadow(color: MPColors.accent.opacity(0.5), radius: 8, x: 0, y: 0)
-
-                // Percentage text
-                VStack(spacing: 2) {
-                    Text("\(Int(progress * 100))")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-                        .contentTransition(.numericText())
-                    Text("%")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-            }
-
-            Spacer().frame(height: MPSpacing.xxxl)
+            Spacer().frame(height: MPSpacing.xxl)
 
             // Phase checklist
-            VStack(spacing: MPSpacing.md) {
+            VStack(spacing: MPSpacing.sm) {
                 ForEach(0..<phases.count, id: \.self) { index in
                     AnalyzingPhaseRow(
                         title: phases[index].title,
@@ -385,53 +382,47 @@ struct AnalyzingStep: View {
                         isActive: currentPhase == index,
                         isCompleted: completedSteps.contains(index)
                     )
+                    .opacity(showContent ? 1 : 0)
+                    .offset(x: showContent ? 0 : -20)
+                    .animation(.easeOut(duration: 0.4).delay(0.1 + Double(index) * 0.1), value: showContent)
                 }
             }
-            .padding(.horizontal, MPSpacing.xl)
+            .padding(.horizontal, MPSpacing.xxl)
 
             Spacer()
         }
         .onAppear {
+            withAnimation(.easeOut(duration: 0.5)) {
+                showContent = true
+            }
             startLoading()
         }
     }
 
     private func startLoading() {
-        // Start continuous rotation
-        withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
-            rotationAngle = 360
-        }
-
-        // Pulse the glow
-        withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
-            glowOpacity = 0.6
-        }
-
-        // Smooth micro-progress animation that looks like real processing
         startSmoothProgress()
     }
 
     private func startSmoothProgress() {
         let phaseCount = phases.count
+        let totalDuration: Double = 5.0
 
-        // PHASE 1: Realistic processing feel (0% to 70% in ~4 seconds)
-        let phase1Increments: [(delay: Double, progress: Double)] = [
-            (0.0, 0.02), (0.12, 0.05), (0.28, 0.08), (0.35, 0.11),
-            (0.42, 0.14), (0.65, 0.17), (0.80, 0.21), (0.95, 0.24),
-            (1.05, 0.28), (1.30, 0.31), (1.55, 0.35), (1.70, 0.38),
-            (1.82, 0.42), (1.90, 0.45), (2.20, 0.48), (2.45, 0.51),
-            (2.60, 0.54), (2.80, 0.57), (3.10, 0.60), (3.35, 0.62),
-            (3.50, 0.64), (3.58, 0.66), (3.65, 0.68), (3.90, 0.70),
-        ]
+        // Smooth progress from 0 to 100%
+        let steps = 100
+        for step in 0...steps {
+            let delay = totalDuration * Double(step) / Double(steps)
+            let progressValue = Double(step) / Double(steps)
 
-        for increment in phase1Increments {
-            DispatchQueue.main.asyncAfter(deadline: .now() + increment.delay) {
-                withAnimation(.easeOut(duration: 0.1)) {
-                    progress = CGFloat(increment.progress)
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.linear(duration: totalDuration / Double(steps))) {
+                    progress = CGFloat(progressValue)
+                    displayedProgress = step
                 }
 
-                let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
+                // Update phase based on progress
+                let phaseIndex = min(Int(progressValue * Double(phaseCount)), phaseCount - 1)
                 if phaseIndex != currentPhase {
+                    HapticManager.shared.light()
                     withAnimation(.easeInOut(duration: 0.3)) {
                         if currentPhase >= 0 {
                             _ = completedSteps.insert(currentPhase)
@@ -442,58 +433,17 @@ struct AnalyzingStep: View {
             }
         }
 
-        // PHASE 2: Sporadic progress (70% to 93% in ~2 seconds)
-        let phase2Start: Double = 4.0
-        let sporadicIncrements: [(delay: Double, progress: Double)] = [
-            (0.0, 0.72), (0.15, 0.74), (0.35, 0.76), (0.50, 0.78),
-            (0.55, 0.79), (0.70, 0.81), (0.95, 0.83), (1.10, 0.85),
-            (1.20, 0.86), (1.35, 0.88), (1.55, 0.89), (1.70, 0.91),
-            (1.85, 0.92), (2.00, 0.93),
-        ]
-
-        for increment in sporadicIncrements {
-            DispatchQueue.main.asyncAfter(deadline: .now() + phase2Start + increment.delay) {
-                withAnimation(.easeOut(duration: 0.12)) {
-                    progress = CGFloat(increment.progress)
-                }
-
-                let phaseIndex = min(Int(increment.progress * Double(phaseCount)), phaseCount - 1)
-                if phaseIndex != currentPhase {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        if currentPhase >= 0 {
-                            _ = completedSteps.insert(currentPhase)
-                        }
-                        currentPhase = phaseIndex
-                    }
-                }
-            }
-        }
-
-        // PHASE 3: Sporadic crawl (93% to 100% in ~3 seconds)
-        let phase3Start: Double = 6.0
-        let phase3Duration: Double = 3.0
-        let crawlSteps: [(delay: Double, progress: Double)] = [
-            (0.0, 0.93), (0.6, 0.94), (0.9, 0.95), (1.5, 0.96),
-            (1.7, 0.97), (1.85, 0.98), (2.5, 0.99), (2.8, 1.00),
-        ]
-
-        for step in crawlSteps {
-            DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + step.delay) {
-                withAnimation(.easeOut(duration: 0.35)) {
-                    progress = CGFloat(step.progress)
-                }
-            }
-        }
-
-        // Complete final phase
-        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + phase3Duration) {
-            withAnimation(.easeInOut(duration: 0.3)) {
+        // Show completion state
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.1) {
+            HapticManager.shared.success()
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                isComplete = true
                 _ = completedSteps.insert(phaseCount - 1)
             }
         }
 
         // Transition to next screen
-        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + phase3Duration + 0.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + totalDuration + 0.8) {
             onComplete()
         }
     }

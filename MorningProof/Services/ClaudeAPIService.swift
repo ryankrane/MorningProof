@@ -72,7 +72,7 @@ actor ClaudeAPIService {
 
         let requestBody: [String: Any] = [
             "model": "claude-3-haiku-20240307",
-            "max_tokens": 256,
+            "max_tokens": 512,
             "messages": [
                 [
                     "role": "user",
@@ -88,19 +88,65 @@ actor ClaudeAPIService {
                         [
                             "type": "text",
                             "text": """
-                            TASK: Verify if this photo shows a MADE BED.
+                            ROLE: You are a STRICT bed inspection AI. Users want honest, exacting feedback.
 
-                            STEP 1 - CRITICAL: First, check if this photo actually contains a bed.
-                            A bed must have: a mattress, bedding (sheets/blankets/comforter), and typically a headboard or bed frame.
-                            If you do NOT see a bed in this photo, respond with is_made: false and feedback explaining no bed was found.
-                            Furniture like couches, chairs, bookcases, desks, or other non-bed items do NOT count.
+                            TASK: Score this bed photo using the EXACT rubric below.
 
-                            STEP 2 - Only if a bed IS present: Check if it's made.
-                            Pass if: Covers/blankets are pulled up and the bed looks roughly tidy. Wrinkles are fine.
-                            Fail if: Sheets are bunched/messy, mattress is exposed, or no attempt was made to make it.
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 1: VERIFY THIS IS A BED
+                            ═══════════════════════════════════════════════════════════════
+                            A bed MUST have: mattress + bedding. If NO BED visible: score = 0, is_made = false.
+                            Couches, chairs, floors = NOT A BED.
 
-                            Respond ONLY with valid JSON:
-                            {"is_made": boolean, "feedback": "brief message"}
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 2: SCORE EACH CRITERION (0-25 points each)
+                            ═══════════════════════════════════════════════════════════════
+
+                            DUVET/COMFORTER SMOOTHNESS (0-25):
+                              25: Perfectly smooth, hotel-quality
+                              20: Mostly smooth with 1-2 minor creases
+                              15: Some wrinkles but clearly pulled up
+                              10: Multiple wrinkles, hastily done
+                              5:  Bunched, twisted, or half-pulled
+                              0:  Not pulled up, mattress exposed
+
+                            PILLOW ALIGNMENT (0-25):
+                              25: Perfectly centered, fluffed, symmetrical
+                              20: In place, minor asymmetry
+                              15: Roughly positioned
+                              10: Askew or not fluffed
+                              5:  Scattered or partially visible
+                              0:  No pillows visible OR completely disorganized
+
+                            EDGES TUCKED (0-25):
+                              25: All edges tight, military-corner quality
+                              20: Tucked, minor looseness
+                              15: Most edges covered, some gaps
+                              10: Hanging or uneven
+                              5:  Significant mattress visible
+                              0:  Not tucked at all
+
+                            OVERALL TIDINESS (0-25):
+                              25: Magazine-quality
+                              20: Very neat, minor imperfections
+                              15: Acceptable, clear effort
+                              10: Messy but functional attempt
+                              5:  Minimal effort visible
+                              0:  No attempt made
+
+                            ═══════════════════════════════════════════════════════════════
+                            STEP 3: CALCULATE AND RESPOND
+                            ═══════════════════════════════════════════════════════════════
+                            - Total score = sum of all four criteria (0-100)
+                            - is_made = true ONLY if score >= 65
+                            - Feedback should be SPECIFIC and PERSONALITY-DRIVEN based on score tier:
+                              * Score >= 85: Celebrate with energy ("Pristine! That's hotel-worthy!")
+                              * Score 65-84: Acknowledge success, maybe a tip ("Solid work! Those corners could be tighter next time.")
+                              * Score 40-64: Specific actionable fix ("That duvet looks like a crumpled napkin. Smooth it from the corners!")
+                              * Score < 40: Playful challenge ("Is that a bed or a laundry pile? Show me what you've got!")
+
+                            Respond ONLY with valid JSON (score is for your internal use, do not include in response):
+                            {"is_made": boolean, "feedback": "specific message based on score tier"}
                             """
                         ]
                     ]
@@ -410,28 +456,61 @@ actor ClaudeAPIService {
         // Build the prompt based on user's AI instructions
         let userCriteria = customHabit.aiPrompt ?? "Verify that this habit has been completed."
         let prompt = """
-            TASK: Verify this photo for a custom morning habit.
+            ROLE: You are a STRICT habit verification AI. Users want honest, exacting feedback.
 
-            Habit name: \(customHabit.name)
+            TASK: Verify this photo for the custom habit "\(customHabit.name)" using the user's criteria.
+
             User's verification criteria: \(userCriteria)
 
-            STEP 1 - CRITICAL: Determine if this photo is RELEVANT to the habit "\(customHabit.name)".
-            The photo must show something clearly related to the habit being verified.
-            If the photo appears completely unrelated to "\(customHabit.name)" (random object, different activity, blank/unclear image), respond with is_verified: false.
+            ═══════════════════════════════════════════════════════════════
+            STEP 1: VERIFY PHOTO RELEVANCE
+            ═══════════════════════════════════════════════════════════════
+            - Photo MUST show something clearly related to "\(customHabit.name)"
+            - If completely unrelated (random object, blank, wrong activity): score = 0
 
-            STEP 2 - If the photo IS relevant: Check against the user's criteria.
-            Pass if: The photo shows reasonable evidence matching the verification criteria. Be moderately generous - the intent should be clear even if execution isn't perfect.
-            Fail if: The photo doesn't demonstrate the habit, contradicts the criteria, or shows no genuine attempt.
+            ═══════════════════════════════════════════════════════════════
+            STEP 2: SCORE THE PHOTO (0-100 points)
+            ═══════════════════════════════════════════════════════════════
 
-            Important: If the user's criteria is vague or impossible to verify from a photo, use your judgment based on whether the photo plausibly relates to "\(customHabit.name)".
+            RELEVANCE TO HABIT (0-40):
+              40: Perfectly captures the habit being done
+              30: Clearly shows the habit activity
+              20: Related but indirect evidence
+              10: Loosely connected
+              0:  Completely unrelated
+
+            CRITERIA MATCH (0-40):
+              40: Fully meets user's verification criteria
+              30: Mostly meets criteria with minor gaps
+              20: Partially meets criteria
+              10: Barely addresses criteria
+              0:  Doesn't match criteria at all
+
+            CLARITY & EFFORT (0-20):
+              20: Clear photo, obvious effort made
+              15: Reasonably clear
+              10: Somewhat unclear but acceptable
+              5:  Poor quality but discernible
+              0:  Cannot determine what's shown
+
+            ═══════════════════════════════════════════════════════════════
+            STEP 3: CALCULATE AND RESPOND
+            ═══════════════════════════════════════════════════════════════
+            - Total score = sum of all criteria (0-100)
+            - is_verified = true ONLY if score >= 65
+            - Feedback should be SPECIFIC based on score tier:
+              * Score >= 85: "Perfect! That's exactly what I'm looking for!"
+              * Score 65-84: Acknowledge completion with encouragement
+              * Score 40-64: Specific feedback on what's missing
+              * Score < 40: Explain what would count as valid proof
 
             Respond ONLY with valid JSON:
-            {"is_verified": boolean, "feedback": "brief message"}
+            {"is_verified": boolean, "feedback": "specific message"}
             """
 
         let requestBody: [String: Any] = [
             "model": "claude-3-haiku-20240307",
-            "max_tokens": 256,
+            "max_tokens": 512,
             "messages": [
                 [
                     "role": "user",

@@ -94,10 +94,17 @@ The Screen Time (Family Controls) feature is temporarily disabled while waiting 
 1. **project.yml**: Uncomment the extension targets and `family-controls` entitlement (search for "TEMPORARILY DISABLED")
 2. **ScreenTimeManager.swift**: Change `#if false` to `#if true` at the top
 3. **AppLockingSettingsView.swift**: Change `#if false` to `#if true` at the top
-4. **OnboardingFlowView.swift**: Uncomment `import FamilyControls` and change `#if false` to `#if true` for `AppLockingOnboardingStep`
-5. **MorningProofSettingsView.swift**: Uncomment `appLockingSection` in the body
-6. **MorningProofManager.swift**: Uncomment `checkForEmergencyUnlock()` and `ensureShieldsAppliedIfNeeded()` calls
-7. Run `xcodegen generate` to regenerate the project
+4. **DistractionSelectionView.swift**: Change `#if false` to `#if true` at the top (enables real app picker)
+5. **Phase3Steps.swift**: Change `#if false` to `#if true` for `AppLockingOnboardingStep` (near bottom of file)
+6. **OnboardingFlowView.swift**:
+   - Uncomment `import FamilyControls`
+   - Uncomment `case 5: AppLockingOnboardingStep(onContinue: nextStep)` (comes after DistractionSelectionStep)
+   - Increment all case numbers below it by 1
+   - Update `totalSteps` from 18 to 19
+7. **Phase4Steps.swift (PermissionsStep)**: Remove the "App Locking" PermissionCard (we already ask on the dedicated step)
+8. **MorningProofSettingsView.swift**: Uncomment `appLockingSection` in the body
+9. **MorningProofManager.swift**: Uncomment `checkForEmergencyUnlock()` and `ensureShieldsAppliedIfNeeded()` calls
+10. Run `xcodegen generate` to regenerate the project
 
 ## Paywall
 The app uses Superwall for the paywall. The paywall shows for all users (TestFlight and App Store). TestFlight testers can use sandbox accounts to test purchases without real charges.

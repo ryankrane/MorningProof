@@ -482,6 +482,15 @@ struct DistractionSelectionView: View {
     @State private var showHeader = false
     @State private var showSubtext = false
 
+    // Locking animation states
+    @State private var isLocking = false
+    @State private var lockingApps: [DistractionType] = []
+    @State private var currentLockIndex = 0
+    @State private var showLockComplete = false
+    @State private var shieldScale: CGFloat = 0.5
+    @State private var shieldOpacity: Double = 0
+    @State private var lockPulse: CGFloat = 1.0
+
     private let columns = [
         GridItem(.flexible(), spacing: MPSpacing.md),
         GridItem(.flexible(), spacing: MPSpacing.md),
@@ -563,7 +572,7 @@ struct DistractionSelectionView: View {
                         // Active state with count
                         Button(action: {
                             HapticManager.shared.medium()
-                            onContinue(selectedDistractions)
+                            startLockingAnimation()
                         }) {
                             HStack(spacing: MPSpacing.sm) {
                                 Image(systemName: "lock.fill")
@@ -598,6 +607,19 @@ struct DistractionSelectionView: View {
             }
         }
         .background(MPColors.background)
+        .overlay {
+            // Locking animation overlay
+            if isLocking {
+                LockingOverlayView(
+                    apps: lockingApps,
+                    currentIndex: currentLockIndex,
+                    showComplete: showLockComplete,
+                    shieldScale: shieldScale,
+                    shieldOpacity: shieldOpacity,
+                    lockPulse: lockPulse
+                )
+            }
+        }
         .onAppear {
             withAnimation(.easeOut(duration: 0.5)) {
                 showHeader = true
@@ -614,6 +636,215 @@ struct DistractionSelectionView: View {
         } else {
             selectedDistractions.insert(distraction)
         }
+    }
+
+    private func startLockingAnimation() {
+        // Prepare the apps list
+        lockingApps = Array(selectedDistractions)
+        currentLockIndex = 0
+        showLockComplete = false
+        shieldScale = 0.5
+        shieldOpacity = 0
+        lockPulse = 1.0
+
+        // Show the overlay
+        withAnimation(.easeOut(duration: 0.3)) {
+            isLocking = true
+            shieldOpacity = 1
+        }
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.6)) {
+            shieldScale = 1.0
+        }
+
+        // Animate through each app
+        let delayPerApp = 0.5
+        for index in 0..<lockingApps.count {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4 + Double(index) * delayPerApp) {
+                withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                    currentLockIndex = index + 1
+                }
+                HapticManager.shared.light()
+            }
+        }
+
+        // Show completion after all apps locked
+        let completionDelay = 0.4 + Double(lockingApps.count) * delayPerApp + 0.3
+        DispatchQueue.main.asyncAfter(deadline: .now() + completionDelay) {
+            HapticManager.shared.success()
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
+                showLockComplete = true
+            }
+            // Pulse the shield
+            withAnimation(.easeInOut(duration: 0.3)) {
+                lockPulse = 1.15
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    lockPulse = 1.0
+                }
+            }
+        }
+
+        // Continue to next screen
+        DispatchQueue.main.asyncAfter(deadline: .now() + completionDelay + 0.8) {
+            onContinue(selectedDistractions)
+        }
+    }
+}
+
+// MARK: - Locking Overlay View
+
+private struct LockingOverlayView: View {
+    let apps: [DistractionType]
+    let currentIndex: Int
+    let showComplete: Bool
+    let shieldScale: CGFloat
+    let shieldOpacity: Double
+    let lockPulse: CGFloat
+
+    var body: some View {
+        ZStack {
+            // Background blur
+            Rectangle()
+                .fill(.ultraThinMaterial)
+                .ignoresSafeArea()
+
+            // Dark overlay
+            Color.black.opacity(0.4)
+                .ignoresSafeArea()
+
+            VStack(spacing: MPSpacing.xxl) {
+                Spacer()
+
+                // Shield icon with glow
+                ZStack {
+                    // Outer glow
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    showComplete ? Color.green.opacity(0.4) : Color.orange.opacity(0.4),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 0,
+                                endRadius: 80
+                            )
+                        )
+                        .frame(width: 160, height: 160)
+                        .scaleEffect(lockPulse)
+
+                    // Inner glow ring
+                    Circle()
+                        .stroke(
+                            showComplete ? Color.green.opacity(0.3) : Color.orange.opacity(0.3),
+                            lineWidth: 2
+                        )
+                        .frame(width: 100, height: 100)
+                        .scaleEffect(lockPulse * 1.1)
+
+                    // Shield background
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: showComplete
+                                    ? [Color(red: 0.2, green: 0.8, blue: 0.4), Color(red: 0.1, green: 0.6, blue: 0.3)]
+                                    : [Color(red: 1.0, green: 0.5, blue: 0.2), Color(red: 0.95, green: 0.3, blue: 0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 88, height: 88)
+                        .shadow(color: showComplete ? .green.opacity(0.5) : .orange.opacity(0.5), radius: 20, x: 0, y: 8)
+
+                    // Lock/Check icon
+                    Image(systemName: showComplete ? "checkmark" : "lock.fill")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.white)
+                        .contentTransition(.symbolEffect(.replace))
+                }
+                .scaleEffect(shieldScale)
+
+                // Status text
+                VStack(spacing: MPSpacing.sm) {
+                    Text(showComplete ? "Apps Locked!" : "Locking Apps...")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                        .contentTransition(.numericText())
+
+                    if !showComplete {
+                        Text("\(currentIndex) of \(apps.count)")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(.white.opacity(0.7))
+                    }
+                }
+
+                // App icons being locked
+                if !apps.isEmpty {
+                    HStack(spacing: -8) {
+                        ForEach(Array(apps.prefix(6).enumerated()), id: \.element.id) { index, app in
+                            ZStack {
+                                // App icon
+                                Circle()
+                                    .fill(app.color.opacity(0.2))
+                                    .frame(width: 44, height: 44)
+                                    .overlay(
+                                        Circle()
+                                            .stroke(app.color.opacity(0.4), lineWidth: 1.5)
+                                    )
+
+                                Image(systemName: app.icon)
+                                    .font(.system(size: 18))
+                                    .foregroundColor(app.color)
+
+                                // Lock overlay when locked
+                                if index < currentIndex {
+                                    Circle()
+                                        .fill(Color.black.opacity(0.6))
+                                        .frame(width: 44, height: 44)
+
+                                    Image(systemName: "lock.fill")
+                                        .font(.system(size: 14, weight: .semibold))
+                                        .foregroundColor(.white)
+                                        .transition(.scale.combined(with: .opacity))
+                                }
+                            }
+                            .zIndex(Double(apps.count - index))
+                        }
+
+                        // Show "+X more" if more than 6 apps
+                        if apps.count > 6 {
+                            Circle()
+                                .fill(MPColors.surface)
+                                .frame(width: 44, height: 44)
+                                .overlay(
+                                    Text("+\(apps.count - 6)")
+                                        .font(.system(size: 13, weight: .bold))
+                                        .foregroundColor(MPColors.textSecondary)
+                                )
+                        }
+                    }
+                    .padding(.top, MPSpacing.md)
+                }
+
+                Spacer()
+
+                // Saving indicator at bottom
+                if !showComplete {
+                    HStack(spacing: 8) {
+                        ProgressView()
+                            .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.5)))
+                            .scaleEffect(0.8)
+
+                        Text("Saving your preferences...")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.6))
+                    }
+                    .padding(.bottom, 60)
+                }
+            }
+        }
+        .opacity(shieldOpacity)
     }
 }
 

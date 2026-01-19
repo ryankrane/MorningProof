@@ -70,6 +70,8 @@ struct MPButton: View {
                     }
                     Text(title)
                         .font(size.font)
+                        .contentTransition(.opacity)
+                        .animation(.easeInOut(duration: 0.2), value: title)
                 }
             }
             .foregroundColor(foregroundColor)
