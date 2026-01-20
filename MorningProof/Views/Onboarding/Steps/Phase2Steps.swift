@@ -1091,6 +1091,236 @@ private struct PostImage: View {
     }
 }
 
+// MARK: - Profile Pic Image (Mini themed clipart for 18x18 profile pictures)
+
+private struct ProfilePicImage: View {
+    let type: PostImageType
+
+    var body: some View {
+        GeometryReader { geo in
+            let size = min(geo.size.width, geo.size.height)
+            ZStack {
+                switch type {
+                case .sunset:
+                    // Orange/pink gradient with small sun
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.95, green: 0.5, blue: 0.3),
+                            Color(red: 0.95, green: 0.4, blue: 0.5)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    // Sun
+                    Circle()
+                        .fill(Color(red: 1.0, green: 0.9, blue: 0.5))
+                        .frame(width: size * 0.45, height: size * 0.45)
+                        .offset(y: size * 0.15)
+                    // Horizon
+                    Rectangle()
+                        .fill(Color(red: 0.2, green: 0.15, blue: 0.25).opacity(0.7))
+                        .frame(height: size * 0.25)
+                        .offset(y: size * 0.38)
+
+                case .mountains:
+                    // Blue-gray gradient with mountain peak
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.5, green: 0.55, blue: 0.7),
+                            Color(red: 0.8, green: 0.65, blue: 0.6)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    // Mountain
+                    MiniMountain()
+                        .fill(Color(red: 0.3, green: 0.3, blue: 0.4))
+                        .frame(width: size * 0.9, height: size * 0.6)
+                        .offset(y: size * 0.2)
+                    // Snow cap
+                    MiniMountain()
+                        .fill(Color.white.opacity(0.9))
+                        .frame(width: size * 0.35, height: size * 0.22)
+                        .offset(y: -size * 0.1)
+
+                case .beach:
+                    // Sky/sand split with tiny sun
+                    VStack(spacing: 0) {
+                        // Sky
+                        Color(red: 0.5, green: 0.75, blue: 0.95)
+                        // Ocean
+                        Color(red: 0.3, green: 0.55, blue: 0.7)
+                            .frame(height: size * 0.25)
+                        // Sand
+                        Color(red: 0.95, green: 0.85, blue: 0.65)
+                            .frame(height: size * 0.2)
+                    }
+                    // Sun
+                    Circle()
+                        .fill(Color(red: 1.0, green: 0.95, blue: 0.7))
+                        .frame(width: size * 0.25, height: size * 0.25)
+                        .offset(x: size * 0.2, y: -size * 0.25)
+
+                case .forest:
+                    // Green gradient with pine tree
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.4, green: 0.55, blue: 0.45),
+                            Color(red: 0.25, green: 0.4, blue: 0.3)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    // Pine tree
+                    MiniTree()
+                        .fill(Color(red: 0.12, green: 0.25, blue: 0.15))
+                        .frame(width: size * 0.6, height: size * 0.75)
+                        .offset(y: size * 0.1)
+
+                case .dog:
+                    // Warm tan gradient with dog face
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.85, green: 0.8, blue: 0.72),
+                            Color(red: 0.75, green: 0.68, blue: 0.6)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    // Ears
+                    HStack(spacing: size * 0.35) {
+                        Ellipse()
+                            .fill(Color(red: 0.6, green: 0.45, blue: 0.32))
+                            .frame(width: size * 0.28, height: size * 0.35)
+                            .rotationEffect(.degrees(-15))
+                        Ellipse()
+                            .fill(Color(red: 0.6, green: 0.45, blue: 0.32))
+                            .frame(width: size * 0.28, height: size * 0.35)
+                            .rotationEffect(.degrees(15))
+                    }
+                    .offset(y: -size * 0.18)
+                    // Head
+                    Ellipse()
+                        .fill(Color(red: 0.75, green: 0.58, blue: 0.42))
+                        .frame(width: size * 0.7, height: size * 0.55)
+                        .offset(y: size * 0.05)
+                    // Snout
+                    Ellipse()
+                        .fill(Color(red: 0.88, green: 0.78, blue: 0.68))
+                        .frame(width: size * 0.35, height: size * 0.22)
+                        .offset(y: size * 0.18)
+                    // Eyes
+                    HStack(spacing: size * 0.18) {
+                        Circle().fill(Color(red: 0.18, green: 0.12, blue: 0.08))
+                            .frame(width: size * 0.12, height: size * 0.12)
+                        Circle().fill(Color(red: 0.18, green: 0.12, blue: 0.08))
+                            .frame(width: size * 0.12, height: size * 0.12)
+                    }
+                    .offset(y: -size * 0.02)
+                    // Nose
+                    Ellipse()
+                        .fill(Color(red: 0.15, green: 0.1, blue: 0.1))
+                        .frame(width: size * 0.15, height: size * 0.1)
+                        .offset(y: size * 0.14)
+
+                case .cat:
+                    // Gray gradient with cat face
+                    LinearGradient(
+                        colors: [
+                            Color(red: 0.72, green: 0.72, blue: 0.78),
+                            Color(red: 0.6, green: 0.6, blue: 0.68)
+                        ],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                    // Ears
+                    HStack(spacing: size * 0.32) {
+                        MiniCatEar()
+                            .fill(Color(red: 0.5, green: 0.5, blue: 0.55))
+                            .frame(width: size * 0.28, height: size * 0.3)
+                            .rotationEffect(.degrees(-8))
+                        MiniCatEar()
+                            .fill(Color(red: 0.5, green: 0.5, blue: 0.55))
+                            .frame(width: size * 0.28, height: size * 0.3)
+                            .rotationEffect(.degrees(8))
+                            .scaleEffect(x: -1)
+                    }
+                    .offset(y: -size * 0.22)
+                    // Head
+                    Ellipse()
+                        .fill(Color(red: 0.58, green: 0.58, blue: 0.65))
+                        .frame(width: size * 0.7, height: size * 0.55)
+                        .offset(y: size * 0.08)
+                    // Eyes
+                    HStack(spacing: size * 0.18) {
+                        Ellipse().fill(Color(red: 0.4, green: 0.6, blue: 0.35))
+                            .frame(width: size * 0.15, height: size * 0.18)
+                        Ellipse().fill(Color(red: 0.4, green: 0.6, blue: 0.35))
+                            .frame(width: size * 0.15, height: size * 0.18)
+                    }
+                    .offset(y: size * 0.02)
+                    // Nose
+                    MiniCatNose()
+                        .fill(Color(red: 0.85, green: 0.6, blue: 0.6))
+                        .frame(width: size * 0.12, height: size * 0.08)
+                        .offset(y: size * 0.18)
+                }
+            }
+        }
+        .clipShape(Circle())
+    }
+}
+
+// Mini shapes for profile pictures
+private struct MiniMountain: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct MiniTree: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        // Simple pine tree
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY * 0.85))
+        path.addLine(to: CGPoint(x: rect.midX + rect.width * 0.1, y: rect.maxY * 0.85))
+        path.addLine(to: CGPoint(x: rect.midX + rect.width * 0.1, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX - rect.width * 0.1, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX - rect.width * 0.1, y: rect.maxY * 0.85))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY * 0.85))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct MiniCatEar: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
+private struct MiniCatNose: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+        path.move(to: CGPoint(x: rect.midX, y: rect.minY))
+        path.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY))
+        path.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        path.closeSubpath()
+        return path
+    }
+}
+
 // MARK: - Compact Feed Post (fits better in phone mockup)
 
 private struct CompactFeedPost: View {
@@ -1121,8 +1351,7 @@ private struct CompactFeedPost: View {
                     )
                     .frame(width: 22, height: 22)
                     .overlay(
-                        Circle()
-                            .fill(Color(white: 0.3))
+                        ProfilePicImage(type: postType)
                             .frame(width: 18, height: 18)
                     )
 

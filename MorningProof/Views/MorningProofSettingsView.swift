@@ -1,4 +1,5 @@
 import SwiftUI
+import MessageUI
 
 struct MorningProofSettingsView: View {
     @ObservedObject var manager: MorningProofManager
@@ -30,9 +31,6 @@ struct MorningProofSettingsView: View {
     @State private var customSleepGoal: Double = 7.0
     @State private var customStepGoal: Int = 500
 
-    // Test celebration
-    @State private var showTestCelebration = false
-
     // Picker sheets
     @State private var showCutoffTimePicker = false
     @State private var showReminderTimePicker = false
@@ -43,6 +41,13 @@ struct MorningProofSettingsView: View {
     @State private var showingInfoAlert = false
     @State private var infoAlertTitle = ""
     @State private var infoAlertMessage = ""
+
+    // Support features
+    @State private var showMailComposer = false
+    @State private var showShareSheet = false
+    @State private var isRestoringPurchases = false
+    @State private var showRestoreAlert = false
+    @State private var restoreAlertMessage = ""
 
     var body: some View {
         NavigationStack {
@@ -61,23 +66,21 @@ struct MorningProofSettingsView: View {
                         // MARK: - Notifications
                         notificationsSection
 
+                        // MARK: - Subscription
+                        subscriptionSection
+
+                        // MARK: - Support
+                        supportSection
+
                         // MARK: - About
                         aboutSection
+
+                        // MARK: - Data Management
+                        dataManagementSection
                     }
                     .padding(.horizontal, MPSpacing.xl)
                     .padding(.top, MPSpacing.lg)
                     .padding(.bottom, 40)
-                }
-
-                // Test celebration overlay
-                if showTestCelebration {
-                    LockInCelebrationView(
-                        isShowing: $showTestCelebration,
-                        buttonPosition: CGPoint(x: 200, y: 600),
-                        streakFlamePosition: CGPoint(x: 60, y: 150),
-                        previousStreak: 1,
-                        onFlameArrived: {}
-                    )
                 }
             }
             .navigationTitle("Settings")
@@ -110,10 +113,50 @@ struct MorningProofSettingsView: View {
             } message: {
                 Text(infoAlertMessage)
             }
+            .alert("Restore Purchases", isPresented: $showRestoreAlert) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text(restoreAlertMessage)
+            }
             .sheet(isPresented: $showPaywall) {
                 PaywallView(subscriptionManager: subscriptionManager)
             }
+            .sheet(isPresented: $showMailComposer) {
+                MailComposeView(
+                    subject: "Morning Proof Feedback",
+                    body: feedbackEmailBody,
+                    recipient: "support@morningproofapp.com"
+                )
+            }
+            .sheet(isPresented: $showShareSheet) {
+                ShareSheet(items: [
+                    "Check out Morning Proof - build better morning habits with photo verification! 🌅",
+                    URL(string: "https://apps.apple.com/app/id6757691737")!
+                ])
+            }
         }
+    }
+
+    // MARK: - Computed Properties
+
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return "v\(version) (\(build))"
+    }
+
+    private var feedbackEmailBody: String {
+        let device = UIDevice.current
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.0"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "1"
+        return """
+
+
+        ---
+        Device: \(device.model)
+        iOS: \(device.systemVersion)
+        App: \(version) (\(build))
+        """
     }
 
     // MARK: - Header Section
@@ -439,18 +482,173 @@ struct MorningProofSettingsView: View {
         }
     }
 
+    // MARK: - Subscription Section
+
+    var subscriptionSection: some View {
+        settingsSection(title: "Subscription", icon: "crown.fill") {
+            VStack(spacing: 0) {
+                // Premium status row
+                HStack(spacing: MPSpacing.md) {
+                    Image(systemName: subscriptionManager.isPremium ? "checkmark.seal.fill" : "sparkles")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(subscriptionManager.isPremium ? MPColors.success : MPColors.primary)
+                        .frame(width: 30, alignment: .center)
+
+                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                        Text(subscriptionManager.isPremium ? "Premium Active" : "Free Plan")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
+                        if !subscriptionManager.isPremium {
+                            Text("Unlock unlimited habits & features")
+                                .font(MPFont.bodySmall())
+                                .foregroundColor(MPColors.textTertiary)
+                        }
+                    }
+
+                    Spacer()
+
+                    if !subscriptionManager.isPremium {
+                        Button {
+                            showPaywall = true
+                        } label: {
+                            Text("Upgrade")
+                                .font(MPFont.labelSmall())
+                                .foregroundColor(.white)
+                                .padding(.horizontal, MPSpacing.md)
+                                .padding(.vertical, MPSpacing.sm)
+                                .background(MPColors.primary)
+                                .cornerRadius(MPRadius.md)
+                        }
+                    }
+                }
+                .padding(.vertical, MPSpacing.sm)
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Restore purchases row
+                Button {
+                    Task {
+                        isRestoringPurchases = true
+                        await subscriptionManager.restorePurchases()
+                        isRestoringPurchases = false
+                        if subscriptionManager.isPremium {
+                            restoreAlertMessage = "Your premium subscription has been restored."
+                        } else {
+                            restoreAlertMessage = "No previous purchases found."
+                        }
+                        showRestoreAlert = true
+                    }
+                } label: {
+                    HStack(spacing: MPSpacing.md) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MPColors.primary)
+                            .frame(width: 30, alignment: .center)
+
+                        Text("Restore Purchases")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Spacer()
+
+                        if isRestoringPurchases {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: MPColors.textTertiary))
+                                .scaleEffect(0.8)
+                        }
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(isRestoringPurchases)
+            }
+            .padding(.vertical, -MPSpacing.xs)
+        }
+    }
+
+    // MARK: - Support Section
+
+    var supportSection: some View {
+        settingsSection(title: "Support", icon: "bubble.left.fill") {
+            VStack(spacing: 0) {
+                // Send Feedback
+                Button {
+                    if MFMailComposeViewController.canSendMail() {
+                        showMailComposer = true
+                    } else {
+                        // Fallback to mailto: URL
+                        if let url = URL(string: "mailto:support@morningproofapp.com?subject=Morning%20Proof%20Feedback") {
+                            UIApplication.shared.open(url)
+                        }
+                    }
+                } label: {
+                    aboutRow(
+                        icon: "envelope.fill",
+                        iconColor: MPColors.primary,
+                        title: "Send Feedback",
+                        trailing: AnyView(
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                        )
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Rate Morning Proof
+                Link(destination: URL(string: "https://apps.apple.com/app/id6757691737?action=write-review")!) {
+                    aboutRow(
+                        icon: "star.fill",
+                        iconColor: MPColors.accent,
+                        title: "Rate Morning Proof",
+                        trailing: AnyView(
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                        )
+                    )
+                }
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Share with Friends
+                Button {
+                    showShareSheet = true
+                } label: {
+                    aboutRow(
+                        icon: "square.and.arrow.up.fill",
+                        iconColor: MPColors.primary,
+                        title: "Share with Friends",
+                        trailing: AnyView(
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(MPColors.textTertiary)
+                        )
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.vertical, -MPSpacing.xs)
+        }
+    }
+
     // MARK: - About Section
 
     var aboutSection: some View {
         settingsSection(title: "About", icon: "info.circle.fill") {
             VStack(spacing: 0) {
-                // App info row
+                // Version row
                 aboutRow(
-                    icon: "hammer.fill",
+                    icon: "info.circle.fill",
                     iconColor: MPColors.primary,
-                    title: "Morning Proof",
+                    title: "Version",
                     trailing: AnyView(
-                        Text("Version 1.0")
+                        Text(appVersion)
                             .font(MPFont.labelSmall())
                             .foregroundColor(MPColors.textTertiary)
                     )
@@ -489,30 +687,16 @@ struct MorningProofSettingsView: View {
                         )
                     )
                 }
+            }
+            .padding(.vertical, -MPSpacing.xs)
+        }
+    }
 
-                Divider()
-                    .padding(.leading, 46)
+    // MARK: - Data Management Section
 
-                // Test Celebration button
-                Button {
-                    showTestCelebration = true
-                } label: {
-                    aboutRow(
-                        icon: "flame.fill",
-                        iconColor: MPColors.accent,
-                        title: "Test Celebration",
-                        trailing: AnyView(
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textTertiary)
-                        )
-                    )
-                }
-                .buttonStyle(PlainButtonStyle())
-
-                Divider()
-                    .padding(.leading, 46)
-
+    var dataManagementSection: some View {
+        settingsSection(title: "Data", icon: "externaldrive.fill") {
+            VStack(spacing: 0) {
                 // Clear Today's Progress button
                 Button {
                     showResetTodayConfirmation = true
@@ -580,4 +764,52 @@ struct MorningProofSettingsView: View {
 #Preview {
     MorningProofSettingsView(manager: MorningProofManager.shared)
         .environmentObject(ThemeManager.shared)
+}
+
+// MARK: - Mail Compose View
+
+struct MailComposeView: UIViewControllerRepresentable {
+    let subject: String
+    let body: String
+    let recipient: String
+    @Environment(\.dismiss) var dismiss
+
+    func makeUIViewController(context: Context) -> MFMailComposeViewController {
+        let controller = MFMailComposeViewController()
+        controller.mailComposeDelegate = context.coordinator
+        controller.setToRecipients([recipient])
+        controller.setSubject(subject)
+        controller.setMessageBody(body, isHTML: false)
+        return controller
+    }
+
+    func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator(self)
+    }
+
+    class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
+        let parent: MailComposeView
+
+        init(_ parent: MailComposeView) {
+            self.parent = parent
+        }
+
+        func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
+            parent.dismiss()
+        }
+    }
+}
+
+// MARK: - Share Sheet
+
+struct ShareSheet: UIViewControllerRepresentable {
+    let items: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: items, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
