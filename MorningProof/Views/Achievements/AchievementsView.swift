@@ -12,6 +12,7 @@ struct AchievementItem: Identifiable {
     let gradientColors: [Color]
     var isUnlocked: Bool
     var progress: Int
+    var isHidden: Bool = false
 
     var progressPercent: Double {
         min(Double(progress) / Double(requirement), 1.0)
@@ -21,14 +22,29 @@ struct AchievementItem: Identifiable {
 enum AchievementItemCategory: String, CaseIterable {
     case streaks = "Streaks"
     case lifetime = "Lifetime"
+    case secret = "Secret"
+
+    var icon: String {
+        switch self {
+        case .streaks: return "flame.fill"
+        case .lifetime: return "chart.bar.fill"
+        case .secret: return "sparkles"
+        }
+    }
 }
 
 // MARK: - Achievement Data
 
 enum AchievementData {
-    static func all(currentStreak: Int, totalDays: Int) -> [AchievementItem] {
+    static func all(
+        currentStreak: Int,
+        totalDays: Int,
+        completedOnNewYear: Bool = false,
+        perfectMonthsCompleted: Int = 0,
+        completedOnAnniversary: Bool = false
+    ) -> [AchievementItem] {
         [
-            // Streaks
+            // MARK: - Streaks (6 achievements = 2 full rows)
             AchievementItem(
                 name: "One Week",
                 description: "Maintain a 7-day streak",
@@ -60,6 +76,16 @@ enum AchievementData {
                 progress: currentStreak
             ),
             AchievementItem(
+                name: "Two Months Strong",
+                description: "Maintain a 60-day streak",
+                icon: "star.fill",
+                category: .streaks,
+                requirement: 60,
+                gradientColors: [Color(hex: "A855F7"), Color(hex: "7C3AED")],
+                isUnlocked: currentStreak >= 60,
+                progress: currentStreak
+            ),
+            AchievementItem(
                 name: "Quarterly Champion",
                 description: "Maintain a 90-day streak",
                 icon: "trophy.fill",
@@ -72,14 +98,24 @@ enum AchievementData {
             AchievementItem(
                 name: "Legendary",
                 description: "Maintain a 365-day streak",
-                icon: "star.fill",
+                icon: "sparkle",
                 category: .streaks,
                 requirement: 365,
                 gradientColors: [Color(hex: "00D2FF"), Color(hex: "3A7BD5")],
                 isUnlocked: currentStreak >= 365,
                 progress: currentStreak
             ),
-            // Lifetime
+            // MARK: - Lifetime (6 achievements = 2 full rows)
+            AchievementItem(
+                name: "First Steps",
+                description: "Complete 25 total days",
+                icon: "figure.walk",
+                category: .lifetime,
+                requirement: 25,
+                gradientColors: [Color(hex: "06B6D4"), Color(hex: "0891B2")],
+                isUnlocked: totalDays >= 25,
+                progress: totalDays
+            ),
             AchievementItem(
                 name: "Fifty Strong",
                 description: "Complete 50 total days",
@@ -111,6 +147,16 @@ enum AchievementData {
                 progress: totalDays
             ),
             AchievementItem(
+                name: "High Five Hundred",
+                description: "Complete 500 total days",
+                icon: "hand.raised.fill",
+                category: .lifetime,
+                requirement: 500,
+                gradientColors: [Color(hex: "F59E0B"), Color(hex: "D97706")],
+                isUnlocked: totalDays >= 500,
+                progress: totalDays
+            ),
+            AchievementItem(
                 name: "Thousand Days",
                 description: "Complete 1000 total days",
                 icon: "diamond.fill",
@@ -119,6 +165,40 @@ enum AchievementData {
                 gradientColors: [Color(hex: "F953C6"), Color(hex: "B91D73")],
                 isUnlocked: totalDays >= 1000,
                 progress: totalDays
+            ),
+            // MARK: - Secret (3 achievements = 1 full row)
+            AchievementItem(
+                name: "Fresh Start",
+                description: "Complete on January 1st",
+                icon: "party.popper.fill",
+                category: .secret,
+                requirement: 1,
+                gradientColors: [Color(hex: "8B5CF6"), Color(hex: "6D28D9")],
+                isUnlocked: completedOnNewYear,
+                progress: completedOnNewYear ? 1 : 0,
+                isHidden: true
+            ),
+            AchievementItem(
+                name: "Flawless",
+                description: "Complete every day of a calendar month",
+                icon: "checkmark.seal.fill",
+                category: .secret,
+                requirement: 1,
+                gradientColors: [Color(hex: "8B5CF6"), Color(hex: "6D28D9")],
+                isUnlocked: perfectMonthsCompleted >= 1,
+                progress: perfectMonthsCompleted >= 1 ? 1 : 0,
+                isHidden: true
+            ),
+            AchievementItem(
+                name: "Anniversary",
+                description: "Complete on your Morning Proof anniversary",
+                icon: "gift.fill",
+                category: .secret,
+                requirement: 1,
+                gradientColors: [Color(hex: "8B5CF6"), Color(hex: "6D28D9")],
+                isUnlocked: completedOnAnniversary,
+                progress: completedOnAnniversary ? 1 : 0,
+                isHidden: true
             )
         ]
     }
@@ -132,10 +212,16 @@ struct AchievementsView: View {
     @State private var showDetail = false
     @Environment(\.dismiss) private var dismiss
 
+    private let storageService = StorageService()
+
     private var achievements: [AchievementItem] {
-        AchievementData.all(
+        let streakData = storageService.loadStreakData()
+        return AchievementData.all(
             currentStreak: manager.settings.currentStreak,
-            totalDays: manager.settings.totalPerfectMornings
+            totalDays: manager.settings.totalPerfectMornings,
+            completedOnNewYear: streakData.completedOnNewYear,
+            perfectMonthsCompleted: streakData.perfectMonthsCompleted,
+            completedOnAnniversary: streakData.completedOnAnniversary
         )
     }
 
@@ -177,7 +263,7 @@ struct AchievementsView: View {
                             let categoryAchievements = achievements.filter { $0.category == category }
 
                             // Subtle category divider
-                            CategoryDivider(title: category.rawValue)
+                            CategoryDivider(category: category)
                                 .padding(.top, category == .streaks ? 0 : MPSpacing.lg)
 
                             // 3-column grid
@@ -275,7 +361,7 @@ struct AchievementsHeader: View {
 // MARK: - Category Divider
 
 struct CategoryDivider: View {
-    let title: String
+    let category: AchievementItemCategory
 
     var body: some View {
         HStack(spacing: MPSpacing.md) {
@@ -289,10 +375,15 @@ struct CategoryDivider: View {
                 )
                 .frame(height: 1)
 
-            Text(title.uppercased())
-                .font(.system(size: 11, weight: .semibold, design: .rounded))
-                .foregroundColor(.white.opacity(0.4))
-                .tracking(1.5)
+            HStack(spacing: 6) {
+                Image(systemName: category.icon)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(category == .secret ? Color(hex: "8B5CF6") : .white.opacity(0.4))
+                Text(category.rawValue.uppercased())
+                    .font(.system(size: 11, weight: .semibold, design: .rounded))
+                    .foregroundColor(.white.opacity(0.4))
+                    .tracking(1.5)
+            }
 
             Rectangle()
                 .fill(
@@ -391,9 +482,13 @@ struct AchievementBadge: View {
                         .frame(width: badgeSize - 6, height: badgeSize - 6)
                 }
 
-                // Icon
+                // Icon - show mystery icon for hidden locked achievements
                 Group {
-                    if achievement.icon == "50.circle.fill" {
+                    if achievement.isHidden && !achievement.isUnlocked {
+                        // Mystery icon for hidden locked achievements
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 32, weight: .medium))
+                    } else if achievement.icon == "50.circle.fill" {
                         Text("50")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                     } else {
@@ -401,11 +496,11 @@ struct AchievementBadge: View {
                             .font(.system(size: 32, weight: .medium))
                     }
                 }
-                .foregroundColor(achievement.isUnlocked ? .white : .white.opacity(0.3))
+                .foregroundColor(achievement.isUnlocked ? .white : (achievement.isHidden ? Color(hex: "8B5CF6").opacity(0.6) : .white.opacity(0.3)))
                 .shadow(color: achievement.isUnlocked ? .black.opacity(0.3) : .clear, radius: 2, y: 1)
 
-                // Lock overlay for locked achievements
-                if !achievement.isUnlocked {
+                // Lock overlay for locked achievements (but NOT for hidden achievements)
+                if !achievement.isUnlocked && !achievement.isHidden {
                     VStack {
                         Spacer()
                         HStack {
@@ -424,10 +519,10 @@ struct AchievementBadge: View {
             }
             .frame(width: badgeSize + 40, height: badgeSize + 40)
 
-            // Achievement name
-            Text(achievement.name)
+            // Achievement name - show "???" for hidden locked achievements
+            Text(achievement.isHidden && !achievement.isUnlocked ? "???" : achievement.name)
                 .font(.system(size: 12, weight: .medium, design: .rounded))
-                .foregroundColor(achievement.isUnlocked ? .white : .white.opacity(0.4))
+                .foregroundColor(achievement.isUnlocked ? .white : (achievement.isHidden ? Color(hex: "8B5CF6").opacity(0.6) : .white.opacity(0.4)))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
         }
@@ -519,7 +614,9 @@ struct AchievementDetailCard: View {
                             endPoint: .bottomTrailing
                         ) :
                         LinearGradient(
-                            colors: [Color.gray.opacity(0.3), Color.gray.opacity(0.1)],
+                            colors: achievement.isHidden ?
+                                [Color(hex: "8B5CF6").opacity(0.3), Color(hex: "6D28D9").opacity(0.15)] :
+                                [Color.gray.opacity(0.3), Color.gray.opacity(0.1)],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
@@ -527,8 +624,12 @@ struct AchievementDetailCard: View {
                     .frame(width: 90, height: 90)
                     .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.6) : .clear, radius: 15)
 
+                // Icon - show mystery for hidden locked
                 Group {
-                    if achievement.icon == "50.circle.fill" {
+                    if achievement.isHidden && !achievement.isUnlocked {
+                        Image(systemName: "questionmark.circle.fill")
+                            .font(.system(size: 36, weight: .medium))
+                    } else if achievement.icon == "50.circle.fill" {
                         Text("50")
                             .font(.system(size: 34, weight: .bold, design: .rounded))
                     } else {
@@ -536,68 +637,79 @@ struct AchievementDetailCard: View {
                             .font(.system(size: 36, weight: .medium))
                     }
                 }
-                .foregroundColor(achievement.isUnlocked ? .white : .white.opacity(0.4))
+                .foregroundColor(achievement.isUnlocked ? .white : (achievement.isHidden ? Color(hex: "8B5CF6") : .white.opacity(0.4)))
             }
 
             // Achievement info
             VStack(spacing: MPSpacing.xs) {
-                Text(achievement.name)
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .foregroundColor(.white)
-
-                Text(achievement.description)
-                    .font(.system(size: 14))
-                    .foregroundColor(.white.opacity(0.6))
-                    .multilineTextAlignment(.center)
+                if achievement.isHidden && !achievement.isUnlocked {
+                    Text("Secret Achievement")
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Text("Keep completing your mornings to discover this hidden achievement...")
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                } else {
+                    Text(achievement.name)
+                        .font(.system(size: 22, weight: .bold, design: .rounded))
+                        .foregroundColor(.white)
+                    Text(achievement.description)
+                        .font(.system(size: 14))
+                        .foregroundColor(.white.opacity(0.6))
+                        .multilineTextAlignment(.center)
+                }
             }
 
-            // Progress bar with glass styling
-            VStack(spacing: MPSpacing.sm) {
-                GeometryReader { geometry in
-                    ZStack(alignment: .leading) {
-                        // Glass background track
-                        RoundedRectangle(cornerRadius: 5)
-                            .fill(.ultraThinMaterial.opacity(0.3))
-                            .frame(height: 10)
+            // Progress bar with glass styling (hide for hidden locked achievements)
+            if !(achievement.isHidden && !achievement.isUnlocked) {
+                VStack(spacing: MPSpacing.sm) {
+                    GeometryReader { geometry in
+                        ZStack(alignment: .leading) {
+                            // Glass background track
+                            RoundedRectangle(cornerRadius: 5)
+                                .fill(.ultraThinMaterial.opacity(0.3))
+                                .frame(height: 10)
 
-                        // Progress fill
-                        RoundedRectangle(cornerRadius: 5)
-                            .fill(
-                                LinearGradient(
-                                    colors: achievement.isUnlocked ? achievement.gradientColors : [Color.gray.opacity(0.5)],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
+                            // Progress fill
+                            RoundedRectangle(cornerRadius: 5)
+                                .fill(
+                                    LinearGradient(
+                                        colors: achievement.isUnlocked ? achievement.gradientColors : [Color.gray.opacity(0.5)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
                                 )
-                            )
-                            .frame(width: animateProgress ? geometry.size.width * achievement.progressPercent : 0, height: 10)
-                            .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.5) : .clear, radius: 4)
-                    }
-                }
-                .frame(height: 10)
-
-                HStack {
-                    Text("\(achievement.progress)")
-                        .font(.system(size: 14, weight: .semibold, design: .rounded))
-                        .foregroundColor(.white)
-
-                    Text("/ \(achievement.requirement)")
-                        .font(.system(size: 14, weight: .medium))
-                        .foregroundColor(.white.opacity(0.4))
-
-                    Spacer()
-
-                    if achievement.isUnlocked {
-                        HStack(spacing: 4) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Unlocked")
-                                .foregroundColor(.green)
+                                .frame(width: animateProgress ? geometry.size.width * achievement.progressPercent : 0, height: 10)
+                                .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.5) : .clear, radius: 4)
                         }
-                        .font(.system(size: 13, weight: .semibold))
-                    } else {
-                        Text("\(achievement.requirement - achievement.progress) to go")
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white.opacity(0.5))
+                    }
+                    .frame(height: 10)
+
+                    HStack {
+                        Text("\(achievement.progress)")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundColor(.white)
+
+                        Text("/ \(achievement.requirement)")
+                            .font(.system(size: 14, weight: .medium))
+                            .foregroundColor(.white.opacity(0.4))
+
+                        Spacer()
+
+                        if achievement.isUnlocked {
+                            HStack(spacing: 4) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("Unlocked")
+                                    .foregroundColor(.green)
+                            }
+                            .font(.system(size: 13, weight: .semibold))
+                        } else {
+                            Text("\(achievement.requirement - achievement.progress) to go")
+                                .font(.system(size: 13, weight: .medium))
+                                .foregroundColor(.white.opacity(0.5))
+                        }
                     }
                 }
             }
