@@ -506,9 +506,16 @@ struct LockInDayButton: View {
 
         // Brushed shimmer for dark mode - subtle metallic gleam
         if colorScheme == .dark {
-            brushedShimmerOffset = -1.0
-            withAnimation(.linear(duration: 6.0).repeatForever(autoreverses: false)) {
-                brushedShimmerOffset = 1.0
+            // Cancel any existing animation first to ensure clean start
+            withAnimation(nil) {
+                brushedShimmerOffset = -1.0
+            }
+
+            // Small delay to ensure the reset takes effect before starting new animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+                withAnimation(.linear(duration: 6.0).repeatForever(autoreverses: false)) {
+                    brushedShimmerOffset = 1.0
+                }
             }
         }
     }
