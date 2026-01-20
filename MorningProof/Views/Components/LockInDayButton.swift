@@ -31,6 +31,10 @@ struct LockInDayButton: View {
     let isLockedIn: Bool          // isDayLockedIn
     let onLockIn: () -> Void      // Callback when lock-in completes
 
+    // Dynamic sizing (with defaults for backward compatibility)
+    var buttonWidth: CGFloat = 220
+    var buttonHeight: CGFloat = 56
+
     @Environment(\.colorScheme) private var colorScheme
 
     @State private var holdProgress: CGFloat = 0
@@ -50,9 +54,24 @@ struct LockInDayButton: View {
     @State private var textOffset: CGFloat = 0  // Text bounce offset
 
     private let holdDuration: Double = 2.75  // Deliberate, earned action (2.5-3.0s range)
-    private let buttonWidth: CGFloat = 220
-    private let buttonHeight: CGFloat = 56
     private let shimmerDuration: Double = 4.5  // Slow, meditative gleam (4-5s)
+
+    // Font size scales with button height
+    private var fontSize: CGFloat {
+        // Base: 16pt at 56pt height, scale proportionally down to 14pt at 44pt
+        let minSize: CGFloat = 14
+        let maxSize: CGFloat = 16
+        let ratio = (buttonHeight - 44) / (56 - 44) // 0 at 44pt, 1 at 56pt
+        return minSize + (maxSize - minSize) * min(1, max(0, ratio))
+    }
+
+    private var iconSize: CGFloat {
+        // Base: 22pt at 56pt height, scale proportionally down to 18pt at 44pt
+        let minSize: CGFloat = 18
+        let maxSize: CGFloat = 22
+        let ratio = (buttonHeight - 44) / (56 - 44)
+        return minSize + (maxSize - minSize) * min(1, max(0, ratio))
+    }
 
     // Transparent gold for enabled state - clear with subtle gold tint
     private var enabledBackground: some ShapeStyle {
@@ -219,7 +238,7 @@ struct LockInDayButton: View {
             HStack(spacing: MPSpacing.md) {
                 // Lock icon
                 Image(systemName: isLockedIn ? "lock.fill" : "lock.open")
-                    .font(.system(size: 22, weight: .semibold))
+                    .font(.system(size: iconSize, weight: .semibold))
                     .foregroundStyle(iconColor)
                     .scaleEffect(x: isLockedIn ? 1 : -1, y: 1)
                     .scaleEffect(textScale)
@@ -227,7 +246,7 @@ struct LockInDayButton: View {
 
                 // Label text with bounce animation on lock-in
                 Text(buttonText)
-                    .font(.system(size: 16, weight: .semibold))
+                    .font(.system(size: fontSize, weight: .semibold))
                     .foregroundColor(iconColor)
                     .scaleEffect(textScale)
                     .offset(y: textOffset)

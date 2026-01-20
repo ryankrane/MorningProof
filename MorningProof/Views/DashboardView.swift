@@ -54,77 +54,64 @@ struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     var body: some View {
-        ZStack {
-            // Background
-            MPColors.background
-                .ignoresSafeArea()
+        GeometryReader { geometry in
+            let safeAreaHeight = geometry.size.height
+            let habitCount = manager.totalEnabled
+            let layout = DynamicHabitLayout(availableHeight: safeAreaHeight, habitCount: habitCount)
 
-            ScrollView(showsIndicators: false) {
-                VStack(spacing: MPSpacing.xl) {
-                    // Header
-                    headerSection
-
-                    // Streak Hero Card - uses visualStreak so flame stays gray until celebration completes
-                    StreakHeroCard(
-                        currentStreak: visualStreak,
-                        completedToday: manager.completedCount,
-                        totalHabits: manager.totalEnabled,
-                        isPerfectMorning: manager.isPerfectMorning,
-                        timeUntilCutoff: manager.isPastCutoff ? nil : manager.timeUntilCutoff,
-                        cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
-                        hasOverdueHabits: manager.hasOverdueHabits,
-                        triggerPulse: $triggerStreakPulse,
-                        flameFrame: $streakFlameFrame,
-                        triggerIgnition: $triggerIgnition,
-                        impactShake: $streakShakeOffset
-                    )
-
-                    // Habits List
-                    habitsSection
-
-                    Spacer(minLength: MPSpacing.xxxl)
-                }
-                .padding(.horizontal, MPSpacing.xl)
-                .padding(.top, MPSpacing.sm)
-            }
-            // Lock-in celebration overlay (when user locks in their day)
-            // Uses ignoresSafeArea to ensure full screen coverage for accurate global positioning
-            if showLockInCelebration {
-                LockInCelebrationView(
-                    isShowing: $showLockInCelebration,
-                    buttonPosition: CGPoint(x: lockButtonFrame.midX, y: lockButtonFrame.midY),
-                    streakFlamePosition: CGPoint(x: streakFlameFrame.midX, y: streakFlameFrame.midY),
-                    previousStreak: previousStreakBeforeLockIn,
-                    onFlameArrived: {
-                        // Trigger StreakHeroCard pulse when flame arrives
-                        triggerStreakPulse = true
-                    },
-                    onIgnition: {
-                        // Don't trigger ignition yet - wait for celebration to complete
-                        // This ensures flame stays gray until the flying flame "ignites" it
-                    },
-                    onShake: { offset in
-                        streakShakeOffset = offset
-                    }
-                )
-                .ignoresSafeArea()
-            }
-
-            // Grand finale confetti (when final habit completed)
-            if showGrandFinaleConfetti {
-                GrandFinaleConfettiView()
+            ZStack {
+                // Background
+                MPColors.background
                     .ignoresSafeArea()
-                    .allowsHitTesting(false)
-            }
 
-            // Side menu overlay
-            SideMenuView(
-                manager: manager,
-                isShowing: $showSideMenu,
-                selectedItem: $selectedMenuItem,
-                onDismiss: { showSideMenu = false },
-                onSelectSettings: { showSettings = true }
-            )
+                // Use ScrollView only if habits can't fit (7+ habits typically)
+                if layout.needsScrolling {
+                    ScrollView(showsIndicators: false) {
+                        dashboardContent(layout: layout)
+                    }
+                } else {
+                    dashboardContent(layout: layout)
+                }
+
+                // Lock-in celebration overlay (when user locks in their day)
+                // Uses ignoresSafeArea to ensure full screen coverage for accurate global positioning
+                if showLockInCelebration {
+                    LockInCelebrationView(
+                        isShowing: $showLockInCelebration,
+                        buttonPosition: CGPoint(x: lockButtonFrame.midX, y: lockButtonFrame.midY),
+                        streakFlamePosition: CGPoint(x: streakFlameFrame.midX, y: streakFlameFrame.midY),
+                        previousStreak: previousStreakBeforeLockIn,
+                        onFlameArrived: {
+                            // Trigger StreakHeroCard pulse when flame arrives
+                            triggerStreakPulse = true
+                        },
+                        onIgnition: {
+                            // Don't trigger ignition yet - wait for celebration to complete
+                            // This ensures flame stays gray until the flying flame "ignites" it
+                        },
+                        onShake: { offset in
+                            streakShakeOffset = offset
+                        }
+                    )
+                    .ignoresSafeArea()
+                }
+
+                // Grand finale confetti (when final habit completed)
+                if showGrandFinaleConfetti {
+                    GrandFinaleConfettiView()
+                        .ignoresSafeArea()
+                        .allowsHitTesting(false)
+                }
+
+                // Side menu overlay
+                SideMenuView(
+                    manager: manager,
+                    isShowing: $showSideMenu,
+                    selectedItem: $selectedMenuItem,
+                    onDismiss: { showSideMenu = false },
+                    onSelectSettings: { showSettings = true }
+                )
+            }
         }
         .onChange(of: selectedMenuItem) { _, item in
             guard let item = item else { return }
@@ -241,6 +228,42 @@ struct DashboardView: View {
         showLockInCelebration = true
     }
 
+    // MARK: - Dashboard Content
+
+    /// Main dashboard content extracted to support conditional ScrollView wrapping
+    @ViewBuilder
+    private func dashboardContent(layout: DynamicHabitLayout) -> some View {
+        VStack(spacing: MPSpacing.xl) {
+            // Header
+            headerSection
+
+            // Streak Hero Card - uses visualStreak so flame stays gray until celebration completes
+            StreakHeroCard(
+                currentStreak: visualStreak,
+                completedToday: manager.completedCount,
+                totalHabits: manager.totalEnabled,
+                isPerfectMorning: manager.isPerfectMorning,
+                timeUntilCutoff: manager.isPastCutoff ? nil : manager.timeUntilCutoff,
+                cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
+                hasOverdueHabits: manager.hasOverdueHabits,
+                triggerPulse: $triggerStreakPulse,
+                flameFrame: $streakFlameFrame,
+                triggerIgnition: $triggerIgnition,
+                impactShake: $streakShakeOffset
+            )
+
+            // Habits List
+            habitsSection(layout: layout)
+
+            // Add spacer at the bottom if scrolling
+            if layout.needsScrolling {
+                Spacer(minLength: MPSpacing.xxxl)
+            }
+        }
+        .padding(.horizontal, MPSpacing.xl)
+        .padding(.top, MPSpacing.sm)
+    }
+
     /// Checks for habits that were just auto-completed by HealthKit sync and triggers confetti
     private func checkForNewlyCompletedHabits() {
         let currentlyCompleted = Set(manager.todayLog.completions.filter { $0.isCompleted }.map { $0.habitType })
@@ -338,7 +361,8 @@ struct DashboardView: View {
 
     // MARK: - Habits Section
 
-    var habitsSection: some View {
+    @ViewBuilder
+    func habitsSection(layout: DynamicHabitLayout) -> some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
             // Section header with edit button
             HStack {
@@ -365,27 +389,27 @@ struct DashboardView: View {
 
             // AI Verified predefined habits
             ForEach(manager.enabledHabits.filter { $0.habitType.tier == .aiVerified }) { config in
-                habitRow(for: config)
+                habitRow(for: config, layout: layout)
             }
 
             // AI Verified custom habits
             ForEach(manager.enabledCustomHabits.filter { $0.verificationType == .aiVerified }) { customHabit in
-                customHabitRow(for: customHabit)
+                customHabitRow(for: customHabit, layout: layout)
             }
 
             // Auto-Tracked (Apple Health) habits
             ForEach(manager.enabledHabits.filter { $0.habitType.tier == .autoTracked }) { config in
-                habitRow(for: config)
+                habitRow(for: config, layout: layout)
             }
 
             // Honor System predefined habits
             ForEach(manager.enabledHabits.filter { $0.habitType.tier == .honorSystem }) { config in
-                habitRow(for: config)
+                habitRow(for: config, layout: layout)
             }
 
             // Honor System custom habits
             ForEach(manager.enabledCustomHabits.filter { $0.verificationType == .honorSystem }) { customHabit in
-                customHabitRow(for: customHabit)
+                customHabitRow(for: customHabit, layout: layout)
             }
 
             // Lock In Day Button
@@ -396,7 +420,9 @@ struct DashboardView: View {
                     isLockedIn: manager.todayLog.isDayLockedIn,
                     onLockIn: {
                         triggerLockInCelebration()
-                    }
+                    },
+                    buttonWidth: layout.lockButtonWidth,
+                    buttonHeight: layout.lockButtonHeight
                 )
                 .background(
                     GeometryReader { geo in
@@ -431,7 +457,7 @@ struct DashboardView: View {
         manager.completedCount == manager.totalEnabled - 1
     }
 
-    func habitRow(for config: HabitConfig) -> some View {
+    func habitRow(for config: HabitConfig, layout: DynamicHabitLayout) -> some View {
         let completion = manager.getCompletion(for: config.habitType)
         let isCompleted = completion?.isCompleted ?? false
         let justCompleted = recentlyCompletedHabits.contains(config.habitType)
@@ -444,8 +470,10 @@ struct DashboardView: View {
             config: config,
             completion: completion,
             isCompleted: isCompleted,
-            progress: progress
+            progress: progress,
+            layout: layout
         )
+        .frame(height: layout.habitHeight)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)
         // Enhanced glow shadow when completing
@@ -483,9 +511,12 @@ struct DashboardView: View {
         config: HabitConfig,
         completion: HabitCompletion?,
         isCompleted: Bool,
-        progress: CGFloat
+        progress: CGFloat,
+        layout: DynamicHabitLayout
     ) -> some View {
         let isFlashing = habitRowFlash[config.habitType] ?? false
+        let iconSize = layout.habitIconSize
+        let padding = layout.habitInternalPadding
 
         ZStack {
             // Base background
@@ -504,12 +535,12 @@ struct DashboardView: View {
                 ZStack {
                     Circle()
                         .fill(isCompleted ? MPColors.success.opacity(0.15) : MPColors.surfaceSecondary)
-                        .frame(width: 40, height: 40)
+                        .frame(width: iconSize, height: iconSize)
                     Image(systemName: config.habitType.icon)
-                        .font(.system(size: MPIconSize.md))
+                        .font(.system(size: iconSize * 0.5))
                         .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
                 }
-                .frame(width: 40)
+                .frame(width: iconSize)
 
                 // Info
                 VStack(alignment: .leading, spacing: MPSpacing.xs) {
@@ -592,17 +623,18 @@ struct DashboardView: View {
 
                 // Checkmark indicator for completed habits
                 if isCompleted {
+                    let checkSize = iconSize * 0.7
                     ZStack {
                         Circle()
                             .fill(MPColors.success)
-                            .frame(width: 28, height: 28)
+                            .frame(width: checkSize, height: checkSize)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: checkSize * 0.5, weight: .bold))
                             .foregroundColor(.white)
                     }
                 }
             }
-            .padding(MPSpacing.lg)
+            .padding(padding)
 
             // Flash overlay for completion celebration
             RoundedRectangle(cornerRadius: MPRadius.lg)
@@ -612,7 +644,7 @@ struct DashboardView: View {
 
     // MARK: - Custom Habit Row
 
-    func customHabitRow(for customHabit: CustomHabit) -> some View {
+    func customHabitRow(for customHabit: CustomHabit, layout: DynamicHabitLayout) -> some View {
         let completion = manager.getCustomCompletion(for: customHabit.id)
         let isCompleted = completion?.isCompleted ?? false
         let justCompleted = recentlyCompletedCustomHabits.contains(customHabit.id)
@@ -624,8 +656,10 @@ struct DashboardView: View {
             customHabit: customHabit,
             completion: completion,
             isCompleted: isCompleted,
-            progress: progress
+            progress: progress,
+            layout: layout
         )
+        .frame(height: layout.habitHeight)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)
         // Enhanced glow shadow when completing
@@ -663,9 +697,12 @@ struct DashboardView: View {
         customHabit: CustomHabit,
         completion: CustomHabitCompletion?,
         isCompleted: Bool,
-        progress: CGFloat
+        progress: CGFloat,
+        layout: DynamicHabitLayout
     ) -> some View {
         let isFlashing = customHabitRowFlash[customHabit.id] ?? false
+        let iconSize = layout.habitIconSize
+        let padding = layout.habitInternalPadding
 
         ZStack {
             // Base background
@@ -684,12 +721,12 @@ struct DashboardView: View {
                 ZStack {
                     Circle()
                         .fill(isCompleted ? MPColors.success.opacity(0.15) : MPColors.surfaceSecondary)
-                        .frame(width: 40, height: 40)
+                        .frame(width: iconSize, height: iconSize)
                     Image(systemName: customHabit.icon)
-                        .font(.system(size: MPIconSize.md))
+                        .font(.system(size: iconSize * 0.5))
                         .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
                 }
-                .frame(width: 40)
+                .frame(width: iconSize)
 
                 // Info
                 VStack(alignment: .leading, spacing: MPSpacing.xs) {
@@ -719,17 +756,18 @@ struct DashboardView: View {
 
                 // Checkmark indicator for completed habits
                 if isCompleted {
+                    let checkSize = iconSize * 0.7
                     ZStack {
                         Circle()
                             .fill(MPColors.success)
-                            .frame(width: 28, height: 28)
+                            .frame(width: checkSize, height: checkSize)
                         Image(systemName: "checkmark")
-                            .font(.system(size: 14, weight: .bold))
+                            .font(.system(size: checkSize * 0.5, weight: .bold))
                             .foregroundColor(.white)
                     }
                 }
             }
-            .padding(MPSpacing.lg)
+            .padding(padding)
 
             // Flash overlay for completion celebration
             RoundedRectangle(cornerRadius: MPRadius.lg)
