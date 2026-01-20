@@ -109,7 +109,12 @@ struct HoldToCompleteModifier: ViewModifier {
         // Initial haptic
         HapticManager.shared.lightTap()
 
-        // Start timer to update progress
+        // Animate progress smoothly from 0 to 1 over the hold duration
+        withAnimation(.linear(duration: holdDuration)) {
+            progress = 1.0
+        }
+
+        // Timer only for haptics and completion detection (not progress updates)
         let tickInterval = 0.02
         holdTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { timer in
             guard isHolding, let startDate = holdStartDate else {
@@ -118,11 +123,6 @@ struct HoldToCompleteModifier: ViewModifier {
             }
 
             let elapsed = Date().timeIntervalSince(startDate)
-            let newProgress = min(elapsed / holdDuration, 1.0)
-
-            DispatchQueue.main.async {
-                progress = CGFloat(newProgress)
-            }
 
             // Haptic tick every ~0.2s
             if Int(elapsed / 0.2) > Int((elapsed - tickInterval) / 0.2) {

@@ -11,6 +11,7 @@ struct VideoVerificationView: View {
     @State private var showingCamera = false
     @State private var videoURL: URL?
     @State private var player: AVPlayer?
+    @State private var videoDuration: TimeInterval?
 
     // Processing state
     @State private var isExtracting = false
@@ -20,6 +21,7 @@ struct VideoVerificationView: View {
     // Result state
     @State private var result: VideoVerificationResult?
     @State private var errorMessage: String?
+    @State private var errorIcon: String = "exclamationmark.triangle"
     @State private var showResultTransition = false
 
     // Animation states for result view
@@ -89,9 +91,12 @@ struct VideoVerificationView: View {
                         .onAppear {
                             player.play()
                         }
+                        .task {
+                            videoDuration = await getVideoDuration(url: url)
+                        }
 
                     // Duration indicator
-                    if let duration = getVideoDuration(url: url) {
+                    if let duration = videoDuration {
                         Text("\(Int(duration)) seconds")
                             .font(MPFont.labelSmall())
                             .foregroundColor(MPColors.textTertiary)
@@ -354,7 +359,7 @@ struct VideoVerificationView: View {
                     .fill(MPColors.errorLight)
                     .frame(width: 120, height: 120)
 
-                Image(systemName: "exclamationmark.triangle.fill")
+                Image(systemName: errorIcon)
                     .font(.system(size: 50))
                     .foregroundColor(MPColors.error)
             }
@@ -375,6 +380,7 @@ struct VideoVerificationView: View {
                 if videoURL != nil {
                     MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
                         errorMessage = nil
+                        errorIcon = "exclamationmark.triangle"
                         Task {
                             await verifyVideo(url: videoURL!)
                         }
@@ -404,6 +410,7 @@ struct VideoVerificationView: View {
         isExtracting = true
         extractionProgress = "Loading video..."
         errorMessage = nil
+        errorIcon = "exclamationmark.triangle"
 
         do {
             // Extract frames
@@ -430,19 +437,30 @@ struct VideoVerificationView: View {
             isExtracting = false
             isAnalyzing = false
             errorMessage = error.localizedDescription
+            errorIcon = "exclamationmark.triangle"
+        } catch let apiError as APIError {
+            isExtracting = false
+            isAnalyzing = false
+            errorMessage = apiError.localizedDescription
+            errorIcon = apiError.iconName
         } catch {
             isExtracting = false
             isAnalyzing = false
             errorMessage = error.localizedDescription
+            errorIcon = "exclamationmark.triangle"
         }
     }
 
     // MARK: - Helpers
 
-    func getVideoDuration(url: URL) -> TimeInterval? {
+    func getVideoDuration(url: URL) async -> TimeInterval? {
         let asset = AVURLAsset(url: url)
-        let duration = asset.duration
-        return CMTimeGetSeconds(duration)
+        do {
+            let duration = try await asset.load(.duration)
+            return CMTimeGetSeconds(duration)
+        } catch {
+            return nil
+        }
     }
 
     private func startResultAnimations(isVerified: Bool) {
@@ -488,6 +506,7 @@ struct VideoVerificationView: View {
         resetResultAnimations()
         result = nil
         errorMessage = nil
+        errorIcon = "exclamationmark.triangle"
         player?.pause()
         player = nil
         videoURL = nil

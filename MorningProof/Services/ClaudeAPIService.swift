@@ -21,11 +21,11 @@ actor ClaudeAPIService {
             let newSize = CGSize(width: image.size.width * scale, height: image.size.height * scale)
 
             UIGraphicsBeginImageContextWithOptions(newSize, false, 1.0)
+            defer { UIGraphicsEndImageContext() }  // Always clean up context
             image.draw(in: CGRect(origin: .zero, size: newSize))
             if let resized = UIGraphicsGetImageFromCurrentImageContext() {
                 workingImage = resized
             }
-            UIGraphicsEndImageContext()
         }
 
         // Try progressively lower compression until under size limit
@@ -42,13 +42,12 @@ actor ClaudeAPIService {
         let smallScale: CGFloat = 0.5
         let smallSize = CGSize(width: workingImage.size.width * smallScale, height: workingImage.size.height * smallScale)
         UIGraphicsBeginImageContextWithOptions(smallSize, false, 1.0)
+        defer { UIGraphicsEndImageContext() }  // Always clean up context
         workingImage.draw(in: CGRect(origin: .zero, size: smallSize))
         if let smallImage = UIGraphicsGetImageFromCurrentImageContext(),
            let data = smallImage.jpegData(compressionQuality: 0.3) {
-            UIGraphicsEndImageContext()
             return data
         }
-        UIGraphicsEndImageContext()
 
         throw APIError.imageConversionFailed
     }
@@ -151,7 +150,7 @@ actor ClaudeAPIService {
         let base64Image = imageData.base64EncodedString()
 
         let requestBody: [String: Any] = [
-            "model": "claude-3-haiku-20240307",
+            "model": "claude-haiku-4-5-latest",
             "max_tokens": 512,
             "messages": [
                 [
@@ -282,23 +281,68 @@ actor ClaudeAPIService {
 
         cleaned = cleaned.trimmingCharacters(in: .whitespacesAndNewlines)
 
-        // If it already looks like JSON, return it
+        // If it already looks like clean JSON, return it
         if cleaned.hasPrefix("{") && cleaned.hasSuffix("}") {
             return cleaned
         }
 
-        // Try to find JSON object anywhere in the response using regex
-        if let range = cleaned.range(of: "\\{[^{}]*\\}", options: .regularExpression) {
-            return String(cleaned[range])
-        }
-
-        // Last resort: look for JSON with nested braces
-        if let startIndex = cleaned.firstIndex(of: "{"),
-           let endIndex = cleaned.lastIndex(of: "}") {
-            return String(cleaned[startIndex...endIndex])
+        // Find the first properly balanced JSON object using brace counting
+        // This handles nested objects correctly, unlike simple regex
+        if let extracted = extractBalancedJSON(from: cleaned) {
+            return extracted
         }
 
         return cleaned
+    }
+
+    /// Extracts the first balanced JSON object from text by counting braces
+    /// Returns nil if no valid balanced JSON found
+    private func extractBalancedJSON(from text: String) -> String? {
+        guard let startIndex = text.firstIndex(of: "{") else { return nil }
+
+        var braceCount = 0
+        var inString = false
+        var escapeNext = false
+
+        for (offset, char) in text[startIndex...].enumerated() {
+            // Handle string escaping for accurate brace counting
+            if escapeNext {
+                escapeNext = false
+                continue
+            }
+
+            if char == "\\" && inString {
+                escapeNext = true
+                continue
+            }
+
+            if char == "\"" {
+                inString.toggle()
+                continue
+            }
+
+            // Only count braces outside strings
+            if !inString {
+                if char == "{" {
+                    braceCount += 1
+                } else if char == "}" {
+                    braceCount -= 1
+
+                    // Found matching closing brace
+                    if braceCount == 0 {
+                        let endIndex = text.index(startIndex, offsetBy: offset)
+                        return String(text[startIndex...endIndex])
+                    }
+                }
+            }
+        }
+
+        // No balanced JSON found - fallback to first/last brace (may be unbalanced)
+        if let endIndex = text.lastIndex(of: "}") {
+            return String(text[startIndex...endIndex])
+        }
+
+        return nil
     }
 
     private func decodeVerificationResult<T: Decodable>(_ type: T.Type, from text: String, endpoint: String) async throws -> T {
@@ -346,7 +390,7 @@ actor ClaudeAPIService {
         let base64Image = imageData.base64EncodedString()
 
         let requestBody: [String: Any] = [
-            "model": "claude-3-haiku-20240307",
+            "model": "claude-haiku-4-5-latest",
             "max_tokens": 256,
             "messages": [
                 [
@@ -448,7 +492,7 @@ actor ClaudeAPIService {
         let base64Image = imageData.base64EncodedString()
 
         let requestBody: [String: Any] = [
-            "model": "claude-3-haiku-20240307",
+            "model": "claude-haiku-4-5-latest",
             "max_tokens": 256,
             "messages": [
                 [
@@ -630,7 +674,7 @@ actor ClaudeAPIService {
             """
 
         let requestBody: [String: Any] = [
-            "model": "claude-3-haiku-20240307",
+            "model": "claude-haiku-4-5-latest",
             "max_tokens": 512,
             "messages": [
                 [
@@ -775,7 +819,7 @@ actor ClaudeAPIService {
         ])
 
         let requestBody: [String: Any] = [
-            "model": "claude-3-haiku-20240307",
+            "model": "claude-haiku-4-5-latest",
             "max_tokens": 512,
             "messages": [
                 [

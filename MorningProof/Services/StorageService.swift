@@ -1,12 +1,12 @@
 import Foundation
 
 class StorageService {
-    // Legacy keys
+    // Legacy keys (deprecated - kept for backward compatibility during migration)
     private let streakKey = "morningproof_streak_data"
     private let achievementsKey = "morningproof_achievements"
-    private let settingsKey = "morningproof_settings"
+    private let legacySettingsKey = "morningproof_legacy_settings"  // Renamed to avoid conflict
 
-    // Morning Proof keys
+    // Morning Proof keys (current)
     private let mpSettingsKey = "morningproof_settings"
     private let mpHabitConfigsKey = "morningproof_habit_configs"
     private let mpDailyLogPrefix = "morningproof_daily_"
@@ -61,10 +61,10 @@ class StorageService {
         }
     }
 
-    // MARK: - Legacy Settings
+    // MARK: - Legacy Settings (deprecated - kept for migration only)
 
     func loadSettings() -> UserSettings {
-        guard let data = defaults.data(forKey: settingsKey),
+        guard let data = defaults.data(forKey: legacySettingsKey),
               let settings = try? JSONDecoder().decode(UserSettings.self, from: data) else {
             return UserSettings()
         }
@@ -73,7 +73,7 @@ class StorageService {
 
     func saveSettings(_ settings: UserSettings) {
         if let data = try? JSONEncoder().encode(settings) {
-            defaults.set(data, forKey: settingsKey)
+            defaults.set(data, forKey: legacySettingsKey)
         }
     }
 
@@ -233,7 +233,7 @@ class StorageService {
     func resetAll() {
         defaults.removeObject(forKey: streakKey)
         defaults.removeObject(forKey: achievementsKey)
-        defaults.removeObject(forKey: settingsKey)
+        defaults.removeObject(forKey: legacySettingsKey)
         resetMorningProofData()
     }
 

@@ -101,13 +101,21 @@ class HoldGestureUIView: UIView, UIGestureRecognizerDelegate {
 
     private func startHold() {
         holdStartTime = Date()
+
+        // Signal start with progress 0, then immediately signal target of 1.0
+        // The view receiving this should animate from 0 to 1 smoothly
         onProgressChanged?(0)
+
+        // Small delay to ensure the 0 is set before animating to 1
+        DispatchQueue.main.async {
+            self.onProgressChanged?(1.0)
+        }
 
         // Haptic feedback
         let generator = UIImpactFeedbackGenerator(style: .light)
         generator.impactOccurred()
 
-        // Start timer to update progress
+        // Timer only for haptics and completion detection (not progress updates)
         holdTimer = Timer.scheduledTimer(withTimeInterval: 0.02, repeats: true) { [weak self] timer in
             guard let self = self, let startTime = self.holdStartTime else {
                 timer.invalidate()
@@ -115,11 +123,6 @@ class HoldGestureUIView: UIView, UIGestureRecognizerDelegate {
             }
 
             let elapsed = Date().timeIntervalSince(startTime)
-            let progress = min(elapsed / self.holdDuration, 1.0)
-
-            DispatchQueue.main.async {
-                self.onProgressChanged?(CGFloat(progress))
-            }
 
             // Haptic tick every ~0.2s
             if Int(elapsed / 0.2) > Int((elapsed - 0.02) / 0.2) {
@@ -179,7 +182,15 @@ struct UIKitHoldToCompleteModifier: ViewModifier {
                         isEnabled: true,
                         holdDuration: holdDuration,
                         onProgressChanged: { newProgress in
-                            progress = newProgress
+                            if newProgress == 0 {
+                                // Reset immediately without animation
+                                progress = 0
+                            } else {
+                                // Animate smoothly to target progress
+                                withAnimation(.linear(duration: holdDuration)) {
+                                    progress = newProgress
+                                }
+                            }
                         },
                         onCompleted: {
                             progress = 0

@@ -1,20 +1,14 @@
 import SwiftUI
 
-// MARK: - Liquid Progress Shape
+// MARK: - Clean Progress Shape
 
-/// Custom shape with a wavy leading edge for liquid "charging" effect
-struct LiquidProgressShape: Shape {
+/// Simple capsule-clipped rectangle for clean fill effect
+struct CleanProgressShape: Shape {
     var progress: CGFloat
-    var wavePhase: CGFloat
-    var waveAmplitude: CGFloat  // Scales: 2pt at start → 8pt at end
 
-    var animatableData: AnimatablePair<CGFloat, AnimatablePair<CGFloat, CGFloat>> {
-        get { AnimatablePair(progress, AnimatablePair(wavePhase, waveAmplitude)) }
-        set {
-            progress = newValue.first
-            wavePhase = newValue.second.first
-            waveAmplitude = newValue.second.second
-        }
+    var animatableData: CGFloat {
+        get { progress }
+        set { progress = newValue }
     }
 
     func path(in rect: CGRect) -> Path {
@@ -23,45 +17,9 @@ struct LiquidProgressShape: Shape {
         let fillWidth = rect.width * progress
         guard fillWidth > 0 else { return path }
 
-        let cornerRadius = rect.height / 2
+        // Simple rectangle - will be clipped by capsule
+        path.addRect(CGRect(x: 0, y: 0, width: fillWidth, height: rect.height))
 
-        // Start at bottom-left with rounded corner
-        path.move(to: CGPoint(x: 0, y: rect.height - cornerRadius))
-
-        // Left rounded corner (bottom)
-        path.addArc(
-            center: CGPoint(x: cornerRadius, y: rect.height - cornerRadius),
-            radius: cornerRadius,
-            startAngle: .degrees(180),
-            endAngle: .degrees(90),
-            clockwise: true
-        )
-
-        // Bottom edge
-        path.addLine(to: CGPoint(x: fillWidth, y: rect.height))
-
-        // Wavy leading edge (moving upward)
-        let waveSteps = 20
-        for i in stride(from: waveSteps, through: 0, by: -1) {
-            let stepY = rect.height * CGFloat(i) / CGFloat(waveSteps)
-            let waveOffset = sin((CGFloat(i) / CGFloat(waveSteps)) * .pi * 3 + wavePhase) * waveAmplitude
-            let x = fillWidth + waveOffset
-            path.addLine(to: CGPoint(x: max(0, x), y: stepY))
-        }
-
-        // Top edge back to left
-        path.addLine(to: CGPoint(x: cornerRadius, y: 0))
-
-        // Left rounded corner (top)
-        path.addArc(
-            center: CGPoint(x: cornerRadius, y: cornerRadius),
-            radius: cornerRadius,
-            startAngle: .degrees(270),
-            endAngle: .degrees(180),
-            clockwise: true
-        )
-
-        path.closeSubpath()
         return path
     }
 }
@@ -88,8 +46,6 @@ struct LockInDayButton: View {
     @State private var chargingShakeX: CGFloat = 0  // Enhanced X shake
     @State private var chargingShakeY: CGFloat = 0  // Enhanced Y shake
     @State private var chargingShakeRotation: Double = 0  // Subtle rotation shake
-    @State private var wavePhase: CGFloat = 0  // Liquid wave animation phase
-    @State private var waveTimer: Timer?  // Continuous wave animation
     @State private var textScale: CGFloat = 1.0  // Text bounce animation
     @State private var textOffset: CGFloat = 0  // Text bounce offset
 
@@ -162,35 +118,32 @@ struct LockInDayButton: View {
                 .fill(backgroundColor)
                 .frame(width: buttonWidth, height: buttonHeight)
 
-            // Progress fill (while holding) - liquid gold with wavy edge
+            // Progress fill (while holding) - clean gold fill with soft glowing edge
             if isHolding && isEnabled && !isLockedIn {
                 ZStack(alignment: .leading) {
-                    // Liquid gold progress with wavy leading edge
-                    LiquidProgressShape(
-                        progress: holdProgress,
-                        wavePhase: wavePhase,
-                        waveAmplitude: 2 + holdProgress * 6  // 2pt at start → 8pt at end
-                    )
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                Color(red: 1.0, green: 0.75, blue: 0.0).opacity(0.65),
-                                Color(red: 1.0, green: 0.84, blue: 0.0).opacity(0.55),
-                                MPColors.accentGold.opacity(0.45)
-                            ],
-                            startPoint: .leading,
-                            endPoint: .trailing
+                    // Clean gold progress fill
+                    CleanProgressShape(progress: holdProgress)
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    Color(red: 1.0, green: 0.75, blue: 0.0).opacity(0.65),
+                                    Color(red: 1.0, green: 0.84, blue: 0.0).opacity(0.55),
+                                    MPColors.accentGold.opacity(0.45)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
-                    .frame(width: buttonWidth, height: buttonHeight)
+                        .frame(width: buttonWidth, height: buttonHeight)
 
-                    // Glowing edge at progress front - larger glow in dark mode
-                    if holdProgress > 0.05 {
-                        Circle()
-                            .fill(Color.white.opacity(colorScheme == .dark ? 0.45 : 0.35))
-                            .frame(width: colorScheme == .dark ? 28 : 24, height: colorScheme == .dark ? 28 : 24)
-                            .blur(radius: colorScheme == .dark ? 14 : 10)
-                            .offset(x: (buttonWidth * holdProgress) - (colorScheme == .dark ? 14 : 12))
+                    // Soft glowing edge at progress front
+                    if holdProgress > 0.03 {
+                        // Vertical glow bar at leading edge
+                        RoundedRectangle(cornerRadius: 4)
+                            .fill(Color.white.opacity(colorScheme == .dark ? 0.5 : 0.4))
+                            .frame(width: 8, height: buttonHeight * 0.7)
+                            .blur(radius: colorScheme == .dark ? 10 : 8)
+                            .offset(x: (buttonWidth * holdProgress) - 4)
                     }
                 }
                 .frame(width: buttonWidth, height: buttonHeight)
@@ -382,11 +335,6 @@ struct LockInDayButton: View {
             holdProgress = 1.0
         }
 
-        // Start wave animation timer for liquid effect
-        waveTimer = Timer.scheduledTimer(withTimeInterval: 1.0/60.0, repeats: true) { _ in
-            wavePhase += 0.15  // Continuous wave motion
-        }
-
         // Start timer for frequency-based haptics, sinusoidal shake, and completion check
         let tickInterval: Double = 0.016  // ~60fps for smooth shake
         holdTimer = Timer.scheduledTimer(withTimeInterval: tickInterval, repeats: true) { timer in
@@ -440,8 +388,6 @@ struct LockInDayButton: View {
     private func endHold() {
         holdTimer?.invalidate()
         holdTimer = nil
-        waveTimer?.invalidate()
-        waveTimer = nil
 
         if isHolding {
             // Check if hold was long enough
@@ -463,9 +409,6 @@ struct LockInDayButton: View {
         isHolding = false
         holdProgress = 0
         holdStartTime = nil
-        wavePhase = 0
-        waveTimer?.invalidate()
-        waveTimer = nil
 
         // Reset shake
         chargingShakeX = 0
@@ -488,9 +431,6 @@ struct LockInDayButton: View {
     private func cancelHold() {
         isHolding = false
         holdStartTime = nil
-        wavePhase = 0
-        waveTimer?.invalidate()
-        waveTimer = nil
 
         // Reset shake
         chargingShakeX = 0
@@ -525,12 +465,17 @@ struct LockInDayButton: View {
 
     /// Continuous shimmer animation with no pauses - meditative, premium feel
     private func startContinuousShimmer() {
-        shimmerOffset = -1.5
+        // Cancel any existing animation first to ensure clean start
+        withAnimation(nil) {
+            shimmerOffset = -1.5
+        }
 
-        // Continuous linear animation that repeats forever
-        // The shimmer moves at a constant, slow pace for a meditative feel
-        withAnimation(.linear(duration: shimmerDuration).repeatForever(autoreverses: false)) {
-            shimmerOffset = 1.5
+        // Small delay to ensure the reset takes effect before starting new animation
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
+            // Continuous linear animation that repeats forever
+            withAnimation(.linear(duration: shimmerDuration).repeatForever(autoreverses: false)) {
+                shimmerOffset = 1.5
+            }
         }
     }
 

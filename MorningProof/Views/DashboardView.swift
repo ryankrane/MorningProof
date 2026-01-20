@@ -30,7 +30,6 @@ struct DashboardView: View {
     @State private var recentlyCompletedHabits: Set<HabitType> = []
     @State private var showConfettiForHabit: HabitType? = nil
     @State private var showLockInCelebration = false
-    @State private var previousCompletedCount = 0
     @State private var previouslyCompletedHabits: Set<HabitType> = []
     @State private var showGrandFinaleConfetti = false  // For final habit celebration
 
@@ -187,7 +186,6 @@ struct DashboardView: View {
         .task {
             // Track which habits were completed before sync
             previouslyCompletedHabits = Set(manager.todayLog.completions.filter { $0.isCompleted }.map { $0.habitType })
-            previousCompletedCount = manager.completedCount
 
             await manager.syncHealthData()
 

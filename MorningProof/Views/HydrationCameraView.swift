@@ -9,7 +9,7 @@ struct HydrationCameraView: View {
     @State private var isAnalyzing = false
     @State private var result: HydrationVerificationResult?
     @State private var errorMessage: String?
-    @State private var showResultTransition = false
+    @State private var errorIcon: String = "exclamationmark.triangle"
 
     // Animation states for result view
     @State private var showCheckmark = false
@@ -26,15 +26,6 @@ struct HydrationCameraView: View {
 
                 if isAnalyzing {
                     analyzingView
-                } else if showResultTransition, let image = selectedImage, let result = result {
-                    VerificationResultTransitionView(
-                        image: image,
-                        isApproved: result.isWater,
-                        accentColor: MPColors.primary,
-                        onComplete: {
-                            showResultTransition = false
-                        }
-                    )
                 } else if let error = errorMessage {
                     errorView(error)
                 } else if let result = result {
@@ -121,10 +112,10 @@ struct HydrationCameraView: View {
     @ViewBuilder
     var analyzingView: some View {
         if let image = selectedImage {
-            LaserScanOverlayView(
+            VerificationLoadingView(
                 image: image,
                 accentColor: MPColors.primary,
-                statusText: "AI is checking for water"
+                statusText: "Verifying..."
             )
         } else {
             // Fallback if no image (shouldn't happen)
@@ -282,7 +273,7 @@ struct HydrationCameraView: View {
                     .fill(MPColors.errorLight)
                     .frame(width: 120, height: 120)
 
-                Image(systemName: "wifi.exclamationmark")
+                Image(systemName: errorIcon)
                     .font(.system(size: 50))
                     .foregroundColor(MPColors.error)
             }
@@ -303,6 +294,7 @@ struct HydrationCameraView: View {
                 if selectedImage != nil {
                     MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
                         errorMessage = nil
+                        errorIcon = "exclamationmark.triangle"
                         Task {
                             await verifyHydration(image: selectedImage!)
                         }
@@ -311,6 +303,7 @@ struct HydrationCameraView: View {
 
                 MPButton(title: "Retake Photo", style: .secondary, icon: "camera.fill") {
                     errorMessage = nil
+                    errorIcon = "exclamationmark.triangle"
                     selectedImage = nil
                 }
 
@@ -329,13 +322,18 @@ struct HydrationCameraView: View {
     func verifyHydration(image: UIImage) async {
         isAnalyzing = true
         errorMessage = nil
+        errorIcon = "exclamationmark.triangle"
 
         do {
             result = try await manager.completeHydrationVerification(image: image)
             isAnalyzing = false
-            showResultTransition = true
+        } catch let apiError as APIError {
+            errorMessage = apiError.localizedDescription
+            errorIcon = apiError.iconName
+            isAnalyzing = false
         } catch {
             errorMessage = error.localizedDescription
+            errorIcon = "exclamationmark.triangle"
             isAnalyzing = false
         }
     }

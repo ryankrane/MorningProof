@@ -110,7 +110,7 @@ struct StreakHeroCard: View {
         if completedToday == totalHabits {
             return MPColors.success  // Green - all done
         } else if completedToday == 0 {
-            return MPColors.accent  // Purple - not started
+            return MPColors.textTertiary  // Grey - not started
         } else {
             let progress = Double(completedToday) / Double(totalHabits)
             if progress >= 0.75 {
@@ -254,10 +254,10 @@ struct StreakHeroCard: View {
                     // Second content: Perfect Morning
                     HStack(spacing: MPSpacing.sm) {
                         Image(systemName: "sparkles")
-                            .foregroundColor(MPColors.accentGold)
+                            .foregroundColor(MPColors.success)
                         Text("Perfect Morning!")
                             .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.accentGold)
+                            .foregroundColor(MPColors.success)
                     }
                 }
                 .frame(height: 24)

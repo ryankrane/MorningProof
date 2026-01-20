@@ -10,7 +10,6 @@ struct BedCameraView: View {
     @State private var result: VerificationResult?
     @State private var errorMessage: String?
     @State private var errorIcon: String = "exclamationmark.triangle"
-    @State private var showResultTransition = false
 
     // Animation states for result view
     @State private var showCheckmark = false
@@ -27,16 +26,6 @@ struct BedCameraView: View {
 
                 if isAnalyzing {
                     analyzingView
-                } else if showResultTransition, let image = selectedImage, let result = result {
-                    // Dramatic transition before showing result
-                    VerificationResultTransitionView(
-                        image: image,
-                        isApproved: result.isMade,
-                        accentColor: MPColors.accent,
-                        onComplete: {
-                            showResultTransition = false
-                        }
-                    )
                 } else if let error = errorMessage {
                     errorView(error)
                 } else if let result = result {
@@ -134,10 +123,10 @@ struct BedCameraView: View {
     @ViewBuilder
     var analyzingView: some View {
         if let image = selectedImage {
-            LaserScanOverlayView(
+            VerificationLoadingView(
                 image: image,
                 accentColor: MPColors.accent,
-                statusText: "AI is checking if it's made"
+                statusText: "Verifying..."
             )
         } else {
             // Fallback if no image (shouldn't happen)
@@ -313,12 +302,12 @@ struct BedCameraView: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                if selectedImage != nil {
+                if let image = selectedImage {
                     MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
                         errorMessage = nil
                         errorIcon = "exclamationmark.triangle"
                         Task {
-                            await verifyBed(image: selectedImage!)
+                            await verifyBed(image: image)
                         }
                     }
                 }
@@ -349,8 +338,6 @@ struct BedCameraView: View {
         do {
             result = try await manager.completeBedVerification(image: image)
             isAnalyzing = false
-            // Trigger dramatic transition
-            showResultTransition = true
         } catch let apiError as APIError {
             errorMessage = apiError.localizedDescription
             errorIcon = apiError.iconName

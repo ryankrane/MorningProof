@@ -161,9 +161,12 @@ final class MorningProofManager: ObservableObject, Sendable {
     }
 
     private func updateAutoTrackedHabits() async {
+        // Note: We re-lookup indices after each await to prevent race conditions.
+        // The array could change during async calls, making captured indices invalid.
+
         // Update morning steps
+        let steps = await healthKit.fetchStepsBeforeCutoff(cutoffMinutes: settings.morningCutoffMinutes)
         if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningSteps }) {
-            let steps = await healthKit.fetchStepsBeforeCutoff(cutoffMinutes: settings.morningCutoffMinutes)
             let stepGoal = habitConfigs.first { $0.habitType == .morningSteps }?.goal ?? 500
 
             todayLog.completions[index].verificationData = HabitCompletion.VerificationData(stepCount: steps, isFromHealthKit: true)
@@ -176,8 +179,9 @@ final class MorningProofManager: ObservableObject, Sendable {
         }
 
         // Update sleep duration (only if not manually entered)
-        if let index = todayLog.completions.firstIndex(where: { $0.habitType == .sleepDuration }) {
-            // Don't override manual entries
+        // Check manual entry status before potential async operations
+        let sleepIndex = todayLog.completions.firstIndex(where: { $0.habitType == .sleepDuration })
+        if let index = sleepIndex {
             let isManualEntry = todayLog.completions[index].verificationData?.isFromHealthKit == false
 
             if !isManualEntry, let sleepData = healthKit.lastNightSleep {
@@ -194,13 +198,19 @@ final class MorningProofManager: ObservableObject, Sendable {
         }
 
         // Update morning workout (only if not manually completed)
-        if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) {
-            // Don't override if already manually completed
-            let isManuallyCompleted = todayLog.completions[index].isCompleted && todayLog.completions[index].verificationData?.workoutDetected != true
+        // Check manual completion status BEFORE the await
+        let workoutIndex = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout })
+        let isManuallyCompleted: Bool
+        if let index = workoutIndex {
+            isManuallyCompleted = todayLog.completions[index].isCompleted && todayLog.completions[index].verificationData?.workoutDetected != true
+        } else {
+            isManuallyCompleted = false
+        }
 
-            if !isManuallyCompleted {
-                let hasWorkout = await healthKit.checkMorningWorkout(cutoffMinutes: settings.morningCutoffMinutes)
-
+        if !isManuallyCompleted {
+            let hasWorkout = await healthKit.checkMorningWorkout(cutoffMinutes: settings.morningCutoffMinutes)
+            // Re-lookup index after await
+            if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) {
                 todayLog.completions[index].verificationData = HabitCompletion.VerificationData(workoutDetected: hasWorkout, isFromHealthKit: true)
 
                 if hasWorkout {

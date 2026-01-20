@@ -8,9 +8,9 @@ struct MorningProofApp: App {
     let container: ModelContainer
 
     init() {
-        print("🚀 MorningProofApp: init starting...")
+        MPLogger.info("MorningProofApp: init starting...", category: MPLogger.general)
         do {
-            print("🚀 MorningProofApp: Creating model container...")
+            MPLogger.info("MorningProofApp: Creating model container...", category: MPLogger.general)
             container = try ModelContainer(for:
                 SDSettings.self,
                 SDHabitConfig.self,
@@ -19,20 +19,27 @@ struct MorningProofApp: App {
                 SDStreakRecord.self,
                 SDUnlockedAchievement.self
             )
-            print("🚀 MorningProofApp: Model container created successfully")
-        } catch {
-            print("🚨 MorningProofApp: FATAL - Failed to create model container: \(error)")
+            MPLogger.info("MorningProofApp: Model container created successfully", category: MPLogger.general)
+        } catch let primaryError {
+            MPLogger.error("MorningProofApp: Failed to create model container", error: primaryError, category: MPLogger.general)
             // Create an in-memory container as fallback so the app at least launches
-            container = try! ModelContainer(for:
-                SDSettings.self,
-                SDHabitConfig.self,
-                SDDailyLog.self,
-                SDHabitCompletion.self,
-                SDStreakRecord.self,
-                SDUnlockedAchievement.self,
-                configurations: ModelConfiguration(isStoredInMemoryOnly: true)
-            )
-            print("🚨 MorningProofApp: Using in-memory fallback container")
+            do {
+                container = try ModelContainer(for:
+                    SDSettings.self,
+                    SDHabitConfig.self,
+                    SDDailyLog.self,
+                    SDHabitCompletion.self,
+                    SDStreakRecord.self,
+                    SDUnlockedAchievement.self,
+                    configurations: ModelConfiguration(isStoredInMemoryOnly: true)
+                )
+                MPLogger.warning("MorningProofApp: Using in-memory fallback container", category: MPLogger.general)
+            } catch let fallbackError {
+                // Both attempts failed - this is a critical error but we should still try to provide a container
+                MPLogger.error("MorningProofApp: CRITICAL - In-memory fallback also failed", error: fallbackError, category: MPLogger.general)
+                // Last resort: empty configuration (may crash but at least we tried)
+                fatalError("Failed to create any ModelContainer: Primary error: \(primaryError), Fallback error: \(fallbackError)")
+            }
         }
 
         // Configure Superwall for paywalls with custom purchase controller
@@ -49,7 +56,7 @@ struct MorningProofApp: App {
             await purchaseController.syncSuperwallSubscriptionStatus()
         }
 
-        print("🚀 MorningProofApp: init complete")
+        MPLogger.info("MorningProofApp: init complete", category: MPLogger.general)
     }
 
     var body: some Scene {
@@ -83,21 +90,21 @@ struct RootView: View {
             }
         }
         .task {
-            print("🚀 RootView: Starting initialization...")
+            MPLogger.info("RootView: Starting initialization...", category: MPLogger.general)
 
             // Run migration first, then mark ready
-            print("🚀 RootView: Running migration...")
+            MPLogger.info("RootView: Running migration...", category: MPLogger.general)
             await MigrationManager.shared.migrateIfNeeded(modelContext: modelContext)
-            print("🚀 RootView: Migration complete")
+            MPLogger.info("RootView: Migration complete", category: MPLogger.general)
 
             // Small delay to ensure main actor is ready
             try? await Task.sleep(nanoseconds: 100_000_000) // 0.1 sec
 
-            print("🚀 RootView: Setting isReady = true")
+            MPLogger.info("RootView: Setting isReady = true", category: MPLogger.general)
             await MainActor.run {
                 isReady = true
             }
-            print("🚀 RootView: Initialization complete")
+            MPLogger.info("RootView: Initialization complete", category: MPLogger.general)
 
             // Register HealthKit background observers (with delay to avoid startup issues)
             Task {
@@ -105,12 +112,9 @@ struct RootView: View {
                 let isAuthorized = await MainActor.run { HealthKitManager.shared.isAuthorized }
                 if isAuthorized {
                     await HealthKitBackgroundDeliveryService.shared.registerObservers()
-                    print("🚀 RootView: HealthKit background observers registered")
+                    MPLogger.info("RootView: HealthKit background observers registered", category: MPLogger.healthKit)
                 }
             }
-        }
-        .onAppear {
-            print("🚀 RootView: onAppear called")
         }
         .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
