@@ -7,6 +7,7 @@ struct SettingsView: View {
     @State private var selectedHour: Int = 9
     @State private var selectedMinute: Int = 0
     @State private var userName: String = ""
+    @State private var showDeleteConfirmation = false
 
     var body: some View {
         NavigationStack {
@@ -94,14 +95,13 @@ struct SettingsView: View {
 
                         Spacer(minLength: 40)
 
-                        // Reset data button
+                        // Delete account & data button
                         Button {
-                            MorningProofManager.shared.resetAllData()
-                            dismiss()
+                            showDeleteConfirmation = true
                         } label: {
                             HStack {
                                 Image(systemName: "trash")
-                                Text("Reset All Data")
+                                Text("Delete Account & Data")
                             }
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.error)
@@ -145,6 +145,15 @@ struct SettingsView: View {
                 selectedHour = viewModel.settings.deadlineHour
                 selectedMinute = viewModel.settings.deadlineMinute
                 userName = viewModel.settings.userName
+            }
+            .alert("Delete Account & Data?", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    MorningProofManager.shared.resetAllData()
+                    dismiss()
+                }
+            } message: {
+                Text("This will permanently delete your account and all data including habits, streaks, and settings. This cannot be undone.")
             }
         }
     }

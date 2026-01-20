@@ -259,6 +259,17 @@ struct AIVerificationShowcaseStep: View {
                     FeaturePill(icon: "lock.shield.fill", text: "Private")
                 }
                 .opacity(showScore ? 1 : 0)
+
+                // AI disclosure note (required for App Store)
+                HStack(spacing: MPSpacing.sm) {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textMuted)
+                    Text("Photos are analyzed by AI to verify habits")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textMuted)
+                }
+                .opacity(showScore ? 1 : 0)
             }
 
             Spacer()

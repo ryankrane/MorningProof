@@ -121,3 +121,8 @@ When ready for App Store release (after Family Controls approval):
 
 ### Re-enable Screen Time Feature
 - [ ] Re-enable Screen Time feature once all bundle IDs are approved for Family Controls (see section above)
+
+### HealthKit (once approved)
+- [ ] Review if Apple requires additional HealthKit privacy disclosures in Info.plist (NSHealthShareUsageDescription, NSHealthUpdateUsageDescription)
+- [ ] Verify App Store Connect Privacy Nutrition Labels include HealthKit data types (sleep, steps, workouts)
+- [ ] Confirm privacy policy on GitHub Pages covers all HealthKit usage (already updated but double-check after approval)

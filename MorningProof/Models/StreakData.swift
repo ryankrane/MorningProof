@@ -156,9 +156,6 @@ struct StreakData: Codable {
         // 1. The previous month (in case we just started a new month)
         // 2. The current month if it just ended (last day of month)
 
-        let currentMonth = calendar.component(.month, from: date)
-        let currentYear = calendar.component(.year, from: date)
-
         // Check the previous month
         if let previousMonth = calendar.date(byAdding: .month, value: -1, to: date) {
             checkMonthForPerfection(monthDate: previousMonth, calendar: calendar)

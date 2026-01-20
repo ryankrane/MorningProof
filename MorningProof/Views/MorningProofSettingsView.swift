@@ -88,22 +88,22 @@ struct MorningProofSettingsView: View {
             .onDisappear {
                 saveSettings()
             }
-            .alert("Reset Today's Progress?", isPresented: $showResetTodayConfirmation) {
+            .alert("Clear Today's Progress?", isPresented: $showResetTodayConfirmation) {
                 Button("Cancel", role: .cancel) { }
-                Button("Reset Today", role: .destructive) {
+                Button("Clear", role: .destructive) {
                     manager.resetTodaysProgress()
                 }
             } message: {
                 Text("This will clear all habit completions for today. Your settings and streak history will be preserved.")
             }
-            .alert("Reset All Data?", isPresented: $showResetConfirmation) {
+            .alert("Delete Account & Data?", isPresented: $showResetConfirmation) {
                 Button("Cancel", role: .cancel) { }
-                Button("Reset", role: .destructive) {
+                Button("Delete", role: .destructive) {
                     manager.resetAllData()
                     dismiss()
                 }
             } message: {
-                Text("This will delete all your habits, streaks, and settings. This cannot be undone.")
+                Text("This will permanently delete your account and all data including habits, streaks, and settings. This cannot be undone.")
             }
             .alert(infoAlertTitle, isPresented: $showingInfoAlert) {
                 Button("OK", role: .cancel) { }
@@ -513,14 +513,14 @@ struct MorningProofSettingsView: View {
                 Divider()
                     .padding(.leading, 46)
 
-                // Reset Today button
+                // Clear Today's Progress button
                 Button {
                     showResetTodayConfirmation = true
                 } label: {
                     aboutRow(
                         icon: "arrow.counterclockwise",
                         iconColor: MPColors.warning,
-                        title: "Reset Today",
+                        title: "Clear Today's Progress",
                         titleColor: MPColors.warning,
                         trailing: AnyView(EmptyView())
                     )
@@ -530,14 +530,14 @@ struct MorningProofSettingsView: View {
                 Divider()
                     .padding(.leading, 46)
 
-                // Reset All Data button
+                // Delete Account & Data button
                 Button {
                     showResetConfirmation = true
                 } label: {
                     aboutRow(
                         icon: "trash.fill",
                         iconColor: MPColors.error,
-                        title: "Reset All Data",
+                        title: "Delete Account & Data",
                         titleColor: MPColors.error,
                         trailing: AnyView(EmptyView())
                     )
