@@ -13,8 +13,11 @@ struct GuardrailStep: View {
     @State private var willpowerShake = false
     @State private var willpowerDimmed = false
     @State private var showLessThan = false
+    @State private var lessThanRotation: Double = -180
+    @State private var lessThanGlow = false
     @State private var showSystems = false
     @State private var systemsPunch = false
+    @State private var systemsGlow = false
     @State private var showSubtextLine1 = false
     @State private var showSubtextLine2 = false
     @State private var showCards = [false, false, false]
@@ -78,18 +81,46 @@ struct GuardrailStep: View {
                 .offset(x: willpowerShake ? -4 : 0, y: showWillpower ? 0 : 20)
                 .offset(x: willpowerShake ? 4 : 0)
 
-                Text("<")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textTertiary)
-                    .opacity(showLessThan ? 1 : 0)
-                    .scaleEffect(showLessThan ? 1 : 0.1)
+                // "<" with dramatic slam-in effect
+                ZStack {
+                    // Glow behind the "<"
+                    Text("<")
+                        .font(.system(size: 40, weight: .black, design: .rounded))
+                        .foregroundColor(MPColors.primary)
+                        .blur(radius: 12)
+                        .opacity(lessThanGlow ? 0.8 : 0)
 
-                Text("Systems")
-                    .font(.system(size: 34, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .opacity(showSystems ? 1 : 0)
-                    .offset(x: showSystems ? 0 : 30)
-                    .scaleEffect(systemsPunch ? 1.1 : 1.0)
+                    Text("<")
+                        .font(.system(size: 40, weight: .black, design: .rounded))
+                        .foregroundColor(MPColors.primary)
+                }
+                .opacity(showLessThan ? 1 : 0)
+                .scaleEffect(showLessThan ? 1 : 2.5)
+                .rotationEffect(.degrees(lessThanRotation))
+                .offset(y: showLessThan ? 0 : -50)
+
+                // "Systems" with gradient and glow
+                ZStack {
+                    // Glow behind Systems
+                    Text("Systems")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.primary)
+                        .blur(radius: 15)
+                        .opacity(systemsGlow ? 0.6 : 0)
+
+                    Text("Systems")
+                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [MPColors.primary, Color(red: 0.6, green: 0.5, blue: 1.0)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                }
+                .opacity(showSystems ? 1 : 0)
+                .offset(x: showSystems ? 0 : 60)
+                .scaleEffect(systemsPunch ? 1.15 : 1.0)
             }
             .padding(.horizontal, MPSpacing.xl)
 
@@ -122,26 +153,23 @@ struct GuardrailStep: View {
             Spacer()
                 .frame(height: 60)
 
-            // Explanatory text below the cards - two lines animating separately
-            VStack(spacing: 4) {
+            // Explanatory text below the cards - both lines animate together smoothly
+            VStack(spacing: 6) {
                 Text("Your brain will always choose easy over hard —")
                     .font(.system(size: 15))
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
-                    .opacity(showSubtextLine1 ? 1 : 0)
-                    .blur(radius: showSubtextLine1 ? 0 : 8)
-                    .offset(y: showSubtextLine1 ? 0 : 15)
 
                 Text("So we remove the choice entirely.")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
-                    .opacity(showSubtextLine2 ? 1 : 0)
-                    .blur(radius: showSubtextLine2 ? 0 : 8)
-                    .offset(y: showSubtextLine2 ? 0 : 15)
             }
             .lineSpacing(4)
             .padding(.horizontal, MPSpacing.xl)
+            .opacity(showSubtextLine1 ? 1 : 0)
+            .offset(y: showSubtextLine1 ? 0 : 12)
+            .blur(radius: showSubtextLine1 ? 0 : 4)
 
             Spacer()
 
@@ -205,51 +233,64 @@ struct GuardrailStep: View {
             }
         }
 
-        // 0.55s - "<" pops in with extra bouncy spring
-        withAnimation(.spring(response: 0.35, dampingFraction: 0.5).delay(0.55)) {
-            showLessThan = true
+        // 0.7s - "<" slams in from above with rotation + haptic
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+            HapticManager.shared.rigid()
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                showLessThan = true
+                lessThanRotation = 0
+            }
+            // Flash glow on impact
+            withAnimation(.easeIn(duration: 0.1)) {
+                lessThanGlow = true
+            }
+            withAnimation(.easeOut(duration: 0.4).delay(0.1)) {
+                lessThanGlow = false
+            }
         }
 
-        // 0.75s - "Systems" slides in from right
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.75).delay(0.75)) {
+        // 1.0s - "Systems" slides in powerfully from right
+        withAnimation(.spring(response: 0.45, dampingFraction: 0.7).delay(1.0)) {
             showSystems = true
         }
 
-        // 0.9s - "Systems" punch scale (overshoot then settle)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.9) {
+        // 1.15s - "Systems" punch scale with glow + haptic
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.15) {
+            HapticManager.shared.medium()
             withAnimation(.spring(response: 0.2, dampingFraction: 0.4)) {
                 systemsPunch = true
+                systemsGlow = true
             }
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6).delay(0.15)) {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.2)) {
                 systemsPunch = false
+            }
+            // Keep subtle glow
+            withAnimation(.easeOut(duration: 0.6).delay(0.2)) {
+                systemsGlow = false
             }
         }
 
         // Phase 2: Cards drop in one at a time with generous stagger
         for i in 0..<3 {
-            let delay = 1.0 + Double(i) * 0.5
+            let delay = 1.4 + Double(i) * 0.5
             withAnimation(.spring(response: 0.55, dampingFraction: 0.65).delay(delay)) {
                 showCards[i] = true
                 cardRotations[i] = 0
             }
         }
 
-        // Phase 3: Subtext fades in with blur effect (after all cards have landed)
-        withAnimation(.easeOut(duration: 0.5).delay(2.7)) {
+        // Phase 3: Subtext fades in smoothly together (after all cards have landed)
+        withAnimation(.easeOut(duration: 0.8).delay(3.1)) {
             showSubtextLine1 = true
         }
 
-        withAnimation(.easeOut(duration: 0.5).delay(2.95)) {
-            showSubtextLine2 = true
-        }
-
-        // Phase 4: Button appears
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.2)) {
+        // Phase 4: Button appears after a tiny pause
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.8)) {
             showButton = true
         }
 
         // Phase 5: Start icon pulse
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.4) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
             pulseIcons = true
         }
     }
