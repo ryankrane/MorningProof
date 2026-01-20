@@ -174,7 +174,7 @@ struct PermissionCard: View {
                             .font(.system(size: 28))
                             .foregroundColor(MPColors.success)
                     } else {
-                        Text("Enable")
+                        Text("Continue")
                             .font(.system(size: 14, weight: .semibold))
                             .foregroundColor(.white)
                             .padding(.horizontal, MPSpacing.md)
