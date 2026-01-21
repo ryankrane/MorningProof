@@ -54,7 +54,7 @@ struct LockInDayButton: View {
     @State private var textOffset: CGFloat = 0  // Text bounce offset
 
     private let holdDuration: Double = 2.75  // Deliberate, earned action (2.5-3.0s range)
-    private let shimmerDuration: Double = 4.5  // Slow, meditative gleam (4-5s)
+    private let shimmerDuration: Double = 3.0  // Premium gleam (slightly faster)
 
     // Font size scales with button height
     private var fontSize: CGFloat {
@@ -277,6 +277,12 @@ struct LockInDayButton: View {
         .onChange(of: isLockedIn) { _, newValue in
             if newValue {
                 startLockedAnimations()
+            }
+        }
+        .onChange(of: isHolding) { _, newValue in
+            // Restart shimmer when user stops holding (returns to idle state)
+            if !newValue && isEnabled && !isLockedIn {
+                startContinuousShimmer()
             }
         }
     }
