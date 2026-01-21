@@ -35,8 +35,11 @@ The app uses Firebase Cloud Functions to securely call the Claude API. This keep
 ### Key Files
 - `functions/index.js` - Firebase Functions that call Claude API
 - `MorningProof/Services/ClaudeAPIService.swift` - iOS service that calls Firebase
-- `MorningProof/Resources/GoogleService-Info.plist` - Firebase config (not in git)
-- `MorningProof/Services/Secrets.swift` - Contains Firebase Functions URL (not in git)
+- `MorningProof/Resources/GoogleService-Info.plist` - Firebase config
+- `MorningProof/Services/Secrets.swift` - Contains Firebase Functions URL (not in git, created by ci_post_clone.sh for Xcode Cloud)
+
+### Xcode Cloud Setup
+The `ci_scripts/ci_post_clone.sh` script creates `Secrets.swift` from environment variables. Only `FIREBASE_FUNCTIONS_URL` is needed since the Claude API key lives in Google Cloud Secret Manager (not in the app).
 
 ### Deploying Functions
 ```bash
@@ -44,9 +47,7 @@ firebase deploy --only functions
 ```
 
 ### Model Name
-Uses `claude-haiku-4-5` for fast, cheap image verification. Update in both:
-- `functions/index.js` (CLAUDE_MODEL constant)
-- `ClaudeAPIService.swift` (legacy fallback code)
+Uses `claude-haiku-4-5` for fast, cheap image verification. Update in `functions/index.js` (CLAUDE_MODEL constant). The legacy direct API fallback in ClaudeAPIService.swift is not used.
 
 ## Project Structure
 - `/MorningProof/Views/` - UI screens
