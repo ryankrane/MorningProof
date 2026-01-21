@@ -397,6 +397,7 @@ struct DoomScrollingSimulatorStep: View {
     @State private var showLockdown = false
     @State private var lockSlammed = false
     @State private var scrollOffset: CGFloat = 0
+    @State private var hasShownOnce = false  // Track if animation has completed once (for button)
 
     // Simulated social feed items
     private let feedItems: [(icon: String, color: Color, title: String)] = [
@@ -511,9 +512,9 @@ struct DoomScrollingSimulatorStep: View {
                 HapticManager.shared.medium()
                 onContinue()
             }
-            .disabled(!lockSlammed)
-            .opacity(lockSlammed ? 1 : 0.4)
-            .animation(.easeInOut(duration: 0.3), value: lockSlammed)
+            .disabled(!hasShownOnce)
+            .opacity(hasShownOnce ? 1 : 0.4)
+            .animation(.easeInOut(duration: 0.3), value: hasShownOnce)
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
@@ -552,6 +553,61 @@ struct DoomScrollingSimulatorStep: View {
 
                 withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
                     lockSlammed = true
+                }
+
+                // Mark that we've shown the animation once (enables button)
+                hasShownOnce = true
+
+                // Phase 3: Wait 4 seconds at locked screen, then loop
+                DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                    resetAndReplay()
+                }
+            }
+        }
+    }
+
+    private func resetAndReplay() {
+        // Reset animation states (keep hasShownOnce true so button stays enabled)
+        withAnimation(.easeOut(duration: 0.3)) {
+            showLockdown = false
+            lockSlammed = false
+        }
+
+        // Brief pause then restart scrolling
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+            // Reset scroll offset without animation
+            scrollOffset = 0
+            isScrolling = true
+
+            // Restart scroll animation
+            withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+                scrollOffset = -400
+            }
+
+            // Schedule next lockdown
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                // Stop scrolling
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isScrolling = false
+                }
+
+                // Show lockdown overlay
+                withAnimation(.easeIn(duration: 0.2)) {
+                    showLockdown = true
+                }
+
+                // Slam the lock
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    HapticManager.shared.flameSlamImpact()
+
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                        lockSlammed = true
+                    }
+
+                    // Wait 4 seconds then loop again
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                        resetAndReplay()
+                    }
                 }
             }
         }
