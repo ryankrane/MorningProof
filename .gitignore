@@ -37,3 +37,7 @@ Thumbs.db
 # Secrets - NEVER commit API keys
 Secrets.swift
 MorningProof/Services/Secrets.swift
+
+# Firebase config - contains API keys
+GoogleService-Info.plist
+MorningProof/Resources/GoogleService-Info.plist

@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Combine
 import SuperwallKit
+import FirebaseCore
 
 @main
 struct MorningProofApp: App {
@@ -9,6 +10,10 @@ struct MorningProofApp: App {
 
     init() {
         MPLogger.info("MorningProofApp: init starting...", category: MPLogger.general)
+
+        // Configure Firebase first (required for Functions, Crashlytics, Analytics)
+        FirebaseApp.configure()
+        MPLogger.info("MorningProofApp: Firebase configured", category: MPLogger.general)
         do {
             MPLogger.info("MorningProofApp: Creating model container...", category: MPLogger.general)
             container = try ModelContainer(for:

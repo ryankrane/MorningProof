@@ -1,7 +1,7 @@
 const functions = require("firebase-functions");
 
 const CLAUDE_API_URL = "https://api.anthropic.com/v1/messages";
-const CLAUDE_MODEL = "claude-haiku-4-5-latest";
+const CLAUDE_MODEL = "claude-haiku-4-5";
 
 // Get API key from Firebase config
 const getApiKey = () => {
@@ -11,6 +11,8 @@ const getApiKey = () => {
 // Prompts for each verification type
 const PROMPTS = {
   bed: `ROLE: You are a sharp-eyed bed inspector AI. Be honest, specific, and catch any gaming attempts.
+
+IMPORTANT: The user only sees PASS or FAIL with your feedback message. They do NOT see any scores. Never mention scores, points, or numbers in your feedback.
 
 ═══════════════════════════════════════════════════════════════
 STEP 1: IDENTIFY WHAT'S IN THE PHOTO
@@ -26,7 +28,7 @@ First, describe what you ACTUALLY see. Set detected_subject to one of:
 - "other" - anything else (pet, food, random object, person without bed)
 
 If detected_subject is NOT "bed", respond immediately:
-{"is_made": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see your bed. Try again!"}
+{"is_made": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see your bed!"}
 
 ═══════════════════════════════════════════════════════════════
 STEP 2: SCORE THE BED (only if bed is visible)
@@ -68,11 +70,11 @@ OVERALL (0-25):
 STEP 3: RESPOND
 ═══════════════════════════════════════════════════════════════
 - is_made = true if score >= 65
-- Feedback must be SPECIFIC to what you see:
-  * Score >= 85: Celebrate! ("Pristine! Those hospital corners are chef's kiss!")
-  * Score 65-84: Praise + one tip ("Looking good! Fluff those pillows for perfection.")
-  * Score 40-64: Name the specific issue ("Those pillows are scattered - line them up!")
-  * Score < 40: Call out what's wrong ("That duvet's still crumpled in the corner. Smooth it out!")
+- Feedback must be SPECIFIC to what you see. NEVER mention scores/points/numbers.
+  * High score: Celebrate! ("Pristine! Those hospital corners are chef's kiss!")
+  * Passing: Praise + one tip ("Looking good! Fluff those pillows for perfection.")
+  * Almost passing: Name the specific issue ("Those pillows are scattered - line them up!")
+  * Failing: Call out what's wrong ("That duvet's still crumpled in the corner. Smooth it out!")
 
 JSON format (detected_subject required):
 {"is_made": boolean, "detected_subject": "bed", "feedback": "specific message"}`,
@@ -230,35 +232,15 @@ async function callClaudeAPI(apiKey, imageBase64, prompt, maxTokens = 512) {
   return JSON.parse(responseText);
 }
 
-// Set CORS headers
-const setCorsHeaders = (res) => {
-  res.set("Access-Control-Allow-Origin", "*");
-  res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
-  res.set("Access-Control-Allow-Headers", "Content-Type");
-};
-
-// Verify Bed endpoint
+// Verify Bed endpoint (Firebase Callable Function)
 exports.verifyBed = functions
   .runWith({ secrets: ["CLAUDE_API_KEY"] })
-  .https.onRequest(async (req, res) => {
-    setCorsHeaders(res);
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
-
+  .https.onCall(async (data, context) => {
     try {
-      const { imageBase64 } = req.body;
+      const { imageBase64 } = data;
 
       if (!imageBase64) {
-        res.status(400).json({ error: "Missing imageBase64" });
-        return;
+        throw new functions.https.HttpsError("invalid-argument", "Missing imageBase64");
       }
 
       const result = await callClaudeAPI(
@@ -268,35 +250,25 @@ exports.verifyBed = functions
         512
       );
 
-      res.json(result);
+      return result;
     } catch (error) {
       console.error("verifyBed error:", error);
-      res.status(500).json({ error: "Verification failed" });
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      throw new functions.https.HttpsError("internal", "Verification failed");
     }
   });
 
-// Verify Sunlight endpoint
+// Verify Sunlight endpoint (Firebase Callable Function)
 exports.verifySunlight = functions
   .runWith({ secrets: ["CLAUDE_API_KEY"] })
-  .https.onRequest(async (req, res) => {
-    setCorsHeaders(res);
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
-
+  .https.onCall(async (data, context) => {
     try {
-      const { imageBase64 } = req.body;
+      const { imageBase64 } = data;
 
       if (!imageBase64) {
-        res.status(400).json({ error: "Missing imageBase64" });
-        return;
+        throw new functions.https.HttpsError("invalid-argument", "Missing imageBase64");
       }
 
       const result = await callClaudeAPI(
@@ -306,35 +278,25 @@ exports.verifySunlight = functions
         256
       );
 
-      res.json(result);
+      return result;
     } catch (error) {
       console.error("verifySunlight error:", error);
-      res.status(500).json({ error: "Verification failed" });
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      throw new functions.https.HttpsError("internal", "Verification failed");
     }
   });
 
-// Verify Hydration endpoint
+// Verify Hydration endpoint (Firebase Callable Function)
 exports.verifyHydration = functions
   .runWith({ secrets: ["CLAUDE_API_KEY"] })
-  .https.onRequest(async (req, res) => {
-    setCorsHeaders(res);
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
-
+  .https.onCall(async (data, context) => {
     try {
-      const { imageBase64 } = req.body;
+      const { imageBase64 } = data;
 
       if (!imageBase64) {
-        res.status(400).json({ error: "Missing imageBase64" });
-        return;
+        throw new functions.https.HttpsError("invalid-argument", "Missing imageBase64");
       }
 
       const result = await callClaudeAPI(
@@ -344,35 +306,25 @@ exports.verifyHydration = functions
         256
       );
 
-      res.json(result);
+      return result;
     } catch (error) {
       console.error("verifyHydration error:", error);
-      res.status(500).json({ error: "Verification failed" });
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      throw new functions.https.HttpsError("internal", "Verification failed");
     }
   });
 
-// Verify Custom Habit endpoint
+// Verify Custom Habit endpoint (Firebase Callable Function)
 exports.verifyCustomHabit = functions
   .runWith({ secrets: ["CLAUDE_API_KEY"] })
-  .https.onRequest(async (req, res) => {
-    setCorsHeaders(res);
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
-
+  .https.onCall(async (data, context) => {
     try {
-      const { imageBase64, habitName, aiPrompt, allowsScreenshots } = req.body;
+      const { imageBase64, habitName, aiPrompt, allowsScreenshots } = data;
 
       if (!imageBase64 || !habitName) {
-        res.status(400).json({ error: "Missing required fields" });
-        return;
+        throw new functions.https.HttpsError("invalid-argument", "Missing required fields");
       }
 
       const userCriteria = aiPrompt || "Verify that this habit has been completed.";
@@ -451,35 +403,25 @@ JSON format (detected_subject required):
         512
       );
 
-      res.json(result);
+      return result;
     } catch (error) {
       console.error("verifyCustomHabit error:", error);
-      res.status(500).json({ error: "Verification failed" });
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      throw new functions.https.HttpsError("internal", "Verification failed");
     }
   });
 
-// Verify Video endpoint
+// Verify Video endpoint (Firebase Callable Function)
 exports.verifyVideo = functions
   .runWith({ secrets: ["CLAUDE_API_KEY"] })
-  .https.onRequest(async (req, res) => {
-    setCorsHeaders(res);
-
-    if (req.method === "OPTIONS") {
-      res.status(204).send("");
-      return;
-    }
-
-    if (req.method !== "POST") {
-      res.status(405).json({ error: "Method not allowed" });
-      return;
-    }
-
+  .https.onCall(async (data, context) => {
     try {
-      const { frames, habitName, aiPrompt, duration } = req.body;
+      const { frames, habitName, aiPrompt, duration } = data;
 
       if (!frames || !Array.isArray(frames) || frames.length === 0 || !habitName) {
-        res.status(400).json({ error: "Missing required fields" });
-        return;
+        throw new functions.https.HttpsError("invalid-argument", "Missing required fields");
       }
 
       const userCriteria = aiPrompt || "Verify that this action was performed.";
@@ -581,14 +523,14 @@ JSON format (all fields required):
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`Claude API error: ${response.status} - ${errorText}`);
-        throw new Error(`Claude API error: ${response.status}`);
+        throw new functions.https.HttpsError("internal", `Claude API error: ${response.status}`);
       }
 
-      const data = await response.json();
-      const textContent = data.content.find(c => c.type === "text");
+      const responseData = await response.json();
+      const textContent = responseData.content.find(c => c.type === "text");
 
       if (!textContent || !textContent.text) {
-        throw new Error("No text response from Claude");
+        throw new functions.https.HttpsError("internal", "No text response from Claude");
       }
 
       // Extract JSON from response
@@ -609,10 +551,12 @@ JSON format (all fields required):
         responseText = responseText.slice(jsonStart, jsonEnd + 1);
       }
 
-      const result = JSON.parse(responseText);
-      res.json(result);
+      return JSON.parse(responseText);
     } catch (error) {
       console.error("verifyVideo error:", error);
-      res.status(500).json({ error: "Verification failed" });
+      if (error instanceof functions.https.HttpsError) {
+        throw error;
+      }
+      throw new functions.https.HttpsError("internal", "Verification failed");
     }
   });

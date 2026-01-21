@@ -1,5 +1,6 @@
 import Foundation
 import UIKit
+import FirebaseFunctions
 
 actor ClaudeAPIService {
     private let apiKey: String
@@ -139,35 +140,52 @@ actor ClaudeAPIService {
         }
     }
 
-    // MARK: - Firebase Cloud Functions
+    // MARK: - Firebase Cloud Functions (Callable)
 
-    /// Makes a request to a Firebase Cloud Function
-    private func callFirebaseFunction<T: Decodable>(
+    /// Gets the Firebase Functions instance on the main thread
+    private func getFirebaseFunctions() async -> Functions {
+        await MainActor.run {
+            Functions.functions(region: "us-central1")
+        }
+    }
+
+    /// Calls a Firebase Callable Function using the SDK
+    private func callFirebaseCallable<T: Decodable>(
         _ functionName: String,
-        body: [String: Any],
+        data: [String: Any],
         responseType: T.Type,
         endpoint: String
     ) async throws -> T {
-        guard let url = URL(string: "\(firebaseFunctionsBaseURL)/\(functionName)") else {
-            throw APIError.invalidURL
-        }
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONSerialization.data(withJSONObject: body)
-
-        let data = try await performRequestWithRetry(request, endpoint: endpoint)
+        let functions = await getFirebaseFunctions()
 
         do {
-            return try JSONDecoder().decode(responseType, from: data)
-        } catch {
-            await MainActor.run {
-                CrashReportingService.shared.recordError(
-                    error,
-                    userInfo: ["endpoint": endpoint, "response": String(data: data, encoding: .utf8) ?? ""]
-                )
+            let callable = functions.httpsCallable(functionName)
+            let result = try await callable.call(data)
+
+            guard let responseDict = result.data as? [String: Any] else {
+                throw APIError.parsingFailed
             }
+
+            let jsonData = try JSONSerialization.data(withJSONObject: responseDict)
+            return try JSONDecoder().decode(responseType, from: jsonData)
+        } catch let error as NSError {
+            print("[ClaudeAPI] Firebase error: \(error.domain) code=\(error.code) \(error.localizedDescription)")
+            if error.domain == FunctionsErrorDomain {
+                let code = FunctionsErrorCode(rawValue: error.code)
+                switch code {
+                case .unavailable, .resourceExhausted:
+                    throw APIError.serviceUnavailable
+                case .invalidArgument:
+                    throw APIError.parsingFailed
+                default:
+                    throw APIError.serviceUnavailable
+                }
+            }
+            throw APIError.serviceUnavailable
+        } catch let apiError as APIError {
+            throw apiError
+        } catch {
+            print("[ClaudeAPI] Unknown error: \(error)")
             throw APIError.parsingFailed
         }
     }
@@ -191,9 +209,9 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure), otherwise fall back to direct API (legacy)
         if isUsingFirebase {
-            return try await callFirebaseFunction(
+            return try await callFirebaseCallable(
                 "verifyBed",
-                body: ["imageBase64": base64Image],
+                data: ["imageBase64": base64Image],
                 responseType: VerificationResult.self,
                 endpoint: "firebase/verify-bed"
             )
@@ -201,7 +219,7 @@ actor ClaudeAPIService {
 
         // Legacy: Direct Claude API call (API key exposed in app binary)
         let requestBody: [String: Any] = [
-            "model": "claude-haiku-4-5-latest",
+            "model": "claude-haiku-4-5",
             "max_tokens": 512,
             "messages": [
                 [
@@ -220,6 +238,8 @@ actor ClaudeAPIService {
                             "text": """
                             ROLE: You are a sharp-eyed bed inspector AI. Be honest, specific, and catch any gaming attempts.
 
+                            IMPORTANT: The user only sees PASS or FAIL with your feedback message. They do NOT see any scores. Never mention scores, points, or numbers in your feedback.
+
                             ═══════════════════════════════════════════════════════════════
                             STEP 1: IDENTIFY WHAT'S IN THE PHOTO
                             ═══════════════════════════════════════════════════════════════
@@ -234,7 +254,7 @@ actor ClaudeAPIService {
                             - "other" - anything else (pet, food, random object, person without bed)
 
                             If detected_subject is NOT "bed", respond immediately:
-                            {"is_made": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see your bed. Try again!"}
+                            {"is_made": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see your bed!"}
 
                             ═══════════════════════════════════════════════════════════════
                             STEP 2: SCORE THE BED (only if bed is visible)
@@ -276,11 +296,11 @@ actor ClaudeAPIService {
                             STEP 3: RESPOND
                             ═══════════════════════════════════════════════════════════════
                             - is_made = true if score >= 65
-                            - Feedback must be SPECIFIC to what you see:
-                              * Score >= 85: Celebrate! ("Pristine! Those hospital corners are chef's kiss!")
-                              * Score 65-84: Praise + one tip ("Looking good! Fluff those pillows for perfection.")
-                              * Score 40-64: Name the specific issue ("Those pillows are scattered - line them up!")
-                              * Score < 40: Call out what's wrong ("That duvet's still crumpled in the corner. Smooth it out!")
+                            - Feedback must be SPECIFIC to what you see. NEVER mention scores/points/numbers.
+                              * High score: Celebrate! ("Pristine! Those hospital corners are chef's kiss!")
+                              * Passing: Praise + one tip ("Looking good! Fluff those pillows for perfection.")
+                              * Almost passing: Name the specific issue ("Those pillows are scattered - line them up!")
+                              * Failing: Call out what's wrong ("That duvet's still crumpled in the corner. Smooth it out!")
 
                             JSON format (detected_subject required):
                             {"is_made": boolean, "detected_subject": "bed", "feedback": "specific message"}
@@ -442,9 +462,9 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure)
         if isUsingFirebase {
-            return try await callFirebaseFunction(
+            return try await callFirebaseCallable(
                 "verifySunlight",
-                body: ["imageBase64": base64Image],
+                data: ["imageBase64": base64Image],
                 responseType: SunlightVerificationResult.self,
                 endpoint: "firebase/verify-sunlight"
             )
@@ -452,7 +472,7 @@ actor ClaudeAPIService {
 
         // Legacy: Direct Claude API call
         let requestBody: [String: Any] = [
-            "model": "claude-haiku-4-5-latest",
+            "model": "claude-haiku-4-5",
             "max_tokens": 256,
             "messages": [
                 [
@@ -555,9 +575,9 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure)
         if isUsingFirebase {
-            return try await callFirebaseFunction(
+            return try await callFirebaseCallable(
                 "verifyHydration",
-                body: ["imageBase64": base64Image],
+                data: ["imageBase64": base64Image],
                 responseType: HydrationVerificationResult.self,
                 endpoint: "firebase/verify-hydration"
             )
@@ -565,7 +585,7 @@ actor ClaudeAPIService {
 
         // Legacy: Direct Claude API call
         let requestBody: [String: Any] = [
-            "model": "claude-haiku-4-5-latest",
+            "model": "claude-haiku-4-5",
             "max_tokens": 256,
             "messages": [
                 [
@@ -671,17 +691,17 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure)
         if isUsingFirebase {
-            var body: [String: Any] = [
+            var requestData: [String: Any] = [
                 "imageBase64": base64Image,
                 "habitName": customHabit.name,
                 "allowsScreenshots": customHabit.allowsScreenshots
             ]
             if let aiPrompt = customHabit.aiPrompt {
-                body["aiPrompt"] = aiPrompt
+                requestData["aiPrompt"] = aiPrompt
             }
-            return try await callFirebaseFunction(
+            return try await callFirebaseCallable(
                 "verifyCustomHabit",
-                body: body,
+                data: requestData,
                 responseType: CustomVerificationResult.self,
                 endpoint: "firebase/verify-custom-habit"
             )
@@ -766,7 +786,7 @@ actor ClaudeAPIService {
             """
 
         let requestBody: [String: Any] = [
-            "model": "claude-haiku-4-5-latest",
+            "model": "claude-haiku-4-5",
             "max_tokens": 512,
             "messages": [
                 [
@@ -853,17 +873,17 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure)
         if isUsingFirebase {
-            var body: [String: Any] = [
+            var requestData: [String: Any] = [
                 "frames": base64Frames,
                 "habitName": customHabit.name,
                 "duration": duration
             ]
             if let aiPrompt = customHabit.aiPrompt {
-                body["aiPrompt"] = aiPrompt
+                requestData["aiPrompt"] = aiPrompt
             }
-            return try await callFirebaseFunction(
+            return try await callFirebaseCallable(
                 "verifyVideo",
-                body: body,
+                data: requestData,
                 responseType: VideoVerificationResult.self,
                 endpoint: "firebase/verify-video"
             )
@@ -932,7 +952,7 @@ actor ClaudeAPIService {
         ])
 
         let requestBody: [String: Any] = [
-            "model": "claude-haiku-4-5-latest",
+            "model": "claude-haiku-4-5",
             "max_tokens": 512,
             "messages": [
                 [

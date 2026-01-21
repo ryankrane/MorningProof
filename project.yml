@@ -34,9 +34,13 @@ targets:
       - path: Shared
     dependencies:
       - package: Firebase
+        product: FirebaseCore
+      - package: Firebase
         product: FirebaseCrashlytics
       - package: Firebase
         product: FirebaseAnalytics
+      - package: Firebase
+        product: FirebaseFunctions
       - package: GoogleSignIn
         product: GoogleSignIn
       - package: SuperwallKit

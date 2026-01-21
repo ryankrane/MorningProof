@@ -18,9 +18,35 @@ Morning habit tracking app that uses photo verification (AI checks if you made y
 
 ## Tech Stack
 - SwiftUI + SwiftData
-- Firebase (configured but not active yet)
+- Firebase (Functions, Crashlytics, Analytics)
 - Sign in with Apple
 - Widget extension (MorningProofWidget)
+- Claude API (via Firebase Functions for secure API key handling)
+
+## Firebase & Claude API Setup
+
+The app uses Firebase Cloud Functions to securely call the Claude API. This keeps the API key on the server (not in the app binary).
+
+### How It Works
+1. iOS app calls Firebase Callable Functions (via FirebaseFunctions SDK)
+2. Firebase Function reads `CLAUDE_API_KEY` from Google Cloud Secret Manager
+3. Function calls Claude API and returns result to app
+
+### Key Files
+- `functions/index.js` - Firebase Functions that call Claude API
+- `MorningProof/Services/ClaudeAPIService.swift` - iOS service that calls Firebase
+- `MorningProof/Resources/GoogleService-Info.plist` - Firebase config (not in git)
+- `MorningProof/Services/Secrets.swift` - Contains Firebase Functions URL (not in git)
+
+### Deploying Functions
+```bash
+firebase deploy --only functions
+```
+
+### Model Name
+Uses `claude-haiku-4-5` for fast, cheap image verification. Update in both:
+- `functions/index.js` (CLAUDE_MODEL constant)
+- `ClaudeAPIService.swift` (legacy fallback code)
 
 ## Project Structure
 - `/MorningProof/Views/` - UI screens
