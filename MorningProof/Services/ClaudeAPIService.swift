@@ -3,11 +3,18 @@ import UIKit
 
 actor ClaudeAPIService {
     private let apiKey: String
-    private let baseURL = "https://api.anthropic.com/v1/messages"
+    private let firebaseFunctionsBaseURL: String
+    private let claudeBaseURL = "https://api.anthropic.com/v1/messages"
     private let maxImageBytes = 4_500_000 // Stay under 5MB API limit with some buffer
 
-    init(apiKey: String = Config.claudeAPIKey) {
+    /// Returns true if using Firebase Cloud Functions (secure), false if using direct API (legacy)
+    var isUsingFirebase: Bool {
+        !firebaseFunctionsBaseURL.isEmpty
+    }
+
+    init(apiKey: String = Config.claudeAPIKey, firebaseFunctionsBaseURL: String = Config.firebaseFunctionsBaseURL) {
         self.apiKey = apiKey
+        self.firebaseFunctionsBaseURL = firebaseFunctionsBaseURL
     }
 
     /// Compresses and resizes image to stay under the API size limit
@@ -132,6 +139,39 @@ actor ClaudeAPIService {
         }
     }
 
+    // MARK: - Firebase Cloud Functions
+
+    /// Makes a request to a Firebase Cloud Function
+    private func callFirebaseFunction<T: Decodable>(
+        _ functionName: String,
+        body: [String: Any],
+        responseType: T.Type,
+        endpoint: String
+    ) async throws -> T {
+        guard let url = URL(string: "\(firebaseFunctionsBaseURL)/\(functionName)") else {
+            throw APIError.invalidURL
+        }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data = try await performRequestWithRetry(request, endpoint: endpoint)
+
+        do {
+            return try JSONDecoder().decode(responseType, from: data)
+        } catch {
+            await MainActor.run {
+                CrashReportingService.shared.recordError(
+                    error,
+                    userInfo: ["endpoint": endpoint, "response": String(data: data, encoding: .utf8) ?? ""]
+                )
+            }
+            throw APIError.parsingFailed
+        }
+    }
+
     func verifyBed(image: UIImage) async throws -> VerificationResult {
         await MainActor.run {
             CrashReportingService.shared.logAPICall("claude/verify-bed")
@@ -149,6 +189,17 @@ actor ClaudeAPIService {
 
         let base64Image = imageData.base64EncodedString()
 
+        // Use Firebase Cloud Functions if configured (secure), otherwise fall back to direct API (legacy)
+        if isUsingFirebase {
+            return try await callFirebaseFunction(
+                "verifyBed",
+                body: ["imageBase64": base64Image],
+                responseType: VerificationResult.self,
+                endpoint: "firebase/verify-bed"
+            )
+        }
+
+        // Legacy: Direct Claude API call (API key exposed in app binary)
         let requestBody: [String: Any] = [
             "model": "claude-haiku-4-5-latest",
             "max_tokens": 512,
@@ -240,7 +291,7 @@ actor ClaudeAPIService {
             ]
         ]
 
-        guard let url = URL(string: baseURL) else {
+        guard let url = URL(string: claudeBaseURL) else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
@@ -389,6 +440,17 @@ actor ClaudeAPIService {
 
         let base64Image = imageData.base64EncodedString()
 
+        // Use Firebase Cloud Functions if configured (secure)
+        if isUsingFirebase {
+            return try await callFirebaseFunction(
+                "verifySunlight",
+                body: ["imageBase64": base64Image],
+                responseType: SunlightVerificationResult.self,
+                endpoint: "firebase/verify-sunlight"
+            )
+        }
+
+        // Legacy: Direct Claude API call
         let requestBody: [String: Any] = [
             "model": "claude-haiku-4-5-latest",
             "max_tokens": 256,
@@ -451,7 +513,7 @@ actor ClaudeAPIService {
             ]
         ]
 
-        guard let url = URL(string: baseURL) else {
+        guard let url = URL(string: claudeBaseURL) else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
@@ -491,6 +553,17 @@ actor ClaudeAPIService {
 
         let base64Image = imageData.base64EncodedString()
 
+        // Use Firebase Cloud Functions if configured (secure)
+        if isUsingFirebase {
+            return try await callFirebaseFunction(
+                "verifyHydration",
+                body: ["imageBase64": base64Image],
+                responseType: HydrationVerificationResult.self,
+                endpoint: "firebase/verify-hydration"
+            )
+        }
+
+        // Legacy: Direct Claude API call
         let requestBody: [String: Any] = [
             "model": "claude-haiku-4-5-latest",
             "max_tokens": 256,
@@ -556,7 +629,7 @@ actor ClaudeAPIService {
             ]
         ]
 
-        guard let url = URL(string: baseURL) else {
+        guard let url = URL(string: claudeBaseURL) else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
@@ -596,6 +669,25 @@ actor ClaudeAPIService {
 
         let base64Image = imageData.base64EncodedString()
 
+        // Use Firebase Cloud Functions if configured (secure)
+        if isUsingFirebase {
+            var body: [String: Any] = [
+                "imageBase64": base64Image,
+                "habitName": customHabit.name,
+                "allowsScreenshots": customHabit.allowsScreenshots
+            ]
+            if let aiPrompt = customHabit.aiPrompt {
+                body["aiPrompt"] = aiPrompt
+            }
+            return try await callFirebaseFunction(
+                "verifyCustomHabit",
+                body: body,
+                responseType: CustomVerificationResult.self,
+                endpoint: "firebase/verify-custom-habit"
+            )
+        }
+
+        // Legacy: Direct Claude API call
         // Build the prompt based on user's AI instructions
         let userCriteria = customHabit.aiPrompt ?? "Verify that this habit has been completed."
 
@@ -697,7 +789,7 @@ actor ClaudeAPIService {
             ]
         ]
 
-        guard let url = URL(string: baseURL) else {
+        guard let url = URL(string: claudeBaseURL) else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)
@@ -726,6 +818,7 @@ actor ClaudeAPIService {
         }
 
         // Prepare all frames as base64
+        var base64Frames: [String] = []
         var imageContents: [[String: Any]] = []
 
         for (index, frame) in frames.enumerated() {
@@ -740,6 +833,7 @@ actor ClaudeAPIService {
             }
 
             let base64Image = imageData.base64EncodedString()
+            base64Frames.append(base64Image)
 
             imageContents.append([
                 "type": "image",
@@ -757,6 +851,25 @@ actor ClaudeAPIService {
             ])
         }
 
+        // Use Firebase Cloud Functions if configured (secure)
+        if isUsingFirebase {
+            var body: [String: Any] = [
+                "frames": base64Frames,
+                "habitName": customHabit.name,
+                "duration": duration
+            ]
+            if let aiPrompt = customHabit.aiPrompt {
+                body["aiPrompt"] = aiPrompt
+            }
+            return try await callFirebaseFunction(
+                "verifyVideo",
+                body: body,
+                responseType: VideoVerificationResult.self,
+                endpoint: "firebase/verify-video"
+            )
+        }
+
+        // Legacy: Direct Claude API call
         // Build the verification prompt
         let userCriteria = customHabit.aiPrompt ?? "Verify that this action was performed."
         let prompt = """
@@ -829,7 +942,7 @@ actor ClaudeAPIService {
             ]
         ]
 
-        guard let url = URL(string: baseURL) else {
+        guard let url = URL(string: claudeBaseURL) else {
             throw APIError.invalidURL
         }
         var request = URLRequest(url: url)

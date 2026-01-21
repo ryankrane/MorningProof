@@ -12,6 +12,10 @@ cat > "$SECRETS_FILE" << EOF
 import Foundation
 
 enum Secrets {
+    // Firebase Cloud Functions base URL (secure - API key stays on server)
+    static let firebaseFunctionsBaseURL = "${FIREBASE_FUNCTIONS_URL}"
+
+    // Legacy: Direct Claude API key (only used if firebaseFunctionsBaseURL is empty)
     static let claudeAPIKey = "${CLAUDE_API_KEY}"
 }
 EOF
