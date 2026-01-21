@@ -100,6 +100,7 @@ Shared data between app and extensions uses App Group: `group.com.rk.morningproo
 - App Store ID: `6757691737`
 - Team ID: `P9ZXADV42A`
 - Google OAuth Client: `591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3.apps.googleusercontent.com`
+- Support Email: `support@morningproofapp.com`
 
 ## Build Commands
 When building for simulator, use `iPhone 17 Pro`:
@@ -142,16 +143,16 @@ The Screen Time (Family Controls) feature is temporarily disabled while waiting 
 
 6. **Phase3Steps.swift (AIVerificationShowcaseStep)** - Uncomment the "unlock message" section that says "Once verified, your apps unlock instantly"
 
-7. **OnboardingFlowView.swift**:
+7. **Phase5Steps.swift (PermissionsStep)** - Uncomment the App Locking PermissionCard
+
+8. **OnboardingFlowView.swift**:
    - Uncomment `import FamilyControls`
    - Uncomment `DistractionSelectionStep` (case 6) and `AppLockingOnboardingStep` (case 7)
    - Increment all case numbers below them by 2
    - Update `totalSteps` from 16 to 18
    - Update `paywallStep` from 15 to 17
 
-8. **project.yml**: Uncomment the extension targets and `family-controls` entitlement (search for "TEMPORARILY DISABLED")
-
-9. **Phase4Steps.swift (PermissionsStep)**: Remove the "App Locking" PermissionCard (we already ask on the dedicated step)
+9. **project.yml**: Uncomment the extension targets and `family-controls` entitlement (search for "TEMPORARILY DISABLED")
 
 10. **MorningProofSettingsView.swift**: Uncomment `appLockingSection` in the body
 

@@ -57,19 +57,17 @@ struct PermissionsStep: View {
                     requestNotifications()
                 }
 
-                // App Locking permission card
-                // TODO: REMOVE THIS CARD once AppLockingOnboardingStep is enabled
-                // (We'll have already asked for Screen Time permission on the dedicated step)
-                PermissionCard(
-                    icon: "lock.shield.fill",
-                    iconColor: MPColors.accentGold,
-                    title: "App Locking",
-                    description: "Lock distractions until your habits are done",
-                    isEnabled: screenTimeEnabled,
-                    isLoading: isRequestingScreenTime
-                ) {
-                    requestScreenTimeAccess()
-                }
+                // TODO: FAMILY CONTROLS - Re-enable this App Locking permission card when approved:
+                // PermissionCard(
+                //     icon: "lock.shield.fill",
+                //     iconColor: MPColors.accentGold,
+                //     title: "App Locking",
+                //     description: "Lock distractions until your habits are done",
+                //     isEnabled: screenTimeEnabled,
+                //     isLoading: isRequestingScreenTime
+                // ) {
+                //     requestScreenTimeAccess()
+                // }
             }
             .padding(.horizontal, MPSpacing.xl)
 
