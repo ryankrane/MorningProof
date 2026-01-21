@@ -103,6 +103,7 @@ struct MorningProofSettingsView: View {
                 Button("Cancel", role: .cancel) { }
                 Button("Delete", role: .destructive) {
                     manager.resetAllData()
+                    AuthenticationManager.shared.signOut()
                     dismiss()
                 }
             } message: {

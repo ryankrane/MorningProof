@@ -16,55 +16,57 @@ struct PaywallView: View {
     }
 
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Background gradient
-                LinearGradient(
-                    colors: [MPColors.background, MPColors.surfaceSecondary],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-                .ignoresSafeArea()
+        ZStack {
+            // Background gradient
+            LinearGradient(
+                colors: [MPColors.background, MPColors.surfaceSecondary],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
 
-                ScrollView(showsIndicators: false) {
-                    VStack(spacing: MPSpacing.xxl) {
-                        // Header
-                        headerSection
+            ScrollView(showsIndicators: false) {
+                VStack(spacing: MPSpacing.xxl) {
+                    // Header
+                    headerSection
 
-                        // Features
-                        featuresSection
+                    // Features
+                    featuresSection
 
-                        // Plan Selection
-                        planSelectionSection
+                    // Plan Selection
+                    planSelectionSection
 
-                        // Subscribe Button
-                        subscribeButton
+                    // Subscribe Button
+                    subscribeButton
 
-                        // Terms
-                        termsSection
-                    }
-                    .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, MPSpacing.sm)
-                    .padding(.bottom, MPSpacing.xxxl)
+                    // Terms
+                    termsSection
                 }
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, MPSpacing.sm)
+                .padding(.bottom, MPSpacing.xxxl)
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
+
+            // Close button overlay (top-right)
+            VStack {
+                HStack {
+                    Spacer()
                     Button {
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.title3)
+                            .font(.title2)
                             .foregroundColor(MPColors.textTertiary)
                     }
+                    .padding(MPSpacing.lg)
                 }
+                Spacer()
             }
-            .alert("Error", isPresented: $showError) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(errorMessage)
-            }
+        }
+        .alert("Error", isPresented: $showError) {
+            Button("OK", role: .cancel) {}
+        } message: {
+            Text(errorMessage)
         }
     }
 

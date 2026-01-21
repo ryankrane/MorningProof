@@ -483,6 +483,7 @@ struct RecommendedHabitRow: View {
 struct HardPaywallStep: View {
     @ObservedObject var subscriptionManager: SubscriptionManager
     let onSubscribe: () -> Void
+    let onBack: () -> Void
 
     @State private var hasShownPaywall = false
 
@@ -525,10 +526,9 @@ struct HardPaywallStep: View {
                     await subscriptionManager.updateSubscriptionStatus()
                     onSubscribe()
                 case .declined:
-                    // User closed without purchasing - show paywall again
+                    // User closed without purchasing - go back to previous step
                     hasShownPaywall = false
-                    try? await Task.sleep(nanoseconds: 500_000_000)
-                    showSuperwallPaywall()
+                    onBack()
                 }
             }
         }

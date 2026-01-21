@@ -124,20 +124,40 @@ xcodebuild -project MorningProof.xcodeproj -scheme MorningProof -destination 'pl
 ## TEMPORARILY DISABLED: Screen Time / App Blocking Feature
 The Screen Time (Family Controls) feature is temporarily disabled while waiting for Apple to approve all bundle IDs. To re-enable once approved:
 
-1. **project.yml**: Uncomment the extension targets and `family-controls` entitlement (search for "TEMPORARILY DISABLED")
-2. **ScreenTimeManager.swift**: Change `#if false` to `#if true` at the top
-3. **AppLockingSettingsView.swift**: Change `#if false` to `#if true` at the top
-4. **DistractionSelectionView.swift**: Change `#if false` to `#if true` at the top (enables real app picker)
-5. **Phase3Steps.swift**: Change `#if false` to `#if true` for `AppLockingOnboardingStep` (near bottom of file)
-6. **OnboardingFlowView.swift**:
+### Files with `#if false` guards (change to `#if true`):
+1. **ScreenTimeManager.swift** - top of file
+2. **AppLockingSettingsView.swift** - top of file
+3. **DistractionSelectionView.swift** - top of file (enables real app picker)
+4. **Phase3Steps.swift** - `AppLockingOnboardingStep` near bottom of file
+
+### Other code changes (search for "TODO: FAMILY CONTROLS" comments):
+
+5. **Phase3Steps.swift (HowItWorksStep)** - Revert these text changes:
+   - Row 2: "Set your deadline" → "Lock distractions"
+   - Row 2 description: "Pick a time to finish by each day" → "Apps blocked until you're done"
+   - Row 2 icon: "clock.fill" → "lock.shield.fill"
+   - Row 3: "Prove it with AI" → "Prove it & unlock"
+   - Row 3 description: "Snap a photo, AI verifies you did it" → "AI verifies, then apps unlock"
+   - Row 3 icon: "camera.viewfinder" → "lock.open.fill"
+
+6. **Phase3Steps.swift (AIVerificationShowcaseStep)** - Uncomment the "unlock message" section that says "Once verified, your apps unlock instantly"
+
+7. **OnboardingFlowView.swift**:
    - Uncomment `import FamilyControls`
-   - Uncomment `case 5: AppLockingOnboardingStep(onContinue: nextStep)` (comes after DistractionSelectionStep)
-   - Increment all case numbers below it by 1
-   - Update `totalSteps` from 18 to 19
-7. **Phase4Steps.swift (PermissionsStep)**: Remove the "App Locking" PermissionCard (we already ask on the dedicated step)
-8. **MorningProofSettingsView.swift**: Uncomment `appLockingSection` in the body
-9. **MorningProofManager.swift**: Uncomment `checkForEmergencyUnlock()` and `ensureShieldsAppliedIfNeeded()` calls
-10. Run `xcodegen generate` to regenerate the project
+   - Uncomment `DistractionSelectionStep` (case 6) and `AppLockingOnboardingStep` (case 7)
+   - Increment all case numbers below them by 2
+   - Update `totalSteps` from 16 to 18
+   - Update `paywallStep` from 15 to 17
+
+8. **project.yml**: Uncomment the extension targets and `family-controls` entitlement (search for "TEMPORARILY DISABLED")
+
+9. **Phase4Steps.swift (PermissionsStep)**: Remove the "App Locking" PermissionCard (we already ask on the dedicated step)
+
+10. **MorningProofSettingsView.swift**: Uncomment `appLockingSection` in the body
+
+11. **MorningProofManager.swift**: Uncomment `checkForEmergencyUnlock()` and `ensureShieldsAppliedIfNeeded()` calls
+
+12. Run `xcodegen generate` to regenerate the project
 
 ## Paywall
 The app uses Superwall for the paywall. The paywall shows for all users (TestFlight and App Store). TestFlight testers can use sandbox accounts to test purchases without real charges.

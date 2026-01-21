@@ -136,8 +136,10 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 17
-    private let paywallStep = 16
+    // TODO: FAMILY CONTROLS - Change back to 18 when re-enabling app locking
+    // (17 steps + DistractionSelectionStep = 18)
+    private let totalSteps = 16
+    private let paywallStep = 15
 
     var body: some View {
         ZStack {
@@ -165,29 +167,30 @@ struct OnboardingFlowView: View {
                     case 4: GuardrailStep(onContinue: nextStep)
                     case 5: DoomScrollingSimulatorStep(onContinue: nextStep)
 
-                    // Phase 3: Solution Setup (Steps 6-8) — Phase3Steps.swift
-                    case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
-                    // TODO: ENABLE ONCE FAMILY CONTROLS APPROVED
+                    // Phase 3: Solution Setup (Steps 6-7) — Phase3Steps.swift
+                    // TODO: FAMILY CONTROLS - Re-enable these steps when approved:
+                    // case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
                     // case 7: AppLockingOnboardingStep(onContinue: nextStep)
-                    // Then increment all case numbers below by 1 and update totalSteps
-                    case 7: HowItWorksStep(onContinue: nextStep)
-                    case 8: AIVerificationShowcaseStep(onContinue: nextStep)
+                    // Then increment all case numbers below by 2 and update totalSteps to 18
+                    case 6: HowItWorksStep(onContinue: nextStep)
+                    case 7: AIVerificationShowcaseStep(onContinue: nextStep)
 
-                    // Phase 4: Social Proof (Steps 9-11) — Phase4Steps.swift
-                    case 9: YouAreNotAloneStep(onContinue: nextStep)
-                    case 10: SuccessStoriesStep(onContinue: nextStep)
-                    case 11: TrackingComparisonStep(onContinue: nextStep)
+                    // Phase 4: Social Proof (Steps 8-10) — Phase4Steps.swift
+                    case 8: YouAreNotAloneStep(onContinue: nextStep)
+                    case 9: SuccessStoriesStep(onContinue: nextStep)
+                    case 10: TrackingComparisonStep(onContinue: nextStep)
 
-                    // Phase 5: Personalization (Step 12) — Phase5Steps.swift
-                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    // Phase 5: Personalization (Step 11) — Phase5Steps.swift
+                    case 11: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 6: Conversion (Steps 13-16) — Phase6Steps.swift
-                    case 13: OptionalRatingStep(onContinue: nextStep)
-                    case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 16: HardPaywallStep(
+                    // Phase 6: Conversion (Steps 12-15) — Phase6Steps.swift
+                    case 12: OptionalRatingStep(onContinue: nextStep)
+                    case 13: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 14: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 15: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
-                        onSubscribe: completeOnboarding
+                        onSubscribe: completeOnboarding,
+                        onBack: previousStep
                     )
 
                     default: EmptyView()
@@ -209,6 +212,12 @@ struct OnboardingFlowView: View {
         }
 
         currentStep += 1
+    }
+
+    private func previousStep() {
+        if currentStep > 0 {
+            currentStep -= 1
+        }
     }
 
     private func completeOnboarding() {

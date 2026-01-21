@@ -35,17 +35,17 @@ struct HowItWorksStep: View {
 
                     HowItWorksRow(
                         number: "2",
-                        title: "Lock distractions",
-                        description: "Apps blocked until you're done",
-                        icon: "lock.shield.fill",
+                        title: "Set your deadline",
+                        description: "Pick a time to finish by each day",
+                        icon: "clock.fill",
                         isVisible: showSteps[1]
                     )
 
                     HowItWorksRow(
                         number: "3",
-                        title: "Prove it & unlock",
-                        description: "AI verifies, then apps unlock",
-                        icon: "lock.open.fill",
+                        title: "Prove it with AI",
+                        description: "Snap a photo, AI verifies you did it",
+                        icon: "camera.viewfinder",
                         isVisible: showSteps[2]
                     )
 
@@ -234,23 +234,24 @@ struct AIVerificationShowcaseStep: View {
                 .scaleEffect(showPhone ? 1 : 0.8)
                 .opacity(showPhone ? 1 : 0)
 
+                // TODO: FAMILY CONTROLS - Re-enable this unlock message when approved:
                 // Unlock message - appears after verification
-                if showUnlockMessage {
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "lock.open.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(MPColors.success)
-
-                        Text("Once verified, your apps unlock instantly")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(MPColors.success)
-                    }
-                    .padding(.horizontal, MPSpacing.lg)
-                    .padding(.vertical, MPSpacing.md)
-                    .background(MPColors.success.opacity(0.1))
-                    .cornerRadius(MPRadius.full)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
-                }
+                // if showUnlockMessage {
+                //     HStack(spacing: MPSpacing.sm) {
+                //         Image(systemName: "lock.open.fill")
+                //             .font(.system(size: 16))
+                //             .foregroundColor(MPColors.success)
+                //
+                //         Text("Once verified, your apps unlock instantly")
+                //             .font(.system(size: 15, weight: .semibold))
+                //             .foregroundColor(MPColors.success)
+                //     }
+                //     .padding(.horizontal, MPSpacing.lg)
+                //     .padding(.vertical, MPSpacing.md)
+                //     .background(MPColors.success.opacity(0.1))
+                //     .cornerRadius(MPRadius.full)
+                //     .transition(.opacity.combined(with: .move(edge: .bottom)))
+                // }
 
                 // Features row
                 HStack(spacing: MPSpacing.xl) {
