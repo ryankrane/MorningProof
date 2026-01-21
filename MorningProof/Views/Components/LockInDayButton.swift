@@ -41,7 +41,7 @@ struct LockInDayButton: View {
     @State private var isHolding: Bool = false
     @State private var pulseScale: CGFloat = 1.0
     @State private var glowOpacity: Double = 0.3
-    @State private var shimmerOffset: CGFloat = -1.5
+    // shimmerOffset removed - now using TimelineView for smooth continuous animation
     @State private var lockedGlowPulse: CGFloat = 0.3
     @State private var brushedShimmerOffset: CGFloat = -1.0
     @State private var holdStartTime: Date?
@@ -169,34 +169,41 @@ struct LockInDayButton: View {
                 .clipShape(Capsule())
             }
 
-            // Shimmer effect - continuous, slow-moving premium gleam
-            // Fades out when user touches the button to focus on progress fill
+            // Shimmer effect - continuous, smooth-looping premium gleam
+            // Uses TimelineView for perfectly smooth continuous animation
             if isEnabled && !isLockedIn {
-                Capsule()
-                    .fill(Color.clear)
-                    .frame(width: buttonWidth, height: buttonHeight)
-                    .overlay(
-                        Rectangle()
-                            .fill(
-                                LinearGradient(
-                                    stops: [
-                                        .init(color: .clear, location: 0.0),
-                                        .init(color: Color.white.opacity(0.06), location: 0.25),
-                                        .init(color: Color.white.opacity(0.20), location: 0.5),  // Hot center
-                                        .init(color: Color.white.opacity(0.06), location: 0.75),
-                                        .init(color: .clear, location: 1.0)
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
+                TimelineView(.animation) { timeline in
+                    let time = timeline.date.timeIntervalSinceReferenceDate
+                    // Calculate position: loops from -1.5 to 1.5 over shimmerDuration
+                    let progress = (time.truncatingRemainder(dividingBy: shimmerDuration)) / shimmerDuration
+                    let offset = -1.5 + (progress * 3.0)  // -1.5 to 1.5
+
+                    Capsule()
+                        .fill(Color.clear)
+                        .frame(width: buttonWidth, height: buttonHeight)
+                        .overlay(
+                            Rectangle()
+                                .fill(
+                                    LinearGradient(
+                                        stops: [
+                                            .init(color: .clear, location: 0.0),
+                                            .init(color: Color.white.opacity(0.06), location: 0.25),
+                                            .init(color: Color.white.opacity(0.20), location: 0.5),
+                                            .init(color: Color.white.opacity(0.06), location: 0.75),
+                                            .init(color: .clear, location: 1.0)
+                                        ],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
                                 )
-                            )
-                            .frame(width: buttonWidth * 0.4, height: buttonHeight * 2.5)
-                            .rotationEffect(.degrees(20))
-                            .offset(x: shimmerOffset * buttonWidth)
-                    )
-                    .clipShape(Capsule())  // Perfect clip to button shape
-                    .opacity(isHolding || holdProgress > 0 ? 0 : 1)  // Fade out when pressing
-                    .animation(.easeOut(duration: 0.15), value: isHolding)
+                                .frame(width: buttonWidth * 0.4, height: buttonHeight * 2.5)
+                                .rotationEffect(.degrees(20))
+                                .offset(x: offset * buttonWidth)
+                        )
+                        .clipShape(Capsule())
+                }
+                .opacity(isHolding || holdProgress > 0 ? 0 : 1)
+                .animation(.easeOut(duration: 0.15), value: isHolding)
             }
 
             // Brushed metal shimmer overlay - horizontal striation effect for dark mode locked state
@@ -277,12 +284,6 @@ struct LockInDayButton: View {
         .onChange(of: isLockedIn) { _, newValue in
             if newValue {
                 startLockedAnimations()
-            }
-        }
-        .onChange(of: isHolding) { _, newValue in
-            // Restart shimmer when user stops holding (returns to idle state)
-            if !newValue && isEnabled && !isLockedIn {
-                startContinuousShimmer()
             }
         }
     }
@@ -484,24 +485,7 @@ struct LockInDayButton: View {
             glowOpacity = 0.6
         }
 
-        // Start continuous shimmer - no delays, always moving
-        startContinuousShimmer()
-    }
-
-    /// Continuous shimmer animation with no pauses - meditative, premium feel
-    private func startContinuousShimmer() {
-        // Cancel any existing animation first to ensure clean start
-        withAnimation(nil) {
-            shimmerOffset = -1.5
-        }
-
-        // Small delay to ensure the reset takes effect before starting new animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.01) {
-            // Continuous linear animation that repeats forever
-            withAnimation(.linear(duration: shimmerDuration).repeatForever(autoreverses: false)) {
-                shimmerOffset = 1.5
-            }
-        }
+        // Shimmer now uses TimelineView - no manual animation needed
     }
 
     private func startLockedAnimations() {
