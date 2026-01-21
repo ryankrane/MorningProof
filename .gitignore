@@ -38,6 +38,3 @@ Thumbs.db
 Secrets.swift
 MorningProof/Services/Secrets.swift
 
-# Firebase config - contains API keys
-GoogleService-Info.plist
-MorningProof/Resources/GoogleService-Info.plist
