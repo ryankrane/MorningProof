@@ -238,7 +238,7 @@ struct HabitConfig: Codable, Identifiable {
         HabitType.allCases.enumerated().map { index, type in
             HabitConfig(
                 habitType: type,
-                isEnabled: [.madeBed, .sleepDuration, .prayer, .morningSteps].contains(type),
+                isEnabled: [.madeBed, .sleepDuration, .walkDog, .morningSteps].contains(type),
                 displayOrder: index
             )
         }
