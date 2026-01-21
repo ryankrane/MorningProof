@@ -49,6 +49,8 @@ struct DashboardView: View {
 
     // Visual streak for flame timing - only updates AFTER celebration completes
     @State private var visualStreak: Int = 0
+    // Visual perfect morning state - only updates AFTER celebration completes (for poof animation)
+    @State private var visualPerfectMorning: Bool = false
 
     // Environment
     @Environment(\.scenePhase) private var scenePhase
@@ -82,6 +84,8 @@ struct DashboardView: View {
                         streakFlamePosition: CGPoint(x: streakFlameFrame.midX, y: streakFlameFrame.midY),
                         previousStreak: previousStreakBeforeLockIn,
                         onFlameArrived: {
+                            // Update visual perfect morning state first (so poof can trigger)
+                            visualPerfectMorning = manager.isPerfectMorning
                             // Trigger StreakHeroCard pulse when flame arrives
                             triggerStreakPulse = true
                         },
@@ -183,8 +187,9 @@ struct DashboardView: View {
             visualStreak = manager.currentStreak
         }
         .onAppear {
-            // Initialize visualStreak with current streak
+            // Initialize visual states with current values
             visualStreak = manager.currentStreak
+            visualPerfectMorning = manager.isPerfectMorning
         }
         .onChange(of: manager.currentStreak) { oldValue, newValue in
             // Only sync visualStreak if:
@@ -192,6 +197,13 @@ struct DashboardView: View {
             // 2. OR streak decreased (reset/new day)
             if !showLockInCelebration || newValue < oldValue {
                 visualStreak = newValue
+            }
+        }
+        .onChange(of: manager.isPerfectMorning) { _, newValue in
+            // Only sync if not during a lock-in celebration
+            // During celebration, we update visualPerfectMorning when flame arrives
+            if !showLockInCelebration {
+                visualPerfectMorning = newValue
             }
         }
         .onChange(of: scenePhase) { _, newPhase in
@@ -203,12 +215,13 @@ struct DashboardView: View {
                     // Sync after returning from background
                     if !showLockInCelebration {
                         visualStreak = manager.currentStreak
+                        visualPerfectMorning = manager.isPerfectMorning
                     }
                 }
             }
         }
         .onChange(of: showLockInCelebration) { oldValue, newValue in
-            // When celebration completes (goes from true to false), update visualStreak
+            // When celebration completes (goes from true to false), update visual states
             // This is when the flying flame has "ignited" the streak flame
             if oldValue && !newValue {
                 // Trigger ignition effect if going from 0→1
@@ -217,6 +230,8 @@ struct DashboardView: View {
                 }
                 // Now update the visual streak (makes flame turn orange and number update)
                 visualStreak = manager.currentStreak
+                // Update perfect morning state (triggers poof animation)
+                visualPerfectMorning = manager.isPerfectMorning
             }
         }
     }
@@ -237,12 +252,12 @@ struct DashboardView: View {
             // Header
             headerSection
 
-            // Streak Hero Card - uses visualStreak so flame stays gray until celebration completes
+            // Streak Hero Card - uses visualStreak and visualPerfectMorning so updates sync with celebration
             StreakHeroCard(
                 currentStreak: visualStreak,
                 completedToday: manager.completedCount,
                 totalHabits: manager.totalEnabled,
-                isPerfectMorning: manager.isPerfectMorning,
+                isPerfectMorning: visualPerfectMorning,
                 timeUntilCutoff: manager.isPastCutoff ? nil : manager.timeUntilCutoff,
                 cutoffTimeFormatted: manager.settings.cutoffTimeFormatted,
                 hasOverdueHabits: manager.hasOverdueHabits,
