@@ -1,6 +1,5 @@
 import Foundation
 import UIKit
-import FirebaseFunctions
 
 actor ClaudeAPIService {
     private let apiKey: String
@@ -140,54 +139,27 @@ actor ClaudeAPIService {
         }
     }
 
-    // MARK: - Firebase Cloud Functions (Callable)
+    // MARK: - Firebase Cloud Functions (HTTP)
 
-    /// Gets the Firebase Functions instance on the main thread
-    private func getFirebaseFunctions() async -> Functions {
-        await MainActor.run {
-            Functions.functions(region: "us-central1")
-        }
-    }
-
-    /// Calls a Firebase Callable Function using the SDK
-    private func callFirebaseCallable<T: Decodable>(
+    /// Calls a Firebase HTTP Function
+    private func callFirebaseHTTP<T: Decodable>(
         _ functionName: String,
-        data: [String: Any],
+        body: [String: Any],
         responseType: T.Type,
         endpoint: String
     ) async throws -> T {
-        let functions = await getFirebaseFunctions()
-
-        do {
-            let callable = functions.httpsCallable(functionName)
-            let result = try await callable.call(data)
-
-            guard let responseDict = result.data as? [String: Any] else {
-                throw APIError.parsingFailed
-            }
-
-            let jsonData = try JSONSerialization.data(withJSONObject: responseDict)
-            return try JSONDecoder().decode(responseType, from: jsonData)
-        } catch let error as NSError {
-            print("[ClaudeAPI] Firebase error: \(error.domain) code=\(error.code) \(error.localizedDescription)")
-            if error.domain == FunctionsErrorDomain {
-                let code = FunctionsErrorCode(rawValue: error.code)
-                switch code {
-                case .unavailable, .resourceExhausted:
-                    throw APIError.serviceUnavailable
-                case .invalidArgument:
-                    throw APIError.parsingFailed
-                default:
-                    throw APIError.serviceUnavailable
-                }
-            }
-            throw APIError.serviceUnavailable
-        } catch let apiError as APIError {
-            throw apiError
-        } catch {
-            print("[ClaudeAPI] Unknown error: \(error)")
-            throw APIError.parsingFailed
+        let urlString = "\(firebaseFunctionsBaseURL)/\(functionName)"
+        guard let url = URL(string: urlString) else {
+            throw APIError.invalidURL
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try JSONSerialization.data(withJSONObject: body)
+
+        let data = try await performRequestWithRetry(request, endpoint: endpoint)
+        return try JSONDecoder().decode(responseType, from: data)
     }
 
     func verifyBed(image: UIImage) async throws -> VerificationResult {
@@ -209,9 +181,9 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure), otherwise fall back to direct API (legacy)
         if isUsingFirebase {
-            return try await callFirebaseCallable(
+            return try await callFirebaseHTTP(
                 "verifyBed",
-                data: ["imageBase64": base64Image],
+                body: ["imageBase64": base64Image],
                 responseType: VerificationResult.self,
                 endpoint: "firebase/verify-bed"
             )
@@ -462,9 +434,9 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure)
         if isUsingFirebase {
-            return try await callFirebaseCallable(
+            return try await callFirebaseHTTP(
                 "verifySunlight",
-                data: ["imageBase64": base64Image],
+                body: ["imageBase64": base64Image],
                 responseType: SunlightVerificationResult.self,
                 endpoint: "firebase/verify-sunlight"
             )
@@ -575,9 +547,9 @@ actor ClaudeAPIService {
 
         // Use Firebase Cloud Functions if configured (secure)
         if isUsingFirebase {
-            return try await callFirebaseCallable(
+            return try await callFirebaseHTTP(
                 "verifyHydration",
-                data: ["imageBase64": base64Image],
+                body: ["imageBase64": base64Image],
                 responseType: HydrationVerificationResult.self,
                 endpoint: "firebase/verify-hydration"
             )
@@ -699,9 +671,9 @@ actor ClaudeAPIService {
             if let aiPrompt = customHabit.aiPrompt {
                 requestData["aiPrompt"] = aiPrompt
             }
-            return try await callFirebaseCallable(
+            return try await callFirebaseHTTP(
                 "verifyCustomHabit",
-                data: requestData,
+                body: requestData,
                 responseType: CustomVerificationResult.self,
                 endpoint: "firebase/verify-custom-habit"
             )
@@ -881,9 +853,9 @@ actor ClaudeAPIService {
             if let aiPrompt = customHabit.aiPrompt {
                 requestData["aiPrompt"] = aiPrompt
             }
-            return try await callFirebaseCallable(
+            return try await callFirebaseHTTP(
                 "verifyVideo",
-                data: requestData,
+                body: requestData,
                 responseType: VideoVerificationResult.self,
                 endpoint: "firebase/verify-video"
             )

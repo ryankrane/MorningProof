@@ -41,6 +41,8 @@ targets:
         product: FirebaseAnalytics
       - package: Firebase
         product: FirebaseFunctions
+      - package: Firebase
+        product: FirebaseAuth
       - package: GoogleSignIn
         product: GoogleSignIn
       - package: SuperwallKit

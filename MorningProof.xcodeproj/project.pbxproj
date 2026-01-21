@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -69,7 +69,7 @@
 		7BD498619EFA0FB8AF85197A /* MorningProofApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */; };
 		7E418C3D406BD4CF55FEDCB0 /* HealthKitManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 45320FE654524C5D5E1E5DAB /* HealthKitManager.swift */; };
 		7E49C861672D838B8EBCCA1C /* Secrets.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96C2F8ED5B6375F3854AD366 /* Secrets.swift */; };
-		7F90D3F4170F5580FFA5F92B /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = A0CA26AF7A66454CE09064B3 /* SuperwallKit */; };
+		7F90D3F4170F5580FFA5F92B /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 594D2249590A3D0670CB069C /* GoogleSignIn */; };
 		833D5653CA9D048A825022F0 /* StatisticsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6E5C947A53D3ED2E7E4429DC /* StatisticsView.swift */; };
 		8781EBD54D3F5F1BFDD0BF90 /* MorningRoutineSettingsSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7B07226BB11FB107BBD3CF3 /* MorningRoutineSettingsSheet.swift */; };
 		8A307CCFC8DAF1CC541BE266 /* BezierPathAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02498F9BF6D9929C8CFDA9C8 /* BezierPathAnimation.swift */; };
@@ -82,6 +82,7 @@
 		954B829A8EDAF19460FD4064 /* PoofTransitionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 240E6651E96D4DD812EB06CF /* PoofTransitionView.swift */; };
 		98658D813025CE4FFC90C33F /* SunlightCameraView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F5852861CDBB1C328CB76899 /* SunlightCameraView.swift */; };
 		990D0BE907087430C1A1B8A2 /* StatisticHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23D2B6F9E3ABD69FDB322D6F /* StatisticHeroCard.swift */; };
+		9AB0DFE827F839E6175CB2EA /* SuperwallKit in Frameworks */ = {isa = PBXBuildFile; productRef = A0CA26AF7A66454CE09064B3 /* SuperwallKit */; };
 		9B28F63F6BA355BC8549CCDE /* AnimatedCheckmark.swift in Sources */ = {isa = PBXBuildFile; fileRef = FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */; };
 		9C279E61C28BB614804CF8F2 /* MorningProofSettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F0B9FDBE3AE50AD8B9FF254E /* MorningProofSettingsView.swift */; };
 		A2D74265228636F79FF1C947 /* Phase6Steps.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1AC41060853859BA0D0AD6EC /* Phase6Steps.swift */; };
@@ -101,7 +102,7 @@
 		D54C54D56BDE7C5EB3A2D843 /* ScreenTimeManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = C7267B14FC0782C37738784A /* ScreenTimeManager.swift */; };
 		D5E1D0DB2EA7C6A9E06968B3 /* ProgressGraphView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9CD02B23AC181F00CDCBDB8F /* ProgressGraphView.swift */; };
 		D6181AA22C3D5EFFD515D512 /* Phase2Steps.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7C4DDDF95B0B946D755493A /* Phase2Steps.swift */; };
-		DF4C1931D5167C8F66EDE75E /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 594D2249590A3D0670CB069C /* GoogleSignIn */; };
+		DF4C1931D5167C8F66EDE75E /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = BD544E91954209FCFD9959DA /* FirebaseAuth */; };
 		E0B79D3BD4A09312B7B7474E /* SubscriptionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = F2BD1E06B3D20A9B6EC62A6B /* SubscriptionManager.swift */; };
 		E7F81CF6C5DBD9CA3AD4984A /* StreakRecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */; };
 		E8778A5502FB1E87B47072A1 /* HoldGestureView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 442CBF23D54FC1F7B85DD868 /* HoldGestureView.swift */; };
@@ -153,7 +154,7 @@
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		13AA04D400C2F64AE658D59F /* VideoFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFrameExtractor.swift; sourceTree = "<group>"; };
-		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
 		193A8B2763FC56668AB93760 /* Phase1Steps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase1Steps.swift; sourceTree = "<group>"; };
 		19F0F7FDC1A65B0D18C32DC8 /* VerificationLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationLoadingView.swift; sourceTree = "<group>"; };
@@ -165,9 +166,9 @@
 		26DD32D63E8FE38ACE677138 /* MorningProofTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofTests.swift; sourceTree = "<group>"; };
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
-		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
+		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.example; sourceTree = "<group>"; };
 		3C15180C19687B347FEEB70A /* StreakHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeroCard.swift; sourceTree = "<group>"; };
-		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		409E65E8F18D6482BECDE992 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
 		40EF5CAA0D65467A9DCD850E /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		42181A5E811AA2D681B49175 /* StreakRecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakRecoveryView.swift; sourceTree = "<group>"; };
@@ -204,8 +205,8 @@
 		813BD1AFB063AC492BE3C2ED /* HealthKitBackgroundDeliveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitBackgroundDeliveryService.swift; sourceTree = "<group>"; };
 		8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingService.swift; sourceTree = "<group>"; };
 		88B5D7D38090D80E9DF411AA /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C8865AA30B3A90F3029D937 /* HoldToCompleteButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldToCompleteButtonStyle.swift; sourceTree = "<group>"; };
 		96C2F8ED5B6375F3854AD366 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		970A6074B025718639B71CD8 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
@@ -214,7 +215,7 @@
 		99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepInputSheet.swift; sourceTree = "<group>"; };
 		9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofApp.swift; sourceTree = "<group>"; };
 		9CD02B23AC181F00CDCBDB8F /* ProgressGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressGraphView.swift; sourceTree = "<group>"; };
-		A90B17F34D578F7C19EE280B /* Secrets.swift.example */ = {isa = PBXFileReference; path = Secrets.swift.example; sourceTree = "<group>"; };
+		A90B17F34D578F7C19EE280B /* Secrets.swift.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Secrets.swift.example; sourceTree = "<group>"; };
 		AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		B502D69BDFD183D6AB140577 /* MigrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationManager.swift; sourceTree = "<group>"; };
 		B6159194F4E6CA8F7FE618DF /* NeuralLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeuralLoadingView.swift; sourceTree = "<group>"; };
@@ -265,8 +266,9 @@
 				F166A3343644A9AC4F21F125 /* FirebaseCrashlytics in Frameworks */,
 				3EE5982C81661ADCA7FF8180 /* FirebaseAnalytics in Frameworks */,
 				539DC75DE879AF2EEE291000 /* FirebaseFunctions in Frameworks */,
-				DF4C1931D5167C8F66EDE75E /* GoogleSignIn in Frameworks */,
-				7F90D3F4170F5580FFA5F92B /* SuperwallKit in Frameworks */,
+				DF4C1931D5167C8F66EDE75E /* FirebaseAuth in Frameworks */,
+				7F90D3F4170F5580FFA5F92B /* GoogleSignIn in Frameworks */,
+				9AB0DFE827F839E6175CB2EA /* SuperwallKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -575,6 +577,7 @@
 				EBBDC128BC8C42A7843DDD53 /* FirebaseCrashlytics */,
 				EF2862FACBA6297E47C7CCDC /* FirebaseAnalytics */,
 				C670E4A1A2D5E6E63D0B2649 /* FirebaseFunctions */,
+				BD544E91954209FCFD9959DA /* FirebaseAuth */,
 				594D2249590A3D0670CB069C /* GoogleSignIn */,
 				A0CA26AF7A66454CE09064B3 /* SuperwallKit */,
 			);
@@ -607,7 +610,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					81A9B07749BFDE7F645FB8A6 = {
 						DevelopmentTeam = P9ZXADV42A;
@@ -633,7 +636,6 @@
 				5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				3A409E8FBDDDC00071BCA0A0 /* XCRemoteSwiftPackageReference "Superwall-iOS" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -804,6 +806,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -838,6 +841,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -859,6 +863,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -870,6 +875,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -904,6 +910,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -918,6 +925,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;
@@ -1107,6 +1115,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3A409E8FBDDDC00071BCA0A0 /* XCRemoteSwiftPackageReference "Superwall-iOS" */;
 			productName = SuperwallKit;
+		};
+		BD544E91954209FCFD9959DA /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = E374F5A85D9EA8B0E3EF19AC /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
 		};
 		C670E4A1A2D5E6E63D0B2649 /* FirebaseFunctions */ = {
 			isa = XCSwiftPackageProductDependency;
