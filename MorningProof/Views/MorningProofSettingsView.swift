@@ -60,8 +60,8 @@ struct MorningProofSettingsView: View {
                         // MARK: - Header with Greeting & Theme
                         headerSection
 
-                        // MARK: - App Locking (TEMPORARILY DISABLED - waiting for Family Controls approval)
-                        // appLockingSection
+                        // MARK: - App Locking
+                        appLockingSection
 
                         // MARK: - Notifications
                         notificationsSection

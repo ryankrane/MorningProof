@@ -1,10 +1,10 @@
 import Foundation
 
-// MARK: - TEMPORARILY DISABLED
-// Waiting for Family Controls approval for all bundle IDs.
-// To re-enable: Remove the `#if false` blocks and uncomment the imports.
+// MARK: - Screen Time Manager (Family Controls)
+// Uses Apple's FamilyControls, ManagedSettings, and DeviceActivity frameworks
+// to block distracting apps until morning habits are completed.
 
-#if false
+#if true
 import FamilyControls
 import ManagedSettings
 import DeviceActivity

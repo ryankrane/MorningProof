@@ -1,7 +1,7 @@
 import SwiftUI
 import StoreKit
 import AuthenticationServices
-// import FamilyControls  // TEMPORARILY DISABLED - Waiting for Family Controls approval
+import FamilyControls
 import SuperwallKit
 
 // MARK: - Onboarding Data Model
@@ -17,7 +17,9 @@ class OnboardingData: ObservableObject {
     @Published var healthConnected: Bool = false
     @Published var notificationsEnabled: Bool = false
     @Published var selectedHabits: Set<HabitType> = []
-    @Published var selectedDistractions: Set<DistractionType> = []
+    // Note: With Family Controls enabled, app selection is stored via ScreenTimeManager
+    // This property is only used as a fallback when Family Controls is disabled
+    @Published var selectedDistractionNames: Set<String> = []
 
     enum Gender: String, CaseIterable {
         case male = "Male"
@@ -136,10 +138,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    // TODO: FAMILY CONTROLS - Change back to 18 when re-enabling app locking
-    // (17 steps + DistractionSelectionStep = 18)
-    private let totalSteps = 16
-    private let paywallStep = 15
+    private let totalSteps = 18
+    private let paywallStep = 17
 
     var body: some View {
         ZStack {
@@ -167,27 +167,25 @@ struct OnboardingFlowView: View {
                     case 4: GuardrailStep(onContinue: nextStep)
                     case 5: DoomScrollingSimulatorStep(onContinue: nextStep)
 
-                    // Phase 3: Solution Setup (Steps 6-7) — Phase3Steps.swift
-                    // TODO: FAMILY CONTROLS - Re-enable these steps when approved:
-                    // case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
-                    // case 7: AppLockingOnboardingStep(onContinue: nextStep)
-                    // Then increment all case numbers below by 2 and update totalSteps to 18
-                    case 6: HowItWorksStep(onContinue: nextStep)
-                    case 7: AIVerificationShowcaseStep(onContinue: nextStep)
+                    // Phase 3: Solution Setup (Steps 6-9) — Phase3Steps.swift
+                    case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
+                    case 7: AppLockingOnboardingStep(onContinue: nextStep)
+                    case 8: HowItWorksStep(onContinue: nextStep)
+                    case 9: AIVerificationShowcaseStep(onContinue: nextStep)
 
-                    // Phase 4: Social Proof (Steps 8-10) — Phase4Steps.swift
-                    case 8: YouAreNotAloneStep(onContinue: nextStep)
-                    case 9: SuccessStoriesStep(onContinue: nextStep)
-                    case 10: TrackingComparisonStep(onContinue: nextStep)
+                    // Phase 4: Social Proof (Steps 10-12) — Phase4Steps.swift
+                    case 10: YouAreNotAloneStep(onContinue: nextStep)
+                    case 11: SuccessStoriesStep(onContinue: nextStep)
+                    case 12: TrackingComparisonStep(onContinue: nextStep)
 
-                    // Phase 5: Personalization (Step 11) — Phase5Steps.swift
-                    case 11: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    // Phase 5: Personalization (Step 13) — Phase5Steps.swift
+                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 6: Conversion (Steps 12-15) — Phase6Steps.swift
-                    case 12: OptionalRatingStep(onContinue: nextStep)
-                    case 13: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 14: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 15: HardPaywallStep(
+                    // Phase 6: Conversion (Steps 14-17) — Phase6Steps.swift
+                    case 14: OptionalRatingStep(onContinue: nextStep)
+                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 17: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding,
                         onBack: previousStep
@@ -266,8 +264,8 @@ private struct DistractionSelectionStep: View {
     let onContinue: () -> Void
 
     var body: some View {
-        DistractionSelectionView { selections in
-            data.selectedDistractions = selections
+        // Family Controls version stores selection via ScreenTimeManager directly
+        DistractionSelectionView { _ in
             onContinue()
         }
     }

@@ -47,10 +47,9 @@ targets:
         product: GoogleSignIn
       - package: SuperwallKit
         product: SuperwallKit
-      # TEMPORARILY DISABLED - Waiting for Family Controls approval
-      # - target: MorningProofActivityMonitor
-      # - target: MorningProofShieldConfig
-      # - target: MorningProofShieldAction
+      - target: MorningProofActivityMonitor
+      - target: MorningProofShieldConfig
+      - target: MorningProofShieldAction
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof
@@ -64,8 +63,7 @@ targets:
       properties:
         com.apple.developer.applesignin:
           - Default
-        # TEMPORARILY DISABLED - Waiting for Family Controls approval
-        # com.apple.developer.family-controls: true
+        com.apple.developer.family-controls: true
         com.apple.developer.healthkit: true
         com.apple.security.application-groups:
           - group.com.rk.morningproof
@@ -113,101 +111,99 @@ targets:
       - target: MorningProof
 
   # MARK: - Screen Time Extensions
-  # TEMPORARILY DISABLED - Waiting for Family Controls approval
-  # Uncomment these targets once all bundle IDs are approved
 
-  # MorningProofActivityMonitor:
-  #   type: app-extension
-  #   platform: iOS
-  #   sources:
-  #     - path: DeviceActivityMonitorExtension
-  #     - path: Shared
-  #   settings:
-  #     base:
-  #       PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.activitymonitor
-  #       DEVELOPMENT_TEAM: P9ZXADV42A
-  #       CODE_SIGN_STYLE: Automatic
-  #       TARGETED_DEVICE_FAMILY: "1"
-  #       SKIP_INSTALL: YES
-  #   entitlements:
-  #     path: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
-  #     properties:
-  #       com.apple.developer.family-controls: true
-  #       com.apple.security.application-groups:
-  #         - group.com.rk.morningproof
-  #   info:
-  #     path: DeviceActivityMonitorExtension/Info.plist
-  #     properties:
-  #       CFBundleDisplayName: Morning Proof Activity Monitor
-  #       CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-  #       CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-  #       CFBundleShortVersionString: $(MARKETING_VERSION)
-  #       CFBundlePackageType: XPC!
-  #       NSExtension:
-  #         NSExtensionPointIdentifier: com.apple.deviceactivity.monitor
-  #         NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
+  MorningProofActivityMonitor:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: DeviceActivityMonitorExtension
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.activitymonitor
+        DEVELOPMENT_TEAM: P9ZXADV42A
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+    entitlements:
+      path: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.rk.morningproof
+    info:
+      path: DeviceActivityMonitorExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Morning Proof Activity Monitor
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundlePackageType: XPC!
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
 
-  # MorningProofShieldConfig:
-  #   type: app-extension
-  #   platform: iOS
-  #   sources:
-  #     - path: ShieldConfigurationExtension
-  #     - path: Shared
-  #   settings:
-  #     base:
-  #       PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.shieldconfig
-  #       DEVELOPMENT_TEAM: P9ZXADV42A
-  #       CODE_SIGN_STYLE: Automatic
-  #       TARGETED_DEVICE_FAMILY: "1"
-  #       SKIP_INSTALL: YES
-  #   entitlements:
-  #     path: ShieldConfigurationExtension/ShieldConfigurationExtension.entitlements
-  #     properties:
-  #       com.apple.developer.family-controls: true
-  #       com.apple.security.application-groups:
-  #         - group.com.rk.morningproof
-  #   info:
-  #     path: ShieldConfigurationExtension/Info.plist
-  #     properties:
-  #       CFBundleDisplayName: Morning Proof Shield Config
-  #       CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-  #       CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-  #       CFBundleShortVersionString: $(MARKETING_VERSION)
-  #       CFBundlePackageType: XPC!
-  #       NSExtension:
-  #         NSExtensionPointIdentifier: com.apple.shieldconfiguration
-  #         NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
+  MorningProofShieldConfig:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldConfigurationExtension
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.shieldconfig
+        DEVELOPMENT_TEAM: P9ZXADV42A
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+    entitlements:
+      path: ShieldConfigurationExtension/ShieldConfigurationExtension.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.rk.morningproof
+    info:
+      path: ShieldConfigurationExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Morning Proof Shield Config
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundlePackageType: XPC!
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.shieldconfiguration
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
 
-  # MorningProofShieldAction:
-  #   type: app-extension
-  #   platform: iOS
-  #   sources:
-  #     - path: ShieldActionExtension
-  #     - path: Shared
-  #   settings:
-  #     base:
-  #       PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.shieldaction
-  #       DEVELOPMENT_TEAM: P9ZXADV42A
-  #       CODE_SIGN_STYLE: Automatic
-  #       TARGETED_DEVICE_FAMILY: "1"
-  #       SKIP_INSTALL: YES
-  #   entitlements:
-  #     path: ShieldActionExtension/ShieldActionExtension.entitlements
-  #     properties:
-  #       com.apple.developer.family-controls: true
-  #       com.apple.security.application-groups:
-  #         - group.com.rk.morningproof
-  #   info:
-  #     path: ShieldActionExtension/Info.plist
-  #     properties:
-  #       CFBundleDisplayName: Morning Proof Shield Action
-  #       CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
-  #       CFBundleVersion: $(CURRENT_PROJECT_VERSION)
-  #       CFBundleShortVersionString: $(MARKETING_VERSION)
-  #       CFBundlePackageType: XPC!
-  #       NSExtension:
-  #         NSExtensionPointIdentifier: com.apple.shieldaction
-  #         NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
+  MorningProofShieldAction:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: ShieldActionExtension
+      - path: Shared
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.rk.morningproof.shieldaction
+        DEVELOPMENT_TEAM: P9ZXADV42A
+        CODE_SIGN_STYLE: Automatic
+        TARGETED_DEVICE_FAMILY: "1"
+        SKIP_INSTALL: YES
+    entitlements:
+      path: ShieldActionExtension/ShieldActionExtension.entitlements
+      properties:
+        com.apple.developer.family-controls: true
+        com.apple.security.application-groups:
+          - group.com.rk.morningproof
+    info:
+      path: ShieldActionExtension/Info.plist
+      properties:
+        CFBundleDisplayName: Morning Proof Shield Action
+        CFBundleIdentifier: $(PRODUCT_BUNDLE_IDENTIFIER)
+        CFBundleVersion: $(CURRENT_PROJECT_VERSION)
+        CFBundleShortVersionString: $(MARKETING_VERSION)
+        CFBundlePackageType: XPC!
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.shieldaction
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
 
 schemes:
   MorningProof:

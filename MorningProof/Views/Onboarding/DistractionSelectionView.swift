@@ -1,15 +1,9 @@
 import SwiftUI
 
-// MARK: - ============================================================
-// MARK: - FAMILY CONTROLS VERSION (Real App Icons)
-// MARK: - ============================================================
-// TODO: ENABLE THIS ONCE APPLE APPROVES FAMILY CONTROLS
-// Change `#if false` to `#if true` below
-// This version uses Apple's FamilyActivitySelection picker which shows
-// real app icons from the user's device - much better UX!
-// ============================================================
+// MARK: - Distraction Selection View (Family Controls)
+// Uses Apple's FamilyActivitySelection picker to show real app icons
 
-#if false // DISABLED - Waiting for Family Controls approval
+#if true
 
 import FamilyControls
 
@@ -266,12 +260,9 @@ private struct DistractionFeatureRow: View {
 
 #else
 
-// MARK: - ============================================================
 // MARK: - FALLBACK VERSION (SF Symbols - No Family Controls)
-// MARK: - ============================================================
-// This version uses SF Symbols instead of real app icons.
-// Used while waiting for Family Controls approval.
-// ============================================================
+// This legacy fallback uses SF Symbols instead of real app icons.
+// Only compiles when Family Controls is disabled (change #if true to #if false above).
 
 // MARK: - Distraction Model
 

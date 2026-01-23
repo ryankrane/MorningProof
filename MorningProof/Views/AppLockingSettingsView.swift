@@ -1,10 +1,8 @@
 import SwiftUI
 
-// MARK: - TEMPORARILY DISABLED
-// Waiting for Family Controls approval for all bundle IDs.
-// To re-enable: Remove the `#if false` blocks and uncomment the import.
+// MARK: - App Locking Settings View (Family Controls)
 
-#if false
+#if true
 import FamilyControls
 
 struct AppLockingSettingsView: View {
