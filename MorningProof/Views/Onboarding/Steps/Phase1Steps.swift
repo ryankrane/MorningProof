@@ -3,6 +3,31 @@ import AuthenticationServices
 
 // MARK: - Phase 1: Hook & Identity (Steps 0-3)
 
+// MARK: - Typewriter Gradient Text
+
+private struct TypewriterGradientText: View {
+    let fullText: String
+    let revealedCount: Int
+    let gradient: LinearGradient
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(fullText.enumerated()), id: \.offset) { index, char in
+                Text(String(char))
+                    .opacity(index < revealedCount ? 1 : 0)
+                    .offset(y: index < revealedCount ? 0 : 8)
+                    .animation(
+                        .easeOut(duration: 0.15),
+                        value: index < revealedCount
+                    )
+            }
+        }
+        .font(.system(size: 32, weight: .bold, design: .rounded))
+        .foregroundStyle(gradient)
+        .fixedSize(horizontal: true, vertical: false)
+    }
+}
+
 // MARK: - Step 0: Welcome Hero
 
 struct WelcomeHeroStep: View {
@@ -14,6 +39,7 @@ struct WelcomeHeroStep: View {
     @State private var buttonsVisible = false
     @State private var orbFloating = false
     @State private var orbGlowing = false
+    @State private var revealedCharacterCount = 0
 
     var body: some View {
         VStack(spacing: 0) {
@@ -55,19 +81,19 @@ struct WelcomeHeroStep: View {
                             .foregroundColor(MPColors.textPrimary)
                             .fixedSize(horizontal: true, vertical: false)
 
-                        // Gradient tagline - avoid fixedSize with gradients as it clips ascenders
-                        Text("Take Back Your Morning")
-                            .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .foregroundStyle(
-                                LinearGradient(
-                                    colors: [
-                                        Color(red: 0.75, green: 0.55, blue: 1.0),
-                                        MPColors.primary
-                                    ],
-                                    startPoint: .leading,
-                                    endPoint: .trailing
-                                )
+                        // Typewriter gradient tagline
+                        TypewriterGradientText(
+                            fullText: "Take Back Your Morning",
+                            revealedCount: revealedCharacterCount,
+                            gradient: LinearGradient(
+                                colors: [
+                                    Color(red: 0.75, green: 0.55, blue: 1.0),
+                                    MPColors.primary
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
                             )
+                        )
                     }
                 }
                 .padding(.horizontal, MPSpacing.xl)
@@ -160,12 +186,34 @@ struct WelcomeHeroStep: View {
                 HapticManager.shared.light()
             }
 
+            // Start typewriter after headline settles
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+                startTypewriter()
+            }
+
             // Start gentle ambient orb animations
             withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
                 orbFloating = true
             }
             withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
                 orbGlowing = true
+            }
+        }
+    }
+
+    private func startTypewriter() {
+        let text = "Take Back Your Morning"
+        // Word end indices: "Take" ends at 4, "Back" at 9 (4+1+4), "Your" at 14 (9+1+4), "Morning" at 22 (14+1+7)
+        let wordEndIndices = [4, 9, 14, 22]
+
+        for i in 1...text.count {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.05) {
+                revealedCharacterCount = i
+
+                // Haptic at word boundaries
+                if wordEndIndices.contains(i) {
+                    HapticManager.shared.light()
+                }
             }
         }
     }
