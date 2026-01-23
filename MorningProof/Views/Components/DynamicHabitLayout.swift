@@ -8,7 +8,7 @@ struct DynamicHabitLayout {
     // MARK: - Size Constraints
 
     /// Minimum habit height (still comfortably tappable per Apple HIG 44pt minimum)
-    static let minHabitHeight: CGFloat = 52
+    static let minHabitHeight: CGFloat = 48
     /// Maximum habit height (generous tappable area)
     static let maxHabitHeight: CGFloat = 90
 
@@ -68,8 +68,8 @@ struct DynamicHabitLayout {
             + Self.bottomSpacer
             + Self.safetyBuffer  // Account for slight variations
 
-        // Subtract spacing between habits
-        let totalHabitSpacing = CGFloat(max(0, habitCount - 1)) * Self.habitSpacing
+        // Subtract spacing between habits (includes one more gap for Lock In button row)
+        let totalHabitSpacing = CGFloat(habitCount) * Self.habitSpacing
 
         return availableHeight - fixedHeight - totalHabitSpacing
     }
@@ -109,7 +109,7 @@ struct DynamicHabitLayout {
 
     /// Whether scrolling is needed (7+ habits can't fit)
     var needsScrolling: Bool {
-        habitCount > 0 && heightForHabits / CGFloat(habitCount) < Self.minHabitHeight
+        habitCount >= 7 && heightForHabits / CGFloat(habitCount) < Self.minHabitHeight
     }
 
     /// Internal padding for habit rows (adjusts based on compression)
@@ -126,5 +126,21 @@ struct DynamicHabitLayout {
         let maxSize: CGFloat = 40
         let minSize: CGFloat = 32
         return maxSize - (compressionRatio * (maxSize - minSize))
+    }
+
+    /// Spacing between habit rows (adjusts based on compression)
+    var habitRowSpacing: CGFloat {
+        // Lerp between 12 (max) and 8 (min) based on compression
+        let maxSpacing: CGFloat = 12
+        let minSpacing: CGFloat = 8
+        return maxSpacing - (compressionRatio * (maxSpacing - minSpacing))
+    }
+
+    /// Lock button top padding (adjusts based on compression)
+    var lockButtonPadding: CGFloat {
+        // Lerp between 16 (max) and 8 (min) based on compression
+        let maxPadding: CGFloat = 16
+        let minPadding: CGFloat = 8
+        return maxPadding - (compressionRatio * (maxPadding - minPadding))
     }
 }

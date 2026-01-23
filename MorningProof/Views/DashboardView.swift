@@ -314,11 +314,9 @@ struct DashboardView: View {
             // Habits List
             habitsSection(layout: layout)
 
-            // Bottom padding - more when scrolling, minimum when not to avoid home indicator
+            // Add spacer at the bottom if scrolling
             if layout.needsScrolling {
                 Spacer(minLength: MPSpacing.xxxl)
-            } else {
-                Spacer(minLength: MPSpacing.lg)  // 16pt minimum bottom padding
             }
         }
         .padding(.horizontal, MPSpacing.xl)
@@ -424,7 +422,7 @@ struct DashboardView: View {
 
     @ViewBuilder
     func habitsSection(layout: DynamicHabitLayout) -> some View {
-        VStack(alignment: .leading, spacing: MPSpacing.md) {
+        VStack(alignment: .leading, spacing: layout.habitRowSpacing) {
             // Section header with edit button
             HStack {
                 Text("Today's Habits")
@@ -497,7 +495,7 @@ struct DashboardView: View {
                 )
                 Spacer()
             }
-            .padding(.top, MPSpacing.lg)
+            .padding(.top, layout.lockButtonPadding)
         }
     }
 

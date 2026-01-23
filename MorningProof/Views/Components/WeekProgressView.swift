@@ -81,6 +81,17 @@ struct WeekDayDot: View {
 
     private let calendar = Calendar.current
 
+    /// Returns the correct denominator for the fraction display.
+    /// For today: use current enabled count (day is still in progress).
+    /// For past days: use the historical count from the log (habits may have changed since then).
+    private var totalForDay: Int {
+        if isToday {
+            return enabledCount
+        } else {
+            return log?.completions.count ?? 0
+        }
+    }
+
     var status: DayStatus {
         let isFutureDay = date > Date()
 
@@ -98,7 +109,7 @@ struct WeekDayDot: View {
 
         if isToday {
             return .today(completed)
-        } else if completed >= enabledCount && enabledCount > 0 {
+        } else if completed >= totalForDay && totalForDay > 0 {
             return .complete
         } else if completed > 0 {
             return .partial(completed)
@@ -136,19 +147,17 @@ struct WeekDayDot: View {
                     .frame(width: 40, height: 40)
             }
 
-            // Checkmark for complete days, number for partial/today progress
+            // Checkmark for complete days, fraction for partial/today progress
             if case .complete = status {
                 Image(systemName: "checkmark")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
-            } else if case .today(let count) = status, count > 0 && enabledCount > 0 {
-                Text("\(count)")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
+            } else if case .today(let count) = status, count > 0 && totalForDay > 0 {
+                FractionView(numerator: count, denominator: totalForDay)
                     .foregroundColor(MPColors.primary)
-            } else if case .partial(let count) = status {
-                Text("\(count)")
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.accent)
+            } else if case .partial(let count) = status, totalForDay > 0 {
+                FractionView(numerator: count, denominator: totalForDay)
+                    .foregroundColor(MPColors.primary)
             }
         }
         .frame(width: 44, height: 44) // Touch target
@@ -167,6 +176,27 @@ struct WeekDayDot: View {
         case .future:
             return MPColors.surfaceSecondary.opacity(0.4)
         }
+    }
+}
+
+// MARK: - Fraction View
+
+/// A styled fraction display (e.g., "3/4") for week progress circles
+struct FractionView: View {
+    let numerator: Int
+    let denominator: Int
+
+    var body: some View {
+        HStack(spacing: 0) {
+            Text("\(numerator)")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+            Text("/")
+                .font(.system(size: 9, weight: .medium, design: .rounded))
+                .offset(y: -0.5)
+            Text("\(denominator)")
+                .font(.system(size: 11, weight: .bold, design: .rounded))
+        }
+        .rotationEffect(.degrees(-55))
     }
 }
 

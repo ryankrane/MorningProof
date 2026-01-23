@@ -11,7 +11,11 @@ struct SleepInputSheet: View {
 
     private let minHours: Double = 5.5
     private let maxHours: Double = 10.0
-    private let sleepGoal: Double = 7.0
+
+    /// Get the user's configured sleep goal from habit config
+    private var sleepGoal: Double {
+        Double(manager.habitConfigs.first { $0.habitType == .sleepDuration }?.goal ?? 7)
+    }
 
     /// Check if current data came from HealthKit
     private var isFromHealthKit: Bool {
@@ -119,10 +123,10 @@ struct SleepInputSheet: View {
                         manager.updateManualSleep(hours: sleepHours)
                         HapticManager.shared.habitCompleted()
 
-                        // Show confetti if goal is met
+                        // Show confetti briefly if goal is met, then dismiss
                         if sleepHours >= sleepGoal {
                             showConfetti = true
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                                 dismiss()
                             }
                         } else {
