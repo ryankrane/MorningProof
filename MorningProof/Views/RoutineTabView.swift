@@ -4,7 +4,6 @@ struct RoutineTabView: View {
     @ObservedObject var manager: MorningProofManager
 
     @State private var cutoffMinutes: Int = 540
-    @State private var isEditMode = false
     @State private var showCreateCustomHabit = false
 
     /// All enabled habits in display order (predefined + custom combined)
@@ -41,14 +40,11 @@ struct RoutineTabView: View {
 
                 ScrollView {
                     VStack(spacing: MPSpacing.xl) {
-                        // Deadline card
+                        // Deadline section
                         DeadlineCardView(cutoffMinutes: $cutoffMinutes)
 
                         // Habits section
                         habitsSection
-
-                        // Add habit button
-                        addHabitButton
 
                         Spacer(minLength: MPSpacing.xxxl)
                     }
@@ -56,8 +52,19 @@ struct RoutineTabView: View {
                     .padding(.top, MPSpacing.lg)
                 }
             }
-            .navigationTitle("Your Routine")
+            .navigationTitle("Routine")
             .navigationBarTitleDisplayMode(.large)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    NavigationLink {
+                        AddHabitView(manager: manager)
+                    } label: {
+                        Image(systemName: "plus")
+                            .font(.system(size: 17, weight: .regular))
+                            .foregroundColor(MPColors.primary)
+                    }
+                }
+            }
             .onAppear { loadSettings() }
             .onDisappear { saveSettings() }
             .sheet(isPresented: $showCreateCustomHabit) {
@@ -69,30 +76,20 @@ struct RoutineTabView: View {
     // MARK: - Habits Section
 
     private var habitsSection: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.md) {
-            // Section header
-            HStack {
-                Text("YOUR HABITS")
-                    .font(MPFont.labelSmall())
-                    .foregroundColor(MPColors.textTertiary)
-                    .tracking(0.5)
-
-                Spacer()
-
-                if enabledHabits.count > 1 {
-                    Text("\(enabledHabits.count) habits")
-                        .font(MPFont.labelTiny())
-                        .foregroundColor(MPColors.textMuted)
-                }
-            }
-            .padding(.leading, MPSpacing.xs)
-            .padding(.trailing, MPSpacing.xs)
+        VStack(alignment: .leading, spacing: MPSpacing.sm) {
+            // Section header - simplified, no count
+            Text("HABITS")
+                .font(MPFont.labelSmall())
+                .foregroundColor(MPColors.textTertiary)
+                .tracking(0.5)
+                .padding(.leading, MPSpacing.xs)
 
             // Habits list
             if enabledHabits.isEmpty {
                 emptyState
             } else {
-                VStack(spacing: 0) {
+                // Use List for native swipe actions
+                List {
                     ForEach(enabledHabits) { habit in
                         NavigationLink {
                             if let type = habit.predefinedType {
@@ -103,24 +100,22 @@ struct RoutineTabView: View {
                         } label: {
                             habitRowContent(for: habit)
                         }
-                        .buttonStyle(.plain)
+                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                        .listRowSeparator(.hidden)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
                                 removeHabit(habit)
                             } label: {
-                                Label("Remove", systemImage: "minus.circle")
+                                Label("Remove", systemImage: "trash")
                             }
-                            .tint(MPColors.error)
-                        }
-
-                        if habit.id != enabledHabits.last?.id {
-                            Divider().padding(.leading, 60)
                         }
                     }
                 }
+                .listStyle(.plain)
+                .scrollDisabled(true)
+                .frame(height: CGFloat(enabledHabits.count) * 52)
                 .background(MPColors.surface)
                 .cornerRadius(MPRadius.lg)
-                .mpShadow(.small)
             }
         }
     }
@@ -129,79 +124,42 @@ struct RoutineTabView: View {
 
     private func habitRowContent(for habit: EnabledHabit) -> some View {
         HStack(spacing: MPSpacing.md) {
-            // Icon with subtle tint (no circle background)
+            // Subtle icon
             Image(systemName: habit.icon)
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(MPColors.primary)
-                .frame(width: 28)
+                .font(.system(size: 18))
+                .foregroundColor(MPColors.primary.opacity(0.85))
+                .frame(width: 24)
 
             Text(habit.name)
-                .font(MPFont.labelMedium())
+                .font(.system(size: 17))
                 .foregroundColor(MPColors.textPrimary)
 
             Spacer()
-
-            Image(systemName: "chevron.right")
-                .font(.system(size: 14, weight: .semibold))
-                .foregroundColor(MPColors.textTertiary)
         }
-        .padding(.vertical, MPSpacing.lg)
+        .padding(.vertical, 14)
         .padding(.horizontal, MPSpacing.lg)
+        .background(MPColors.surface)
         .contentShape(Rectangle())
     }
 
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: MPSpacing.lg) {
-            ZStack {
-                Circle()
-                    .fill(MPColors.surfaceSecondary)
-                    .frame(width: 72, height: 72)
-                Image(systemName: "plus.circle")
-                    .font(.system(size: 28))
-                    .foregroundColor(MPColors.textTertiary)
-            }
+        VStack(spacing: MPSpacing.md) {
+            Image(systemName: "checklist")
+                .font(.system(size: 40, weight: .light))
+                .foregroundColor(MPColors.textTertiary)
 
-            VStack(spacing: MPSpacing.sm) {
-                Text("No habits yet")
-                    .font(MPFont.labelMedium())
-                    .foregroundColor(MPColors.textSecondary)
-                Text("Add habits to build your morning routine")
-                    .font(MPFont.labelSmall())
-                    .foregroundColor(MPColors.textTertiary)
-                    .multilineTextAlignment(.center)
-            }
+            Text("No habits yet")
+                .font(.system(size: 17))
+                .foregroundColor(MPColors.textSecondary)
+
+            Text("Tap + to add your first habit")
+                .font(.system(size: 15))
+                .foregroundColor(MPColors.textTertiary)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, MPSpacing.xxxl)
-        .background(MPColors.surface)
-        .cornerRadius(MPRadius.lg)
-        .mpShadow(.small)
-    }
-
-    // MARK: - Manage Habits Button
-
-    private var addHabitButton: some View {
-        NavigationLink {
-            AddHabitView(manager: manager)
-        } label: {
-            HStack(spacing: MPSpacing.sm) {
-                Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 16, weight: .medium))
-                Text("Manage Habits")
-                    .font(MPFont.labelMedium())
-            }
-            .foregroundColor(MPColors.primary)
-            .frame(maxWidth: .infinity)
-            .frame(height: MPButtonHeight.md)
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
-            .overlay(
-                RoundedRectangle(cornerRadius: MPRadius.lg)
-                    .stroke(MPColors.border, lineWidth: 1.5)
-            )
-        }
+        .padding(.vertical, 60)
     }
 
     // MARK: - Remove Habit

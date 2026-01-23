@@ -18,14 +18,6 @@ struct DashboardView: View {
     @State private var customHabitRowGlow: [UUID: CGFloat] = [:]
     @State private var showConfettiForCustomHabit: UUID? = nil
 
-    // Side menu state
-    @State private var showSideMenu = false
-    @State private var selectedMenuItem: SideMenuItem?
-    @State private var showHistory = false
-    @State private var showCalendar = false
-    @State private var showAchievements = false
-    @State private var showStatistics = false
-
     // Celebration state
     @State private var recentlyCompletedHabits: Set<HabitType> = []
     @State private var showConfettiForHabit: HabitType? = nil
@@ -151,33 +143,6 @@ struct DashboardView: View {
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: undoableHabit)
                 .animation(.spring(response: 0.3, dampingFraction: 0.8), value: undoableCustomHabit)
 
-                // Side menu overlay
-                SideMenuView(
-                    manager: manager,
-                    isShowing: $showSideMenu,
-                    selectedItem: $selectedMenuItem,
-                    onDismiss: { showSideMenu = false },
-                    onSelectSettings: { showSettings = true }
-                )
-            }
-        }
-        .onChange(of: selectedMenuItem) { _, item in
-            guard let item = item else { return }
-            switch item {
-            case .history:
-                showHistory = true
-            case .calendar:
-                showCalendar = true
-            case .achievements:
-                showAchievements = true
-            case .statistics:
-                showStatistics = true
-            default:
-                break
-            }
-            // Reset selection after handling
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                selectedMenuItem = nil
             }
         }
         .sheet(isPresented: $showSettings) {
@@ -194,19 +159,6 @@ struct DashboardView: View {
         }
         .sheet(isPresented: $showSleepInput) {
             SleepInputSheet(manager: manager)
-        }
-        .sheet(isPresented: $showHistory) {
-            HistoryView(manager: manager)
-        }
-        .sheet(isPresented: $showCalendar) {
-            CalendarView(manager: manager)
-        }
-        .sheet(isPresented: $showAchievements) {
-            AchievementsView()
-                .environmentObject(BedVerificationViewModel())
-        }
-        .sheet(isPresented: $showStatistics) {
-            StatisticsView(manager: manager)
         }
         .sheet(isPresented: $showHabitEditor) {
             HabitEditorSheet(manager: manager)
@@ -387,12 +339,6 @@ struct DashboardView: View {
             }
 
             Spacer()
-
-            MPIconButton(icon: "line.3.horizontal", size: MPIconSize.md) {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    showSideMenu = true
-                }
-            }
         }
         .padding(.top, MPSpacing.sm)
     }

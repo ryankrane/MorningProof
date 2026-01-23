@@ -77,7 +77,7 @@ OVERALL (0-25):
 STEP 3: RESPOND
 ═══════════════════════════════════════════════════════════════
 - is_made = true if score >= 65
-- Feedback must be SPECIFIC to what you see. NEVER mention scores/points/numbers.
+- Feedback must be SPECIFIC to what you see. Keep it to 2 sentences max. NEVER mention scores/points/numbers.
   * High score: Celebrate! ("Pristine! Those hospital corners are chef's kiss!")
   * Passing: Praise + one tip ("Looking good! Fluff those pillows for perfection.")
   * Almost passing: Name the specific issue ("Those pillows are scattered - line them up!")
@@ -116,6 +116,7 @@ FAIL (is_outside: false) if:
 ═══════════════════════════════════════════════════════════════
 STEP 3: RESPOND WITH SPECIFIC FEEDBACK
 ═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
 - If unrelated/screenshot: "I see [what's there], but I need to see natural light exposure!"
 - If artificial light only: "That's artificial light - step outside or near a window!"
 - If nighttime: "It's dark out! Catch some rays tomorrow morning."
@@ -158,6 +159,7 @@ Be lenient - the goal is encouraging hydration!
 ═══════════════════════════════════════════════════════════════
 STEP 3: SPECIFIC FEEDBACK
 ═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
 - If wrong subject: "I see [what's there], but where's your drink?"
 - If passed: Acknowledge what you see ("Nice water bottle!" or "Coffee counts!")
 - Empty vessel: "Already finished? That's the spirit!"
@@ -437,7 +439,7 @@ CLARITY & EFFORT (0-20):
 STEP 3: RESPOND WITH SPECIFIC FEEDBACK
 ═══════════════════════════════════════════════════════════════
 - is_verified = true ONLY if score >= 65
-- Feedback must be SPECIFIC to what you see:
+- Feedback must be SPECIFIC to what you see. Keep it to 2 sentences max.
   * Score >= 85: Celebrate! ("Perfect! That's exactly what I'm looking for!")
   * Score 65-84: Acknowledge with encouragement
   * Score 40-64: Name what's missing ("I see X, but I need to see Y")
@@ -545,6 +547,7 @@ FAIL (is_verified: false) if:
 ═══════════════════════════════════════════════════════════════
 RESPOND WITH SPECIFIC FEEDBACK
 ═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
 - If passed: Acknowledge what you saw ("Great form on those pushups!")
 - If failed: Explain specifically what was missing or wrong
 - detected_action: Brief description of what you actually saw happen

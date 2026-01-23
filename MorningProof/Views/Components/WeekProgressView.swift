@@ -182,21 +182,28 @@ struct WeekDayDot: View {
 // MARK: - Fraction View
 
 /// A styled fraction display (e.g., "3/4") for week progress circles
+/// Numbers stay upright, positioned diagonally with a slash between
 struct FractionView: View {
     let numerator: Int
     let denominator: Int
 
     var body: some View {
-        HStack(spacing: 0) {
-            Text("\(numerator)")
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+        ZStack {
+            // Diagonal slash (using Text "/" rotated so it inherits foreground color)
             Text("/")
-                .font(.system(size: 9, weight: .medium, design: .rounded))
-                .offset(y: -0.5)
+                .font(.system(size: 14, weight: .medium, design: .rounded))
+                .rotationEffect(.degrees(30))
+
+            // Numerator (top-left)
+            Text("\(numerator)")
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .offset(x: -6, y: -5)
+
+            // Denominator (bottom-right)
             Text("\(denominator)")
-                .font(.system(size: 11, weight: .bold, design: .rounded))
+                .font(.system(size: 10, weight: .bold, design: .rounded))
+                .offset(x: 6, y: 5)
         }
-        .rotationEffect(.degrees(-55))
     }
 }
 

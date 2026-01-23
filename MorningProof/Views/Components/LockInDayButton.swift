@@ -78,10 +78,10 @@ struct LockInDayButton: View {
         MPColors.accentGold.opacity(0.15)
     }
 
-    // Subtle purple for disabled state - matches app purple but transparent to show "locked"
+    // Subtle purple for disabled state - visible but clearly inactive
     private var disabledGradient: LinearGradient {
         LinearGradient(
-            colors: [Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.15), Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.1)],
+            colors: [MPColors.primary.opacity(0.08), MPColors.primary.opacity(0.05)],
             startPoint: .leading,
             endPoint: .trailing
         )
@@ -272,7 +272,7 @@ struct LockInDayButton: View {
         .rotationEffect(.degrees(chargingShakeRotation))  // Subtle rotation shake
         .scaleEffect(isHolding ? 0.97 : pulseScale)  // Gentle physical compression feel
         .animation(.easeOut(duration: 0.12), value: isHolding)
-        .opacity(isEnabled || isLockedIn ? 1.0 : 0.6)
+        // No opacity dimming - disabled state styling handles visual difference
         .gesture(
             isEnabled && !isLockedIn ? holdGesture : nil
         )
@@ -314,7 +314,7 @@ struct LockInDayButton: View {
         } else if isEnabled {
             return MPColors.accentGold  // Strong gold border for enabled state
         } else {
-            return Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.3)
+            return MPColors.primary.opacity(0.5)  // Visible purple border
         }
     }
 
@@ -324,7 +324,7 @@ struct LockInDayButton: View {
         } else if isEnabled {
             return MPColors.accentGold  // Gold text/icon on transparent background
         } else {
-            return Color(red: 0.6, green: 0.4, blue: 0.8).opacity(0.5)
+            return MPColors.primary.opacity(0.7)  // Visible purple text/icon
         }
     }
 
