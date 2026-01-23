@@ -399,6 +399,7 @@ struct DoomScrollingSimulatorStep: View {
     @State private var scrollOffset: CGFloat = 0
     @State private var feedVisible = true  // Controls feed visibility for clean resets
     @State private var hasShownOnce = false  // Track if animation has completed once (for button)
+    @State private var animationCycleID = 0  // Forces fresh animation state on each loop
 
     // Simulated social feed items
     private let feedItems: [(icon: String, color: Color, title: String)] = [
@@ -485,6 +486,7 @@ struct DoomScrollingSimulatorStep: View {
                             scrollOffset: scrollOffset,
                             isScrolling: isScrolling
                         )
+                        .id(animationCycleID)  // Forces fresh view/animation on each cycle
                         .opacity(feedVisible ? 1 : 0)
                     }
 
@@ -584,13 +586,16 @@ struct DoomScrollingSimulatorStep: View {
             scrollOffset = 0
             isScrolling = true
 
+            // Increment cycle ID to force SwiftUI to create a fresh view with clean animation state
+            animationCycleID += 1
+
             // Small delay then fade feed back in - feels like we just opened the app
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 withAnimation(.easeIn(duration: 0.3)) {
                     feedVisible = true
                 }
 
-                // Start fresh scroll animation
+                // Start fresh scroll animation (the new ID ensures this is a clean start)
                 withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
                     scrollOffset = -400
                 }

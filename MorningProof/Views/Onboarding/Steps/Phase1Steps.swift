@@ -55,10 +55,9 @@ struct WelcomeHeroStep: View {
                             .foregroundColor(MPColors.textPrimary)
                             .fixedSize(horizontal: true, vertical: false)
 
-                        // Gradient tagline
+                        // Gradient tagline - avoid fixedSize with gradients as it clips ascenders
                         Text("Take Back Your Morning")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
-                            .fixedSize(horizontal: true, vertical: false)
                             .foregroundStyle(
                                 LinearGradient(
                                     colors: [
