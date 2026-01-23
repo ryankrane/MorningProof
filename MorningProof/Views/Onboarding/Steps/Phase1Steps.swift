@@ -8,28 +8,30 @@ import AuthenticationServices
 struct WelcomeHeroStep: View {
     let onContinue: () -> Void
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
-    @State private var animateContent = false
-    @State private var animateOrb = false
-    @State private var pulseOrb = false
-    @State private var shimmerPhase: CGFloat = -1
+
+    // Simple, clean animation states
+    @State private var contentVisible = false
+    @State private var buttonsVisible = false
+    @State private var orbFloating = false
+    @State private var orbGlowing = false
 
     var body: some View {
         VStack(spacing: 0) {
-            // Top half - branding content, vertically centered in its space
+            // Top half - branding content
             VStack(spacing: 0) {
                 Spacer()
 
-                // App branding - centered
+                // App branding
                 VStack(spacing: MPSpacing.xl) {
-                    // Animated orb with sunrise - gentle 5% pulse
+                    // Orb with gentle ambient animation
                     ZStack {
-                        // Outer glow - subtle pulse
+                        // Soft glow
                         Circle()
                             .fill(
                                 RadialGradient(
                                     colors: [
-                                        MPColors.primary.opacity(pulseOrb ? 0.55 : 0.45),
-                                        MPColors.primary.opacity(pulseOrb ? 0.25 : 0.18),
+                                        MPColors.primary.opacity(orbGlowing ? 0.5 : 0.4),
+                                        MPColors.primary.opacity(0.15),
                                         Color.clear
                                     ],
                                     center: .center,
@@ -38,86 +40,40 @@ struct WelcomeHeroStep: View {
                                 )
                             )
                             .frame(width: 180, height: 180)
-                            .scaleEffect(pulseOrb ? 1.05 : 1.0)
-                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: pulseOrb)
+                            .scaleEffect(orbGlowing ? 1.03 : 1.0)
 
                         Image(systemName: "sunrise.fill")
                             .font(.system(size: 52))
                             .foregroundColor(MPColors.primary)
-                            .offset(y: animateOrb ? -5 : 5)
-                            .animation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true), value: animateOrb)
+                            .offset(y: orbFloating ? -4 : 4)
                     }
 
-                    // Headlines - centered, same font size
+                    // Headlines
                     VStack(spacing: MPSpacing.sm) {
-                        // Primary headline with shimmer
                         Text("Lock Your Distractions")
                             .font(.system(size: 32, weight: .bold, design: .rounded))
                             .foregroundColor(MPColors.textPrimary)
                             .fixedSize(horizontal: true, vertical: false)
-                            .overlay(
-                                // Subtle shimmer highlight
+
+                        // Gradient tagline
+                        Text("Take Back Your Morning")
+                            .font(.system(size: 32, weight: .bold, design: .rounded))
+                            .fixedSize(horizontal: true, vertical: false)
+                            .foregroundStyle(
                                 LinearGradient(
-                                    stops: [
-                                        .init(color: .clear, location: 0),
-                                        .init(color: .white.opacity(0.4), location: 0.45),
-                                        .init(color: .white.opacity(0.6), location: 0.5),
-                                        .init(color: .white.opacity(0.4), location: 0.55),
-                                        .init(color: .clear, location: 1)
+                                    colors: [
+                                        Color(red: 0.75, green: 0.55, blue: 1.0),
+                                        MPColors.primary
                                     ],
-                                    startPoint: UnitPoint(x: shimmerPhase, y: 0.5),
-                                    endPoint: UnitPoint(x: shimmerPhase + 0.3, y: 0.5)
-                                )
-                                .mask(
-                                    Text("Lock Your Distractions")
-                                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                                        .fixedSize(horizontal: true, vertical: false)
+                                    startPoint: .leading,
+                                    endPoint: .trailing
                                 )
                             )
-                            .opacity(animateContent ? 1 : 0)
-                            .offset(y: animateContent ? 0 : 12)
-
-                        // Secondary tagline - vibrant gradient with glow
-                        ZStack {
-                            // Glow layer
-                            Text("Take Back Your Morning")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .fixedSize(horizontal: true, vertical: false)
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [
-                                            Color(red: 0.75, green: 0.55, blue: 1.0),
-                                            MPColors.primary
-                                        ],
-                                        startPoint: .leading,
-                                        endPoint: .trailing
-                                    )
-                                )
-                                .blur(radius: 12)
-                                .opacity(0.6)
-
-                            // Main text
-                            Text("Take Back Your Morning")
-                                .font(.system(size: 32, weight: .bold, design: .rounded))
-                                .fixedSize(horizontal: true, vertical: false)
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [
-                                            Color(red: 0.8, green: 0.6, blue: 1.0),
-                                            MPColors.primary,
-                                            Color(red: 0.6, green: 0.4, blue: 0.9)
-                                        ],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                        }
-                        .opacity(animateContent ? 1 : 0)
-                        .offset(y: animateContent ? 0 : 10)
-                        .animation(.easeOut(duration: 0.8).delay(0.15), value: animateContent)
                     }
                 }
                 .padding(.horizontal, MPSpacing.xl)
+                .opacity(contentVisible ? 1 : 0)
+                .offset(y: contentVisible ? 0 : 12)
 
                 Spacer()
             }
@@ -178,7 +134,7 @@ struct WelcomeHeroStep: View {
             }
             .padding(.horizontal, MPSpacing.xl)
             .padding(.bottom, 50)
-            .opacity(animateContent ? 1 : 0)
+            .opacity(buttonsVisible ? 1 : 0)
 
             if let error = authManager.errorMessage {
                 Text(error)
@@ -190,16 +146,27 @@ struct WelcomeHeroStep: View {
             }
         }
         .onAppear {
-            animateOrb = true
-            pulseOrb = true
-            withAnimation(.easeOut(duration: 0.8)) {
-                animateContent = true
+            // Content fades in smoothly
+            withAnimation(.easeOut(duration: 0.6)) {
+                contentVisible = true
             }
-            // Start shimmer after content fades in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
-                withAnimation(.easeInOut(duration: 1.5)) {
-                    shimmerPhase = 1.5
-                }
+
+            // Buttons appear after content
+            withAnimation(.easeOut(duration: 0.5).delay(0.4)) {
+                buttonsVisible = true
+            }
+
+            // Single subtle haptic as page appears
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                HapticManager.shared.light()
+            }
+
+            // Start gentle ambient orb animations
+            withAnimation(.easeInOut(duration: 3).repeatForever(autoreverses: true)) {
+                orbFloating = true
+            }
+            withAnimation(.easeInOut(duration: 2.5).repeatForever(autoreverses: true)) {
+                orbGlowing = true
             }
         }
     }

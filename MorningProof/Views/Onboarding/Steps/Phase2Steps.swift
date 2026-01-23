@@ -397,6 +397,7 @@ struct DoomScrollingSimulatorStep: View {
     @State private var showLockdown = false
     @State private var lockSlammed = false
     @State private var scrollOffset: CGFloat = 0
+    @State private var feedVisible = true  // Controls feed visibility for clean resets
     @State private var hasShownOnce = false  // Track if animation has completed once (for button)
 
     // Simulated social feed items
@@ -478,12 +479,13 @@ struct DoomScrollingSimulatorStep: View {
 
                     // Scrolling social feed OR locked state
                     if !showLockdown {
-                        // Doom scrolling feed
+                        // Doom scrolling feed with fade for clean loop resets
                         DoomScrollFeed(
                             feedItems: feedItems,
                             scrollOffset: scrollOffset,
                             isScrolling: isScrolling
                         )
+                        .opacity(feedVisible ? 1 : 0)
                     }
 
                     // Morning Proof lockdown overlay
@@ -567,46 +569,56 @@ struct DoomScrollingSimulatorStep: View {
     }
 
     private func resetAndReplay() {
-        // Reset animation states (keep hasShownOnce true so button stays enabled)
-        withAnimation(.easeOut(duration: 0.3)) {
+        // Fade out lockdown overlay
+        withAnimation(.easeOut(duration: 0.25)) {
             showLockdown = false
             lockSlammed = false
         }
 
-        // Brief pause then restart scrolling
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-            // Reset scroll offset without animation
+        // After lockdown fades, briefly hide feed, reset position, then fade feed back in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+            // Hide feed instantly (it's behind the fading lockdown, so user won't see the jump)
+            feedVisible = false
+
+            // Reset scroll position to top (no animation - feed is hidden)
             scrollOffset = 0
             isScrolling = true
 
-            // Restart scroll animation
-            withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
-                scrollOffset = -400
-            }
-
-            // Schedule next lockdown
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                // Stop scrolling
-                withAnimation(.easeOut(duration: 0.3)) {
-                    isScrolling = false
+            // Small delay then fade feed back in - feels like we just opened the app
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.easeIn(duration: 0.3)) {
+                    feedVisible = true
                 }
 
-                // Show lockdown overlay
-                withAnimation(.easeIn(duration: 0.2)) {
-                    showLockdown = true
+                // Start fresh scroll animation
+                withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+                    scrollOffset = -400
                 }
 
-                // Slam the lock
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    HapticManager.shared.flameSlamImpact()
-
-                    withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
-                        lockSlammed = true
+                // Schedule next lockdown
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                    // Stop scrolling
+                    withAnimation(.easeOut(duration: 0.3)) {
+                        isScrolling = false
                     }
 
-                    // Wait 4 seconds then loop again
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                        resetAndReplay()
+                    // Show lockdown overlay
+                    withAnimation(.easeIn(duration: 0.2)) {
+                        showLockdown = true
+                    }
+
+                    // Slam the lock
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                        HapticManager.shared.flameSlamImpact()
+
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                            lockSlammed = true
+                        }
+
+                        // Wait 4 seconds then loop again
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                            resetAndReplay()
+                        }
                     }
                 }
             }
