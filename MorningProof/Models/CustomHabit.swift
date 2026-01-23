@@ -82,8 +82,8 @@ enum VerificationMediaType: String, Codable, CaseIterable {
 
     var description: String {
         switch self {
-        case .photo: return "Verify an end result (made bed, clean desk)"
-        case .video: return "Verify an action (exercise, meditation)"
+        case .photo: return "Take a photo for verification"
+        case .video: return "Record a short video for verification"
         }
     }
 

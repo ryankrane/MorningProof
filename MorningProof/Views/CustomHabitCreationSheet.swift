@@ -131,10 +131,6 @@ struct CustomHabitCreationSheet: View {
                                 .font(.system(size: 32, weight: .medium))
                                 .foregroundColor(MPColors.primary)
                         }
-
-                        Text("Tap to change")
-                            .font(MPFont.labelTiny())
-                            .foregroundColor(MPColors.textTertiary)
                     }
                 }
                 .padding(.top, MPSpacing.sm)
