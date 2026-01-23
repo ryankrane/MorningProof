@@ -160,11 +160,17 @@ final class HealthKitManager: ObservableObject, Sendable {
 
         let calendar = Calendar.current
         let now = Date()
+        let startOfToday = calendar.startOfDay(for: now)
 
-        // Look for sleep in the last 24 hours
-        guard let yesterday = calendar.date(byAdding: .hour, value: -24, to: now) else { return }
+        // Look for sleep from 6 PM yesterday to noon today (excludes afternoon naps)
+        // This ensures we only capture "last night's sleep" not random daytime naps from yesterday
+        guard let sixPMYesterday = calendar.date(byAdding: .hour, value: -30, to: startOfToday), // 6 PM yesterday
+              let noonToday = calendar.date(byAdding: .hour, value: 12, to: startOfToday) else { return }
 
-        let predicate = HKQuery.predicateForSamples(withStart: yesterday, end: now, options: .strictStartDate)
+        // End bound is the earlier of now or noon (don't include afternoon naps from today)
+        let endBound = min(now, noonToday)
+
+        let predicate = HKQuery.predicateForSamples(withStart: sixPMYesterday, end: endBound, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
 
         do {
@@ -296,31 +302,13 @@ final class HealthKitManager: ObservableObject, Sendable {
         }
     }
 
-    // MARK: - Morning Workout Check (with Loose Standards)
+    // MARK: - Morning Workout Check
 
-    /// Checks if user has done a workout using loose standards:
-    /// 1. Any formal HKWorkout record, OR
-    /// 2. 1000+ steps before cutoff (indicates active morning), OR
-    /// 3. 100+ kcal active energy burned (indicates exercise)
+    /// Checks if user has recorded a workout in Apple Health before the cutoff time.
+    /// Only counts formal HKWorkout records (from Apple Fitness, Strava, etc.).
+    /// Users can manually confirm if no workout is detected.
     func checkMorningWorkout(cutoffMinutes: Int) async -> Bool {
-        // 1. Check for formal workout
-        if await checkFormalWorkout(cutoffMinutes: cutoffMinutes) {
-            return true
-        }
-
-        // 2. Check for high step count (> 1000 steps indicates active morning)
-        let steps = await fetchStepsBeforeCutoff(cutoffMinutes: cutoffMinutes)
-        if steps > 1000 {
-            return true
-        }
-
-        // 3. Check for active energy burned (> 100 kcal indicates exercise)
-        let energy = await fetchActiveEnergyBeforeCutoff(cutoffMinutes: cutoffMinutes)
-        if energy > 100 {
-            return true
-        }
-
-        return false
+        return await checkFormalWorkout(cutoffMinutes: cutoffMinutes)
     }
 
     /// Checks specifically for formal HKWorkout records

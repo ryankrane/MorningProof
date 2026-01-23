@@ -24,6 +24,7 @@ struct RoutineTabView: View {
     // Custom habits
     @State private var showCreateCustomHabit = false
     @State private var editingCustomHabit: CustomHabit? = nil
+    @State private var addingToSection: CustomVerificationType? = nil
 
     var body: some View {
         NavigationStack {
@@ -36,11 +37,8 @@ struct RoutineTabView: View {
                         // MARK: - Habit Deadline
                         deadlineSection
 
-                        // MARK: - Habits
-                        habitsSection
-
-                        // MARK: - Custom Habits
-                        customHabitsSection
+                        // MARK: - Habits by Verification Type
+                        unifiedHabitsSection
 
                         // MARK: - Habit Schedule
                         weeklyScheduleSection
@@ -56,17 +54,6 @@ struct RoutineTabView: View {
             }
             .navigationTitle("Your Routine")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        showCreateCustomHabit = true
-                    } label: {
-                        Image(systemName: "plus")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundColor(MPColors.primary)
-                    }
-                }
-            }
             .onAppear {
                 loadSettings()
             }
@@ -74,7 +61,13 @@ struct RoutineTabView: View {
                 saveSettings()
             }
             .sheet(isPresented: $showCreateCustomHabit) {
-                CustomHabitCreationSheet(manager: manager)
+                CustomHabitCreationSheet(manager: manager, preselectedVerificationType: addingToSection)
+            }
+            .onChange(of: showCreateCustomHabit) { _, isPresented in
+                // Clear preselection when sheet is dismissed
+                if !isPresented {
+                    addingToSection = nil
+                }
             }
             .sheet(item: $editingCustomHabit) { habit in
                 CustomHabitCreationSheet(manager: manager, editingHabit: habit)
@@ -137,29 +130,208 @@ struct RoutineTabView: View {
         }
     }
 
-    // MARK: - Habits Section
+    // MARK: - Unified Habits Section (Organized by Verification Type)
 
-    var habitsSection: some View {
-        let sortedConfigs = manager.habitConfigs.sorted { config1, config2 in
-            // Enabled habits come first
-            if config1.isEnabled != config2.isEnabled {
-                return config1.isEnabled
-            }
-            // Within same enabled state, sort by verification tier
-            return config1.habitType.tier.rawValue < config2.habitType.tier.rawValue
+    var unifiedHabitsSection: some View {
+        VStack(spacing: MPSpacing.xl) {
+            // AI Verified Section
+            aiVerifiedSection
+
+            // Apple Health Section
+            appleHealthSection
+
+            // Self-Reported Section
+            selfReportedSection
         }
+    }
 
-        return sectionContainer(title: "Habits", icon: "checkmark.circle.fill") {
+    // MARK: - AI Verified Section
+
+    var aiVerifiedSection: some View {
+        let predefinedHabits = manager.habitConfigs.filter { $0.habitType.tier == .aiVerified }
+            .sorted { config1, config2 in
+                if config1.isEnabled != config2.isEnabled { return config1.isEnabled }
+                return config1.displayOrder < config2.displayOrder
+            }
+
+        let customHabits = manager.customHabits.filter { $0.verificationType == .aiVerified }
+            .sorted { habit1, habit2 in
+                let config1 = manager.customHabitConfigs.first { $0.customHabitId == habit1.id }
+                let config2 = manager.customHabitConfigs.first { $0.customHabitId == habit2.id }
+                let enabled1 = config1?.isEnabled ?? true
+                let enabled2 = config2?.isEnabled ?? true
+                if enabled1 != enabled2 { return enabled1 }
+                return habit1.createdAt < habit2.createdAt
+            }
+
+        return habitSectionContainer(
+            title: HabitVerificationTier.aiVerified.sectionTitle,
+            icon: HabitVerificationTier.aiVerified.icon,
+            showAddButton: true,
+            onAdd: {
+                addingToSection = .aiVerified
+                showCreateCustomHabit = true
+            }
+        ) {
             VStack(spacing: 0) {
-                ForEach(sortedConfigs) { config in
+                // Predefined habits
+                ForEach(predefinedHabits) { config in
                     habitRow(config: config)
+                    Divider().padding(.leading, 46)
+                }
 
-                    if config.id != sortedConfigs.last?.id {
-                        Divider()
-                            .padding(.leading, 46)
+                // Custom habits
+                ForEach(customHabits) { habit in
+                    customHabitRow(habit: habit)
+                    if habit.id != customHabits.last?.id || true {
+                        Divider().padding(.leading, 46)
+                    }
+                }
+
+                // Inline add button
+                addHabitButton(verificationType: .aiVerified)
+            }
+        }
+    }
+
+    // MARK: - Apple Health Section
+
+    var appleHealthSection: some View {
+        let predefinedHabits = manager.habitConfigs.filter { $0.habitType.tier == .autoTracked }
+            .sorted { config1, config2 in
+                if config1.isEnabled != config2.isEnabled { return config1.isEnabled }
+                return config1.displayOrder < config2.displayOrder
+            }
+
+        return habitSectionContainer(
+            title: HabitVerificationTier.autoTracked.sectionTitle,
+            icon: HabitVerificationTier.autoTracked.icon,
+            showAddButton: false,
+            onAdd: {}
+        ) {
+            VStack(spacing: 0) {
+                ForEach(Array(predefinedHabits.enumerated()), id: \.element.id) { index, config in
+                    habitRow(config: config)
+                    if index < predefinedHabits.count - 1 {
+                        Divider().padding(.leading, 46)
                     }
                 }
             }
+        }
+    }
+
+    // MARK: - Self-Reported Section
+
+    var selfReportedSection: some View {
+        let predefinedHabits = manager.habitConfigs.filter { $0.habitType.tier == .honorSystem }
+            .sorted { config1, config2 in
+                if config1.isEnabled != config2.isEnabled { return config1.isEnabled }
+                return config1.displayOrder < config2.displayOrder
+            }
+
+        let customHabits = manager.customHabits.filter { $0.verificationType == .honorSystem }
+            .sorted { habit1, habit2 in
+                let config1 = manager.customHabitConfigs.first { $0.customHabitId == habit1.id }
+                let config2 = manager.customHabitConfigs.first { $0.customHabitId == habit2.id }
+                let enabled1 = config1?.isEnabled ?? true
+                let enabled2 = config2?.isEnabled ?? true
+                if enabled1 != enabled2 { return enabled1 }
+                return habit1.createdAt < habit2.createdAt
+            }
+
+        return habitSectionContainer(
+            title: HabitVerificationTier.honorSystem.sectionTitle,
+            icon: HabitVerificationTier.honorSystem.icon,
+            showAddButton: true,
+            onAdd: {
+                addingToSection = .honorSystem
+                showCreateCustomHabit = true
+            }
+        ) {
+            VStack(spacing: 0) {
+                // Predefined habits
+                ForEach(predefinedHabits) { config in
+                    habitRow(config: config)
+                    Divider().padding(.leading, 46)
+                }
+
+                // Custom habits
+                ForEach(customHabits) { habit in
+                    customHabitRow(habit: habit)
+                    if habit.id != customHabits.last?.id || true {
+                        Divider().padding(.leading, 46)
+                    }
+                }
+
+                // Inline add button
+                addHabitButton(verificationType: .honorSystem)
+            }
+        }
+    }
+
+    // MARK: - Section Container with Optional Add Button
+
+    func habitSectionContainer<Content: View>(
+        title: String,
+        icon: String,
+        showAddButton: Bool,
+        onAdd: @escaping () -> Void,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: MPSpacing.md) {
+            HStack(spacing: MPSpacing.sm) {
+                Image(systemName: icon)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(MPColors.textTertiary)
+                Text(title.uppercased())
+                    .font(MPFont.labelSmall())
+                    .foregroundColor(MPColors.textTertiary)
+                    .tracking(0.5)
+
+                Spacer()
+
+                if showAddButton {
+                    Button(action: onAdd) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 18))
+                            .foregroundColor(MPColors.primary.opacity(0.8))
+                    }
+                }
+            }
+            .padding(.leading, MPSpacing.xs)
+            .padding(.trailing, MPSpacing.xs)
+
+            VStack {
+                content()
+            }
+            .padding(.horizontal, MPSpacing.lg)
+            .padding(.vertical, MPSpacing.md)
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.small)
+        }
+    }
+
+    // MARK: - Inline Add Button
+
+    func addHabitButton(verificationType: CustomVerificationType) -> some View {
+        Button {
+            addingToSection = verificationType
+            showCreateCustomHabit = true
+        } label: {
+            HStack(spacing: MPSpacing.lg) {
+                Image(systemName: "plus")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundColor(MPColors.primary)
+                    .frame(width: 30)
+
+                Text("Add Custom Habit")
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.primary)
+
+                Spacer()
+            }
+            .padding(.vertical, MPSpacing.sm)
         }
     }
 
@@ -207,78 +379,6 @@ struct RoutineTabView: View {
                 .tint(MPColors.primary)
             }
             .padding(.vertical, MPSpacing.sm)
-        }
-    }
-
-    // MARK: - Custom Habits Section
-
-    var customHabitsSection: some View {
-        sectionContainer(title: "Custom Habits", icon: "star.fill") {
-            if manager.customHabits.isEmpty {
-                Button {
-                    showCreateCustomHabit = true
-                } label: {
-                    HStack(spacing: MPSpacing.lg) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Add Custom Habit")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.textPrimary)
-                            Text("Create your own habit to track")
-                                .font(MPFont.labelTiny())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-
-                        Spacer()
-
-                        Image(systemName: "plus")
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(MPColors.primary)
-                    }
-                    .padding(.vertical, MPSpacing.sm)
-                }
-            } else {
-                let sortedCustomHabits = manager.customHabits.sorted { habit1, habit2 in
-                    let config1 = manager.customHabitConfigs.first { $0.customHabitId == habit1.id }
-                    let config2 = manager.customHabitConfigs.first { $0.customHabitId == habit2.id }
-                    let enabled1 = config1?.isEnabled ?? true
-                    let enabled2 = config2?.isEnabled ?? true
-
-                    // Enabled habits come first
-                    if enabled1 != enabled2 {
-                        return enabled1
-                    }
-                    // Within same enabled state, sort by verification type
-                    return habit1.verificationType.rawValue < habit2.verificationType.rawValue
-                }
-
-                VStack(spacing: 0) {
-                    ForEach(sortedCustomHabits) { habit in
-                        customHabitRow(habit: habit)
-
-                        Divider()
-                            .padding(.leading, 46)
-                    }
-
-                    // Add Custom Habit row
-                    Button {
-                        showCreateCustomHabit = true
-                    } label: {
-                        HStack(spacing: MPSpacing.lg) {
-                            Image(systemName: "plus.circle.fill")
-                                .font(.system(size: MPIconSize.sm))
-                                .foregroundColor(MPColors.primary)
-                                .frame(width: 30)
-
-                            Text("Add Custom Habit")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.primary)
-
-                            Spacer()
-                        }
-                        .padding(.vertical, MPSpacing.sm)
-                    }
-                }
-            }
         }
     }
 

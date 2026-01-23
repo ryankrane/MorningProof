@@ -101,7 +101,7 @@ struct WeekDayDot: View {
         } else if completed >= enabledCount && enabledCount > 0 {
             return .complete
         } else if completed > 0 {
-            return .partial
+            return .partial(completed)
         } else {
             return .missed
         }
@@ -109,7 +109,7 @@ struct WeekDayDot: View {
 
     enum DayStatus {
         case complete
-        case partial
+        case partial(Int)
         case missed
         case today(Int)
         case future
@@ -136,15 +136,19 @@ struct WeekDayDot: View {
                     .frame(width: 40, height: 40)
             }
 
-            // Gold star for complete days, number for today's partial progress
+            // Checkmark for complete days, number for partial/today progress
             if case .complete = status {
-                Image(systemName: "star.fill")
+                Image(systemName: "checkmark")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
             } else if case .today(let count) = status, count > 0 && enabledCount > 0 {
                 Text("\(count)")
                     .font(.system(size: 12, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.primary)
+            } else if case .partial(let count) = status {
+                Text("\(count)")
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.accent)
             }
         }
         .frame(width: 44, height: 44) // Touch target
@@ -155,7 +159,7 @@ struct WeekDayDot: View {
         case .complete:
             return MPColors.accentGold
         case .partial:
-            return MPColors.accent
+            return MPColors.accent.opacity(0.15)
         case .missed:
             return MPColors.surfaceSecondary
         case .today:

@@ -289,6 +289,7 @@ struct StreakHeroCard: View {
         .background(MPColors.surface)
         .cornerRadius(MPRadius.xl)
         .mpShadow(.large)
+        .frame(height: 180)  // Fixed height to match DynamicHabitLayout.streakCardHeight
         .onAppear {
             // Speedometer-style sweep animation for streak number
             // Uses easeOut so it accelerates quickly then settles smoothly (like a speedometer needle)

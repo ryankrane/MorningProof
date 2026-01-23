@@ -7,6 +7,9 @@ struct CustomHabitCreationSheet: View {
     // Editing mode
     var editingHabit: CustomHabit?
 
+    // Preselected verification type (when adding from a specific section)
+    var preselectedVerificationType: CustomVerificationType?
+
     // Form state
     @State private var habitName: String = ""
     @State private var selectedIcon: String = "bolt.fill"
@@ -86,12 +89,16 @@ struct CustomHabitCreationSheet: View {
             }
             .onAppear {
                 if let habit = editingHabit {
+                    // Editing existing habit
                     habitName = habit.name
                     selectedIcon = habit.icon
                     verificationType = habit.verificationType
                     mediaType = habit.mediaType
                     aiPrompt = habit.aiPrompt ?? ""
                     allowsScreenshots = habit.allowsScreenshots
+                } else if let preset = preselectedVerificationType {
+                    // Creating new habit from a specific section
+                    verificationType = preset
                 }
             }
         }
@@ -208,50 +215,81 @@ struct CustomHabitCreationSheet: View {
     // MARK: - Verification Type Section
 
     var verificationTypeSection: some View {
-        sectionContainer(title: "Verification Method", icon: "checkmark.shield.fill") {
-            VStack(spacing: 0) {
-                ForEach(CustomVerificationType.allCases, id: \.self) { type in
-                    Button {
-                        withAnimation(.easeInOut(duration: 0.2)) {
-                            verificationType = type
-                        }
-                    } label: {
-                        HStack(spacing: MPSpacing.md) {
-                            Image(systemName: type.icon)
-                                .font(.system(size: 18))
-                                .foregroundColor(verificationType == type ? MPColors.primary : MPColors.textSecondary)
-                                .frame(width: 28)
+        // When preselected and not editing, show a simplified non-editable view
+        let isLocked = preselectedVerificationType != nil && !isEditing
 
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(type.displayName)
-                                    .font(MPFont.labelMedium())
-                                    .foregroundColor(MPColors.textPrimary)
+        return sectionContainer(title: "Verification Method", icon: "checkmark.shield.fill") {
+            if isLocked {
+                // Simplified view when type is preselected
+                HStack(spacing: MPSpacing.md) {
+                    Image(systemName: verificationType.icon)
+                        .font(.system(size: 18))
+                        .foregroundColor(MPColors.primary)
+                        .frame(width: 28)
 
-                                Text(type.description)
-                                    .font(MPFont.labelTiny())
-                                    .foregroundColor(MPColors.textTertiary)
-                            }
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(verificationType.displayName)
+                            .font(MPFont.labelMedium())
+                            .foregroundColor(MPColors.textPrimary)
 
-                            Spacer()
-
-                            ZStack {
-                                Circle()
-                                    .stroke(verificationType == type ? MPColors.primary : MPColors.border, lineWidth: 2)
-                                    .frame(width: 22, height: 22)
-
-                                if verificationType == type {
-                                    Circle()
-                                        .fill(MPColors.primary)
-                                        .frame(width: 12, height: 12)
-                                }
-                            }
-                        }
-                        .padding(.vertical, MPSpacing.md)
+                        Text(verificationType.description)
+                            .font(MPFont.labelTiny())
+                            .foregroundColor(MPColors.textTertiary)
                     }
 
-                    if type != CustomVerificationType.allCases.last {
-                        Divider()
-                            .padding(.leading, 46)
+                    Spacer()
+
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 20))
+                        .foregroundColor(MPColors.primary)
+                }
+                .padding(.vertical, MPSpacing.sm)
+            } else {
+                // Full picker when not preselected or when editing
+                VStack(spacing: 0) {
+                    ForEach(CustomVerificationType.allCases, id: \.self) { type in
+                        Button {
+                            withAnimation(.easeInOut(duration: 0.2)) {
+                                verificationType = type
+                            }
+                        } label: {
+                            HStack(spacing: MPSpacing.md) {
+                                Image(systemName: type.icon)
+                                    .font(.system(size: 18))
+                                    .foregroundColor(verificationType == type ? MPColors.primary : MPColors.textSecondary)
+                                    .frame(width: 28)
+
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(type.displayName)
+                                        .font(MPFont.labelMedium())
+                                        .foregroundColor(MPColors.textPrimary)
+
+                                    Text(type.description)
+                                        .font(MPFont.labelTiny())
+                                        .foregroundColor(MPColors.textTertiary)
+                                }
+
+                                Spacer()
+
+                                ZStack {
+                                    Circle()
+                                        .stroke(verificationType == type ? MPColors.primary : MPColors.border, lineWidth: 2)
+                                        .frame(width: 22, height: 22)
+
+                                    if verificationType == type {
+                                        Circle()
+                                            .fill(MPColors.primary)
+                                            .frame(width: 12, height: 12)
+                                    }
+                                }
+                            }
+                            .padding(.vertical, MPSpacing.md)
+                        }
+
+                        if type != CustomVerificationType.allCases.last {
+                            Divider()
+                                .padding(.leading, 46)
+                        }
                     }
                 }
             }

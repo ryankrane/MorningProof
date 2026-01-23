@@ -178,18 +178,24 @@ final class MorningProofManager: ObservableObject, Sendable {
             }
         }
 
-        // Update sleep duration (only if not manually entered)
-        // Check manual entry status before potential async operations
+        // Update sleep duration from HealthKit
+        // Allow HealthKit to override manual entry if it has more sleep hours or meets goal when manual didn't
         let sleepIndex = todayLog.completions.firstIndex(where: { $0.habitType == .sleepDuration })
-        if let index = sleepIndex {
-            let isManualEntry = todayLog.completions[index].verificationData?.isFromHealthKit == false
+        if let index = sleepIndex, let sleepData = healthKit.lastNightSleep {
+            let sleepGoal = Double(habitConfigs.first { $0.habitType == .sleepDuration }?.goal ?? 7)
+            let existingHours = todayLog.completions[index].verificationData?.sleepHours ?? 0
+            let existingMeetsGoal = todayLog.completions[index].isCompleted
+            let healthKitMeetsGoal = sleepData.totalHours >= sleepGoal
 
-            if !isManualEntry, let sleepData = healthKit.lastNightSleep {
-                let sleepGoal = Double(habitConfigs.first { $0.habitType == .sleepDuration }?.goal ?? 7)
+            // Update if: no existing data, HealthKit has more hours, or HealthKit meets goal when manual didn't
+            let shouldUpdate = existingHours == 0 ||
+                              sleepData.totalHours > existingHours ||
+                              (!existingMeetsGoal && healthKitMeetsGoal)
 
+            if shouldUpdate {
                 todayLog.completions[index].verificationData = HabitCompletion.VerificationData(sleepHours: sleepData.totalHours, isFromHealthKit: true)
                 todayLog.completions[index].score = min(100, Int((sleepData.totalHours / sleepGoal) * 100))
-                todayLog.completions[index].isCompleted = sleepData.totalHours >= sleepGoal
+                todayLog.completions[index].isCompleted = healthKitMeetsGoal
 
                 if todayLog.completions[index].isCompleted && todayLog.completions[index].completedAt == nil {
                     todayLog.completions[index].completedAt = Date()
@@ -539,10 +545,38 @@ final class MorningProofManager: ObservableObject, Sendable {
     func completeManualWorkout() {
         guard let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) else { return }
 
-        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(workoutDetected: false, isFromHealthKit: false)
+        // Use workoutDetected: nil to indicate "not auto-detected" vs "auto-detected: no workout"
+        todayLog.completions[index].verificationData = HabitCompletion.VerificationData(workoutDetected: nil, isFromHealthKit: false)
         todayLog.completions[index].isCompleted = true
         todayLog.completions[index].score = 100
         todayLog.completions[index].completedAt = Date()
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
+    // MARK: - Undo Habit Completion
+
+    /// Undo a predefined habit completion (for honor system habits)
+    func undoHabitCompletion(_ habitType: HabitType) {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == habitType }) else { return }
+
+        todayLog.completions[index].isCompleted = false
+        todayLog.completions[index].completedAt = nil
+        todayLog.completions[index].score = 0
+        todayLog.completions[index].verificationData = nil
+
+        recalculateScore()
+        saveCurrentState()
+    }
+
+    /// Undo a custom habit completion (for honor system custom habits)
+    func undoCustomHabitCompletion(_ habitId: UUID) {
+        guard let index = todayCustomCompletions.firstIndex(where: { $0.customHabitId == habitId }) else { return }
+
+        todayCustomCompletions[index].isCompleted = false
+        todayCustomCompletions[index].completedAt = nil
+        todayCustomCompletions[index].verificationData = nil
 
         recalculateScore()
         saveCurrentState()
@@ -553,15 +587,24 @@ final class MorningProofManager: ObservableObject, Sendable {
     func recalculateScore() {
         todayLog.calculateScore(enabledHabits: habitConfigs)
 
-        // Check if all completed before cutoff
+        // Check if all completed before cutoff (including custom habits)
         let cutoffTime = getCutoffTime()
         let enabledTypes = Set(habitConfigs.filter { $0.isEnabled }.map { $0.habitType })
         let relevantCompletions = todayLog.completions.filter { enabledTypes.contains($0.habitType) }
 
-        todayLog.allCompletedBeforeCutoff = relevantCompletions.allSatisfy { completion in
+        // Check predefined habits
+        let predefinedAllBeforeCutoff = relevantCompletions.allSatisfy { completion in
             guard completion.isCompleted, let completedAt = completion.completedAt else { return false }
             return completedAt <= cutoffTime
         }
+
+        // Check custom habits
+        let customAllBeforeCutoff = todayCustomCompletions.isEmpty || todayCustomCompletions.allSatisfy { completion in
+            guard completion.isCompleted, let completedAt = completion.completedAt else { return false }
+            return completedAt <= cutoffTime
+        }
+
+        todayLog.allCompletedBeforeCutoff = predefinedAllBeforeCutoff && customAllBeforeCutoff
 
         // Note: Streak is NOT updated here - it only updates when user explicitly locks in via lockInDay()
         // This ensures the flame stays gray until the lock-in celebration completes

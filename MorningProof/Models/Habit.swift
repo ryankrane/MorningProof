@@ -32,9 +32,9 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
 
     var sectionTitle: String {
         switch self {
-        case .aiVerified: return "Photo Verified"
+        case .aiVerified: return "AI Verified"
         case .autoTracked: return "Apple Health"
-        case .honorSystem: return "Honor System"
+        case .honorSystem: return "Self-Reported"
         }
     }
 
@@ -74,7 +74,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningWorkout: return "Workout"
         case .sunlightExposure: return "Sunlight"
         case .morningStretch: return "Morning Stretch"
-        case .morningSteps: return "Morning Walk"
+        case .morningSteps: return "Step Goal"
         case .meditation: return "Meditation"
         case .hydration: return "Hydration"
         case .prayer: return "Prayer"
@@ -129,6 +129,16 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         }
     }
 
+    /// Minimum valid goal for this habit type (prevents invalid goals like 0 or negative)
+    var minimumGoal: Int {
+        switch self {
+        case .morningSteps: return 50 // At least 50 steps
+        case .sleepDuration: return 4 // At least 4 hours
+        case .morningWorkout: return 5 // At least 5 minutes
+        default: return 1 // Binary habits or others - minimum 1
+        }
+    }
+
     var requiresHoldToConfirm: Bool {
         // Honor system habits require hold to prevent accidental completion
         return self.tier == .honorSystem
@@ -155,7 +165,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningWorkout: return "Exercise to boost energy and mood"
         case .sunlightExposure: return "Natural light to regulate your circadian rhythm"
         case .morningStretch: return "Stretch to wake up your body"
-        case .morningSteps: return "Get moving with a morning walk"
+        case .morningSteps: return "Hit your step goal before your deadline"
         case .meditation: return "Start with a clear, calm mind"
         case .hydration: return "Start your day hydrated with a glass of water"
         case .prayer: return "Begin your day with spiritual connection"
@@ -172,7 +182,7 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .hydration: return "Snap your water — AI confirms you're hydrated"
         case .sleepDuration: return "Syncs automatically from Apple Health"
         case .morningSteps: return "Syncs your steps from Apple Health"
-        case .morningWorkout: return "Detected automatically from Apple Health"
+        case .morningWorkout: return "Auto-syncs from Apple Health, or hold to confirm"
         case .coldShower: return "Hold to confirm you took the plunge"
         case .noSnooze: return "Hold to confirm you didn't snooze"
         case .morningStretch: return "Hold to confirm you stretched"
@@ -190,8 +200,8 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .sunlightExposure: return "Take a photo outside or by a window. We'll verify you got some natural light."
         case .hydration: return "Snap a photo of your glass of water. We'll confirm you're starting hydrated."
         case .sleepDuration: return "Syncs automatically from Apple Health. No Apple Watch? You can enter manually."
-        case .morningSteps: return "Steps sync from Apple Health. If unavailable, hold to confirm you walked."
-        case .morningWorkout: return "Detected from Apple Health (workout, 1000+ steps, or 100+ calories). No data? Hold to confirm."
+        case .morningSteps: return "Steps sync from Apple Health. Hit your goal before your deadline. No data? Hold to confirm."
+        case .morningWorkout: return "Syncs from Apple Health when you record a workout. No workout recorded? Hold to confirm."
         case .coldShower: return "Hold to confirm you took a cold shower this morning."
         case .noSnooze: return "Hold to confirm you got up without hitting snooze."
         case .morningStretch: return "Hold to confirm you did your morning stretch."
@@ -215,7 +225,9 @@ struct HabitConfig: Codable, Identifiable {
     init(habitType: HabitType, isEnabled: Bool = true, goal: Int? = nil, displayOrder: Int = 0, activeDays: Set<Int>? = nil) {
         self.habitType = habitType
         self.isEnabled = isEnabled
-        self.goal = goal ?? habitType.defaultGoal
+        // Validate goal against minimum (prevents invalid goals like 0 or negative)
+        let proposedGoal = goal ?? habitType.defaultGoal
+        self.goal = max(habitType.minimumGoal, proposedGoal)
         self.displayOrder = displayOrder
         self.activeDays = activeDays ?? Set(1...7) // Default to all days
     }
@@ -225,7 +237,9 @@ struct HabitConfig: Codable, Identifiable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         habitType = try container.decode(HabitType.self, forKey: .habitType)
         isEnabled = try container.decode(Bool.self, forKey: .isEnabled)
-        goal = try container.decode(Int.self, forKey: .goal)
+        // Validate goal against minimum when loading from storage
+        let storedGoal = try container.decode(Int.self, forKey: .goal)
+        goal = max(habitType.minimumGoal, storedGoal)
         displayOrder = try container.decode(Int.self, forKey: .displayOrder)
         activeDays = try container.decodeIfPresent(Set<Int>.self, forKey: .activeDays) ?? Set(1...7)
     }

@@ -7,8 +7,8 @@ struct DynamicHabitLayout {
 
     // MARK: - Size Constraints
 
-    /// Minimum habit height (Apple's minimum touch target)
-    static let minHabitHeight: CGFloat = 56
+    /// Minimum habit height (still comfortably tappable per Apple HIG 44pt minimum)
+    static let minHabitHeight: CGFloat = 52
     /// Maximum habit height (generous tappable area)
     static let maxHabitHeight: CGFloat = 90
 
@@ -43,6 +43,9 @@ struct DynamicHabitLayout {
 
     // MARK: - Calculations
 
+    /// Safety buffer for slight variations in actual heights vs calculated
+    static let safetyBuffer: CGFloat = 8
+
     /// Calculates the height available for all habits combined
     private var heightForHabits: CGFloat {
         // Total fixed elements:
@@ -52,6 +55,7 @@ struct DynamicHabitLayout {
         // - Lock button + top padding
         // - Bottom spacer
         // - Top padding
+        // - Safety buffer
 
         let fixedHeight = Self.topPadding
             + Self.headerHeight
@@ -62,6 +66,7 @@ struct DynamicHabitLayout {
             + Self.lockButtonTopPadding
             + Self.maxLockButtonHeight  // Use max to ensure it fits
             + Self.bottomSpacer
+            + Self.safetyBuffer  // Account for slight variations
 
         // Subtract spacing between habits
         let totalHabitSpacing = CGFloat(max(0, habitCount - 1)) * Self.habitSpacing

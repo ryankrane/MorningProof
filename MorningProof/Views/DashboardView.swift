@@ -47,6 +47,11 @@ struct DashboardView: View {
     @State private var triggerIgnition: Bool = false
     @State private var streakShakeOffset: CGFloat = 0
 
+    // Undo state for honor system habits
+    @State private var undoableHabit: HabitType? = nil
+    @State private var undoableCustomHabit: UUID? = nil
+    @State private var undoWorkItem: DispatchWorkItem? = nil
+
     // Visual streak for flame timing - only updates AFTER celebration completes
     @State private var visualStreak: Int = 0
     // Visual perfect morning state - only updates AFTER celebration completes (for poof animation)
@@ -106,6 +111,45 @@ struct DashboardView: View {
                         .ignoresSafeArea()
                         .allowsHitTesting(false)
                 }
+
+                // Undo toast for honor system habits
+                VStack {
+                    Spacer()
+                    if let habitType = undoableHabit {
+                        UndoToastView(
+                            habitName: habitType.displayName,
+                            onUndo: {
+                                manager.undoHabitCompletion(habitType)
+                                undoableHabit = nil
+                                undoWorkItem?.cancel()
+                            },
+                            onDismiss: {
+                                undoableHabit = nil
+                                undoWorkItem?.cancel()
+                            }
+                        )
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, MPSpacing.xl)
+                    } else if let customId = undoableCustomHabit,
+                              let habit = manager.getCustomHabit(id: customId) {
+                        UndoToastView(
+                            habitName: habit.name,
+                            onUndo: {
+                                manager.undoCustomHabitCompletion(customId)
+                                undoableCustomHabit = nil
+                                undoWorkItem?.cancel()
+                            },
+                            onDismiss: {
+                                undoableCustomHabit = nil
+                                undoWorkItem?.cancel()
+                            }
+                        )
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .padding(.bottom, MPSpacing.xl)
+                    }
+                }
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: undoableHabit)
+                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: undoableCustomHabit)
 
                 // Side menu overlay
                 SideMenuView(
@@ -270,9 +314,11 @@ struct DashboardView: View {
             // Habits List
             habitsSection(layout: layout)
 
-            // Add spacer at the bottom if scrolling
+            // Bottom padding - more when scrolling, minimum when not to avoid home indicator
             if layout.needsScrolling {
                 Spacer(minLength: MPSpacing.xxxl)
+            } else {
+                Spacer(minLength: MPSpacing.lg)  // 16pt minimum bottom padding
             }
         }
         .padding(.horizontal, MPSpacing.xl)
@@ -870,6 +916,9 @@ struct DashboardView: View {
         // Check if this is the final habit BEFORE completing
         let isFinalHabit = isCompletingFinalHabit()
 
+        // Check if this is an honor system habit (only honor system custom habits use this function)
+        let isHonorSystem = manager.getCustomHabit(id: habitId)?.verificationType == .honorSystem
+
         recentlyCompletedCustomHabits.insert(habitId)
 
         customHabitRowFlash[habitId] = true
@@ -907,6 +956,28 @@ struct DashboardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedCustomHabits.remove(habitId)
         }
+
+        // Show undo toast for honor system habits (not for final habit)
+        if isHonorSystem && !isFinalHabit {
+            showUndoToast(for: habitId)
+        }
+    }
+
+    /// Shows undo toast for custom habit and auto-dismisses after 5 seconds
+    private func showUndoToast(for customHabitId: UUID) {
+        // Cancel any existing undo work item
+        undoWorkItem?.cancel()
+        undoableHabit = nil
+
+        // Show undo toast
+        undoableCustomHabit = customHabitId
+
+        // Auto-dismiss after 5 seconds
+        let workItem = DispatchWorkItem { [self] in
+            undoableCustomHabit = nil
+        }
+        undoWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
@@ -959,6 +1030,28 @@ struct DashboardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedHabits.remove(habitType)
         }
+
+        // Show undo toast for honor system habits (not for auto-tracked or final habit)
+        if habitType.tier == .honorSystem && !isFinalHabit {
+            showUndoToast(for: habitType)
+        }
+    }
+
+    /// Shows undo toast for predefined habit and auto-dismisses after 5 seconds
+    private func showUndoToast(for habitType: HabitType) {
+        // Cancel any existing undo work item
+        undoWorkItem?.cancel()
+        undoableCustomHabit = nil
+
+        // Show undo toast
+        undoableHabit = habitType
+
+        // Auto-dismiss after 5 seconds
+        let workItem = DispatchWorkItem { [self] in
+            undoableHabit = nil
+        }
+        undoWorkItem = workItem
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
     /// Returns true if the habit was completed after the cutoff time

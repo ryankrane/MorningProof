@@ -46,8 +46,8 @@ enum CustomVerificationType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .aiVerified: return "Photo Verified"
-        case .honorSystem: return "Honor System"
+        case .aiVerified: return "AI Verified"
+        case .honorSystem: return "Self-Reported"
         }
     }
 
@@ -158,23 +158,44 @@ struct CustomHabit: Codable, Identifiable, Hashable {
         .custom(id: id)
     }
 
-    /// Static list of curated icons for the picker
+    /// Static list of curated icons for the picker (30 icons = 6 rows of 5)
     static let availableIcons: [String] = [
+        // Row 1 - Basics
         "star.fill",
         "heart.fill",
         "bolt.fill",
         "leaf.fill",
         "flame.fill",
+        // Row 2 - Learning & Mind
         "book.fill",
         "pencil",
         "lightbulb.fill",
         "cup.and.saucer.fill",
         "pill.fill",
+        // Row 3 - Fitness & Health
         "dumbbell.fill",
         "figure.run",
         "brain.head.profile",
         "eye.fill",
-        "moon.fill"
+        "moon.fill",
+        // Row 4 - Daily Activities
+        "drop.fill",
+        "fork.knife",
+        "bed.double.fill",
+        "alarm.fill",
+        "sun.max.fill",
+        // Row 5 - Wellness & Productivity
+        "figure.yoga",
+        "cross.fill",
+        "music.note",
+        "paintbrush.fill",
+        "graduationcap.fill",
+        // Row 6 - Misc
+        "phone.down.fill",
+        "dog.fill",
+        "cart.fill",
+        "checkmark.seal.fill",
+        "sparkles"
     ]
 }
 
