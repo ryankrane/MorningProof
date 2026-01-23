@@ -22,7 +22,7 @@ struct MainTabView: View {
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            DashboardContentView(manager: manager)
+            DashboardView(manager: manager)
                 .tabItem {
                     Label(Tab.home.rawValue, systemImage: Tab.home.icon)
                 }

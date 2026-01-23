@@ -24,22 +24,35 @@ struct DynamicHabitLayout {
 
     /// Header section (greeting + date + menu button)
     static let headerHeight: CGFloat = 70
-    /// Streak hero card (flame + stats)
-    static let streakCardHeight: CGFloat = 180
     /// "Today's Habits" section header with edit button
     static let sectionHeaderHeight: CGFloat = 32
     /// Spacing between habits (MPSpacing.md = 12)
     static let habitSpacing: CGFloat = 12
     /// Padding around lock button (MPSpacing.lg = 16)
     static let lockButtonTopPadding: CGFloat = 16
-    /// VStack spacing between major sections (MPSpacing.xl = 20)
-    static let sectionSpacing: CGFloat = 20
-    /// Bottom spacer (MPSpacing.xxxl = 32)
-    static let bottomSpacer: CGFloat = 32
     /// Horizontal padding (MPSpacing.xl = 20)
     static let horizontalPadding: CGFloat = 20
     /// Top padding (MPSpacing.sm = 8)
     static let topPadding: CGFloat = 8
+
+    // MARK: - Dynamic Layout Properties (based on screen size)
+
+    /// Streak card height adapts to screen size
+    var streakCardHeight: CGFloat {
+        if availableHeight < 650 { return 120 }
+        else if availableHeight < 750 { return 140 }
+        else { return 160 }
+    }
+
+    /// VStack spacing between major sections
+    var sectionSpacing: CGFloat {
+        availableHeight < 650 ? 12 : 20
+    }
+
+    /// Bottom spacer
+    var bottomSpacer: CGFloat {
+        availableHeight < 650 ? 16 : 32
+    }
 
     // MARK: - Calculations
 
@@ -59,13 +72,13 @@ struct DynamicHabitLayout {
 
         let fixedHeight = Self.topPadding
             + Self.headerHeight
-            + Self.sectionSpacing
-            + Self.streakCardHeight
-            + Self.sectionSpacing
+            + sectionSpacing  // Now computed
+            + streakCardHeight  // Now computed
+            + sectionSpacing  // Now computed
             + Self.sectionHeaderHeight
             + Self.lockButtonTopPadding
             + Self.maxLockButtonHeight  // Use max to ensure it fits
-            + Self.bottomSpacer
+            + bottomSpacer  // Now computed
             + Self.safetyBuffer  // Account for slight variations
 
         // Subtract spacing between habits (includes one more gap for Lock In button row)
@@ -107,9 +120,10 @@ struct DynamicHabitLayout {
         return Self.minLockButtonWidth + (Self.maxLockButtonWidth - Self.minLockButtonWidth) * heightRatio
     }
 
-    /// Whether scrolling is needed (7+ habits can't fit)
+    /// Whether scrolling is needed (when habits can't fit at minimum height)
     var needsScrolling: Bool {
-        habitCount >= 7 && heightForHabits / CGFloat(habitCount) < Self.minHabitHeight
+        guard habitCount > 0 else { return false }
+        return heightForHabits / CGFloat(habitCount) < Self.minHabitHeight
     }
 
     /// Internal padding for habit rows (adjusts based on compression)

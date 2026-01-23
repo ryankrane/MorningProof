@@ -12,6 +12,7 @@ struct StreakHeroCard: View {
     @Binding var flameFrame: CGRect  // For lock-in celebration to target the flame
     @Binding var triggerIgnition: Bool  // For 0→1 color transition (gray→vibrant)
     @Binding var impactShake: CGFloat  // For slam shake offset
+    var cardHeight: CGFloat = 160  // Dynamic height from DynamicHabitLayout
 
     @State private var streakNumberScale: CGFloat = 0.8
     @State private var arrivalPulse: CGFloat = 1.0  // For the big pulse when flame arrives
@@ -38,6 +39,11 @@ struct StreakHeroCard: View {
 
     // Milestone targets
     private let milestones = [7, 14, 21, 30, 60, 90, 180, 365]
+
+    /// Internal spacing scales based on card height
+    var internalSpacing: CGFloat {
+        cardHeight < 140 ? 12 : 16
+    }
 
     // MARK: - Glow Properties based on streak
 
@@ -144,7 +150,7 @@ struct StreakHeroCard: View {
     }
 
     var body: some View {
-        VStack(spacing: MPSpacing.lg) {
+        VStack(spacing: internalSpacing) {
             // Streak display
             HStack(spacing: MPSpacing.md) {
                 // Flame icon with dynamic glow animation
@@ -289,7 +295,7 @@ struct StreakHeroCard: View {
         .background(MPColors.surface)
         .cornerRadius(MPRadius.xl)
         .mpShadow(.large)
-        .frame(height: 180)  // Fixed height to match DynamicHabitLayout.streakCardHeight
+        .frame(height: cardHeight)  // Dynamic height from DynamicHabitLayout
         .onAppear {
             // Speedometer-style sweep animation for streak number
             // Uses easeOut so it accelerates quickly then settles smoothly (like a speedometer needle)

@@ -308,7 +308,8 @@ struct DashboardView: View {
                 triggerPulse: $triggerStreakPulse,
                 flameFrame: $streakFlameFrame,
                 triggerIgnition: $triggerIgnition,
-                impactShake: $streakShakeOffset
+                impactShake: $streakShakeOffset,
+                cardHeight: layout.streakCardHeight
             )
 
             // Habits List
