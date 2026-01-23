@@ -534,7 +534,7 @@ struct DoomScrollingSimulatorStep: View {
         }
 
         // Start scroll animation
-        withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+        withAnimation(.linear(duration: 8)) {
             scrollOffset = -400
         }
 
@@ -582,8 +582,12 @@ struct DoomScrollingSimulatorStep: View {
             // Hide feed instantly (it's behind the fading lockdown, so user won't see the jump)
             feedVisible = false
 
-            // Reset scroll position to top (no animation - feed is hidden)
-            scrollOffset = 0
+            // Reset scroll position to top with explicit animation cancellation
+            var transaction = Transaction()
+            transaction.disablesAnimations = true
+            withTransaction(transaction) {
+                scrollOffset = 0
+            }
             isScrolling = true
 
             // Increment cycle ID to force SwiftUI to create a fresh view with clean animation state
@@ -596,7 +600,7 @@ struct DoomScrollingSimulatorStep: View {
                 }
 
                 // Start fresh scroll animation (the new ID ensures this is a clean start)
-                withAnimation(.linear(duration: 8).repeatForever(autoreverses: false)) {
+                withAnimation(.linear(duration: 8)) {
                     scrollOffset = -400
                 }
 
