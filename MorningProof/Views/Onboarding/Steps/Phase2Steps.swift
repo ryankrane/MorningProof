@@ -6,15 +6,11 @@ import SwiftUI
 
 struct GuardrailStep: View {
     let onContinue: () -> Void
-    @State private var showHeadline = false
     @State private var showWillpower = false
     @State private var showStrikethrough = false
     @State private var showStrikethroughGlow = false
     @State private var willpowerShake = false
     @State private var willpowerDimmed = false
-    @State private var showLessThan = false
-    @State private var lessThanRotation: Double = -180
-    @State private var lessThanGlow = false
     @State private var showSystems = false
     @State private var systemsPunch = false
     @State private var systemsGlow = false
@@ -51,76 +47,59 @@ struct GuardrailStep: View {
             Spacer()
                 .frame(minHeight: 40, maxHeight: 80)
 
-            // Hero headline - willpower < systems (animated word by word)
-            HStack(spacing: MPSpacing.md) {
+            // Hero headline - stacked "Willpower" crossed out, then "Systems." appears
+            VStack(spacing: MPSpacing.sm) {
                 // Crossed out "Willpower" with dramatic effects
                 ZStack {
                     Text("Willpower")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textTertiary)
-                        .opacity(willpowerDimmed ? 0.4 : 1.0)
+                        .opacity(willpowerDimmed ? 0.35 : 1.0)
 
                     // Red glow behind the strike line
                     Rectangle()
                         .fill(MPColors.error)
-                        .frame(height: 6)
+                        .frame(height: 5)
                         .blur(radius: 8)
                         .opacity(showStrikethroughGlow ? 0.8 : 0)
                         .scaleEffect(x: showStrikethrough ? 1 : 0, anchor: .leading)
-                        .rotationEffect(.degrees(-3))
+                        .rotationEffect(.degrees(-2))
 
                     // Diagonal slash strikethrough
                     Rectangle()
                         .fill(MPColors.error.opacity(0.9))
-                        .frame(height: 4)
+                        .frame(height: 3.5)
                         .scaleEffect(x: showStrikethrough ? 1 : 0, anchor: .leading)
-                        .rotationEffect(.degrees(-3))
+                        .rotationEffect(.degrees(-2))
                 }
                 .fixedSize()
                 .opacity(showWillpower ? 1 : 0)
-                .offset(x: willpowerShake ? -4 : 0, y: showWillpower ? 0 : 20)
+                .offset(x: willpowerShake ? -4 : 0, y: showWillpower ? 0 : 15)
                 .offset(x: willpowerShake ? 4 : 0)
 
-                // "<" with dramatic slam-in effect
-                ZStack {
-                    // Glow behind the "<"
-                    Text("<")
-                        .font(.system(size: 40, weight: .black, design: .rounded))
-                        .foregroundColor(MPColors.primary)
-                        .blur(radius: 12)
-                        .opacity(lessThanGlow ? 0.8 : 0)
-
-                    Text("<")
-                        .font(.system(size: 40, weight: .black, design: .rounded))
-                        .foregroundColor(MPColors.primary)
-                }
-                .opacity(showLessThan ? 1 : 0)
-                .scaleEffect(showLessThan ? 1 : 2.5)
-                .rotationEffect(.degrees(lessThanRotation))
-                .offset(y: showLessThan ? 0 : -50)
-
-                // "Systems" with gradient and glow
+                // "Systems." appears below with gradient and glow
                 ZStack {
                     // Glow behind Systems
-                    Text("Systems")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                    Text("Systems.")
+                        .font(.system(size: 38, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.primary)
                         .blur(radius: 15)
                         .opacity(systemsGlow ? 0.6 : 0)
 
-                    Text("Systems")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
+                    Text("Systems.")
+                        .font(.system(size: 38, weight: .bold, design: .rounded))
                         .foregroundStyle(
                             LinearGradient(
-                                colors: [MPColors.primary, Color(red: 0.6, green: 0.5, blue: 1.0)],
+                                colors: [MPColors.primary, Color(red: 0.5, green: 0.4, blue: 1.0)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
                         )
                 }
                 .opacity(showSystems ? 1 : 0)
-                .offset(x: showSystems ? 0 : 60)
-                .scaleEffect(systemsPunch ? 1.15 : 1.0)
+                .offset(y: showSystems ? 0 : 20)
+                .scaleEffect(showSystems ? 1 : 0.8)
+                .scaleEffect(systemsPunch ? 1.1 : 1.0)
             }
             .padding(.horizontal, MPSpacing.xl)
 
@@ -194,13 +173,13 @@ struct GuardrailStep: View {
             showWillpower = true
         }
 
-        // 0.3s - Diagonal slash draws + red glow pulses + haptic
-        withAnimation(.easeOut(duration: 0.25).delay(0.3)) {
+        // 0.4s - Diagonal slash draws + red glow pulses + haptic
+        withAnimation(.easeOut(duration: 0.25).delay(0.4)) {
             showStrikethrough = true
         }
 
         // Glow pulse at impact
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
             HapticManager.shared.medium()
             withAnimation(.easeIn(duration: 0.15)) {
                 showStrikethroughGlow = true
@@ -211,8 +190,8 @@ struct GuardrailStep: View {
             }
         }
 
-        // 0.5s - Willpower shakes + dims
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+        // 0.6s - Willpower shakes + dims
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
             // Quick shake animation
             withAnimation(.linear(duration: 0.05)) {
                 willpowerShake = true
@@ -233,29 +212,16 @@ struct GuardrailStep: View {
             }
         }
 
-        // 0.7s - "<" slams in from above with rotation + haptic
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+        // 1.0s - "Systems." appears from below with spring + haptic
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             HapticManager.shared.rigid()
-            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                showLessThan = true
-                lessThanRotation = 0
-            }
-            // Flash glow on impact
-            withAnimation(.easeIn(duration: 0.1)) {
-                lessThanGlow = true
-            }
-            withAnimation(.easeOut(duration: 0.4).delay(0.1)) {
-                lessThanGlow = false
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                showSystems = true
             }
         }
 
-        // 1.0s - "Systems" slides in powerfully from right
-        withAnimation(.spring(response: 0.45, dampingFraction: 0.7).delay(1.0)) {
-            showSystems = true
-        }
-
-        // 1.15s - "Systems" punch scale with glow + haptic
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.15) {
+        // 1.2s - "Systems." punch scale with glow
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
             HapticManager.shared.medium()
             withAnimation(.spring(response: 0.2, dampingFraction: 0.4)) {
                 systemsPunch = true
@@ -264,7 +230,7 @@ struct GuardrailStep: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.6).delay(0.2)) {
                 systemsPunch = false
             }
-            // Keep subtle glow
+            // Fade glow
             withAnimation(.easeOut(duration: 0.6).delay(0.2)) {
                 systemsGlow = false
             }
@@ -272,7 +238,7 @@ struct GuardrailStep: View {
 
         // Phase 2: Cards drop in one at a time with generous stagger
         for i in 0..<3 {
-            let delay = 1.4 + Double(i) * 0.5
+            let delay = 1.6 + Double(i) * 0.45
             withAnimation(.spring(response: 0.55, dampingFraction: 0.65).delay(delay)) {
                 showCards[i] = true
                 cardRotations[i] = 0
@@ -280,17 +246,17 @@ struct GuardrailStep: View {
         }
 
         // Phase 3: Subtext fades in smoothly together (after all cards have landed)
-        withAnimation(.easeOut(duration: 0.8).delay(3.1)) {
+        withAnimation(.easeOut(duration: 0.8).delay(3.2)) {
             showSubtextLine1 = true
         }
 
         // Phase 4: Button appears after a tiny pause
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.8)) {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.9)) {
             showButton = true
         }
 
         // Phase 5: Start icon pulse
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.1) {
             pulseIcons = true
         }
     }
@@ -571,63 +537,60 @@ struct DoomScrollingSimulatorStep: View {
     }
 
     private func resetAndReplay() {
-        // Fade out lockdown overlay
-        withAnimation(.easeOut(duration: 0.25)) {
+        // IMMEDIATELY hide feed while lockdown is still fully opaque (user won't see this)
+        feedVisible = false
+
+        // Reset scroll position with explicit animation cancellation
+        var transaction = Transaction()
+        transaction.disablesAnimations = true
+        withTransaction(transaction) {
+            scrollOffset = 0
+        }
+        isScrolling = true
+
+        // Increment cycle ID to force SwiftUI to create a fresh view with clean animation state
+        animationCycleID += 1
+
+        // Now fade out lockdown overlay (feed is already hidden and reset behind it)
+        withAnimation(.easeOut(duration: 0.3)) {
             showLockdown = false
             lockSlammed = false
         }
 
-        // After lockdown fades, briefly hide feed, reset position, then fade feed back in
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
-            // Hide feed instantly (it's behind the fading lockdown, so user won't see the jump)
-            feedVisible = false
-
-            // Reset scroll position to top with explicit animation cancellation
-            var transaction = Transaction()
-            transaction.disablesAnimations = true
-            withTransaction(transaction) {
-                scrollOffset = 0
+        // After lockdown fades, fade feed back in
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            withAnimation(.easeIn(duration: 0.25)) {
+                feedVisible = true
             }
-            isScrolling = true
 
-            // Increment cycle ID to force SwiftUI to create a fresh view with clean animation state
-            animationCycleID += 1
+            // Start fresh scroll animation
+            withAnimation(.linear(duration: 8)) {
+                scrollOffset = -400
+            }
 
-            // Small delay then fade feed back in - feels like we just opened the app
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                withAnimation(.easeIn(duration: 0.3)) {
-                    feedVisible = true
+            // Schedule next lockdown
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+                // Stop scrolling
+                withAnimation(.easeOut(duration: 0.3)) {
+                    isScrolling = false
                 }
 
-                // Start fresh scroll animation (the new ID ensures this is a clean start)
-                withAnimation(.linear(duration: 8)) {
-                    scrollOffset = -400
+                // Show lockdown overlay
+                withAnimation(.easeIn(duration: 0.2)) {
+                    showLockdown = true
                 }
 
-                // Schedule next lockdown
-                DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                    // Stop scrolling
-                    withAnimation(.easeOut(duration: 0.3)) {
-                        isScrolling = false
+                // Slam the lock
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    HapticManager.shared.flameSlamImpact()
+
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
+                        lockSlammed = true
                     }
 
-                    // Show lockdown overlay
-                    withAnimation(.easeIn(duration: 0.2)) {
-                        showLockdown = true
-                    }
-
-                    // Slam the lock
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                        HapticManager.shared.flameSlamImpact()
-
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
-                            lockSlammed = true
-                        }
-
-                        // Wait 4 seconds then loop again
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                            resetAndReplay()
-                        }
+                    // Wait 4 seconds then loop again
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
+                        resetAndReplay()
                     }
                 }
             }
