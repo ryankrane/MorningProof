@@ -1174,8 +1174,6 @@ struct SettingsTabView: View {
     var body: some View {
         NavigationStack {
             MorningProofSettingsView(manager: manager)
-                .navigationTitle("Settings")
-                .navigationBarTitleDisplayMode(.large)
         }
     }
 }
