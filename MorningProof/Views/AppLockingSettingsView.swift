@@ -34,16 +34,15 @@ struct AppLockingSettingsView: View {
                         if !isAuthorized {
                             authorizationSection
                         } else {
-                            // App selection (only if authorized)
-                            appSelectionSection
-
-                            // Blocking start time
-                            blockingStartTimeSection
-
-                            // Enable toggle
+                            // Enable toggle - prominent at top
                             enableSection
 
-                            // How it works
+                            // Configuration (only show details if enabled)
+                            if manager.settings.appLockingEnabled {
+                                configurationSection
+                            }
+
+                            // How it works - always visible
                             howItWorksSection
                         }
                     }
@@ -76,6 +75,35 @@ struct AppLockingSettingsView: View {
             }
             .onAppear {
                 blockingStartMinutes = manager.settings.blockingStartMinutes
+            }
+            .sheet(isPresented: $showTimePicker) {
+                TimeWheelPicker(
+                    selectedMinutes: Binding(
+                        get: { blockingStartMinutes > 0 ? blockingStartMinutes : 360 },  // Default to 6 AM if not set
+                        set: { newValue in
+                            blockingStartMinutes = newValue
+                            manager.settings.blockingStartMinutes = newValue
+                            AppLockingDataStore.blockingStartMinutes = newValue
+                            manager.saveCurrentState()
+
+                            // Restart schedule if already enabled
+                            if manager.settings.appLockingEnabled && screenTimeManager.hasSelectedApps && newValue > 0 {
+                                do {
+                                    try screenTimeManager.startMorningBlockingSchedule(
+                                        startMinutes: newValue,
+                                        cutoffMinutes: manager.settings.morningCutoffMinutes
+                                    )
+                                } catch {
+                                    // Failed to restart schedule
+                                }
+                            }
+                        }
+                    ),
+                    title: "Start Blocking At",
+                    subtitle: "Apps will be blocked until you complete your morning habits",
+                    timeOptions: TimeOptions.blockingStartTime
+                )
+                .presentationDetents([.medium])
             }
         }
     }
@@ -154,76 +182,157 @@ struct AppLockingSettingsView: View {
         }
     }
 
-    // MARK: - App Selection Section
-
-    var appSelectionSection: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.md) {
-            Text("APPS TO BLOCK")
-                .font(MPFont.labelSmall())
-                .foregroundColor(MPColors.textTertiary)
-                .tracking(0.5)
-                .padding(.leading, MPSpacing.xs)
-
-            Button {
-                isPickerPresented = true
-            } label: {
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Select Apps")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        let appCount = screenTimeManager.selectedApps.applicationTokens.count
-                        let categoryCount = screenTimeManager.selectedApps.categoryTokens.count
-
-                        if appCount > 0 || categoryCount > 0 {
-                            Text("\(appCount) app\(appCount == 1 ? "" : "s")\(categoryCount > 0 ? ", \(categoryCount) categor\(categoryCount == 1 ? "y" : "ies")" : "") selected")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.success)
-                        } else {
-                            Text("Tap to choose apps to block")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-                    }
-
-                    Spacer()
-
-                    Image(systemName: "chevron.right")
-                        .font(.body)
-                        .foregroundColor(MPColors.textTertiary)
-                }
-                .padding(MPSpacing.lg)
-                .background(MPColors.surface)
-                .cornerRadius(MPRadius.lg)
-                .mpShadow(.small)
-            }
-        }
-    }
-
-    // MARK: - Blocking Start Time Section
-
     @State private var showTimePicker = false
 
-    var blockingStartTimeSection: some View {
+    // MARK: - Enable Section (Prominent toggle at top)
+
+    var enableSection: some View {
+        VStack(spacing: 0) {
+            HStack {
+                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                    Text("Enable App Locking")
+                        .font(MPFont.labelLarge())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("Block distracting apps until habits are done")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+                Spacer()
+
+                Toggle("", isOn: Binding(
+                    get: { manager.settings.appLockingEnabled },
+                    set: { newValue in
+                        withAnimation(.easeInOut(duration: 0.3)) {
+                            manager.settings.appLockingEnabled = newValue
+                        }
+                        AppLockingDataStore.appLockingEnabled = newValue
+
+                        if newValue && screenTimeManager.hasSelectedApps && blockingStartMinutes > 0 {
+                            // Start monitoring
+                            do {
+                                try screenTimeManager.startMorningBlockingSchedule(
+                                    startMinutes: blockingStartMinutes,
+                                    cutoffMinutes: manager.settings.morningCutoffMinutes
+                                )
+                            } catch {
+                                // Failed to start monitoring
+                                manager.settings.appLockingEnabled = false
+                            }
+                        } else if !newValue {
+                            // Stop monitoring
+                            screenTimeManager.stopMonitoring()
+                            screenTimeManager.removeShields()
+                        }
+
+                        manager.saveCurrentState()
+                    }
+                ))
+                .tint(MPColors.primary)
+            }
+            .padding(MPSpacing.lg)
+
+            // Setup reminder when enabled but not configured
+            if manager.settings.appLockingEnabled && (!screenTimeManager.hasSelectedApps || blockingStartMinutes == 0) {
+                Divider()
+
+                HStack(spacing: MPSpacing.sm) {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .foregroundColor(MPColors.primary)
+
+                    Text("Configure apps and schedule below")
+                        .font(MPFont.bodySmall())
+                        .foregroundColor(MPColors.primary)
+                }
+                .padding(MPSpacing.lg)
+            }
+        }
+        .background(MPColors.surface)
+        .cornerRadius(MPRadius.lg)
+        .overlay(
+            RoundedRectangle(cornerRadius: MPRadius.lg)
+                .stroke(manager.settings.appLockingEnabled ? MPColors.primary.opacity(0.3) : Color.clear, lineWidth: 2)
+        )
+        .mpShadow(.small)
+    }
+
+    // MARK: - Configuration Section (Apps + Schedule combined)
+
+    var configurationSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.md) {
-            Text("BLOCKING SCHEDULE")
+            Text("CONFIGURATION")
                 .font(MPFont.labelSmall())
                 .foregroundColor(MPColors.textTertiary)
                 .tracking(0.5)
                 .padding(.leading, MPSpacing.xs)
 
             VStack(spacing: 0) {
+                // App selection
+                Button {
+                    isPickerPresented = true
+                } label: {
+                    HStack {
+                        ZStack {
+                            Circle()
+                                .fill(MPColors.primaryLight)
+                                .frame(width: 36, height: 36)
+                            Image(systemName: "apps.iphone")
+                                .font(.system(size: 16))
+                                .foregroundColor(MPColors.primary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Apps to Block")
+                                .font(MPFont.labelMedium())
+                                .foregroundColor(MPColors.textPrimary)
+
+                            let appCount = screenTimeManager.selectedApps.applicationTokens.count
+                            let categoryCount = screenTimeManager.selectedApps.categoryTokens.count
+
+                            if appCount > 0 || categoryCount > 0 {
+                                Text("\(appCount) app\(appCount == 1 ? "" : "s")\(categoryCount > 0 ? ", \(categoryCount) categor\(categoryCount == 1 ? "y" : "ies")" : "")")
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.success)
+                            } else {
+                                Text("Tap to select")
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.textTertiary)
+                            }
+                        }
+
+                        Spacer()
+
+                        Image(systemName: "chevron.right")
+                            .font(.body)
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .padding(MPSpacing.lg)
+                }
+
+                Divider()
+                    .padding(.leading, 60)
+
+                // Blocking start time
                 Button {
                     showTimePicker = true
                 } label: {
                     HStack {
-                        VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                            Text("Block Apps Starting At")
+                        ZStack {
+                            Circle()
+                                .fill(MPColors.primaryLight)
+                                .frame(width: 36, height: 36)
+                            Image(systemName: "clock.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(MPColors.primary)
+                        }
+
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Start Blocking At")
                                 .font(MPFont.labelMedium())
                                 .foregroundColor(MPColors.textPrimary)
 
-                            Text("When should blocking begin each day?")
+                            Text("When blocking begins each day")
                                 .font(MPFont.bodySmall())
                                 .foregroundColor(MPColors.textTertiary)
                         }
@@ -232,139 +341,17 @@ struct AppLockingSettingsView: View {
 
                         if blockingStartMinutes > 0 {
                             Text(TimeOptions.formatTime(blockingStartMinutes))
-                                .font(.system(size: 17, weight: .medium, design: .rounded))
-                                .foregroundColor(MPColors.primary)
-                                .padding(.horizontal, MPSpacing.md)
-                                .padding(.vertical, MPSpacing.sm)
-                                .background(MPColors.primaryLight)
-                                .cornerRadius(MPRadius.md)
+                                .font(.system(size: 15, weight: .semibold, design: .rounded))
+                                .foregroundColor(.white)
+                                .padding(.horizontal, MPSpacing.sm)
+                                .padding(.vertical, 4)
+                                .background(MPColors.primary)
+                                .cornerRadius(MPRadius.sm)
                         } else {
-                            Text("Not Set")
-                                .font(.system(size: 17, weight: .medium, design: .rounded))
+                            Text("Set time")
+                                .font(MPFont.bodySmall())
                                 .foregroundColor(MPColors.textTertiary)
-                                .padding(.horizontal, MPSpacing.md)
-                                .padding(.vertical, MPSpacing.sm)
-                                .background(MPColors.surfaceSecondary)
-                                .cornerRadius(MPRadius.md)
                         }
-                    }
-                }
-                .padding(MPSpacing.lg)
-
-                if blockingStartMinutes == 0 {
-                    Divider()
-
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(MPColors.warning)
-
-                        Text("Set a start time to enable app blocking")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.warning)
-                    }
-                    .padding(MPSpacing.lg)
-                }
-            }
-            .background(MPColors.surface)
-            .cornerRadius(MPRadius.lg)
-            .mpShadow(.small)
-        }
-        .sheet(isPresented: $showTimePicker) {
-            TimeWheelPicker(
-                selectedMinutes: Binding(
-                    get: { blockingStartMinutes > 0 ? blockingStartMinutes : 360 },  // Default to 6 AM if not set
-                    set: { newValue in
-                        blockingStartMinutes = newValue
-                        manager.settings.blockingStartMinutes = newValue
-                        AppLockingDataStore.blockingStartMinutes = newValue
-                        manager.saveCurrentState()
-
-                        // Restart schedule if already enabled
-                        if manager.settings.appLockingEnabled && screenTimeManager.hasSelectedApps && newValue > 0 {
-                            do {
-                                try screenTimeManager.startMorningBlockingSchedule(
-                                    startMinutes: newValue,
-                                    cutoffMinutes: manager.settings.morningCutoffMinutes
-                                )
-                            } catch {
-                                // Failed to restart schedule
-                            }
-                        }
-                    }
-                ),
-                title: "Block Apps Starting At",
-                subtitle: "Apps will be blocked until you complete your morning habits",
-                timeOptions: TimeOptions.blockingStartTime
-            )
-            .presentationDetents([.medium])
-        }
-    }
-
-    // MARK: - Enable Section
-
-    var enableSection: some View {
-        VStack(alignment: .leading, spacing: MPSpacing.md) {
-            Text("SETTINGS")
-                .font(MPFont.labelSmall())
-                .foregroundColor(MPColors.textTertiary)
-                .tracking(0.5)
-                .padding(.leading, MPSpacing.xs)
-
-            VStack(spacing: 0) {
-                // Enable toggle
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Enable App Locking")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Text("Block selected apps until habits are done")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Toggle("", isOn: Binding(
-                        get: { manager.settings.appLockingEnabled },
-                        set: { newValue in
-                            manager.settings.appLockingEnabled = newValue
-                            AppLockingDataStore.appLockingEnabled = newValue
-
-                            if newValue && screenTimeManager.hasSelectedApps && blockingStartMinutes > 0 {
-                                // Start monitoring
-                                do {
-                                    try screenTimeManager.startMorningBlockingSchedule(
-                                        startMinutes: blockingStartMinutes,
-                                        cutoffMinutes: manager.settings.morningCutoffMinutes
-                                    )
-                                } catch {
-                                    // Failed to start monitoring
-                                    manager.settings.appLockingEnabled = false
-                                }
-                            } else if !newValue {
-                                // Stop monitoring
-                                screenTimeManager.stopMonitoring()
-                                screenTimeManager.removeShields()
-                            }
-
-                            manager.saveCurrentState()
-                        }
-                    ))
-                    .tint(MPColors.primary)
-                }
-                .padding(MPSpacing.lg)
-
-                if manager.settings.appLockingEnabled && (!screenTimeManager.hasSelectedApps || blockingStartMinutes == 0) {
-                    Divider()
-
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "info.circle.fill")
-                            .foregroundColor(MPColors.warning)
-
-                        Text(!screenTimeManager.hasSelectedApps ? "Select apps above to enable blocking" : "Set a blocking start time above")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.warning)
                     }
                     .padding(MPSpacing.lg)
                 }
@@ -421,12 +408,12 @@ struct AppLockingSettingsView: View {
         HStack(alignment: .top, spacing: MPSpacing.md) {
             ZStack {
                 Circle()
-                    .fill(MPColors.primaryLight)
+                    .fill(MPColors.primary)
                     .frame(width: 28, height: 28)
 
                 Text(number)
-                    .font(MPFont.labelMedium())
-                    .foregroundColor(MPColors.primary)
+                    .font(.system(size: 14, weight: .bold, design: .rounded))
+                    .foregroundColor(.white)
             }
 
             VStack(alignment: .leading, spacing: MPSpacing.xs) {

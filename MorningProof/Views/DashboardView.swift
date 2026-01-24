@@ -1049,13 +1049,7 @@ struct DashboardView: View {
                             LateBadge()
                         }
                         if isFromHealth {
-                            Text("from Health")
-                                .font(.system(size: 10))
-                                .foregroundColor(MPColors.textTertiary.opacity(0.7))
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(MPColors.surfaceSecondary)
-                                .cornerRadius(4)
+                            HealthBadge()
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
@@ -1082,13 +1076,7 @@ struct DashboardView: View {
                             LateBadge()
                         }
                         if isFromHealth {
-                            Text("from Health")
-                                .font(.system(size: 10))
-                                .foregroundColor(MPColors.textTertiary.opacity(0.7))
-                                .padding(.horizontal, 4)
-                                .padding(.vertical, 2)
-                                .background(MPColors.surfaceSecondary)
-                                .cornerRadius(4)
+                            HealthBadge()
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
@@ -1269,6 +1257,23 @@ private struct LateBadge: View {
             .padding(.vertical, 2)
             .background(MPColors.surfaceSecondary)
             .cornerRadius(4)
+    }
+}
+
+/// Apple Health badge with heart icon
+private struct HealthBadge: View {
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 8))
+            Text("Health")
+                .font(.system(size: 10, weight: .medium))
+        }
+        .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.35)) // Apple Health pink/red
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(Color(red: 1.0, green: 0.23, blue: 0.35).opacity(0.15))
+        .cornerRadius(4)
     }
 }
 

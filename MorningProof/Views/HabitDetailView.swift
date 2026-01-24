@@ -102,7 +102,7 @@ struct HabitDetailView: View {
 
                     Spacer(minLength: MPSpacing.xxxl)
                 }
-                .padding(.horizontal, MPSpacing.xl)
+                .padding(.horizontal, MPSpacing.xxl)
                 .padding(.top, MPSpacing.md)
             }
         }
