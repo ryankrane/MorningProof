@@ -238,7 +238,7 @@ struct GuardrailStep: View {
 
         // Phase 2: Cards drop in one at a time with generous stagger
         for i in 0..<3 {
-            let delay = 1.6 + Double(i) * 0.45
+            let delay = 1.6 + Double(i) * 0.7
             withAnimation(.spring(response: 0.55, dampingFraction: 0.65).delay(delay)) {
                 showCards[i] = true
                 cardRotations[i] = 0
@@ -246,17 +246,17 @@ struct GuardrailStep: View {
         }
 
         // Phase 3: Subtext fades in smoothly together (after all cards have landed)
-        withAnimation(.easeOut(duration: 0.8).delay(3.2)) {
+        withAnimation(.easeOut(duration: 0.8).delay(3.8)) {
             showSubtextLine1 = true
         }
 
         // Phase 4: Button appears after a tiny pause
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.9)) {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(4.5)) {
             showButton = true
         }
 
         // Phase 5: Start icon pulse
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.1) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.7) {
             pulseIcons = true
         }
     }
