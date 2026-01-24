@@ -66,6 +66,9 @@ struct MorningProofSettingsView: View {
                         // MARK: - Notifications
                         notificationsSection
 
+                        // MARK: - Health Data
+                        healthDataSection
+
                         // MARK: - Subscription
                         subscriptionSection
 
@@ -417,6 +420,103 @@ struct MorningProofSettingsView: View {
                 }
             }
         }
+    }
+
+    // MARK: - Health Data Section
+
+    var healthDataSection: some View {
+        settingsSection(title: "Health Data", icon: "heart.fill", infoText: "Morning Proof reads health data to automatically track your habits. We never write or modify your health data.") {
+            VStack(spacing: 0) {
+                healthDataRow(
+                    icon: "moon.zzz.fill",
+                    iconColor: .purple,
+                    title: "Sleep Analysis",
+                    description: "Tracks last night's sleep duration"
+                )
+
+                Divider()
+                    .padding(.leading, 46)
+
+                healthDataRow(
+                    icon: "figure.walk",
+                    iconColor: .green,
+                    title: "Step Count",
+                    description: "Counts morning steps before your deadline"
+                )
+
+                Divider()
+                    .padding(.leading, 46)
+
+                healthDataRow(
+                    icon: "flame.fill",
+                    iconColor: .orange,
+                    title: "Workouts",
+                    description: "Detects completed morning workouts"
+                )
+
+                Divider()
+                    .padding(.leading, 46)
+
+                healthDataRow(
+                    icon: "bolt.fill",
+                    iconColor: .yellow,
+                    title: "Active Energy",
+                    description: "Measures calories burned during workouts"
+                )
+
+                Divider()
+                    .padding(.leading, 46)
+
+                // Manage in Health App button
+                Button {
+                    if let url = URL(string: "x-apple-health://") {
+                        UIApplication.shared.open(url)
+                    }
+                } label: {
+                    HStack(spacing: MPSpacing.md) {
+                        Image(systemName: "heart.text.square.fill")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundColor(MPColors.error)
+                            .frame(width: 30, alignment: .center)
+
+                        Text("Manage in Health App")
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.primary)
+
+                        Spacer()
+
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .padding(.vertical, MPSpacing.sm)
+                }
+                .buttonStyle(PlainButtonStyle())
+            }
+            .padding(.vertical, -MPSpacing.xs)
+        }
+    }
+
+    private func healthDataRow(icon: String, iconColor: Color, title: String, description: String) -> some View {
+        HStack(spacing: MPSpacing.md) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(iconColor)
+                .frame(width: 30, alignment: .center)
+
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text(description)
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+            }
+
+            Spacer()
+        }
+        .padding(.vertical, MPSpacing.sm)
     }
 
     // MARK: - App Locking Section

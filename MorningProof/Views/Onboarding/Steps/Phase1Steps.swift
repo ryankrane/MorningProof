@@ -11,19 +11,26 @@ private struct TypewriterGradientText: View {
     let gradient: LinearGradient
 
     var body: some View {
-        HStack(spacing: 0) {
-            ForEach(Array(fullText.enumerated()), id: \.offset) { index, char in
-                Text(String(char))
-                    .opacity(index < revealedCount ? 1 : 0)
-                    .offset(y: index < revealedCount ? 0 : 8)
-                    .animation(
-                        .easeOut(duration: 0.15),
-                        value: index < revealedCount
-                    )
+        ZStack {
+            // Invisible placeholder to reserve space (prevents layout shifts)
+            Text(fullText)
+                .font(.system(size: 32, weight: .bold, design: .rounded))
+                .opacity(0)
+
+            // Revealed text overlay
+            HStack(spacing: 0) {
+                ForEach(Array(fullText.enumerated()), id: \.offset) { index, char in
+                    Text(String(char))
+                        .opacity(index < revealedCount ? 1 : 0)
+                        .animation(
+                            .easeOut(duration: 0.12),
+                            value: index < revealedCount
+                        )
+                }
             }
+            .font(.system(size: 32, weight: .bold, design: .rounded))
+            .foregroundStyle(gradient)
         }
-        .font(.system(size: 32, weight: .bold, design: .rounded))
-        .foregroundStyle(gradient)
         .fixedSize(horizontal: true, vertical: false)
     }
 }
@@ -203,7 +210,6 @@ struct WelcomeHeroStep: View {
 
     private func startTypewriter() {
         let text = "Take Back Your Morning"
-        // Word end indices: "Take" ends at 4, "Back" at 9 (4+1+4), "Your" at 14 (9+1+4), "Morning" at 22 (14+1+7)
         let wordEndIndices = [4, 9, 14, 22]
 
         for i in 1...text.count {
