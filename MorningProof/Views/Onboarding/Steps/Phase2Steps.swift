@@ -366,6 +366,7 @@ struct DoomScrollingSimulatorStep: View {
     @State private var feedVisible = true  // Controls feed visibility for clean resets
     @State private var hasShownOnce = false  // Track if animation has completed once (for button)
     @State private var animationCycleID = 0  // Forces fresh animation state on each loop
+    @State private var isActive = true  // Track if view is still on screen to cancel looping animation
 
     // Simulated social feed items
     private let feedItems: [(icon: String, color: Color, title: String)] = [
@@ -491,6 +492,9 @@ struct DoomScrollingSimulatorStep: View {
         .onAppear {
             startSequence()
         }
+        .onDisappear {
+            isActive = false
+        }
     }
 
     private func startSequence() {
@@ -506,6 +510,8 @@ struct DoomScrollingSimulatorStep: View {
 
         // Phase 2: After showing doom scrolling, slam down the lock
         DispatchQueue.main.asyncAfter(deadline: .now() + 2.7) {
+            guard self.isActive else { return }
+
             // Stop scrolling
             withAnimation(.easeOut(duration: 0.3)) {
                 isScrolling = false
@@ -518,6 +524,8 @@ struct DoomScrollingSimulatorStep: View {
 
             // Slam the lock with heavy haptic
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                guard self.isActive else { return }
+
                 // HEAVY THUD haptic - the dramatic slam
                 HapticManager.shared.flameSlamImpact()
 
@@ -530,13 +538,16 @@ struct DoomScrollingSimulatorStep: View {
 
                 // Phase 3: Wait 4 seconds at locked screen, then loop
                 DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                    resetAndReplay()
+                    guard self.isActive else { return }
+                    self.resetAndReplay()
                 }
             }
         }
     }
 
     private func resetAndReplay() {
+        guard isActive else { return }
+
         // IMMEDIATELY hide feed while lockdown is still fully opaque (user won't see this)
         feedVisible = false
 
@@ -559,8 +570,10 @@ struct DoomScrollingSimulatorStep: View {
 
         // After lockdown fades, fade feed back in
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            guard self.isActive else { return }
+
             withAnimation(.easeIn(duration: 0.25)) {
-                feedVisible = true
+                self.feedVisible = true
             }
 
             // Start fresh scroll animation
@@ -570,9 +583,11 @@ struct DoomScrollingSimulatorStep: View {
 
             // Schedule next lockdown
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.7) {
+                guard self.isActive else { return }
+
                 // Stop scrolling
                 withAnimation(.easeOut(duration: 0.3)) {
-                    isScrolling = false
+                    self.isScrolling = false
                 }
 
                 // Show lockdown overlay
@@ -582,6 +597,8 @@ struct DoomScrollingSimulatorStep: View {
 
                 // Slam the lock
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
+                    guard self.isActive else { return }
+
                     HapticManager.shared.flameSlamImpact()
 
                     withAnimation(.spring(response: 0.25, dampingFraction: 0.5)) {
@@ -590,7 +607,8 @@ struct DoomScrollingSimulatorStep: View {
 
                     // Wait 4 seconds then loop again
                     DispatchQueue.main.asyncAfter(deadline: .now() + 4.0) {
-                        resetAndReplay()
+                        guard self.isActive else { return }
+                        self.resetAndReplay()
                     }
                 }
             }
