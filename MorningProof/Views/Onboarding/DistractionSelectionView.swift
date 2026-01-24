@@ -10,191 +10,255 @@ import FamilyControls
 struct DistractionSelectionView: View {
     let onContinue: (FamilyActivitySelection) -> Void
 
+    // View state enum for transitioning between intro and app picker
+    enum ViewState {
+        case intro           // Show feature cards + authorization button
+        case selectingApps   // Show inline FamilyActivityPicker
+    }
+
     @StateObject private var screenTimeManager = ScreenTimeManager.shared
     @State private var selection = FamilyActivitySelection()
-    @State private var showPicker = false
+    @State private var viewState: ViewState = .intro
     @State private var showContent = false
     @State private var showCards = [false, false, false]
     @State private var isRequesting = false
 
     var body: some View {
         VStack(spacing: 0) {
-            Spacer()
+            // Header section (condensed in selectingApps state)
+            headerSection
+                .padding(.top, viewState == .selectingApps ? MPSpacing.md : 0)
 
-            VStack(spacing: MPSpacing.xxl) {
-                // Header
-                VStack(spacing: MPSpacing.md) {
-                    ZStack {
-                        // Animated glow
-                        Circle()
-                            .fill(
-                                RadialGradient(
-                                    colors: [Color.red.opacity(0.4), Color.clear],
-                                    center: .center,
-                                    startRadius: 0,
-                                    endRadius: 50
-                                )
-                            )
-                            .frame(width: 100, height: 100)
-
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color(red: 1.0, green: 0.35, blue: 0.2), Color(red: 0.9, green: 0.2, blue: 0.15)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 72, height: 72)
-
-                        Image(systemName: "lock.shield.fill")
-                            .font(.system(size: 32, weight: .semibold))
-                            .foregroundColor(.white)
-                    }
-                    .opacity(showContent ? 1 : 0)
-                    .scaleEffect(showContent ? 1 : 0.8)
-
-                    Text("Lock Your Time-Wasters")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("Choose apps to block until your\nmorning habits are complete")
-                        .font(.system(size: 15))
-                        .foregroundColor(MPColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                        .lineSpacing(2)
-                }
-                .opacity(showContent ? 1 : 0)
-                .offset(y: showContent ? 0 : 15)
-
-                // Feature cards
-                VStack(spacing: MPSpacing.md) {
-                    DistractionFeatureRow(
-                        icon: "app.badge.fill",
-                        title: "Your Real Apps",
-                        description: "Select from apps actually on your phone",
-                        color: MPColors.primary,
-                        isVisible: showCards[0]
-                    )
-
-                    DistractionFeatureRow(
-                        icon: "sunrise.fill",
-                        title: "Morning Only",
-                        description: "Apps unlock once you complete habits",
-                        color: Color(red: 1.0, green: 0.6, blue: 0.3),
-                        isVisible: showCards[1]
-                    )
-
-                    DistractionFeatureRow(
-                        icon: "hand.raised.fill",
-                        title: "You're In Control",
-                        description: "Change selections anytime in Settings",
-                        color: MPColors.success,
-                        isVisible: showCards[2]
-                    )
-                }
-                .padding(.horizontal, MPSpacing.xl)
-
-                // Selected count badge
-                if !selection.applicationTokens.isEmpty || !selection.categoryTokens.isEmpty {
-                    let count = selection.applicationTokens.count + selection.categoryTokens.count
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(MPColors.success)
-                        Text("\(count) app\(count == 1 ? "" : "s")/categor\(count == 1 ? "y" : "ies") selected")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(MPColors.success)
-                    }
-                    .transition(.scale.combined(with: .opacity))
+            // Main content switches based on state
+            Group {
+                switch viewState {
+                case .intro:
+                    introContent
+                case .selectingApps:
+                    appPickerContent
                 }
             }
+            .id(viewState) // Forces clean view replacement (avoids animation overlap)
 
-            Spacer()
-
-            VStack(spacing: MPSpacing.md) {
-                // Main action button
-                if screenTimeManager.isAuthorized {
-                    // Already authorized - show picker button
-                    Button {
-                        showPicker = true
-                    } label: {
-                        HStack(spacing: MPSpacing.sm) {
-                            Image(systemName: "apps.iphone")
-                                .font(.system(size: 18, weight: .semibold))
-                            Text(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
-                                 ? "Choose Apps to Block"
-                                 : "Change Selection")
-                                .font(.system(size: 17, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: MPButtonHeight.lg)
-                        .background(
-                            LinearGradient(
-                                colors: [Color(red: 1.0, green: 0.35, blue: 0.2), Color(red: 0.9, green: 0.2, blue: 0.15)],
-                                startPoint: .leading,
-                                endPoint: .trailing
-                            )
-                        )
-                        .cornerRadius(MPRadius.lg)
-                        .shadow(color: Color.red.opacity(0.3), radius: 10, x: 0, y: 4)
-                    }
-                    .familyActivityPicker(isPresented: $showPicker, selection: $selection)
-                } else {
-                    // Need authorization first
-                    Button {
-                        requestAuthorization()
-                    } label: {
-                        HStack(spacing: MPSpacing.sm) {
-                            if isRequesting {
-                                ProgressView()
-                                    .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                            } else {
-                                Image(systemName: "lock.shield.fill")
-                                    .font(.system(size: 18, weight: .semibold))
-                            }
-                            Text(isRequesting ? "Connecting..." : "Connect Screen Time")
-                                .font(.system(size: 17, weight: .bold))
-                        }
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: MPButtonHeight.lg)
-                        .background(MPColors.primary)
-                        .cornerRadius(MPRadius.lg)
-                    }
-                    .disabled(isRequesting)
-                }
-
-                // Continue/Skip button
-                Button {
-                    screenTimeManager.saveSelectedApps(selection)
-                    onContinue(selection)
-                } label: {
-                    Text(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
-                         ? "Skip for now"
-                         : "Continue")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
-                                        ? MPColors.textTertiary
-                                        : MPColors.primary)
-                }
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
+            // Bottom buttons
+            bottomButtons
         }
         .onAppear {
-            withAnimation(.easeOut(duration: 0.5)) {
+            // Check if already authorized and skip to picker
+            if screenTimeManager.isAuthorized {
+                viewState = .selectingApps
                 showContent = true
-            }
-            for i in 0..<3 {
-                withAnimation(.easeOut(duration: 0.4).delay(0.3 + Double(i) * 0.12)) {
-                    showCards[i] = true
+            } else {
+                withAnimation(.easeOut(duration: 0.5)) {
+                    showContent = true
+                }
+                for i in 0..<3 {
+                    withAnimation(.easeOut(duration: 0.4).delay(0.3 + Double(i) * 0.12)) {
+                        showCards[i] = true
+                    }
                 }
             }
             // Load any previously selected apps
             selection = screenTimeManager.selectedApps
         }
     }
+
+    // MARK: - Header Section
+
+    @ViewBuilder
+    private var headerSection: some View {
+        VStack(spacing: MPSpacing.sm) {
+            ZStack {
+                // Animated glow
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [Color.red.opacity(0.4), Color.clear],
+                            center: .center,
+                            startRadius: 0,
+                            endRadius: viewState == .selectingApps ? 40 : 50
+                        )
+                    )
+                    .frame(width: viewState == .selectingApps ? 80 : 100,
+                           height: viewState == .selectingApps ? 80 : 100)
+
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [Color(red: 1.0, green: 0.35, blue: 0.2), Color(red: 0.9, green: 0.2, blue: 0.15)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: viewState == .selectingApps ? 56 : 72,
+                           height: viewState == .selectingApps ? 56 : 72)
+
+                Image(systemName: "lock.shield.fill")
+                    .font(.system(size: viewState == .selectingApps ? 24 : 32, weight: .semibold))
+                    .foregroundColor(.white)
+            }
+            .opacity(showContent ? 1 : 0)
+            .scaleEffect(showContent ? 1 : 0.8)
+
+            Text(viewState == .selectingApps ? "Select Apps to Block" : "Lock Your Time-Wasters")
+                .font(.system(size: viewState == .selectingApps ? 22 : 28, weight: .bold, design: .rounded))
+                .foregroundColor(MPColors.textPrimary)
+
+            if viewState == .intro {
+                Text("Choose apps to block until your\nmorning habits are complete")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .lineSpacing(2)
+            }
+        }
+        .opacity(showContent ? 1 : 0)
+        .offset(y: showContent ? 0 : 15)
+        .animation(.easeInOut(duration: 0.3), value: viewState)
+    }
+
+    // MARK: - Intro Content (Feature Cards)
+
+    @ViewBuilder
+    private var introContent: some View {
+        VStack(spacing: MPSpacing.xxl) {
+            Spacer()
+
+            // Feature cards
+            VStack(spacing: MPSpacing.md) {
+                DistractionFeatureRow(
+                    icon: "app.badge.fill",
+                    title: "Your Real Apps",
+                    description: "Select from apps actually on your phone",
+                    color: MPColors.primary,
+                    isVisible: showCards[0]
+                )
+
+                DistractionFeatureRow(
+                    icon: "sunrise.fill",
+                    title: "Morning Only",
+                    description: "Apps unlock once you complete habits",
+                    color: Color(red: 1.0, green: 0.6, blue: 0.3),
+                    isVisible: showCards[1]
+                )
+
+                DistractionFeatureRow(
+                    icon: "hand.raised.fill",
+                    title: "You're In Control",
+                    description: "Change selections anytime in Settings",
+                    color: MPColors.success,
+                    isVisible: showCards[2]
+                )
+            }
+            .padding(.horizontal, MPSpacing.xl)
+
+            Spacer()
+        }
+    }
+
+    // MARK: - App Picker Content (Inline Picker)
+
+    @ViewBuilder
+    private var appPickerContent: some View {
+        VStack(spacing: MPSpacing.md) {
+            // Selected count badge
+            if !selection.applicationTokens.isEmpty || !selection.categoryTokens.isEmpty {
+                let count = selection.applicationTokens.count + selection.categoryTokens.count
+                HStack(spacing: MPSpacing.sm) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(MPColors.success)
+                    Text("\(count) app\(count == 1 ? "" : "s")/categor\(count == 1 ? "y" : "ies") selected")
+                        .font(.system(size: 14, weight: .medium))
+                        .foregroundColor(MPColors.success)
+                }
+                .padding(.top, MPSpacing.sm)
+                .transition(.scale.combined(with: .opacity))
+            }
+
+            // Inline FamilyActivityPicker
+            FamilyActivityPicker(selection: $selection)
+                .padding(.horizontal, MPSpacing.md)
+        }
+    }
+
+    // MARK: - Bottom Buttons
+
+    @ViewBuilder
+    private var bottomButtons: some View {
+        VStack(spacing: MPSpacing.md) {
+            // Authorization button (only in intro state when not authorized)
+            if viewState == .intro && !screenTimeManager.isAuthorized {
+                Button {
+                    requestAuthorization()
+                } label: {
+                    HStack(spacing: MPSpacing.sm) {
+                        if isRequesting {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Image(systemName: "lock.shield.fill")
+                                .font(.system(size: 18, weight: .semibold))
+                        }
+                        Text(isRequesting ? "Connecting..." : "Connect Screen Time")
+                            .font(.system(size: 17, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: MPButtonHeight.lg)
+                    .background(MPColors.primary)
+                    .cornerRadius(MPRadius.lg)
+                }
+                .disabled(isRequesting)
+            }
+
+            // Continue/Skip button
+            Button {
+                screenTimeManager.saveSelectedApps(selection)
+                onContinue(selection)
+            } label: {
+                if viewState == .selectingApps {
+                    // Full button style when in picker mode
+                    HStack(spacing: MPSpacing.sm) {
+                        Image(systemName: selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
+                              ? "arrow.right" : "checkmark")
+                            .font(.system(size: 16, weight: .semibold))
+                        Text(selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
+                             ? "Skip for now"
+                             : "Continue")
+                            .font(.system(size: 17, weight: .bold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: MPButtonHeight.lg)
+                    .background {
+                        if selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty {
+                            MPColors.textTertiary
+                        } else {
+                            LinearGradient(
+                                colors: [Color(red: 1.0, green: 0.35, blue: 0.2), Color(red: 0.9, green: 0.2, blue: 0.15)],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        }
+                    }
+                    .cornerRadius(MPRadius.lg)
+                    .shadow(color: selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty
+                            ? .clear : Color.red.opacity(0.3), radius: 10, x: 0, y: 4)
+                } else {
+                    // Text-only style in intro mode
+                    Text("Skip for now")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+        }
+        .padding(.horizontal, MPSpacing.xxxl)
+        .padding(.bottom, 50)
+        .animation(.easeInOut(duration: 0.3), value: viewState)
+        .animation(.easeInOut(duration: 0.2), value: selection.applicationTokens.isEmpty && selection.categoryTokens.isEmpty)
+    }
+
+    // MARK: - Authorization
 
     private func requestAuthorization() {
         isRequesting = true
@@ -204,9 +268,9 @@ struct DistractionSelectionView: View {
                 await MainActor.run {
                     isRequesting = false
                     if screenTimeManager.isAuthorized {
-                        // Auto-show picker after authorization
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            showPicker = true
+                        // Transition to inline picker after authorization
+                        withAnimation(.easeInOut(duration: 0.4)) {
+                            viewState = .selectingApps
                         }
                     }
                 }
