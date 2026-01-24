@@ -196,11 +196,11 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     /// Detailed explanation for settings (includes fallbacks)
     var howItWorksDetailed: String {
         switch self {
-        case .madeBed: return "Snap a photo of your bed. We'll check if it's made — sheets smooth, pillows in place."
-        case .sunlightExposure: return "Take a photo outside or by a window. We'll verify you got some natural light."
-        case .hydration: return "Snap a photo of your glass of water. We'll confirm you're starting hydrated."
-        case .sleepDuration: return "Syncs automatically from Apple Health. No Apple Watch? You can enter manually."
-        case .morningSteps: return "Steps sync from Apple Health. Hit your goal before your deadline. No data? Hold to confirm."
+        case .madeBed: return "Snap a photo of your bed. We'll check if it's made."
+        case .sunlightExposure: return "Take a photo outside. We'll verify you got some natural light."
+        case .hydration: return "Snap a photo of your drink. We'll confirm you're staying hydrated."
+        case .sleepDuration: return "Syncs automatically from Apple Health. Don't track sleep with a wearable? You can enter it manually."
+        case .morningSteps: return "Steps sync from Apple Health. No data? Hold to confirm."
         case .morningWorkout: return "Syncs from Apple Health when you record a workout. No workout recorded? Hold to confirm."
         case .coldShower: return "Hold to confirm you took a cold shower this morning."
         case .noSnooze: return "Hold to confirm you got up without hitting snooze."
