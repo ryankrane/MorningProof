@@ -113,8 +113,11 @@ struct HowItWorksRow: View {
                     .font(.system(size: 14))
                     .foregroundColor(MPColors.textSecondary)
             }
+
+            Spacer()
         }
         .padding(MPSpacing.lg)
+        .frame(maxWidth: .infinity)
         .background(MPColors.surface)
         .cornerRadius(MPRadius.lg)
         .mpShadow(.small)
