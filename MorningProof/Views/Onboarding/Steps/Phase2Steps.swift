@@ -505,7 +505,7 @@ struct DoomScrollingSimulatorStep: View {
         }
 
         // Phase 2: After showing doom scrolling, slam down the lock
-        DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 2.7) {
             // Stop scrolling
             withAnimation(.easeOut(duration: 0.3)) {
                 isScrolling = false
@@ -569,7 +569,7 @@ struct DoomScrollingSimulatorStep: View {
             }
 
             // Schedule next lockdown
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.7) {
                 // Stop scrolling
                 withAnimation(.easeOut(duration: 0.3)) {
                     isScrolling = false
