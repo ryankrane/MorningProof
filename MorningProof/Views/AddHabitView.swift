@@ -29,6 +29,9 @@ struct AddHabitView: View {
 
             ScrollView {
                 VStack(spacing: MPSpacing.xl) {
+                    // Create custom habit button (at top for visibility)
+                    createCustomHabitButton
+
                     // AI Verified section
                     habitSection(
                         title: "AI VERIFIED",
@@ -58,9 +61,6 @@ struct AddHabitView: View {
                         customHabits: manager.customHabits.filter { $0.verificationType == .honorSystem },
                         customType: .honorSystem
                     )
-
-                    // Create custom habit button
-                    createCustomHabitButton
 
                     Spacer(minLength: MPSpacing.xxxl)
                 }
@@ -247,7 +247,6 @@ struct AddHabitView: View {
             .background(MPColors.primary)
             .cornerRadius(MPRadius.lg)
         }
-        .padding(.top, MPSpacing.lg)
     }
 }
 

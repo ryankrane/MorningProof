@@ -41,8 +41,8 @@ struct DeadlineCardView: View {
         .sheet(isPresented: $showTimePicker) {
             TimeWheelPicker(
                 selectedMinutes: $cutoffMinutes,
-                title: "Habit Deadline",
-                subtitle: "Complete your habits by this time to lock in your day",
+                title: "Morning Deadline",
+                subtitle: "Finish your routine by this time each day",
                 timeOptions: TimeOptions.cutoffTime
             )
             .presentationDetents([.medium])

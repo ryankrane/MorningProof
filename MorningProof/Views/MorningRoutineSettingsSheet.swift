@@ -195,7 +195,7 @@ struct MorningRoutineSettingsSheet: View {
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundColor(MPColors.primary)
 
-                Text("Habit Deadline")
+                Text("Morning Deadline")
                     .font(MPFont.bodyMedium())
                     .foregroundColor(MPColors.textPrimary)
 
@@ -218,8 +218,8 @@ struct MorningRoutineSettingsSheet: View {
         .sheet(isPresented: $showCutoffTimePicker) {
             TimeWheelPicker(
                 selectedMinutes: $cutoffMinutes,
-                title: "Habit Deadline",
-                subtitle: "Complete your habits by this time to lock in your day",
+                title: "Morning Deadline",
+                subtitle: "Finish your routine by this time each day",
                 timeOptions: TimeOptions.cutoffTime
             )
             .presentationDetents([.medium])

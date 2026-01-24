@@ -142,8 +142,8 @@ struct OnboardingView: View {
             .sheet(isPresented: $showCutoffTimePicker) {
                 TimeWheelPicker(
                     selectedMinutes: $cutoffMinutes,
-                    title: "Morning Cutoff Time",
-                    subtitle: "Complete your habits by this time to lock in your day",
+                    title: "Morning Deadline",
+                    subtitle: "Finish your routine by this time each day",
                     timeOptions: TimeOptions.cutoffTime
                 )
                 .presentationDetents([.medium])

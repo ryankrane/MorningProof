@@ -350,7 +350,7 @@ struct HabitDetailView: View {
             .font(.system(size: 12, weight: .semibold))
             .foregroundColor(MPColors.textTertiary)
             .tracking(0.8)
-            .padding(.leading, MPSpacing.sm)
+            .padding(.leading, MPSpacing.xs)
     }
 
     private func sectionContainer<Content: View>(@ViewBuilder content: () -> Content) -> some View {
