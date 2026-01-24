@@ -140,7 +140,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundlePackageType: XPC!
         NSExtension:
-          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).DeviceActivityMonitorExtension
 
   MorningProofShieldConfig:
@@ -171,7 +171,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundlePackageType: XPC!
         NSExtension:
-          NSExtensionPointIdentifier: com.apple.shieldconfiguration
+          NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
 
   MorningProofShieldAction:
@@ -202,7 +202,7 @@ targets:
         CFBundleShortVersionString: $(MARKETING_VERSION)
         CFBundlePackageType: XPC!
         NSExtension:
-          NSExtensionPointIdentifier: com.apple.shieldaction
+          NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
           NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
 
 schemes:
