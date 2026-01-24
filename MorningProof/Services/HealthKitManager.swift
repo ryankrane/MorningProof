@@ -193,10 +193,21 @@ final class HealthKitManager: ObservableObject, Sendable {
                 healthStore.execute(query)
             }
 
-            // Filter for actual sleep (not just in bed)
-            let sleepSamples = samples.filter { sample in
+            // Filter for sleep stages first (detailed sleep tracking)
+            let sleepStages = samples.filter { sample in
                 let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
                 return value == .asleepCore || value == .asleepDeep || value == .asleepREM || value == .asleepUnspecified
+            }
+
+            // Fallback to inBed if no sleep stages found (basic sleep tracking from some devices)
+            let sleepSamples: [HKCategorySample]
+            if sleepStages.isEmpty {
+                sleepSamples = samples.filter { sample in
+                    let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
+                    return value == .inBed
+                }
+            } else {
+                sleepSamples = sleepStages
             }
 
             guard !sleepSamples.isEmpty else {
@@ -204,30 +215,14 @@ final class HealthKitManager: ObservableObject, Sendable {
                 return
             }
 
-            // Calculate total sleep duration
-            var totalSeconds: TimeInterval = 0
-            var earliestStart: Date?
-            var latestEnd: Date?
+            // Calculate total sleep duration by merging overlapping intervals
+            // Apple Health stores sleep stages (core, deep, REM) as separate samples that overlap
+            // We need to merge them to avoid double-counting the same sleep time
+            let totalSeconds = mergedSleepDuration(from: sleepSamples)
 
-            for sample in sleepSamples {
-                totalSeconds += sample.endDate.timeIntervalSince(sample.startDate)
-
-                if let existing = earliestStart {
-                    if sample.startDate < existing {
-                        earliestStart = sample.startDate
-                    }
-                } else {
-                    earliestStart = sample.startDate
-                }
-
-                if let existing = latestEnd {
-                    if sample.endDate > existing {
-                        latestEnd = sample.endDate
-                    }
-                } else {
-                    latestEnd = sample.endDate
-                }
-            }
+            // Track earliest start and latest end for reference
+            let earliestStart = sleepSamples.map { $0.startDate }.min()
+            let latestEnd = sleepSamples.map { $0.endDate }.max()
 
             let totalHours = totalSeconds / 3600
 
@@ -349,6 +344,36 @@ final class HealthKitManager: ObservableObject, Sendable {
         } catch {
             MPLogger.error("Failed to check formal workout", error: error, category: MPLogger.healthKit)
             return false
+        }
+    }
+
+    // MARK: - Sleep Interval Merging
+
+    /// Merges overlapping sleep intervals and returns total sleep duration in seconds.
+    /// Apple Health stores sleep stages (core, deep, REM) as separate overlapping samples.
+    /// Without merging, we'd double/triple count the same sleep time.
+    private func mergedSleepDuration(from samples: [HKCategorySample]) -> TimeInterval {
+        guard !samples.isEmpty else { return 0 }
+
+        // Convert samples to (start, end) tuples and sort by start time
+        var intervals = samples.map { ($0.startDate, $0.endDate) }
+        intervals.sort { $0.0 < $1.0 }
+
+        // Merge overlapping intervals
+        var merged: [(Date, Date)] = []
+        for interval in intervals {
+            if let last = merged.last, interval.0 <= last.1 {
+                // Overlaps with previous - extend the end if needed
+                merged[merged.count - 1] = (last.0, max(last.1, interval.1))
+            } else {
+                // No overlap - add as new interval
+                merged.append(interval)
+            }
+        }
+
+        // Sum the merged intervals
+        return merged.reduce(0) { total, interval in
+            total + interval.1.timeIntervalSince(interval.0)
         }
     }
 }

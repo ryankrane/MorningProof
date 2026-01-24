@@ -332,10 +332,9 @@ final class HealthKitBackgroundDeliveryService: @unchecked Sendable {
                     return value == .asleepCore || value == .asleepDeep || value == .asleepREM || value == .asleepUnspecified
                 }
 
-                var totalSeconds: TimeInterval = 0
-                for sample in sleepSamples {
-                    totalSeconds += sample.endDate.timeIntervalSince(sample.startDate)
-                }
+                // Merge overlapping intervals to avoid double-counting
+                // Apple Health stores sleep stages as separate overlapping samples
+                let totalSeconds = self.mergedSleepDuration(from: sleepSamples)
 
                 continuation.resume(returning: totalSeconds / 3600)
             }
@@ -466,5 +465,34 @@ final class HealthKitBackgroundDeliveryService: @unchecked Sendable {
     private func hasNotifiedForWorkoutToday() -> Bool {
         guard let date = defaults.object(forKey: Keys.workoutNotifiedDate) as? Date else { return false }
         return Calendar.current.isDateInToday(date)
+    }
+
+    // MARK: - Sleep Interval Merging
+
+    /// Merges overlapping sleep intervals and returns total sleep duration in seconds.
+    /// Apple Health stores sleep stages (core, deep, REM) as separate overlapping samples.
+    private func mergedSleepDuration(from samples: [HKCategorySample]) -> TimeInterval {
+        guard !samples.isEmpty else { return 0 }
+
+        // Convert samples to (start, end) tuples and sort by start time
+        var intervals = samples.map { ($0.startDate, $0.endDate) }
+        intervals.sort { $0.0 < $1.0 }
+
+        // Merge overlapping intervals
+        var merged: [(Date, Date)] = []
+        for interval in intervals {
+            if let last = merged.last, interval.0 <= last.1 {
+                // Overlaps with previous - extend the end if needed
+                merged[merged.count - 1] = (last.0, max(last.1, interval.1))
+            } else {
+                // No overlap - add as new interval
+                merged.append(interval)
+            }
+        }
+
+        // Sum the merged intervals
+        return merged.reduce(0) { total, interval in
+            total + interval.1.timeIntervalSince(interval.0)
+        }
     }
 }

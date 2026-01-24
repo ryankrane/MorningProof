@@ -784,14 +784,13 @@ struct DashboardView: View {
     @ViewBuilder
     func customHabitStatusText(for customHabit: CustomHabit, completion: CustomHabitCompletion?) -> some View {
         if let completion = completion, completion.isCompleted {
-            if wasCustomHabitCompletedLate(completion) {
-                Text(customHabit.verificationType == .aiVerified ? "Verified Late" : "Completed Late")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.warning)
-            } else {
+            HStack(spacing: MPSpacing.xs) {
                 Text(customHabit.verificationType == .aiVerified ? "Verified" : "Completed")
                     .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.success)
+                    .foregroundColor(MPColors.textTertiary)
+                if wasCustomHabitCompletedLate(completion) {
+                    LateBadge()
+                }
             }
         } else if manager.isPastCutoff && manager.hasCustomHabitEverBeenCompleted(customHabit.id) {
             HStack(spacing: 4) {
@@ -1018,17 +1017,13 @@ struct DashboardView: View {
             case .morningSteps:
                 let steps = completion.verificationData?.stepCount ?? 0
                 if completion.isCompleted {
-                    if wasCompletedLate(completion) {
-                        HStack(spacing: MPSpacing.xs) {
-                            Text("\(steps)/\(config.goal) steps")
-                            Text("Late")
-                        }
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.warning)
-                    } else {
+                    HStack(spacing: MPSpacing.xs) {
                         Text("\(steps)/\(config.goal) steps")
                             .font(MPFont.bodySmall())
                             .foregroundColor(MPColors.textTertiary)
+                        if wasCompletedLate(completion) {
+                            LateBadge()
+                        }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
                     HStack(spacing: 4) {
@@ -1046,36 +1041,21 @@ struct DashboardView: View {
             case .sleepDuration:
                 if let hours = completion.verificationData?.sleepHours {
                     let isFromHealth = completion.verificationData?.isFromHealthKit == true
-                    if completion.isCompleted && wasCompletedLate(completion) {
-                        HStack(spacing: MPSpacing.xs) {
-                            Text("\(formatHours(hours))/\(config.goal)h sleep")
-                            Text("Late")
-                            if isFromHealth {
-                                Text("from Health")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(MPColors.warning.opacity(0.7))
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 2)
-                                    .background(MPColors.surfaceSecondary)
-                                    .cornerRadius(4)
-                            }
+                    HStack(spacing: MPSpacing.xs) {
+                        Text("\(formatHours(hours))/\(config.goal)h sleep")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(completion.isCompleted ? MPColors.textTertiary : MPColors.textTertiary)
+                        if completion.isCompleted && wasCompletedLate(completion) {
+                            LateBadge()
                         }
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.warning)
-                    } else {
-                        HStack(spacing: MPSpacing.xs) {
-                            Text("\(formatHours(hours))/\(config.goal)h sleep")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(completion.isCompleted ? MPColors.success : MPColors.textTertiary)
-                            if isFromHealth {
-                                Text("from Health")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(completion.isCompleted ? MPColors.success.opacity(0.7) : MPColors.textTertiary.opacity(0.7))
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 2)
-                                    .background(MPColors.surfaceSecondary)
-                                    .cornerRadius(4)
-                            }
+                        if isFromHealth {
+                            Text("from Health")
+                                .font(.system(size: 10))
+                                .foregroundColor(MPColors.textTertiary.opacity(0.7))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(MPColors.surfaceSecondary)
+                                .cornerRadius(4)
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
@@ -1094,35 +1074,21 @@ struct DashboardView: View {
             case .morningWorkout:
                 if completion.isCompleted {
                     let isFromHealth = completion.verificationData?.workoutDetected == true
-                    if wasCompletedLate(completion) {
-                        HStack(spacing: MPSpacing.xs) {
-                            Text("Completed Late")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.warning)
-                            if isFromHealth {
-                                Text("from Health")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(MPColors.warning.opacity(0.7))
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 2)
-                                    .background(MPColors.surfaceSecondary)
-                                    .cornerRadius(4)
-                            }
+                    HStack(spacing: MPSpacing.xs) {
+                        Text("Completed")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        if wasCompletedLate(completion) {
+                            LateBadge()
                         }
-                    } else {
-                        HStack(spacing: MPSpacing.xs) {
-                            Text("Completed")
-                                .font(MPFont.bodySmall())
-                                .foregroundColor(MPColors.success)
-                            if isFromHealth {
-                                Text("from Health")
-                                    .font(.system(size: 10))
-                                    .foregroundColor(MPColors.textTertiary.opacity(0.7))
-                                    .padding(.horizontal, 4)
-                                    .padding(.vertical, 2)
-                                    .background(MPColors.surfaceSecondary)
-                                    .cornerRadius(4)
-                            }
+                        if isFromHealth {
+                            Text("from Health")
+                                .font(.system(size: 10))
+                                .foregroundColor(MPColors.textTertiary.opacity(0.7))
+                                .padding(.horizontal, 4)
+                                .padding(.vertical, 2)
+                                .background(MPColors.surfaceSecondary)
+                                .cornerRadius(4)
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
@@ -1140,14 +1106,13 @@ struct DashboardView: View {
 
             case .madeBed:
                 if completion.isCompleted {
-                    if wasCompletedLate(completion) {
-                        Text("Verified Late")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.warning)
-                    } else {
+                    HStack(spacing: MPSpacing.xs) {
                         Text("Verified")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.success)
+                            .foregroundColor(MPColors.textTertiary)
+                        if wasCompletedLate(completion) {
+                            LateBadge()
+                        }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
                     HStack(spacing: 4) {
@@ -1164,14 +1129,13 @@ struct DashboardView: View {
 
             case .sunlightExposure:
                 if completion.isCompleted {
-                    if wasCompletedLate(completion) {
-                        Text("Verified Late")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.warning)
-                    } else {
+                    HStack(spacing: MPSpacing.xs) {
                         Text("Verified")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.success)
+                            .foregroundColor(MPColors.textTertiary)
+                        if wasCompletedLate(completion) {
+                            LateBadge()
+                        }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
                     HStack(spacing: 4) {
@@ -1188,14 +1152,13 @@ struct DashboardView: View {
 
             case .hydration:
                 if completion.isCompleted {
-                    if wasCompletedLate(completion) {
-                        Text("Verified Late")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.warning)
-                    } else {
+                    HStack(spacing: MPSpacing.xs) {
                         Text("Verified")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.success)
+                            .foregroundColor(MPColors.textTertiary)
+                        if wasCompletedLate(completion) {
+                            LateBadge()
+                        }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
                     HStack(spacing: 4) {
@@ -1212,14 +1175,13 @@ struct DashboardView: View {
 
             default:
                 if completion.isCompleted {
-                    if wasCompletedLate(completion) {
-                        Text("Completed Late")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.warning)
-                    } else {
+                    HStack(spacing: MPSpacing.xs) {
                         Text("Completed")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.success)
+                            .foregroundColor(MPColors.textTertiary)
+                        if wasCompletedLate(completion) {
+                            LateBadge()
+                        }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
                     HStack(spacing: 4) {
@@ -1294,6 +1256,19 @@ struct PillProgressView: View {
                 .fill(MPColors.success)
                 .frame(width: max(height, width * progress), height: height)  // min width = height for rounded ends
         }
+    }
+}
+
+/// Subtle gray badge for habits completed after the cutoff time
+private struct LateBadge: View {
+    var body: some View {
+        Text("Late")
+            .font(.system(size: 10, weight: .medium))
+            .foregroundColor(MPColors.textTertiary)
+            .padding(.horizontal, 5)
+            .padding(.vertical, 2)
+            .background(MPColors.surfaceSecondary)
+            .cornerRadius(4)
     }
 }
 

@@ -123,8 +123,8 @@ struct StreakHeroCard: View {
                 // Lime green for 75%+
                 return Color(red: 0.6, green: 0.85, blue: 0.3)
             } else {
-                // Yellow/amber for partial progress
-                return MPColors.warning
+                // Neon yellow for partial progress (brighter than warning)
+                return Color(red: 1.0, green: 0.85, blue: 0.1)
             }
         }
     }
