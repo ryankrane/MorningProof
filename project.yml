@@ -64,7 +64,6 @@ targets:
         com.apple.developer.applesignin:
           - Default
         com.apple.developer.family-controls: true
-        com.apple.developer.family-controls.distribution: true
         com.apple.developer.healthkit: true
         com.apple.security.application-groups:
           - group.com.rk.morningproof
@@ -130,7 +129,6 @@ targets:
       path: DeviceActivityMonitorExtension/DeviceActivityMonitorExtension.entitlements
       properties:
         com.apple.developer.family-controls: true
-        com.apple.developer.family-controls.distribution: true
         com.apple.security.application-groups:
           - group.com.rk.morningproof
     info:
@@ -162,7 +160,6 @@ targets:
       path: ShieldConfigurationExtension/ShieldConfigurationExtension.entitlements
       properties:
         com.apple.developer.family-controls: true
-        com.apple.developer.family-controls.distribution: true
         com.apple.security.application-groups:
           - group.com.rk.morningproof
     info:
@@ -194,7 +191,6 @@ targets:
       path: ShieldActionExtension/ShieldActionExtension.entitlements
       properties:
         com.apple.developer.family-controls: true
-        com.apple.developer.family-controls.distribution: true
         com.apple.security.application-groups:
           - group.com.rk.morningproof
     info:
