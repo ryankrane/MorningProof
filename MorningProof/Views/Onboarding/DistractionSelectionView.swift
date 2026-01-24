@@ -43,6 +43,7 @@ struct DistractionSelectionView: View {
             // Bottom buttons
             bottomButtons
         }
+        .background(Color.black.ignoresSafeArea())
         .onAppear {
             // Check if already authorized and skip to picker
             if screenTimeManager.isAuthorized {
