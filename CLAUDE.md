@@ -1,7 +1,7 @@
 # MorningProof
 
 ## Developer Context
-First-time app developer, but fast learner. When explaining things, include big-picture context about why something works the way it does - not just how to fix it. Explain iOS/Swift concepts along the way when relevant.
+Developer: Ryan Krane (first-time app developer, but fast learner). When explaining things, include big-picture context about why something works the way it does - not just how to fix it. Explain iOS/Swift concepts along the way when relevant.
 
 ## Claude Instructions
 When you learn something important about this project (gotchas, patterns, decisions, or context that would help future sessions), add it to this file. Keep it concise.
