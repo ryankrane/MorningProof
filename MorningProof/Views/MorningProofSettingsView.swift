@@ -13,7 +13,6 @@ struct MorningProofSettingsView: View {
     @State private var showResetConfirmation = false
     @State private var showResetTodayConfirmation = false
     @State private var showPaywall = false
-    @State private var showAppLockingSheet = false
 
     // Inline name editing
     @State private var isEditingName = false
@@ -22,10 +21,6 @@ struct MorningProofSettingsView: View {
     // Notification settings
     @State private var notificationsEnabled = true
     @State private var morningReminderTime: Int = 420
-
-    // App Locking settings
-    @State private var appLockingEnabled = false
-    @State private var blockingStartMinutes: Int = 0
 
     // Goals settings
     @State private var customSleepGoal: Double = 7.0
@@ -59,9 +54,6 @@ struct MorningProofSettingsView: View {
                     VStack(spacing: MPSpacing.xl) {
                         // MARK: - Header with Greeting & Theme
                         headerSection
-
-                        // MARK: - App Locking
-                        appLockingSection
 
                         // MARK: - Notifications
                         notificationsSection
@@ -316,10 +308,6 @@ struct MorningProofSettingsView: View {
         notificationsEnabled = manager.settings.notificationsEnabled
         morningReminderTime = manager.settings.morningReminderTime
 
-        // App Locking
-        appLockingEnabled = manager.settings.appLockingEnabled
-        blockingStartMinutes = manager.settings.blockingStartMinutes
-
         // Goals
         customSleepGoal = manager.settings.customSleepGoal
         customStepGoal = manager.settings.customStepGoal
@@ -334,10 +322,6 @@ struct MorningProofSettingsView: View {
         manager.settings.morningReminderTime = morningReminderTime
         // Always enable 15-minute countdown warning when notifications are on
         manager.settings.countdownWarnings = notificationsEnabled ? [15] : []
-
-        // App Locking
-        manager.settings.appLockingEnabled = appLockingEnabled
-        manager.settings.blockingStartMinutes = blockingStartMinutes
 
         // Goals
         manager.settings.customSleepGoal = customSleepGoal
@@ -517,70 +501,6 @@ struct MorningProofSettingsView: View {
             Spacer()
         }
         .padding(.vertical, MPSpacing.sm)
-    }
-
-    // MARK: - App Locking Section
-
-    var appLockingSection: some View {
-        settingsSection(title: "App Locking", icon: "lock.fill", infoText: "Block distracting apps until you complete your morning routine") {
-            VStack(spacing: MPSpacing.lg) {
-                // Enable toggle
-                HStack {
-                    VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                        Text("Lock Apps")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-                        Text("Block distracting apps until habits are complete")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary)
-                    }
-
-                    Spacer()
-
-                    Toggle("", isOn: $appLockingEnabled)
-                        .tint(MPColors.primary)
-                }
-
-                if appLockingEnabled {
-                    Divider()
-
-                    // Configure button - opens full settings
-                    Button {
-                        showAppLockingSheet = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "gearshape.fill")
-                                .foregroundColor(MPColors.primary)
-
-                            VStack(alignment: .leading, spacing: MPSpacing.xs) {
-                                Text("Configure App Locking")
-                                    .font(MPFont.bodyMedium())
-                                    .foregroundColor(MPColors.textPrimary)
-
-                                if blockingStartMinutes > 0 {
-                                    Text("Starts at \(formatTime(blockingStartMinutes))")
-                                        .font(MPFont.bodySmall())
-                                        .foregroundColor(MPColors.textTertiary)
-                                } else {
-                                    Text("Tap to set up")
-                                        .font(MPFont.bodySmall())
-                                        .foregroundColor(MPColors.warning)
-                                }
-                            }
-
-                            Spacer()
-
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-                    }
-                }
-            }
-        }
-        .sheet(isPresented: $showAppLockingSheet) {
-            AppLockingSettingsView()
-        }
     }
 
     // MARK: - Subscription Section

@@ -152,7 +152,7 @@ struct GuardrailStep: View {
 
             Spacer()
 
-            MPButton(title: "Show Me How", style: .primary, icon: "shield.checkered") {
+            MPButton(title: "Show Me How", style: .primary, icon: "arrow.right") {
                 onContinue()
             }
             .opacity(showButton ? 1 : 0)

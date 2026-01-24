@@ -129,7 +129,7 @@ class OnboardingData: ObservableObject {
     }
 }
 
-// MARK: - Onboarding Flow View (17 Steps - Obstacles removed)
+// MARK: - Onboarding Flow View (17 Steps - App blocking consolidated)
 
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
@@ -138,8 +138,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 18
-    private let paywallStep = 17
+    private let totalSteps = 17
+    private let paywallStep = 16
 
     var body: some View {
         ZStack {
@@ -167,25 +167,24 @@ struct OnboardingFlowView: View {
                     case 4: GuardrailStep(onContinue: nextStep)
                     case 5: DoomScrollingSimulatorStep(onContinue: nextStep)
 
-                    // Phase 3: Solution Setup (Steps 6-9) — Phase3Steps.swift
-                    case 6: DistractionSelectionStep(data: onboardingData, onContinue: nextStep)
-                    case 7: AppLockingOnboardingStep(onContinue: nextStep)
-                    case 8: HowItWorksStep(onContinue: nextStep)
-                    case 9: AIVerificationShowcaseStep(onContinue: nextStep)
+                    // Phase 3: Solution Setup (Steps 6-8) — Phase3Steps.swift + DistractionSelectionView.swift
+                    case 6: AppBlockingExplainerStep(onContinue: nextStep)
+                    case 7: HowItWorksStep(onContinue: nextStep)
+                    case 8: AIVerificationShowcaseStep(onContinue: nextStep)
 
-                    // Phase 4: Social Proof (Steps 10-12) — Phase4Steps.swift
-                    case 10: YouAreNotAloneStep(onContinue: nextStep)
-                    case 11: SuccessStoriesStep(onContinue: nextStep)
-                    case 12: TrackingComparisonStep(onContinue: nextStep)
+                    // Phase 4: Social Proof (Steps 9-11) — Phase4Steps.swift
+                    case 9: YouAreNotAloneStep(onContinue: nextStep)
+                    case 10: SuccessStoriesStep(onContinue: nextStep)
+                    case 11: TrackingComparisonStep(onContinue: nextStep)
 
-                    // Phase 5: Personalization (Step 13) — Phase5Steps.swift
-                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    // Phase 5: Personalization (Step 12) — Phase5Steps.swift
+                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 6: Conversion (Steps 14-17) — Phase6Steps.swift
-                    case 14: OptionalRatingStep(onContinue: nextStep)
-                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 17: HardPaywallStep(
+                    // Phase 6: Conversion (Steps 13-16) — Phase6Steps.swift
+                    case 13: OptionalRatingStep(onContinue: nextStep)
+                    case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 16: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding,
                         onBack: previousStep
@@ -254,20 +253,6 @@ struct OnboardingProgressBar: View {
             }
         }
         .frame(height: 4)
-    }
-}
-
-// MARK: - Distraction Selection Step Wrapper
-
-private struct DistractionSelectionStep: View {
-    @ObservedObject var data: OnboardingData
-    let onContinue: () -> Void
-
-    var body: some View {
-        // Family Controls version stores selection via ScreenTimeManager directly
-        DistractionSelectionView { _ in
-            onContinue()
-        }
     }
 }
 

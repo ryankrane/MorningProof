@@ -43,6 +43,9 @@ struct RoutineTabView: View {
                         // Deadline section
                         DeadlineCardView(cutoffMinutes: $cutoffMinutes)
 
+                        // App Locking section
+                        AppLockingCardView()
+
                         // Habits section
                         habitsSection
 
@@ -77,7 +80,7 @@ struct RoutineTabView: View {
 
     private var habitsSection: some View {
         VStack(alignment: .leading, spacing: MPSpacing.sm) {
-            // Section header - simplified, no count
+            // Section header
             Text("HABITS")
                 .font(MPFont.labelSmall())
                 .foregroundColor(MPColors.textTertiary)
@@ -88,9 +91,8 @@ struct RoutineTabView: View {
             if enabledHabits.isEmpty {
                 emptyState
             } else {
-                // Use List for native swipe actions
-                List {
-                    ForEach(enabledHabits) { habit in
+                VStack(spacing: 0) {
+                    ForEach(Array(enabledHabits.enumerated()), id: \.element.id) { index, habit in
                         NavigationLink {
                             if let type = habit.predefinedType {
                                 HabitDetailView(manager: manager, habitType: type)
@@ -100,20 +102,16 @@ struct RoutineTabView: View {
                         } label: {
                             habitRowContent(for: habit)
                         }
-                        .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-                        .listRowSeparator(.hidden)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                            Button(role: .destructive) {
-                                removeHabit(habit)
-                            } label: {
-                                Label("Remove", systemImage: "trash")
-                            }
+                        .buttonStyle(PlainButtonStyle())
+
+                        // Add divider between items (not after last)
+                        if index < enabledHabits.count - 1 {
+                            Divider()
+                                .background(MPColors.divider)
+                                .padding(.leading, 52)
                         }
                     }
                 }
-                .listStyle(.plain)
-                .scrollDisabled(true)
-                .frame(height: CGFloat(enabledHabits.count) * 52)
                 .background(MPColors.surface)
                 .cornerRadius(MPRadius.lg)
             }
@@ -135,10 +133,14 @@ struct RoutineTabView: View {
                 .foregroundColor(MPColors.textPrimary)
 
             Spacer()
+
+            // Chevron indicator
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(MPColors.textTertiary)
         }
         .padding(.vertical, 14)
         .padding(.horizontal, MPSpacing.lg)
-        .background(MPColors.surface)
         .contentShape(Rectangle())
     }
 

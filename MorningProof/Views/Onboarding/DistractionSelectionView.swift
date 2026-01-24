@@ -144,25 +144,17 @@ struct AppBlockingExplainerStep: View {
     private var privacySection: some View {
         HStack(spacing: MPSpacing.sm) {
             Image(systemName: "apple.logo")
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(MPColors.textSecondary)
 
             Text("Powered by Apple Screen Time")
-                .font(.system(size: 13, weight: .medium))
-                .foregroundColor(MPColors.textSecondary)
-
-            Circle()
-                .fill(MPColors.textTertiary)
-                .frame(width: 3, height: 3)
-
-            Text("Data stays on device")
-                .font(.system(size: 13, weight: .medium))
+                .font(.system(size: 14, weight: .medium))
                 .foregroundColor(MPColors.textSecondary)
         }
-        .padding(.horizontal, MPSpacing.lg)
-        .padding(.vertical, MPSpacing.sm)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, MPSpacing.md)
         .background(MPColors.surface.opacity(0.5))
-        .cornerRadius(MPRadius.full)
+        .cornerRadius(MPRadius.lg)
         .opacity(showPrivacy ? 1 : 0)
     }
 

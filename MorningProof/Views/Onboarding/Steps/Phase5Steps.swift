@@ -85,6 +85,10 @@ struct PermissionsStep: View {
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
+        .onAppear {
+            // Check if Screen Time was already authorized in earlier step
+            screenTimeEnabled = screenTimeManager.isAuthorized
+        }
     }
 
     private func requestHealthAccess() {

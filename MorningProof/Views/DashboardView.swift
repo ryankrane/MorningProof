@@ -489,17 +489,18 @@ struct DashboardView: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
         .animation(.easeOut(duration: 0.15), value: isFlashing)
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
-        // Use ButtonStyle-based hold for hold-type habits (doesn't block scroll)
-        .modifier(HoldToCompleteModifier(
+        // Use UIKit-based hold gesture that properly coordinates with ScrollView
+        .holdToComplete(
             isEnabled: isHoldType && !isCompleted,
             progress: Binding(
                 get: { holdProgress[config.habitType] ?? 0 },
                 set: { holdProgress[config.habitType] = $0 }
             ),
+            holdDuration: 1.0,
             onCompleted: {
                 completeHabitWithCelebration(config.habitType)
             }
-        ))
+        )
         .overlay(
             // Premium burst confetti overlay
             Group {
@@ -675,17 +676,18 @@ struct DashboardView: View {
         .animation(.spring(response: 0.35, dampingFraction: 0.55), value: justCompleted)
         .animation(.easeOut(duration: 0.15), value: customHabitRowFlash[customHabit.id] ?? false)
         .animation(.easeOut(duration: 0.3), value: glowIntensity)
-        // Use ButtonStyle-based hold for hold-type habits (doesn't block scroll)
-        .modifier(HoldToCompleteModifier(
+        // Use UIKit-based hold gesture that properly coordinates with ScrollView
+        .holdToComplete(
             isEnabled: isHoldType && !isCompleted,
             progress: Binding(
                 get: { customHoldProgress[customHabit.id] ?? 0 },
                 set: { customHoldProgress[customHabit.id] = $0 }
             ),
+            holdDuration: 1.0,
             onCompleted: {
                 completeCustomHabitWithCelebration(customHabit.id)
             }
-        ))
+        )
         .overlay(
             // Premium burst confetti overlay
             Group {
