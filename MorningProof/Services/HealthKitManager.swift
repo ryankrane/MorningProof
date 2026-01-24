@@ -164,7 +164,7 @@ final class HealthKitManager: ObservableObject, Sendable {
 
         // Look for sleep from 6 PM yesterday to noon today (excludes afternoon naps)
         // This ensures we only capture "last night's sleep" not random daytime naps from yesterday
-        guard let sixPMYesterday = calendar.date(byAdding: .hour, value: -30, to: startOfToday), // 6 PM yesterday
+        guard let sixPMYesterday = calendar.date(byAdding: .hour, value: -6, to: startOfToday), // 6 PM yesterday
               let noonToday = calendar.date(byAdding: .hour, value: 12, to: startOfToday) else { return }
 
         // End bound is the earlier of now or noon (don't include afternoon naps from today)

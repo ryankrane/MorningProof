@@ -304,9 +304,12 @@ final class HealthKitBackgroundDeliveryService: @unchecked Sendable {
 
         let calendar = Calendar.current
         let now = Date()
-        guard let yesterday = calendar.date(byAdding: .hour, value: -24, to: now) else { return 0 }
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let sixPMYesterday = calendar.date(byAdding: .hour, value: -6, to: startOfToday),
+              let noonToday = calendar.date(byAdding: .hour, value: 12, to: startOfToday) else { return 0 }
+        let endBound = min(now, noonToday)
 
-        let predicate = HKQuery.predicateForSamples(withStart: yesterday, end: now, options: .strictStartDate)
+        let predicate = HKQuery.predicateForSamples(withStart: sixPMYesterday, end: endBound, options: .strictStartDate)
         let sortDescriptor = NSSortDescriptor(key: HKSampleSortIdentifierEndDate, ascending: false)
 
         return await withCheckedContinuation { continuation in
