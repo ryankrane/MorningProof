@@ -1020,6 +1020,10 @@ struct DashboardView: View {
                 let steps = completion.verificationData?.stepCount ?? 0
                 if completion.isCompleted {
                     HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
                         Text("\(steps)/\(config.goal) steps")
                             .font(MPFont.bodySmall())
                             .foregroundColor(MPColors.textTertiary)
@@ -1028,25 +1032,41 @@ struct DashboardView: View {
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.circle.fill")
-                        Text("LATE - \(steps)/\(config.goal)")
-                    }
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.error)
-                } else {
-                    Text("\(steps)/\(config.goal) steps")
+                    HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                            Text("LATE - \(steps)/\(config.goal)")
+                        }
                         .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.error)
+                    }
+                } else {
+                    HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        Text("\(steps)/\(config.goal) steps")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
                 }
 
             case .sleepDuration:
                 if let hours = completion.verificationData?.sleepHours {
                     let isFromHealth = completion.verificationData?.isFromHealthKit == true
                     HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
                         Text("\(formatHours(hours))/\(config.goal)h sleep")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(completion.isCompleted ? MPColors.textTertiary : MPColors.textTertiary)
+                            .foregroundColor(MPColors.textTertiary)
                         if completion.isCompleted && wasCompletedLate(completion) {
                             LateBadge()
                         }
@@ -1055,22 +1075,38 @@ struct DashboardView: View {
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.circle.fill")
-                        Text("LATE")
-                    }
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.error)
-                } else {
-                    Text("Tap to enter sleep")
+                    HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                            Text("LATE")
+                        }
                         .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.error)
+                    }
+                } else {
+                    HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        Text("Tap to enter sleep")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
                 }
 
             case .morningWorkout:
                 if completion.isCompleted {
                     let isFromHealth = completion.verificationData?.workoutDetected == true
                     HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
                         Text("Completed")
                             .font(MPFont.bodySmall())
                             .foregroundColor(MPColors.textTertiary)
@@ -1082,16 +1118,28 @@ struct DashboardView: View {
                         }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "exclamationmark.circle.fill")
-                        Text("LATE")
-                    }
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.error)
-                } else {
-                    Text("Hold to complete")
+                    HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        HStack(spacing: 4) {
+                            Image(systemName: "exclamationmark.circle.fill")
+                            Text("LATE")
+                        }
                         .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.error)
+                    }
+                } else {
+                    HStack(spacing: MPSpacing.xs) {
+                        AppleHealthIndicator()
+                        Text("·")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                        Text("Hold to complete")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
                 }
 
             case .madeBed:
@@ -1262,7 +1310,7 @@ private struct LateBadge: View {
     }
 }
 
-/// Apple Health badge with heart icon
+/// Apple Health badge with heart icon (shown after completion when data came from HealthKit)
 private struct HealthBadge: View {
     var body: some View {
         HStack(spacing: 3) {
@@ -1276,6 +1324,19 @@ private struct HealthBadge: View {
         .padding(.vertical, 2)
         .background(Color(red: 1.0, green: 0.23, blue: 0.35).opacity(0.15))
         .cornerRadius(4)
+    }
+}
+
+/// Subtle indicator showing habit syncs with Apple Health (always visible on auto-tracked habits)
+private struct AppleHealthIndicator: View {
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 8))
+            Text("Syncs with Apple Health")
+                .font(.system(size: 10, weight: .medium))
+        }
+        .foregroundColor(MPColors.textTertiary)
     }
 }
 
