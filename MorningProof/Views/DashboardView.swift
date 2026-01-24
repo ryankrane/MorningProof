@@ -1327,7 +1327,7 @@ private struct HealthBadge: View {
     }
 }
 
-/// Subtle indicator showing habit syncs with Apple Health (always visible on auto-tracked habits)
+/// Indicator showing habit syncs with Apple Health (always visible on auto-tracked habits)
 private struct AppleHealthIndicator: View {
     var body: some View {
         HStack(spacing: 3) {
@@ -1336,7 +1336,11 @@ private struct AppleHealthIndicator: View {
             Text("Syncs with Apple Health")
                 .font(.system(size: 10, weight: .medium))
         }
-        .foregroundColor(MPColors.textTertiary)
+        .foregroundColor(Color(red: 1.0, green: 0.23, blue: 0.35))  // Apple Health pink
+        .padding(.horizontal, 5)
+        .padding(.vertical, 2)
+        .background(Color(red: 1.0, green: 0.23, blue: 0.35).opacity(0.1))
+        .cornerRadius(4)
     }
 }
 
