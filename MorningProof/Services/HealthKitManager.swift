@@ -215,14 +215,25 @@ final class HealthKitManager: ObservableObject, Sendable {
                 return
             }
 
+            // Select samples from the best (highest priority) source only
+            // This prevents double-counting when multiple sources (Apple Watch, iPhone, AutoSleep, etc.)
+            // each record their own overlapping sleep sessions
+            let groups = groupSamplesBySource(sleepSamples)
+            let selectedSamples = selectBestSourceSamples(from: groups)
+
+            guard !selectedSamples.isEmpty else {
+                self.lastNightSleep = nil
+                return
+            }
+
             // Calculate total sleep duration by merging overlapping intervals
             // Apple Health stores sleep stages (core, deep, REM) as separate samples that overlap
             // We need to merge them to avoid double-counting the same sleep time
-            let totalSeconds = mergedSleepDuration(from: sleepSamples)
+            let totalSeconds = mergedSleepDuration(from: selectedSamples)
 
-            // Track earliest start and latest end for reference
-            let earliestStart = sleepSamples.map { $0.startDate }.min()
-            let latestEnd = sleepSamples.map { $0.endDate }.max()
+            // Track earliest start and latest end for reference (from selected source only)
+            let earliestStart = selectedSamples.map { $0.startDate }.min()
+            let latestEnd = selectedSamples.map { $0.endDate }.max()
 
             let totalHours = totalSeconds / 3600
 
@@ -347,11 +358,74 @@ final class HealthKitManager: ObservableObject, Sendable {
         }
     }
 
+    // MARK: - Source Selection Helpers
+
+    /// Groups sleep samples by their source bundle identifier
+    private func groupSamplesBySource(_ samples: [HKCategorySample]) -> [String: [HKCategorySample]] {
+        var groups: [String: [HKCategorySample]] = [:]
+        for sample in samples {
+            let bundleId = sample.sourceRevision.source.bundleIdentifier
+            groups[bundleId, default: []].append(sample)
+        }
+        return groups
+    }
+
+    /// Returns priority for a source (lower = better). Apple Watch is highest priority.
+    private func sourcePriority(for bundleId: String, productType: String?) -> Int {
+        // Check if source is from Apple Watch (productType contains "Watch")
+        if let productType = productType, productType.lowercased().contains("watch") {
+            return 0  // Highest priority
+        }
+
+        // Known quality third-party sleep apps
+        let knownSleepApps = [
+            "com.tantsissa.autosleep",    // AutoSleep
+            "com.northcube.SleepCycle",   // Sleep Cycle
+            "com.pillow.sleepanalytics",  // Pillow
+            "com.ouraring.oura"           // Oura Ring
+        ]
+        if knownSleepApps.contains(bundleId) {
+            return 1
+        }
+
+        // Apple Health (could be iPhone or Watch without productType)
+        if bundleId.hasPrefix("com.apple.health") {
+            return 2
+        }
+
+        // Other sources
+        return 3
+    }
+
+    /// Selects samples from the highest-priority source
+    private func selectBestSourceSamples(from groups: [String: [HKCategorySample]]) -> [HKCategorySample] {
+        guard !groups.isEmpty else { return [] }
+
+        var bestSource: String?
+        var bestPriority = Int.max
+
+        for (bundleId, samples) in groups {
+            let productType = samples.first?.sourceRevision.productType
+            let priority = sourcePriority(for: bundleId, productType: productType)
+
+            if priority < bestPriority {
+                bestPriority = priority
+                bestSource = bundleId
+            }
+        }
+
+        return bestSource.flatMap { groups[$0] } ?? []
+    }
+
     // MARK: - Sleep Interval Merging
 
     /// Merges overlapping sleep intervals and returns total sleep duration in seconds.
     /// Apple Health stores sleep stages (core, deep, REM) as separate overlapping samples.
     /// Without merging, we'd double/triple count the same sleep time.
+    ///
+    /// Uses a 5-minute gap tolerance for brief interruptions within a single source.
+    /// Since we now filter to a single source, we don't need the larger tolerance
+    /// that was previously used for cross-source merging.
     private func mergedSleepDuration(from samples: [HKCategorySample]) -> TimeInterval {
         guard !samples.isEmpty else { return 0 }
 
@@ -359,14 +433,15 @@ final class HealthKitManager: ObservableObject, Sendable {
         var intervals = samples.map { ($0.startDate, $0.endDate) }
         intervals.sort { $0.0 < $1.0 }
 
-        // Merge overlapping intervals
+        // Merge overlapping or nearby intervals (within 5 minutes)
+        let gapTolerance: TimeInterval = 5 * 60 // 5 minutes
         var merged: [(Date, Date)] = []
         for interval in intervals {
-            if let last = merged.last, interval.0 <= last.1 {
-                // Overlaps with previous - extend the end if needed
+            if let last = merged.last, interval.0 <= last.1.addingTimeInterval(gapTolerance) {
+                // Overlaps with or near previous - extend the end if needed
                 merged[merged.count - 1] = (last.0, max(last.1, interval.1))
             } else {
-                // No overlap - add as new interval
+                // Gap too large - add as new interval
                 merged.append(interval)
             }
         }
