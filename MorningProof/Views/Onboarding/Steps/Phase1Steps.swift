@@ -237,6 +237,7 @@ struct NameStep: View {
     @State private var sparkles: [SparkleParticle] = []
     @State private var fadeOut = false
     @State private var previousNameLength = 0
+    @State private var waveRotation: Double = 0
 
     struct SparkleParticle: Identifiable {
         let id = UUID()
@@ -264,11 +265,9 @@ struct NameStep: View {
                 Spacer()
 
                 VStack(spacing: MPSpacing.lg) {
-                    // Animated icon that floats away
+                    // Animated waving hand that floats away
                     GeometryReader { geo in
-                        Image(systemName: "person.circle.fill")
-                            .font(.system(size: 60))
-                            .foregroundColor(MPColors.primary)
+                        WavingHandIcon(size: 56, waveRotation: waveRotation)
                             .frame(maxWidth: .infinity)
                             .scaleEffect(iconDeparting ? 0.3 : 1.0)
                             .opacity(iconDeparting ? 0 : 1)
@@ -388,6 +387,11 @@ struct NameStep: View {
             .animation(.easeInOut(duration: 0.3), value: hasConfirmedName)
         }
         .onAppear {
+            // Continuous wave animation
+            withAnimation(.easeInOut(duration: 0.35).repeatForever(autoreverses: true)) {
+                waveRotation = 20
+            }
+
             if !data.userName.isEmpty {
                 // Name was pre-filled from authentication - show greeting and proceed
                 DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
@@ -469,6 +473,19 @@ struct NameStep: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             sparkles.removeAll()
         }
+    }
+}
+
+// MARK: - Waving Hand Icon (Emoji Style)
+
+private struct WavingHandIcon: View {
+    let size: CGFloat
+    let waveRotation: Double
+
+    var body: some View {
+        Text("👋")
+            .font(.system(size: size * 0.9))
+            .rotationEffect(.degrees(waveRotation), anchor: .bottomTrailing)
     }
 }
 

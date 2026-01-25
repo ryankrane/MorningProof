@@ -17,19 +17,19 @@ struct GuardrailStep: View {
     private let guardrails: [(title: String, description: String, icon: String, gradient: [Color])] = [
         (
             "Earn Your Dopamine",
-            "Apps stay locked until you're done.",
+            "We block distracting apps until your morning routine is done.",
             "lock.shield.fill",
             [Color(red: 0.4, green: 0.5, blue: 1.0), Color(red: 0.6, green: 0.4, blue: 1.0)]
         ),
         (
             "Require Real Proof",
-            "AI verifies with photo evidence.",
+            "No more lying to yourself. AI verifies your morning routine with photo evidence.",
             "camera.viewfinder",
             [Color(red: 1.0, green: 0.6, blue: 0.3), Color(red: 1.0, green: 0.4, blue: 0.5)]
         ),
         (
             "Create Friction",
-            "Make the wrong choice hard.",
+            "Make the wrong choice hard. We add just enough resistance to keep you on track.",
             "figure.run",
             [MPColors.primary, Color(red: 0.5, green: 0.8, blue: 0.9)]
         )
