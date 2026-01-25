@@ -9,6 +9,9 @@ When you learn something important about this project (gotchas, patterns, decisi
 ## Design Quality Principle
 Every feature and UI element must feel well thought out. The app should feel polished and premium, not cheaply made. This doesn't mean overcomplicating things - it means taking an extra moment to consider the best approach and cool ideas before implementing. Go above and beyond, but keep solutions simple and elegant.
 
+## UI Aesthetic
+The UI should look and feel like it came from Apple. Thoughtful, modern, and sleek. Favor simplicity when possible while keeping function and form as priorities. Reference Apple's native apps (Settings, Health, Screen Time) for patterns and visual language.
+
 ## What This App Does
 Morning habit tracking app that uses photo verification (AI checks if you made your bed) to build streaks and accountability.
 

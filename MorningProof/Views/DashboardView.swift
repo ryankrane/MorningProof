@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @ObservedObject var manager: MorningProofManager
+    @Environment(\.colorScheme) var colorScheme
     @State private var showSettings = false
     @State private var showBedCamera = false
     @State private var showSunlightCamera = false
@@ -1023,7 +1024,7 @@ struct DashboardView: View {
                         HealthBadge(isCompleted: true)
                         Text("\(steps)/\(config.goal) steps")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(colorScheme == .light ? MPColors.textTertiary : .white.opacity(0.8))
                         if wasCompletedLate(completion) {
                             LateBadge()
                         }
@@ -1054,7 +1055,7 @@ struct DashboardView: View {
                         HealthBadge(isCompleted: completion.isCompleted)
                         Text("\(formatHours(hours))/\(config.goal)h sleep")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(completion.isCompleted ? .white.opacity(0.8) : MPColors.textTertiary)
+                            .foregroundColor(completion.isCompleted ? (colorScheme == .light ? MPColors.textTertiary : .white.opacity(0.8)) : MPColors.textTertiary)
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
                     // Show "Not met" instead of "LATE" for sleep - you can't be late on last night's sleep
@@ -1079,7 +1080,7 @@ struct DashboardView: View {
                         HealthBadge(isCompleted: true)
                         Text("Completed")
                             .font(MPFont.bodySmall())
-                            .foregroundColor(.white.opacity(0.8))
+                            .foregroundColor(colorScheme == .light ? MPColors.textTertiary : .white.opacity(0.8))
                         if wasCompletedLate(completion) {
                             LateBadge()
                         }
@@ -1272,9 +1273,12 @@ private struct LateBadge: View {
 }
 
 /// Apple Health badge with heart icon (always visible on auto-tracked habits)
-/// Adapts colors based on completion state for readability on different backgrounds
+/// Adapts colors based on completion state and color scheme for readability
 private struct HealthBadge: View {
     var isCompleted: Bool = false
+    @Environment(\.colorScheme) var colorScheme
+
+    private let healthRed = Color(red: 1.0, green: 0.23, blue: 0.35)
 
     var body: some View {
         HStack(spacing: 3) {
@@ -1283,11 +1287,29 @@ private struct HealthBadge: View {
             Text("Health")
                 .font(.system(size: 10, weight: .medium))
         }
-        .foregroundColor(isCompleted ? .white.opacity(0.9) : Color(red: 1.0, green: 0.23, blue: 0.35))
+        .foregroundColor(badgeForegroundColor)
         .padding(.horizontal, 5)
         .padding(.vertical, 2)
-        .background(isCompleted ? Color.white.opacity(0.2) : Color(red: 1.0, green: 0.23, blue: 0.35).opacity(0.15))
+        .background(badgeBackgroundColor)
         .cornerRadius(4)
+    }
+
+    /// In light mode, keep red even when completed (green bg is light enough for contrast)
+    /// In dark mode, switch to white when completed for readability
+    private var badgeForegroundColor: Color {
+        if isCompleted {
+            return colorScheme == .light ? healthRed : .white.opacity(0.9)
+        } else {
+            return healthRed
+        }
+    }
+
+    private var badgeBackgroundColor: Color {
+        if isCompleted {
+            return colorScheme == .light ? healthRed.opacity(0.15) : Color.white.opacity(0.2)
+        } else {
+            return healthRed.opacity(0.15)
+        }
     }
 }
 

@@ -42,6 +42,20 @@ final class SDSettings {
     // Goals
     var weeklyPerfectMorningsGoal: Int
 
+    // Custom per-day deadlines
+    // Mode: 0 = same every day, 1 = weekday/weekend, 2 = each day
+    var deadlineCustomizationMode: Int
+    var weekdayDeadlineMinutes: Int
+    var weekendDeadlineMinutes: Int
+    // Per-day deadlines: index 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    var perDayDeadlineMinutes: [Int]
+
+    // Legacy support (maps to mode 1 if true)
+    var customDeadlinesEnabled: Bool {
+        get { deadlineCustomizationMode == 1 }
+        set { deadlineCustomizationMode = newValue ? 1 : 0 }
+    }
+
     init() {
         self.id = UUID()
         self.userName = ""
@@ -63,6 +77,11 @@ final class SDSettings {
         self.strictModeEnabled = true
         self.allowStreakRecovery = false
         self.weeklyPerfectMorningsGoal = 5
+        self.deadlineCustomizationMode = 0  // Same every day
+        self.weekdayDeadlineMinutes = 540   // 9:00 AM
+        self.weekendDeadlineMinutes = 660   // 11:00 AM
+        // Default all days to 9:00 AM
+        self.perDayDeadlineMinutes = [540, 540, 540, 540, 540, 540, 540]
     }
 }
 

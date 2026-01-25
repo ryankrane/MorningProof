@@ -163,8 +163,11 @@ final class MorningProofManager: ObservableObject, Sendable {
         // Note: We re-lookup indices after each await to prevent race conditions.
         // The array could change during async calls, making captured indices invalid.
 
+        // Get effective cutoff for today (weekday vs weekend aware)
+        let effectiveCutoffMinutes = getEffectiveCutoffMinutes(for: Date())
+
         // Update morning steps
-        let steps = await healthKit.fetchStepsBeforeCutoff(cutoffMinutes: settings.morningCutoffMinutes)
+        let steps = await healthKit.fetchStepsBeforeCutoff(cutoffMinutes: effectiveCutoffMinutes)
         if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningSteps }) {
             let stepGoal = habitConfigs.first { $0.habitType == .morningSteps }?.goal ?? 500
 
@@ -213,7 +216,7 @@ final class MorningProofManager: ObservableObject, Sendable {
         }
 
         if !isManuallyCompleted {
-            let hasWorkout = await healthKit.checkMorningWorkout(cutoffMinutes: settings.morningCutoffMinutes)
+            let hasWorkout = await healthKit.checkMorningWorkout(cutoffMinutes: effectiveCutoffMinutes)
             // Re-lookup index after await
             if let index = todayLog.completions.firstIndex(where: { $0.habitType == .morningWorkout }) {
                 todayLog.completions[index].verificationData = HabitCompletion.VerificationData(workoutDetected: hasWorkout, isFromHealthKit: true)
@@ -609,12 +612,22 @@ final class MorningProofManager: ObservableObject, Sendable {
         // This ensures the flame stays gray until the lock-in celebration completes
     }
 
-    private func getCutoffTime() -> Date {
+    private func getCutoffTime(for date: Date = Date()) -> Date {
         let calendar = Calendar.current
-        var components = calendar.dateComponents([.year, .month, .day], from: Date())
-        components.hour = settings.morningCutoffMinutes / 60
-        components.minute = settings.morningCutoffMinutes % 60
-        return calendar.date(from: components) ?? Date()
+        let minutes = getEffectiveCutoffMinutes(for: date)
+        var components = calendar.dateComponents([.year, .month, .day], from: date)
+        components.hour = minutes / 60
+        components.minute = minutes % 60
+        return calendar.date(from: components) ?? date
+    }
+
+    /// Returns the effective cutoff minutes for a given date, considering weekday/weekend settings
+    private func getEffectiveCutoffMinutes(for date: Date) -> Int {
+        guard settings.customDeadlinesEnabled else {
+            return settings.morningCutoffMinutes
+        }
+        let isWeekend = Calendar.current.isDateInWeekend(date)
+        return isWeekend ? settings.weekendDeadlineMinutes : settings.weekdayDeadlineMinutes
     }
 
     // MARK: - Settings
@@ -715,6 +728,9 @@ final class MorningProofManager: ObservableObject, Sendable {
         AppLockingDataStore.morningCutoffMinutes = settings.morningCutoffMinutes
         AppLockingDataStore.appLockingEnabled = settings.appLockingEnabled
         AppLockingDataStore.blockingStartMinutes = settings.blockingStartMinutes
+        AppLockingDataStore.customDeadlinesEnabled = settings.customDeadlinesEnabled
+        AppLockingDataStore.weekdayDeadlineMinutes = settings.weekdayDeadlineMinutes
+        AppLockingDataStore.weekendDeadlineMinutes = settings.weekendDeadlineMinutes
 
         // Update Live Activity
         Task {
@@ -810,6 +826,9 @@ final class MorningProofManager: ObservableObject, Sendable {
         AppLockingDataStore.blockingStartMinutes = 0
         AppLockingDataStore.appLockingEnabled = false
         AppLockingDataStore.wasEmergencyUnlock = false
+        AppLockingDataStore.customDeadlinesEnabled = false
+        AppLockingDataStore.weekdayDeadlineMinutes = 540
+        AppLockingDataStore.weekendDeadlineMinutes = 660
     }
 
     // MARK: - Computed Properties
@@ -1082,6 +1101,20 @@ struct MorningProofSettings: Codable {
     var customSleepGoal: Double
     var customStepGoal: Int
 
+    // Custom per-day deadlines
+    // Mode: 0 = same every day, 1 = weekday/weekend, 2 = each day
+    var deadlineCustomizationMode: Int
+    var weekdayDeadlineMinutes: Int  // Mon-Fri deadline (e.g., 540 = 9:00 AM)
+    var weekendDeadlineMinutes: Int  // Sat-Sun deadline (e.g., 660 = 11:00 AM)
+    // Per-day deadlines: index 0 = Sunday, 1 = Monday, ..., 6 = Saturday
+    var perDayDeadlineMinutes: [Int]
+
+    // Legacy computed property for backwards compatibility
+    var customDeadlinesEnabled: Bool {
+        get { deadlineCustomizationMode == 1 }
+        set { deadlineCustomizationMode = newValue ? 1 : 0 }
+    }
+
     init() {
         self.userName = ""
         self.morningCutoffMinutes = 540  // 9:00 AM
@@ -1095,7 +1128,7 @@ struct MorningProofSettings: Codable {
         // Notifications
         self.notificationsEnabled = true
         self.morningReminderTime = 420  // 7:00 AM
-        self.countdownWarnings = [15, 5, 1]
+        self.countdownWarnings = [15]  // Single 15-minute warning before deadline
 
         // App Locking
         self.appLockingEnabled = false
@@ -1110,6 +1143,13 @@ struct MorningProofSettings: Codable {
         self.weeklyPerfectMorningsGoal = 5
         self.customSleepGoal = 7.0
         self.customStepGoal = 500
+
+        // Custom per-day deadlines
+        self.deadlineCustomizationMode = 0  // Same every day
+        self.weekdayDeadlineMinutes = 540   // 9:00 AM (Mon-Fri)
+        self.weekendDeadlineMinutes = 660   // 11:00 AM (Sat-Sun)
+        // Default all days to 9:00 AM
+        self.perDayDeadlineMinutes = [540, 540, 540, 540, 540, 540, 540]
     }
 
     // Computed helper for hour (for HealthKit API compatibility)

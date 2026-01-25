@@ -4,6 +4,10 @@ struct RoutineTabView: View {
     @ObservedObject var manager: MorningProofManager
 
     @State private var cutoffMinutes: Int = 540
+    @State private var deadlineCustomizationMode: Int = 0
+    @State private var weekdayDeadlineMinutes: Int = 540
+    @State private var weekendDeadlineMinutes: Int = 660
+    @State private var perDayDeadlineMinutes: [Int] = [540, 540, 540, 540, 540, 540, 540]
     @State private var showCreateCustomHabit = false
 
     /// All enabled habits in display order (predefined + custom combined)
@@ -41,7 +45,13 @@ struct RoutineTabView: View {
                 ScrollView {
                     VStack(spacing: MPSpacing.xl) {
                         // Deadline section
-                        DeadlineCardView(cutoffMinutes: $cutoffMinutes)
+                        DeadlineCardView(
+                            cutoffMinutes: $cutoffMinutes,
+                            customizationMode: $deadlineCustomizationMode,
+                            weekdayDeadlineMinutes: $weekdayDeadlineMinutes,
+                            weekendDeadlineMinutes: $weekendDeadlineMinutes,
+                            perDayDeadlineMinutes: $perDayDeadlineMinutes
+                        )
 
                         // App Locking section
                         AppLockingCardView()
@@ -178,11 +188,24 @@ struct RoutineTabView: View {
 
     private func loadSettings() {
         cutoffMinutes = manager.settings.morningCutoffMinutes
+        deadlineCustomizationMode = manager.settings.deadlineCustomizationMode
+        weekdayDeadlineMinutes = manager.settings.weekdayDeadlineMinutes
+        weekendDeadlineMinutes = manager.settings.weekendDeadlineMinutes
+        perDayDeadlineMinutes = manager.settings.perDayDeadlineMinutes
     }
 
     private func saveSettings() {
         manager.settings.morningCutoffMinutes = cutoffMinutes
+        manager.settings.deadlineCustomizationMode = deadlineCustomizationMode
+        manager.settings.weekdayDeadlineMinutes = weekdayDeadlineMinutes
+        manager.settings.weekendDeadlineMinutes = weekendDeadlineMinutes
+        manager.settings.perDayDeadlineMinutes = perDayDeadlineMinutes
         manager.saveCurrentState()
+
+        // Update notifications when deadline settings change
+        Task {
+            await NotificationManager.shared.updateNotificationSchedule(settings: manager.settings)
+        }
     }
 }
 

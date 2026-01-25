@@ -378,7 +378,7 @@ struct AppLockingSettingsView: View {
                 howItWorksRow(
                     number: "1",
                     title: "Select Apps & Time",
-                    description: "Choose apps to block and when blocking starts each day"
+                    description: "Choose apps to block and when blocking starts"
                 )
 
                 howItWorksRow(
