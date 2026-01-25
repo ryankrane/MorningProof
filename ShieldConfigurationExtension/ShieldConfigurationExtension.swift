@@ -1,63 +1,71 @@
 import ManagedSettings
 import ManagedSettingsUI
 import UIKit
+import os.log
+
+private let logger = Logger(subsystem: "com.rk.morningproof.shieldconfig", category: "ShieldConfiguration")
 
 /// Extension that customizes the appearance of the blocking shield overlay.
 /// This is shown when a user tries to open a blocked app.
 class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
+    override init() {
+        super.init()
+        logger.info("🛡️ ShieldConfigurationExtension: INITIALIZED - Extension is loading!")
+    }
+
     // MARK: - App Shield Configuration
 
     /// Returns the shield configuration for a blocked application.
     override func configuration(shielding application: Application) -> ShieldConfiguration {
-        createShieldConfiguration()
+        logger.info("🛡️ ShieldConfigurationExtension: configuration(shielding application:) called")
+        return createShieldConfiguration()
     }
 
     /// Returns the shield configuration for a blocked application in a category.
     override func configuration(shielding application: Application, in category: ActivityCategory) -> ShieldConfiguration {
-        createShieldConfiguration()
+        logger.info("🛡️ ShieldConfigurationExtension: configuration(shielding application: in category:) called")
+        return createShieldConfiguration()
     }
 
     /// Returns the shield configuration for a blocked web domain.
     override func configuration(shielding webDomain: WebDomain) -> ShieldConfiguration {
-        createShieldConfiguration(isWeb: true)
+        logger.info("🛡️ ShieldConfigurationExtension: configuration(shielding webDomain:) called")
+        return createShieldConfiguration(isWeb: true)
     }
 
     /// Returns the shield configuration for a blocked web domain in a category.
     override func configuration(shielding webDomain: WebDomain, in category: ActivityCategory) -> ShieldConfiguration {
-        createShieldConfiguration(isWeb: true)
+        logger.info("🛡️ ShieldConfigurationExtension: configuration(shielding webDomain: in category:) called")
+        return createShieldConfiguration(isWeb: true)
     }
 
     // MARK: - Helper
 
     /// Creates the shield configuration with MorningProof branding.
     private func createShieldConfiguration(isWeb: Bool = false) -> ShieldConfiguration {
-        // MorningProof brand purple color (matches app theme)
+        logger.info("🛡️ createShieldConfiguration called, isWeb: \(isWeb)")
+
+        // Production version - using Morning Proof brand purple
         let brandPurple = UIColor(red: 0.55, green: 0.45, blue: 0.75, alpha: 1.0)
 
-        // Load app icon from extension's asset catalog
-        // Must explicitly specify bundle - extensions can't rely on UIImage(named:) finding the right bundle
-        let bundle = Bundle(for: ShieldConfigurationExtension.self)
-        let appIcon = UIImage(named: "ShieldIcon", in: bundle, compatibleWith: nil)
-
         return ShieldConfiguration(
-            backgroundBlurStyle: .systemMaterial,
-            backgroundColor: UIColor.systemBackground,
-            icon: appIcon,
+            backgroundBlurStyle: .systemThickMaterial,
+            backgroundColor: brandPurple,
+            icon: UIImage(systemName: "sunrise.fill"),
             title: ShieldConfiguration.Label(
                 text: isWeb ? "Website Blocked" : "App Blocked",
-                color: .label
+                color: .white
             ),
             subtitle: ShieldConfiguration.Label(
                 text: "Complete your morning routine to unlock",
-                color: .secondaryLabel
+                color: .white
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
                 text: "Open Morning Proof",
-                color: .white
+                color: .black
             ),
-            primaryButtonBackgroundColor: brandPurple,
-            // Emergency unlock option - breaks streak but allows access
+            primaryButtonBackgroundColor: .white,
             secondaryButtonLabel: ShieldConfiguration.Label(
                 text: "Emergency Unlock",
                 color: .systemRed
