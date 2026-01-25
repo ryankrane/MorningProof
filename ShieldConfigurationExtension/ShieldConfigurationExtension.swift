@@ -32,26 +32,29 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
 
     /// Creates the shield configuration with MorningProof branding.
     private func createShieldConfiguration(isWeb: Bool = false) -> ShieldConfiguration {
-        // Use system colors that adapt to light/dark mode
-        let primaryColor = UIColor.systemBlue
+        // MorningProof brand purple color (matches app theme)
+        let brandPurple = UIColor(red: 0.55, green: 0.45, blue: 0.75, alpha: 1.0)
+
+        // Load app icon from extension's asset catalog
+        let appIcon = UIImage(named: "ShieldIcon")
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemMaterial,
             backgroundColor: UIColor.systemBackground,
-            icon: UIImage(systemName: "sunrise.fill"),
+            icon: appIcon,
             title: ShieldConfiguration.Label(
                 text: isWeb ? "Website Blocked" : "App Blocked",
                 color: .label
             ),
             subtitle: ShieldConfiguration.Label(
-                text: "Complete your morning habits to unlock",
+                text: "Complete your morning routine to unlock",
                 color: .secondaryLabel
             ),
             primaryButtonLabel: ShieldConfiguration.Label(
                 text: "Open Morning Proof",
                 color: .white
             ),
-            primaryButtonBackgroundColor: primaryColor,
+            primaryButtonBackgroundColor: brandPurple,
             // Emergency unlock option - breaks streak but allows access
             secondaryButtonLabel: ShieldConfiguration.Label(
                 text: "Emergency Unlock",

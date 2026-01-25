@@ -23,6 +23,9 @@ struct AppLockingDataStore {
         static let lastLockInDate = "appLocking_lastLockInDate"
         static let selectedAppsData = "appLocking_selectedApps"
         static let wasEmergencyUnlock = "appLocking_wasEmergencyUnlock"
+        static let customDeadlinesEnabled = "appLocking_customDeadlinesEnabled"
+        static let weekdayDeadlineMinutes = "appLocking_weekdayDeadlineMinutes"
+        static let weekendDeadlineMinutes = "appLocking_weekendDeadlineMinutes"
     }
 
     // MARK: - Private Helpers
@@ -102,6 +105,47 @@ struct AppLockingDataStore {
         }
     }
 
+    // MARK: - Custom Deadlines (Weekday vs Weekend)
+
+    /// Whether custom weekday/weekend deadlines are enabled.
+    static var customDeadlinesEnabled: Bool {
+        get { defaults?.bool(forKey: Keys.customDeadlinesEnabled) ?? false }
+        set {
+            defaults?.set(newValue, forKey: Keys.customDeadlinesEnabled)
+            defaults?.synchronize()
+        }
+    }
+
+    /// Weekday deadline in minutes from midnight (Mon-Fri).
+    /// Default: 540 (9:00 AM)
+    static var weekdayDeadlineMinutes: Int {
+        get { defaults?.integer(forKey: Keys.weekdayDeadlineMinutes) ?? 540 }
+        set {
+            defaults?.set(newValue, forKey: Keys.weekdayDeadlineMinutes)
+            defaults?.synchronize()
+        }
+    }
+
+    /// Weekend deadline in minutes from midnight (Sat-Sun).
+    /// Default: 660 (11:00 AM)
+    static var weekendDeadlineMinutes: Int {
+        get { defaults?.integer(forKey: Keys.weekendDeadlineMinutes) ?? 660 }
+        set {
+            defaults?.set(newValue, forKey: Keys.weekendDeadlineMinutes)
+            defaults?.synchronize()
+        }
+    }
+
+    /// Returns the effective cutoff minutes for a given date, considering weekday/weekend settings.
+    /// Use this instead of `morningCutoffMinutes` when you need the day-aware value.
+    static func getCutoffMinutes(for date: Date) -> Int {
+        guard customDeadlinesEnabled else {
+            return morningCutoffMinutes
+        }
+        let isWeekend = Calendar.current.isDateInWeekend(date)
+        return isWeekend ? weekendDeadlineMinutes : weekdayDeadlineMinutes
+    }
+
     // MARK: - Emergency Unlock
 
     /// Whether the last unlock was an emergency unlock (user bypassed habits).
@@ -161,6 +205,10 @@ struct AppLockingDataStore {
         - Enabled: \(appLockingEnabled)
         - Blocking Start: \(blockingStartMinutes) minutes
         - Cutoff: \(morningCutoffMinutes) minutes
+        - Custom Deadlines Enabled: \(customDeadlinesEnabled)
+        - Weekday Deadline: \(weekdayDeadlineMinutes) minutes
+        - Weekend Deadline: \(weekendDeadlineMinutes) minutes
+        - Effective Cutoff Today: \(getCutoffMinutes(for: Date())) minutes
         - Day Locked In: \(isDayLockedIn)
         - Has Locked In Today: \(hasLockedInToday)
         - Was Emergency Unlock: \(wasEmergencyUnlock)

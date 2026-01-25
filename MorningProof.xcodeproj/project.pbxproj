@@ -43,6 +43,7 @@
 		33381EDF9123FB6FD1CD4D77 /* CrashReportingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */; };
 		344291CEE140F868F09661A8 /* MigrationManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = B502D69BDFD183D6AB140577 /* MigrationManager.swift */; };
 		3796BBBB023F2FDBDF2C4D09 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 057E690E946F7B40FDCCDA21 /* OnboardingView.swift */; };
+		38E947556334AC41C145C23A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8111A6B29556C5810398991B /* Assets.xcassets */; };
 		39646F02FC113E8B1D19DEFB /* EnhancedPlanCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7F9DB6D41429EBB072A2745C /* EnhancedPlanCard.swift */; };
 		3CC009C7A68E2AC7670D2C6E /* AddHabitView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E77FA331CFD0EB9F23473E2 /* AddHabitView.swift */; };
 		3E47A6B089C95465AF967F56 /* TextEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */; };
@@ -259,6 +260,7 @@
 		763E26624932CF8AB0A39294 /* DynamicHabitLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DynamicHabitLayout.swift; sourceTree = "<group>"; };
 		7E605E7D6702194942BB3ED3 /* DaySchedulePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySchedulePicker.swift; sourceTree = "<group>"; };
 		7F9DB6D41429EBB072A2745C /* EnhancedPlanCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EnhancedPlanCard.swift; sourceTree = "<group>"; };
+		8111A6B29556C5810398991B /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		813BD1AFB063AC492BE3C2ED /* HealthKitBackgroundDeliveryService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitBackgroundDeliveryService.swift; sourceTree = "<group>"; };
 		81E27C79275105250C7984B1 /* DeviceActivityMonitorExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = DeviceActivityMonitorExtension.entitlements; sourceTree = "<group>"; };
 		846D7C7ABD3D2D7763D6088F /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
@@ -409,6 +411,7 @@
 		3C1D00109C3D1801D1FCD0D4 /* ShieldConfigurationExtension */ = {
 			isa = PBXGroup;
 			children = (
+				8111A6B29556C5810398991B /* Assets.xcassets */,
 				41C95CFD77942F5C4F16F3B0 /* Info.plist */,
 				04D4C607BEF5AEF122F00FC5 /* ShieldConfigurationExtension.entitlements */,
 				B8929C86AD2AA3810BF67CC0 /* ShieldConfigurationExtension.swift */,
@@ -673,6 +676,7 @@
 			buildConfigurationList = 25C37F77F4520B4ED2E11C0F /* Build configuration list for PBXNativeTarget "MorningProofShieldConfig" */;
 			buildPhases = (
 				1C495C073DFA2B9617CFC6D5 /* Sources */,
+				6440A9281B45F15138B0DD52 /* Resources */,
 			);
 			buildRules = (
 			);
@@ -836,6 +840,14 @@
 				A3F9EB732B92CA372A791E02 /* GoogleService-Info.plist in Resources */,
 				E88801836A1DB6F71FAFD876 /* PrivacyInfo.xcprivacy in Resources */,
 				780FD6A2D91E60BFA54E6852 /* Secrets.swift.example in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		6440A9281B45F15138B0DD52 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				38E947556334AC41C145C23A /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

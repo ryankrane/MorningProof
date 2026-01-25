@@ -401,7 +401,8 @@ final class HealthKitBackgroundDeliveryService: @unchecked Sendable {
     // MARK: - Settings Helpers
 
     private func getCutoffTime() -> Date {
-        let cutoffMinutes = AppLockingDataStore.morningCutoffMinutes
+        // Use weekday/weekend aware cutoff from AppLockingDataStore
+        let cutoffMinutes = AppLockingDataStore.getCutoffMinutes(for: Date())
         let calendar = Calendar.current
         var components = calendar.dateComponents([.year, .month, .day], from: Date())
         components.hour = cutoffMinutes / 60

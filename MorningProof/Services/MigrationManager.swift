@@ -132,6 +132,9 @@ class MigrationManager {
         sd.strictModeEnabled = settings.strictModeEnabled
         sd.allowStreakRecovery = settings.allowStreakRecovery
         sd.weeklyPerfectMorningsGoal = settings.weeklyPerfectMorningsGoal
+        sd.customDeadlinesEnabled = settings.customDeadlinesEnabled
+        sd.weekdayDeadlineMinutes = settings.weekdayDeadlineMinutes
+        sd.weekendDeadlineMinutes = settings.weekendDeadlineMinutes
         return sd
     }
 
