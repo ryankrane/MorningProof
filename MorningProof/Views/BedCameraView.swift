@@ -257,6 +257,12 @@ struct BedCameraView: View {
                 } else {
                     // Failure
                     ZStack {
+                        // Subtle glow behind X (matches success state)
+                        Circle()
+                            .fill(MPColors.error.opacity(0.2))
+                            .frame(width: 140, height: 140)
+                            .blur(radius: 20)
+
                         Circle()
                             .fill(MPColors.errorLight)
                             .frame(width: 120, height: 120)
