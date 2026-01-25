@@ -11,6 +11,11 @@ struct BedCameraView: View {
     @State private var errorMessage: String?
     @State private var errorIcon: String = "exclamationmark.triangle"
 
+    // Animation states for initial capture view
+    @State private var showIcon = false
+    @State private var showText = false
+    @State private var showCameraButton = false
+
     // Animation states for result view
     @State private var showCheckmark = false
     @State private var showTitle = false
@@ -20,21 +25,22 @@ struct BedCameraView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                MPColors.background
-                    .ignoresSafeArea()
+            GeometryReader { geometry in
+                ZStack {
+                    MPColors.background
+                        .ignoresSafeArea()
 
-                if isAnalyzing {
-                    analyzingView
-                } else if let error = errorMessage {
-                    errorView(error)
-                } else if let result = result {
-                    resultView(result)
-                } else {
-                    captureView
+                    if isAnalyzing {
+                        analyzingView
+                    } else if let error = errorMessage {
+                        errorView(error)
+                    } else if let result = result {
+                        resultView(result)
+                    } else {
+                        captureView(geometry: geometry)
+                    }
                 }
             }
-            .navigationTitle(isAnalyzing ? "" : "Verify Bed")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -44,19 +50,17 @@ struct BedCameraView: View {
                     .foregroundColor(MPColors.textTertiary)
                 }
 
-                if isAnalyzing {
-                    ToolbarItem(placement: .principal) {
-                        HStack(spacing: MPSpacing.sm) {
-                            Image("AppLogo")
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 24, height: 24)
-                                .clipShape(RoundedRectangle(cornerRadius: 6))
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: MPSpacing.sm) {
+                        Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
 
-                            Text("MorningProof")
-                                .font(.system(size: 16, weight: .semibold, design: .rounded))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
+                        Text("Morning Proof")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
                     }
                 }
             }
@@ -66,75 +70,133 @@ struct BedCameraView: View {
         }
     }
 
-    var captureView: some View {
-        VStack(spacing: MPSpacing.xxl) {
+    // MARK: - Capture View
+
+    func captureView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            if let image = selectedImage {
+                // Photo selected state
+                photoSelectedView(image: image, geometry: geometry)
+            } else {
+                // Initial capture state - Apple-like design
+                initialCaptureView
+            }
+        }
+    }
+
+    // MARK: - Initial Capture View (No Image)
+
+    var initialCaptureView: some View {
+        VStack(spacing: 0) {
             Spacer()
 
-            if let image = selectedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 350)
-                    .cornerRadius(MPRadius.xl)
-                    .mpShadow(.medium)
-                    .padding(.horizontal, MPSpacing.xxl)
+            // Bed icon - clean, no rings
+            Image(systemName: "bed.double.fill")
+                .font(.system(size: 80))
+                .foregroundColor(MPColors.accent)
+                .scaleEffect(showIcon ? 1.0 : 0.5)
+                .opacity(showIcon ? 1.0 : 0)
+                .frame(height: 120)
 
-                HStack(spacing: MPSpacing.md) {
-                    MPButton(title: "Retake", style: .secondary) {
-                        selectedImage = nil
-                    }
+            Spacer()
+                .frame(height: MPSpacing.xxxl)
 
-                    MPButton(title: "Verify", style: .primary) {
-                        Task {
-                            await verifyBed(image: image)
-                        }
+            // Text content
+            VStack(spacing: MPSpacing.sm) {
+                Text("Take a photo of your bed")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Make sure it's clearly visible")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textTertiary)
+            }
+            .offset(y: showText ? 0 : 15)
+            .opacity(showText ? 1.0 : 0)
+
+            Spacer()
+
+            // Camera shutter button (iOS Camera style)
+            CameraShutterButton {
+                showingCamera = true
+            }
+            .scaleEffect(showCameraButton ? 1.0 : 0.7)
+            .opacity(showCameraButton ? 1.0 : 0)
+
+            Spacer()
+                .frame(height: MPSpacing.xxxl + MPSpacing.lg)
+        }
+        .onAppear {
+            startEntranceAnimations()
+        }
+    }
+
+    private func startEntranceAnimations() {
+        // Reset states first
+        showIcon = false
+        showText = false
+        showCameraButton = false
+
+        // Step 1: Icon scales in (0ms, spring)
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            showIcon = true
+        }
+
+        // Step 2: Text fades up (150ms delay)
+        withAnimation(.easeOut(duration: 0.4).delay(0.15)) {
+            showText = true
+        }
+
+        // Step 3: Camera button appears (300ms delay)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.3)) {
+            showCameraButton = true
+        }
+    }
+
+    // MARK: - Photo Selected View
+
+    func photoSelectedView(image: UIImage, geometry: GeometryProxy) -> some View {
+        VStack(spacing: MPSpacing.xl) {
+            // Photo with refined shadow
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxHeight: geometry.size.height * 0.55)
+                .cornerRadius(MPRadius.xl)
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .padding(.horizontal, MPSpacing.xxl)
+
+            // Vertical button layout - close to photo
+            VStack(spacing: MPSpacing.md) {
+                // Primary verify button
+                MPButton(title: "Verify Photo", style: .primary, icon: "checkmark") {
+                    Task {
+                        await verifyBed(image: image)
                     }
                 }
                 .padding(.horizontal, MPSpacing.xxl)
-            } else {
-                VStack(spacing: MPSpacing.xl) {
-                    VStack(spacing: MPSpacing.xl) {
-                        // Bed icon with subtle glow
-                        ZStack {
-                            // Glow background
-                            Circle()
-                                .fill(MPColors.accent.opacity(0.15))
-                                .frame(width: 120, height: 120)
-                                .blur(radius: 20)
 
-                            Image(systemName: "bed.double.fill")
-                                .font(.system(size: 70))
-                                .foregroundStyle(
-                                    LinearGradient(
-                                        colors: [MPColors.accent, MPColors.accent.opacity(0.7)],
-                                        startPoint: .topLeading,
-                                        endPoint: .bottomTrailing
-                                    )
-                                )
-                        }
-                        .parallaxTilt(intensity: 10)
-
-                        Text("Take a photo of your made bed")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textTertiary)
+                // Retake as text link (not bordered button)
+                Button {
+                    selectedImage = nil
+                    // Reset entrance animations for when we go back
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        startEntranceAnimations()
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 260)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.xl)
-                    .mpShadow(.medium)
-                    .padding(.horizontal, MPSpacing.xxl)
-
-                    MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
-                        showingCamera = true
-                    }
-                    .padding(.horizontal, MPSpacing.xxl)
+                } label: {
+                    Text("Retake Photo")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
                 }
+                .padding(.vertical, MPSpacing.sm)
             }
 
             Spacer()
         }
+        .padding(.top, MPSpacing.lg)
     }
+
+    // MARK: - Analyzing View
 
     @ViewBuilder
     var analyzingView: some View {
@@ -145,11 +207,12 @@ struct BedCameraView: View {
                 statusText: "Verifying..."
             )
         } else {
-            // Fallback if no image (shouldn't happen)
             ProgressView()
                 .scaleEffect(1.5)
         }
     }
+
+    // MARK: - Result View
 
     func resultView(_ result: VerificationResult) -> some View {
         ZStack {
@@ -159,12 +222,18 @@ struct BedCameraView: View {
                 if result.isMade {
                     // Success - with sequenced animations
                     ZStack {
+                        // Subtle glow behind checkmark
+                        Circle()
+                            .fill(MPColors.success.opacity(0.2))
+                            .frame(width: 140, height: 140)
+                            .blur(radius: 20)
+
                         Circle()
                             .fill(MPColors.successLight)
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: 80))
                             .foregroundColor(MPColors.success)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
@@ -191,7 +260,7 @@ struct BedCameraView: View {
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: 80))
                             .foregroundColor(MPColors.error)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
@@ -220,6 +289,9 @@ struct BedCameraView: View {
                             resetResultAnimations()
                             self.result = nil
                             selectedImage = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                startEntranceAnimations()
+                            }
                         }
                         .offset(y: showButton ? 0 : 30)
                         .opacity(showButton ? 1.0 : 0)
@@ -291,6 +363,8 @@ struct BedCameraView: View {
         showButton = false
     }
 
+    // MARK: - Error View (Simplified to 2 buttons)
+
     func errorView(_ message: String) -> some View {
         VStack(spacing: MPSpacing.xxl) {
             Spacer()
@@ -317,21 +391,20 @@ struct BedCameraView: View {
 
             Spacer()
 
+            // Simplified to 2 buttons: Try Again + Cancel
             VStack(spacing: MPSpacing.md) {
-                if let image = selectedImage {
-                    MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
-                        errorMessage = nil
-                        errorIcon = "exclamationmark.triangle"
+                MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
+                    errorMessage = nil
+                    errorIcon = "exclamationmark.triangle"
+                    if let image = selectedImage {
+                        // Retry with existing image
                         Task {
                             await verifyBed(image: image)
                         }
+                    } else {
+                        // Open camera if no image
+                        showingCamera = true
                     }
-                }
-
-                MPButton(title: "Retake Photo", style: .secondary, icon: "camera.fill") {
-                    errorMessage = nil
-                    errorIcon = "exclamationmark.triangle"
-                    selectedImage = nil
                 }
 
                 MPButton(title: "Cancel", style: .secondary) {
@@ -345,6 +418,8 @@ struct BedCameraView: View {
             HapticManager.shared.error()
         }
     }
+
+    // MARK: - Verification
 
     func verifyBed(image: UIImage) async {
         isAnalyzing = true
@@ -363,6 +438,45 @@ struct BedCameraView: View {
             errorIcon = "exclamationmark.triangle"
             isAnalyzing = false
         }
+    }
+}
+
+// MARK: - Camera Shutter Button (iOS Camera Style)
+
+struct CameraShutterButton: View {
+    let action: () -> Void
+
+    @State private var isPressed = false
+
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                // Outer ring
+                Circle()
+                    .stroke(MPColors.textPrimary.opacity(0.9), lineWidth: 4)
+                    .frame(width: 72, height: 72)
+
+                // Inner filled circle
+                Circle()
+                    .fill(MPColors.textPrimary.opacity(0.9))
+                    .frame(width: 60, height: 60)
+                    .scaleEffect(isPressed ? 0.9 : 1.0)
+            }
+        }
+        .buttonStyle(ShutterButtonStyle(isPressed: $isPressed))
+    }
+}
+
+struct ShutterButtonStyle: ButtonStyle {
+    @Binding var isPressed: Bool
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .onChange(of: configuration.isPressed) { _, newValue in
+                withAnimation(.easeInOut(duration: 0.1)) {
+                    isPressed = newValue
+                }
+            }
     }
 }
 

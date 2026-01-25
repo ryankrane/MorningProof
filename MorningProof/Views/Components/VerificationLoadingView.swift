@@ -10,7 +10,7 @@ struct VerificationLoadingView: View {
         VStack(spacing: MPSpacing.xxl) {
             Spacer()
 
-            // Clean photo - no effects
+            // Clean photo
             Image(uiImage: image)
                 .resizable()
                 .scaledToFit()

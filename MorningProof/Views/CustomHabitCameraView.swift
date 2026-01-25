@@ -14,6 +14,11 @@ struct CustomHabitCameraView: View {
     @State private var errorMessage: String?
     @State private var errorIcon: String = "exclamationmark.triangle"
 
+    // Animation states for initial capture view
+    @State private var showIcon = false
+    @State private var showText = false
+    @State private var showCameraButton = false
+
     // Animation states for result view
     @State private var showCheckmark = false
     @State private var showTitle = false
@@ -23,21 +28,22 @@ struct CustomHabitCameraView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                MPColors.background
-                    .ignoresSafeArea()
+            GeometryReader { geometry in
+                ZStack {
+                    MPColors.background
+                        .ignoresSafeArea()
 
-                if isAnalyzing {
-                    analyzingView
-                } else if let error = errorMessage {
-                    errorView(error)
-                } else if let result = result {
-                    resultView(result)
-                } else {
-                    captureView
+                    if isAnalyzing {
+                        analyzingView
+                    } else if let error = errorMessage {
+                        errorView(error)
+                    } else if let result = result {
+                        resultView(result)
+                    } else {
+                        captureView(geometry: geometry)
+                    }
                 }
             }
-            .navigationTitle("Verify \(customHabit.name)")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -45,6 +51,20 @@ struct CustomHabitCameraView: View {
                         dismiss()
                     }
                     .foregroundColor(MPColors.textTertiary)
+                }
+
+                ToolbarItem(placement: .principal) {
+                    HStack(spacing: MPSpacing.sm) {
+                        Image("AppLogo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 24, height: 24)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                        Text("Morning Proof")
+                            .font(.system(size: 16, weight: .semibold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
+                    }
                 }
             }
         }
@@ -56,79 +76,157 @@ struct CustomHabitCameraView: View {
         }
     }
 
-    var captureView: some View {
-        VStack(spacing: MPSpacing.xxl) {
+    // MARK: - Capture View
+
+    func captureView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            if let image = selectedImage {
+                // Photo selected state
+                photoSelectedView(image: image, geometry: geometry)
+            } else {
+                // Initial capture state - Apple-like design
+                initialCaptureView
+            }
+        }
+    }
+
+    // MARK: - Initial Capture View (No Image)
+
+    var initialCaptureView: some View {
+        VStack(spacing: 0) {
             Spacer()
 
-            if let image = selectedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 350)
-                    .cornerRadius(MPRadius.xl)
-                    .mpShadow(.medium)
-                    .padding(.horizontal, MPSpacing.xxl)
+            // Custom habit icon - clean, no rings
+            Image(systemName: customHabit.icon)
+                .font(.system(size: 80))
+                .foregroundColor(MPColors.accent)
+                .scaleEffect(showIcon ? 1.0 : 0.5)
+                .opacity(showIcon ? 1.0 : 0)
+                .frame(height: 120)
 
-                HStack(spacing: MPSpacing.md) {
-                    MPButton(title: "Retake", style: .secondary) {
-                        selectedImage = nil
-                    }
+            Spacer()
+                .frame(height: MPSpacing.xxxl)
 
-                    MPButton(title: "Verify", style: .primary) {
-                        Task {
-                            await verifyHabit(image: image)
-                        }
-                    }
+            // Text content
+            VStack(spacing: MPSpacing.sm) {
+                Text(customHabit.allowsScreenshots ? "Verify with a photo" : "Take a photo to verify")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                if let prompt = customHabit.aiPrompt, !prompt.isEmpty {
+                    Text("\"\(prompt)\"")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                        .italic()
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, MPSpacing.lg)
                 }
-                .padding(.horizontal, MPSpacing.xxl)
-            } else {
-                VStack(spacing: MPSpacing.xl) {
-                    VStack(spacing: MPSpacing.xl) {
-                        Image(systemName: customHabit.icon)
-                            .font(.system(size: 80))
-                            .foregroundColor(MPColors.textTertiary)
+            }
+            .offset(y: showText ? 0 : 15)
+            .opacity(showText ? 1.0 : 0)
 
-                        VStack(spacing: MPSpacing.sm) {
-                            Text(customHabit.allowsScreenshots ? "Verify with a photo" : "Take a photo to verify")
-                                .font(MPFont.bodyMedium())
-                                .foregroundColor(MPColors.textSecondary)
+            Spacer()
 
-                            if let prompt = customHabit.aiPrompt, !prompt.isEmpty {
-                                Text("\"\(prompt)\"")
-                                    .font(MPFont.bodySmall())
-                                    .foregroundColor(MPColors.textTertiary)
-                                    .italic()
-                                    .multilineTextAlignment(.center)
-                                    .padding(.horizontal, MPSpacing.lg)
-                            }
+            // Camera button(s)
+            VStack(spacing: MPSpacing.lg) {
+                // Camera shutter button (iOS Camera style)
+                CameraShutterButton {
+                    showingCamera = true
+                }
+                .scaleEffect(showCameraButton ? 1.0 : 0.7)
+                .opacity(showCameraButton ? 1.0 : 0)
+
+                // Photo library option (if allowed)
+                if customHabit.allowsScreenshots {
+                    Button {
+                        showingPhotoLibrary = true
+                    } label: {
+                        HStack(spacing: MPSpacing.sm) {
+                            Image(systemName: "photo")
+                                .font(.system(size: 16, weight: .medium))
+                            Text("Choose from Library")
+                                .font(.system(size: 16, weight: .medium))
                         }
+                        .foregroundColor(MPColors.textTertiary)
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 280)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.xl)
-                    .mpShadow(.medium)
-                    .padding(.horizontal, MPSpacing.xxl)
-
-                    VStack(spacing: MPSpacing.md) {
-                        MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
-                            showingCamera = true
-                        }
-
-                        // Only show photo library option if habit allows screenshots
-                        if customHabit.allowsScreenshots {
-                            MPButton(title: "Choose from Library", style: .secondary, icon: "photo.fill") {
-                                showingPhotoLibrary = true
-                            }
-                        }
-                    }
-                    .padding(.horizontal, MPSpacing.xxl)
+                    .opacity(showCameraButton ? 1.0 : 0)
                 }
             }
 
             Spacer()
+                .frame(height: MPSpacing.xxxl + MPSpacing.lg)
+        }
+        .onAppear {
+            startEntranceAnimations()
         }
     }
+
+    private func startEntranceAnimations() {
+        // Reset states first
+        showIcon = false
+        showText = false
+        showCameraButton = false
+
+        // Step 1: Icon scales in (0ms, spring)
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            showIcon = true
+        }
+
+        // Step 2: Text fades up (150ms delay)
+        withAnimation(.easeOut(duration: 0.4).delay(0.15)) {
+            showText = true
+        }
+
+        // Step 3: Camera button appears (300ms delay)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.3)) {
+            showCameraButton = true
+        }
+    }
+
+    // MARK: - Photo Selected View
+
+    func photoSelectedView(image: UIImage, geometry: GeometryProxy) -> some View {
+        VStack(spacing: MPSpacing.xl) {
+            // Photo with refined shadow
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxHeight: geometry.size.height * 0.55)
+                .cornerRadius(MPRadius.xl)
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .padding(.horizontal, MPSpacing.xxl)
+
+            // Vertical button layout - close to photo
+            VStack(spacing: MPSpacing.md) {
+                // Primary verify button
+                MPButton(title: "Verify Photo", style: .primary, icon: "checkmark") {
+                    Task {
+                        await verifyHabit(image: image)
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xxl)
+
+                // Retake as text link (not bordered button)
+                Button {
+                    selectedImage = nil
+                    // Reset entrance animations for when we go back
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        startEntranceAnimations()
+                    }
+                } label: {
+                    Text("Retake Photo")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .padding(.vertical, MPSpacing.sm)
+            }
+
+            Spacer()
+        }
+        .padding(.top, MPSpacing.lg)
+    }
+
+    // MARK: - Analyzing View
 
     @ViewBuilder
     var analyzingView: some View {
@@ -139,11 +237,12 @@ struct CustomHabitCameraView: View {
                 statusText: "Verifying..."
             )
         } else {
-            // Fallback if no image (shouldn't happen)
             ProgressView()
                 .scaleEffect(1.5)
         }
     }
+
+    // MARK: - Result View
 
     func resultView(_ result: CustomVerificationResult) -> some View {
         ZStack {
@@ -153,12 +252,18 @@ struct CustomHabitCameraView: View {
                 if result.isVerified {
                     // Success - with sequenced animations
                     ZStack {
+                        // Subtle glow behind checkmark
+                        Circle()
+                            .fill(MPColors.success.opacity(0.2))
+                            .frame(width: 140, height: 140)
+                            .blur(radius: 20)
+
                         Circle()
                             .fill(MPColors.successLight)
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: 80))
                             .foregroundColor(MPColors.success)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
@@ -185,7 +290,7 @@ struct CustomHabitCameraView: View {
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: 80))
                             .foregroundColor(MPColors.error)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
@@ -214,6 +319,9 @@ struct CustomHabitCameraView: View {
                             resetResultAnimations()
                             self.result = nil
                             selectedImage = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                startEntranceAnimations()
+                            }
                         }
                         .offset(y: showButton ? 0 : 30)
                         .opacity(showButton ? 1.0 : 0)
@@ -285,6 +393,8 @@ struct CustomHabitCameraView: View {
         showButton = false
     }
 
+    // MARK: - Error View (Simplified to 2 buttons)
+
     func errorView(_ message: String) -> some View {
         VStack(spacing: MPSpacing.xxl) {
             Spacer()
@@ -311,21 +421,20 @@ struct CustomHabitCameraView: View {
 
             Spacer()
 
+            // Simplified to 2 buttons: Try Again + Cancel
             VStack(spacing: MPSpacing.md) {
-                if selectedImage != nil {
-                    MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
-                        errorMessage = nil
-                        errorIcon = "exclamationmark.triangle"
-                        Task {
-                            await verifyHabit(image: selectedImage!)
-                        }
-                    }
-                }
-
-                MPButton(title: "Retake Photo", style: .secondary, icon: "camera.fill") {
+                MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
                     errorMessage = nil
                     errorIcon = "exclamationmark.triangle"
-                    selectedImage = nil
+                    if let image = selectedImage {
+                        // Retry with existing image
+                        Task {
+                            await verifyHabit(image: image)
+                        }
+                    } else {
+                        // Open camera if no image
+                        showingCamera = true
+                    }
                 }
 
                 MPButton(title: "Cancel", style: .secondary) {
@@ -339,6 +448,8 @@ struct CustomHabitCameraView: View {
             HapticManager.shared.error()
         }
     }
+
+    // MARK: - Verification
 
     func verifyHabit(image: UIImage) async {
         isAnalyzing = true
