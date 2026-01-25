@@ -36,7 +36,9 @@ class ShieldConfigurationExtension: ShieldConfigurationDataSource {
         let brandPurple = UIColor(red: 0.55, green: 0.45, blue: 0.75, alpha: 1.0)
 
         // Load app icon from extension's asset catalog
-        let appIcon = UIImage(named: "ShieldIcon")
+        // Must explicitly specify bundle - extensions can't rely on UIImage(named:) finding the right bundle
+        let bundle = Bundle(for: ShieldConfigurationExtension.self)
+        let appIcon = UIImage(named: "ShieldIcon", in: bundle, compatibleWith: nil)
 
         return ShieldConfiguration(
             backgroundBlurStyle: .systemMaterial,

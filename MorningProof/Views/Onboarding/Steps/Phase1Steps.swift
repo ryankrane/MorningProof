@@ -237,7 +237,7 @@ struct NameStep: View {
     @State private var sparkles: [SparkleParticle] = []
     @State private var fadeOut = false
     @State private var previousNameLength = 0
-    @State private var waveRotation: Double = 0
+    @State private var waveRotation: Double = -15
 
     struct SparkleParticle: Identifiable {
         let id = UUID()
@@ -387,9 +387,10 @@ struct NameStep: View {
             .animation(.easeInOut(duration: 0.3), value: hasConfirmedName)
         }
         .onAppear {
-            // Continuous wave animation
-            withAnimation(.easeInOut(duration: 0.35).repeatForever(autoreverses: true)) {
-                waveRotation = 20
+            // Continuous wave animation - symmetric swing like a real wave
+            waveRotation = -15  // Start tilted left
+            withAnimation(.easeInOut(duration: 0.5).repeatForever(autoreverses: true)) {
+                waveRotation = 15  // Swing to right
             }
 
             if !data.userName.isEmpty {
@@ -483,9 +484,9 @@ private struct WavingHandIcon: View {
     let waveRotation: Double
 
     var body: some View {
-        Text("👋")
+        Text("🖐️")
             .font(.system(size: size * 0.9))
-            .rotationEffect(.degrees(waveRotation), anchor: .bottomTrailing)
+            .rotationEffect(.degrees(waveRotation), anchor: .bottom)
     }
 }
 
