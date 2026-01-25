@@ -250,13 +250,13 @@ struct GuardrailStep: View {
             showSubtextLine1 = true
         }
 
-        // Phase 4: Button appears after a tiny pause
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(4.5)) {
+        // Phase 4: Button appears after subtext has time to land
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(5.2)) {
             showButton = true
         }
 
         // Phase 5: Start icon pulse
-        DispatchQueue.main.asyncAfter(deadline: .now() + 4.7) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 5.4) {
             pulseIcons = true
         }
     }

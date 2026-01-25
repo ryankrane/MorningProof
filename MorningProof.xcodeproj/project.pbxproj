@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 63;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -108,6 +108,7 @@
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
 		B6C264A289273A3E5581A68B /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB6EDAF75C8614BE0D810BE6 /* AchievementsView.swift */; };
 		C178D040DE58282AF6F75732 /* MorningProofActivityMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1978F38BCF48CC0BCFF76C24 /* MorningProofActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		CA7A2901F11A8D91BA998D8E /* AttributionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38DBD4F60D73FA4776242B5 /* AttributionStep.swift */; };
 		CE1EF895259597917931AAE6 /* SleepInputSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */; };
 		D18CFB36AFB73BA06843B401 /* RoutineTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E75D57033AB8EB4158A2723F /* RoutineTabView.swift */; };
 		D3C793EA612FDC1D7559179C /* BedVerificationViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = D2F83B19AF9DE30549488D5E /* BedVerificationViewModel.swift */; };
@@ -207,10 +208,10 @@
 		0F837CB8B9AB02E6067C7A0D /* AppScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppScreen.swift; sourceTree = "<group>"; };
 		12F95EE09D2BCAE3E92C8A2C /* JournalEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = JournalEntryView.swift; sourceTree = "<group>"; };
 		13AA04D400C2F64AE658D59F /* VideoFrameExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoFrameExtractor.swift; sourceTree = "<group>"; };
-		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		15EC275316179F5B053E106D /* MorningProofTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		181147FD5FEB1AE6244D2CE5 /* TextEntryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryView.swift; sourceTree = "<group>"; };
 		193A8B2763FC56668AB93760 /* Phase1Steps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase1Steps.swift; sourceTree = "<group>"; };
-		1978F38BCF48CC0BCFF76C24 /* MorningProofActivityMonitor.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningProofActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		1978F38BCF48CC0BCFF76C24 /* MorningProofActivityMonitor.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MorningProofActivityMonitor.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		19F0F7FDC1A65B0D18C32DC8 /* VerificationLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationLoadingView.swift; sourceTree = "<group>"; };
 		1AC41060853859BA0D0AD6EC /* Phase6Steps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase6Steps.swift; sourceTree = "<group>"; };
 		1DC382E7B98F3C1C1F37D325 /* ParallaxTiltView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ParallaxTiltView.swift; sourceTree = "<group>"; };
@@ -221,9 +222,9 @@
 		2AE5E02957DAA6C89DAB4817 /* AppLockingCardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppLockingCardView.swift; sourceTree = "<group>"; };
 		31829E839CB0EF10ACAE7270 /* ProgressHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressHeroCard.swift; sourceTree = "<group>"; };
 		331D095D20B8493DF02B55AA /* Habit.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Habit.swift; sourceTree = "<group>"; };
-		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; path = Config.example; sourceTree = "<group>"; };
+		395EC9D9A1933D5A7967F8DB /* Config.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Config.example; sourceTree = "<group>"; };
 		3C15180C19687B347FEEB70A /* StreakHeroCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakHeroCard.swift; sourceTree = "<group>"; };
-		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		3E6195A35AD0E213F5500174 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		409E65E8F18D6482BECDE992 /* StreakData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakData.swift; sourceTree = "<group>"; };
 		40EF5CAA0D65467A9DCD850E /* Logger.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Logger.swift; sourceTree = "<group>"; };
 		41C95CFD77942F5C4F16F3B0 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -236,7 +237,7 @@
 		4D352692F1916B22E74902AD /* GrandFinaleConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandFinaleConfettiView.swift; sourceTree = "<group>"; };
 		4D8BC1F47E46EADCD321340C /* SwipeBackModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeBackModifier.swift; sourceTree = "<group>"; };
 		4E77FA331CFD0EB9F23473E2 /* AddHabitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddHabitView.swift; sourceTree = "<group>"; };
-		4EC324536D58E368FC0F82D6 /* MorningProofShieldConfig.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningProofShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		4EC324536D58E368FC0F82D6 /* MorningProofShieldConfig.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MorningProofShieldConfig.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		4FE25B063CD6F583178BDA5A /* UndoToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UndoToastView.swift; sourceTree = "<group>"; };
 		561F3E8717661D6514235A02 /* DistractionSelectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistractionSelectionView.swift; sourceTree = "<group>"; };
 		5C6DB604C43F4D7183453D15 /* TimeWheelPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeWheelPicker.swift; sourceTree = "<group>"; };
@@ -266,8 +267,8 @@
 		846D7C7ABD3D2D7763D6088F /* DeviceActivityMonitorExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeviceActivityMonitorExtension.swift; sourceTree = "<group>"; };
 		8578A39DCB75C6F2FCD690AF /* CrashReportingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrashReportingService.swift; sourceTree = "<group>"; };
 		88B5D7D38090D80E9DF411AA /* HapticManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HapticManager.swift; sourceTree = "<group>"; };
-		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		8A3458FD1116625E1A9A91CB /* MorningProof.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MorningProof.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8C22EBE644AB4E2F728ABCD7 /* MorningProofUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = MorningProofUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		8C8865AA30B3A90F3029D937 /* HoldToCompleteButtonStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HoldToCompleteButtonStyle.swift; sourceTree = "<group>"; };
 		96C2F8ED5B6375F3854AD366 /* Secrets.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Secrets.swift; sourceTree = "<group>"; };
 		970A6074B025718639B71CD8 /* CalendarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
@@ -279,10 +280,10 @@
 		9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofApp.swift; sourceTree = "<group>"; };
 		9CD02B23AC181F00CDCBDB8F /* ProgressGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressGraphView.swift; sourceTree = "<group>"; };
 		A87217B546B00BE1AD54302A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		A90B17F34D578F7C19EE280B /* Secrets.swift.example */ = {isa = PBXFileReference; path = Secrets.swift.example; sourceTree = "<group>"; };
+		A90B17F34D578F7C19EE280B /* Secrets.swift.example */ = {isa = PBXFileReference; lastKnownFileType = text; path = Secrets.swift.example; sourceTree = "<group>"; };
 		AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		AACBA49F70652BB275332A86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		B0CAB417B9B1B900F225EAB8 /* MorningProofShieldAction.appex */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = "wrapper.app-extension"; path = MorningProofShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		B0CAB417B9B1B900F225EAB8 /* MorningProofShieldAction.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MorningProofShieldAction.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		B502D69BDFD183D6AB140577 /* MigrationManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MigrationManager.swift; sourceTree = "<group>"; };
 		B6159194F4E6CA8F7FE618DF /* NeuralLoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NeuralLoadingView.swift; sourceTree = "<group>"; };
 		B7F2E823A115DD27CDAE3660 /* MorningProofManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofManager.swift; sourceTree = "<group>"; };
@@ -310,6 +311,7 @@
 		DF851795EA491C844DB4CB0F /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		E061493F2CFA221111F36339 /* LockInCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInCelebrationView.swift; sourceTree = "<group>"; };
 		E0C38ECD74A71EBEC8EA1D1B /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		E38DBD4F60D73FA4776242B5 /* AttributionStep.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AttributionStep.swift; sourceTree = "<group>"; };
 		E75D57033AB8EB4158A2723F /* RoutineTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoutineTabView.swift; sourceTree = "<group>"; };
 		E7B07226BB11FB107BBD3CF3 /* MorningRoutineSettingsSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningRoutineSettingsSheet.swift; sourceTree = "<group>"; };
 		E7C4DDDF95B0B946D755493A /* Phase2Steps.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Phase2Steps.swift; sourceTree = "<group>"; };
@@ -372,6 +374,7 @@
 		3028ABE8B81F29DCC76EB524 /* Steps */ = {
 			isa = PBXGroup;
 			children = (
+				E38DBD4F60D73FA4776242B5 /* AttributionStep.swift */,
 				193A8B2763FC56668AB93760 /* Phase1Steps.swift */,
 				E7C4DDDF95B0B946D755493A /* Phase2Steps.swift */,
 				5FA5D0516DD2A44EE0F12E2D /* Phase3Steps.swift */,
@@ -778,7 +781,7 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = YES;
-				LastUpgradeCheck = 1500;
+				LastUpgradeCheck = 2620;
 				TargetAttributes = {
 					347A91C2E9BBF24FD8E39715 = {
 						DevelopmentTeam = P9ZXADV42A;
@@ -816,7 +819,6 @@
 				5DEE0A5FC47979E44F10B280 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 				3A409E8FBDDDC00071BCA0A0 /* XCRemoteSwiftPackageReference "Superwall-iOS" */,
 			);
-			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -877,6 +879,7 @@
 				30E647CB58C2225AB62B3D95 /* AppLockingDataStore.swift in Sources */,
 				8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */,
 				2B7E8106E35DF7FB2406B52B /* AppScreen.swift in Sources */,
+				CA7A2901F11A8D91BA998D8E /* AttributionStep.swift in Sources */,
 				A9F2EDAB691DC8E3E3CD7562 /* AuthenticationManager.swift in Sources */,
 				EF2D7DA739854F610782EAEE /* BedCameraView.swift in Sources */,
 				D3C793EA612FDC1D7559179C /* BedVerificationViewModel.swift in Sources */,
@@ -1045,6 +1048,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1079,6 +1083,7 @@
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -1100,6 +1105,7 @@
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.9;
@@ -1149,6 +1155,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
 				CLANG_ANALYZER_NONNULL = YES;
 				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
@@ -1183,6 +1190,7 @@
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -1197,6 +1205,7 @@
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_OPTIMIZATION_LEVEL = "-O";
 				SWIFT_VERSION = 5.9;

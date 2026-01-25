@@ -20,6 +20,38 @@ class OnboardingData: ObservableObject {
     // Note: With Family Controls enabled, app selection is stored via ScreenTimeManager
     // This property is only used as a fallback when Family Controls is disabled
     @Published var selectedDistractionNames: Set<String> = []
+    @Published var attributionSource: AttributionSource? = nil
+
+    enum AttributionSource: String, CaseIterable {
+        case appStore = "App Store"
+        case instagram = "Instagram"
+        case reddit = "Reddit"
+        case tiktok = "TikTok"
+        case friend = "Friend"
+        case other = "Other"
+
+        var icon: String {
+            switch self {
+            case .tiktok: return "music.note"
+            case .instagram: return "camera.fill"
+            case .friend: return "person.2.fill"
+            case .appStore: return "square.stack.3d.up.fill"
+            case .reddit: return "bubble.left.and.bubble.right.fill"
+            case .other: return "ellipsis.circle.fill"
+            }
+        }
+
+        var iconColor: Color {
+            switch self {
+            case .tiktok: return Color(red: 0.0, green: 0.9, blue: 0.9)
+            case .instagram: return Color(red: 0.91, green: 0.27, blue: 0.53)
+            case .friend: return Color(red: 0.4, green: 0.6, blue: 1.0)
+            case .appStore: return Color(red: 0.0, green: 0.48, blue: 1.0)
+            case .reddit: return Color(red: 1.0, green: 0.35, blue: 0.14)
+            case .other: return MPColors.textSecondary
+            }
+        }
+    }
 
     enum Gender: String, CaseIterable {
         case male = "Male"
@@ -129,7 +161,7 @@ class OnboardingData: ObservableObject {
     }
 }
 
-// MARK: - Onboarding Flow View (17 Steps - App blocking consolidated)
+// MARK: - Onboarding Flow View (18 Steps - App blocking consolidated)
 
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
@@ -138,8 +170,8 @@ struct OnboardingFlowView: View {
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 17
-    private let paywallStep = 16
+    private let totalSteps = 18
+    private let paywallStep = 17
 
     var body: some View {
         ZStack {
@@ -157,34 +189,35 @@ struct OnboardingFlowView: View {
                 // Content
                 Group {
                     switch currentStep {
-                    // Phase 1: Hook & Identity (Steps 0-3) — Phase1Steps.swift
+                    // Phase 1: Hook & Identity (Steps 0-4) — Phase1Steps.swift + AttributionStep.swift
                     case 0: WelcomeHeroStep(onContinue: nextStep)
                     case 1: NameStep(data: onboardingData, onContinue: nextStep)
                     case 2: MorningStruggleStep(data: onboardingData, onContinue: nextStep)
                     case 3: DesiredOutcomeStep(data: onboardingData, onContinue: nextStep)
+                    case 4: AttributionStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 2: Problem Agitation (Steps 4-5) — Phase2Steps.swift
-                    case 4: GuardrailStep(onContinue: nextStep)
-                    case 5: DoomScrollingSimulatorStep(onContinue: nextStep)
+                    // Phase 2: Problem Agitation (Steps 5-6) — Phase2Steps.swift
+                    case 5: GuardrailStep(onContinue: nextStep)
+                    case 6: DoomScrollingSimulatorStep(onContinue: nextStep)
 
-                    // Phase 3: Solution Setup (Steps 6-8) — Phase3Steps.swift + DistractionSelectionView.swift
-                    case 6: AppBlockingExplainerStep(onContinue: nextStep)
-                    case 7: HowItWorksStep(onContinue: nextStep)
-                    case 8: AIVerificationShowcaseStep(onContinue: nextStep)
+                    // Phase 3: Solution Setup (Steps 7-9) — Phase3Steps.swift + DistractionSelectionView.swift
+                    case 7: AppBlockingExplainerStep(onContinue: nextStep)
+                    case 8: HowItWorksStep(onContinue: nextStep)
+                    case 9: AIVerificationShowcaseStep(onContinue: nextStep)
 
-                    // Phase 4: Social Proof (Steps 9-11) — Phase4Steps.swift
-                    case 9: YouAreNotAloneStep(onContinue: nextStep)
-                    case 10: SuccessStoriesStep(onContinue: nextStep)
-                    case 11: TrackingComparisonStep(onContinue: nextStep)
+                    // Phase 4: Social Proof (Steps 10-12) — Phase4Steps.swift
+                    case 10: YouAreNotAloneStep(onContinue: nextStep)
+                    case 11: SuccessStoriesStep(onContinue: nextStep)
+                    case 12: TrackingComparisonStep(onContinue: nextStep)
 
-                    // Phase 5: Personalization (Step 12) — Phase5Steps.swift
-                    case 12: PermissionsStep(data: onboardingData, onContinue: nextStep)
+                    // Phase 5: Personalization (Step 13) — Phase5Steps.swift
+                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
 
-                    // Phase 6: Conversion (Steps 13-16) — Phase6Steps.swift
-                    case 13: OptionalRatingStep(onContinue: nextStep)
-                    case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 16: HardPaywallStep(
+                    // Phase 6: Conversion (Steps 14-17) — Phase6Steps.swift
+                    case 14: OptionalRatingStep(onContinue: nextStep)
+                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 17: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding,
                         onBack: previousStep
