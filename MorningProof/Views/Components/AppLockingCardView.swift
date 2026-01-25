@@ -80,7 +80,7 @@ struct AppLockingCardView: View {
             } else if !isConfigured {
                 Text("Tap to configure")
                     .font(.system(size: 13))
-                    .foregroundColor(MPColors.warning)
+                    .foregroundColor(MPColors.textTertiary)
             } else if manager.settings.appLockingEnabled {
                 Text("Starts at \(formatTime(manager.settings.blockingStartMinutes))")
                     .font(.system(size: 13))
