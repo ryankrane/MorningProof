@@ -141,76 +141,114 @@ private struct AttributionOptionButton: View {
     }
 }
 
-// MARK: - Megaphone Icon
+// MARK: - Megaphone Icon (Simple Clipart Style)
 
 private struct MegaphoneIcon: View {
     let size: CGFloat
 
-    // Bright, friendly colors
-    private let megaphoneYellow = Color(red: 1.0, green: 0.8, blue: 0.2)
-    private let megaphoneOrange = Color(red: 1.0, green: 0.55, blue: 0.1)
-    private let handleColor = Color(red: 0.35, green: 0.35, blue: 0.4)
-    private let soundWaveColor = Color(red: 0.4, green: 0.75, blue: 1.0)
+    // Clean, bright colors matching original
+    private let coneYellow = Color(red: 1.0, green: 0.82, blue: 0.25)
+    private let coneOrange = Color(red: 1.0, green: 0.6, blue: 0.15)
+    private let soundWaveBlue = Color(red: 0.4, green: 0.75, blue: 1.0)
 
     var body: some View {
         ZStack {
-            // Megaphone body (cone shape using a trapezoid path)
-            Path { path in
-                let scale = size / 60.0
-
-                // Cone shape - wide on right (bell), narrow on left (handle)
-                path.move(to: CGPoint(x: 12 * scale, y: 22 * scale))
-                path.addLine(to: CGPoint(x: 42 * scale, y: 10 * scale))
-                path.addLine(to: CGPoint(x: 42 * scale, y: 50 * scale))
-                path.addLine(to: CGPoint(x: 12 * scale, y: 38 * scale))
-                path.closeSubpath()
-            }
-            .fill(
-                LinearGradient(
-                    colors: [megaphoneYellow, megaphoneOrange],
-                    startPoint: .top,
-                    endPoint: .bottom
-                )
-            )
-
-            // Handle grip
-            RoundedRectangle(cornerRadius: size * 0.05)
-                .fill(handleColor)
-                .frame(width: size * 0.12, height: size * 0.35)
-                .offset(x: -size * 0.32, y: 0)
-
-            // Sound waves (three arcs)
-            ForEach(0..<3) { index in
-                SoundWaveArc(size: size, index: index)
-                    .stroke(
-                        soundWaveColor.opacity(1.0 - Double(index) * 0.25),
-                        style: StrokeStyle(lineWidth: 2.5, lineCap: .round)
+            // Simple megaphone cone shape
+            MegaphoneConeShape()
+                .fill(
+                    LinearGradient(
+                        colors: [coneYellow, coneOrange],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
-                    .offset(x: size * 0.12, y: 0)
+                )
+                .frame(width: size * 0.65, height: size * 0.6)
+
+            // Subtle highlight on cone
+            MegaphoneConeShape()
+                .fill(
+                    LinearGradient(
+                        colors: [Color.white.opacity(0.4), Color.clear],
+                        startPoint: .top,
+                        endPoint: .center
+                    )
+                )
+                .frame(width: size * 0.65, height: size * 0.6)
+
+            // Sound waves
+            ForEach(0..<3) { index in
+                SoundWaveArc()
+                    .stroke(
+                        soundWaveBlue.opacity(1.0 - Double(index) * 0.25),
+                        style: StrokeStyle(lineWidth: size * 0.045, lineCap: .round)
+                    )
+                    .frame(width: size * (0.18 + CGFloat(index) * 0.13),
+                           height: size * (0.28 + CGFloat(index) * 0.18))
+                    .offset(x: size * 0.38 + CGFloat(index) * size * 0.08, y: 0)
             }
         }
-        .frame(width: size, height: size)
+        .frame(width: size * 1.2, height: size)
+    }
+}
+
+// MARK: - Megaphone Cone Shape
+
+private struct MegaphoneConeShape: Shape {
+    func path(in rect: CGRect) -> Path {
+        var path = Path()
+
+        // Simple flared cone - narrow on left, wide on right
+        let mouthRadius = rect.height * 0.5
+        let backRadius = rect.height * 0.18
+
+        // Back of megaphone (left side, small circle)
+        let backX = rect.width * 0.08
+        let centerY = rect.midY
+
+        // Front/mouth of megaphone (right side, large circle)
+        let frontX = rect.width * 0.85
+
+        // Draw the cone shape
+        // Start at top of back
+        path.move(to: CGPoint(x: backX, y: centerY - backRadius))
+
+        // Top edge curving to mouth
+        path.addLine(to: CGPoint(x: frontX, y: centerY - mouthRadius))
+
+        // Mouth arc (right side)
+        path.addArc(
+            center: CGPoint(x: frontX, y: centerY),
+            radius: mouthRadius,
+            startAngle: .degrees(-90),
+            endAngle: .degrees(90),
+            clockwise: false
+        )
+
+        // Bottom edge back to back
+        path.addLine(to: CGPoint(x: backX, y: centerY + backRadius))
+
+        // Back arc (left side)
+        path.addArc(
+            center: CGPoint(x: backX, y: centerY),
+            radius: backRadius,
+            startAngle: .degrees(90),
+            endAngle: .degrees(-90),
+            clockwise: false
+        )
+
+        return path
     }
 }
 
 // MARK: - Sound Wave Arc
 
 private struct SoundWaveArc: Shape {
-    let size: CGFloat
-    let index: Int
-
     func path(in rect: CGRect) -> Path {
         var path = Path()
-        let scale = size / 60.0
-        let baseRadius: CGFloat = 12 * scale
-        let radiusIncrement: CGFloat = 8 * scale
-        let radius = baseRadius + CGFloat(index) * radiusIncrement
-
-        let center = CGPoint(x: rect.midX, y: rect.midY)
 
         path.addArc(
-            center: center,
-            radius: radius,
+            center: CGPoint(x: 0, y: rect.midY),
+            radius: rect.height / 2,
             startAngle: .degrees(-45),
             endAngle: .degrees(45),
             clockwise: false
