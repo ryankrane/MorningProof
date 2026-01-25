@@ -1,19 +1,16 @@
 import SwiftUI
 
-/// A clean, minimal loading view for AI verification
-/// Apple-like design: photo + simple spinner + status text
+/// Clean AI verification loading view with native components
 struct VerificationLoadingView: View {
     let image: UIImage
     let accentColor: Color
     let statusText: String
 
-    @State private var rotation: Double = 0
-
     var body: some View {
-        VStack(spacing: MPSpacing.xl) {
+        VStack(spacing: MPSpacing.xxl) {
             Spacer()
 
-            // Photo - clean, no effects
+            // Clean photo - no effects
             Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
@@ -22,25 +19,18 @@ struct VerificationLoadingView: View {
                 .mpShadow(.medium)
                 .padding(.horizontal, MPSpacing.xxl)
 
-            // Spinner + text
+            // Native loading indicator
             VStack(spacing: MPSpacing.md) {
-                Circle()
-                    .trim(from: 0, to: 0.7)
-                    .stroke(accentColor, style: StrokeStyle(lineWidth: 3, lineCap: .round))
-                    .frame(width: 44, height: 44)
-                    .rotationEffect(.degrees(rotation))
+                ProgressView()
+                    .scaleEffect(1.2)
+                    .tint(accentColor)
 
-                Text(statusText)
-                    .font(MPFont.bodyMedium())
+                Text("Analyzing...")
+                    .font(.system(size: 15, weight: .medium))
                     .foregroundColor(MPColors.textTertiary)
             }
 
             Spacer()
-        }
-        .onAppear {
-            withAnimation(.linear(duration: 1).repeatForever(autoreverses: false)) {
-                rotation = 360
-            }
         }
     }
 }

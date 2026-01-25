@@ -34,7 +34,7 @@ struct BedCameraView: View {
                     captureView
                 }
             }
-            .navigationTitle("Verify Bed")
+            .navigationTitle(isAnalyzing ? "" : "Verify Bed")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
@@ -42,6 +42,22 @@ struct BedCameraView: View {
                         dismiss()
                     }
                     .foregroundColor(MPColors.textTertiary)
+                }
+
+                if isAnalyzing {
+                    ToolbarItem(placement: .principal) {
+                        HStack(spacing: MPSpacing.sm) {
+                            Image("AppLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                            Text("MorningProof")
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundColor(MPColors.textPrimary)
+                        }
+                    }
                 }
             }
         }
