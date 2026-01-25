@@ -63,6 +63,10 @@ struct AppLockingCardView: View {
         .sheet(isPresented: $showSettings) {
             AppLockingSettingsView()
         }
+        .onAppear {
+            // Refresh authorization status in case user enabled it in Settings
+            screenTimeManager.refreshAuthorizationStatus()
+        }
     }
 
     // MARK: - Status Text
@@ -70,7 +74,7 @@ struct AppLockingCardView: View {
     private var statusText: some View {
         Group {
             if !isAuthorized {
-                Text("Tap to set up")
+                Text("Set up app blocking")
                     .font(.system(size: 13))
                     .foregroundColor(MPColors.textTertiary)
             } else if !isConfigured {
@@ -82,7 +86,7 @@ struct AppLockingCardView: View {
                     .font(.system(size: 13))
                     .foregroundColor(MPColors.success)
             } else {
-                Text("Disabled")
+                Text("Off")
                     .font(.system(size: 13))
                     .foregroundColor(MPColors.textTertiary)
             }

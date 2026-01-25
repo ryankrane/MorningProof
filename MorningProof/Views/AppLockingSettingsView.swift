@@ -75,6 +75,8 @@ struct AppLockingSettingsView: View {
             }
             .onAppear {
                 blockingStartMinutes = manager.settings.blockingStartMinutes
+                // Refresh authorization status in case user enabled it in Settings
+                screenTimeManager.refreshAuthorizationStatus()
             }
             .sheet(isPresented: $showTimePicker) {
                 TimeWheelPicker(
@@ -275,11 +277,11 @@ struct AppLockingSettingsView: View {
                     HStack {
                         ZStack {
                             Circle()
-                                .fill(MPColors.primaryLight)
+                                .fill(MPColors.primary)
                                 .frame(width: 36, height: 36)
                             Image(systemName: "apps.iphone")
                                 .font(.system(size: 16))
-                                .foregroundColor(MPColors.primary)
+                                .foregroundColor(.white)
                         }
 
                         VStack(alignment: .leading, spacing: 2) {
@@ -320,11 +322,11 @@ struct AppLockingSettingsView: View {
                     HStack {
                         ZStack {
                             Circle()
-                                .fill(MPColors.primaryLight)
+                                .fill(MPColors.primary)
                                 .frame(width: 36, height: 36)
                             Image(systemName: "clock.fill")
                                 .font(.system(size: 16))
-                                .foregroundColor(MPColors.primary)
+                                .foregroundColor(.white)
                         }
 
                         VStack(alignment: .leading, spacing: 2) {

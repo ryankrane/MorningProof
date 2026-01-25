@@ -156,8 +156,10 @@ struct BedCameraView: View {
     // MARK: - Photo Selected View
 
     func photoSelectedView(image: UIImage, geometry: GeometryProxy) -> some View {
-        VStack(spacing: MPSpacing.xl) {
-            // Photo with refined shadow
+        VStack(spacing: 0) {
+            Spacer()
+
+            // Photo with refined shadow - centered between header and buttons
             Image(uiImage: image)
                 .resizable()
                 .scaledToFit()
@@ -166,7 +168,9 @@ struct BedCameraView: View {
                 .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
                 .padding(.horizontal, MPSpacing.xxl)
 
-            // Vertical button layout - close to photo
+            Spacer()
+
+            // Buttons at the bottom
             VStack(spacing: MPSpacing.md) {
                 // Primary verify button
                 MPButton(title: "Verify Photo", style: .primary, icon: "checkmark") {
@@ -190,10 +194,8 @@ struct BedCameraView: View {
                 }
                 .padding(.vertical, MPSpacing.sm)
             }
-
-            Spacer()
+            .padding(.bottom, MPSpacing.xxxl)
         }
-        .padding(.top, MPSpacing.lg)
     }
 
     // MARK: - Analyzing View

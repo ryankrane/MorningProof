@@ -65,6 +65,12 @@ final class ScreenTimeManager: ObservableObject {
         authorizationStatus == .approved
     }
 
+    /// Refreshes the authorization status from the system.
+    /// Call this when the view appears to detect if user enabled Screen Time in Settings.
+    func refreshAuthorizationStatus() {
+        authorizationStatus = center.authorizationStatus
+    }
+
     // MARK: - App Selection Persistence
 
     /// Saves the user's selected apps to App Group UserDefaults.
