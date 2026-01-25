@@ -9,6 +9,7 @@ struct GuardrailStep: View {
     @State private var showHeadline = false
     @State private var headlinePunch = false
     @State private var showSubtextLine1 = false
+    @State private var showSubtextLine2 = false
     @State private var showCards = [false, false, false]
     @State private var cardRotations = [Double](repeating: -8, count: 3)
     @State private var pulseIcons = false
@@ -76,23 +77,26 @@ struct GuardrailStep: View {
             Spacer()
                 .frame(height: 60)
 
-            // Explanatory text below the cards - both lines animate together smoothly
+            // Explanatory text below the cards - lines animate in sequence
             VStack(spacing: 6) {
                 Text("Your brain will always choose easy over hard —")
                     .font(.system(size: 15))
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
+                    .opacity(showSubtextLine1 ? 1 : 0)
+                    .offset(y: showSubtextLine1 ? 0 : 12)
+                    .blur(radius: showSubtextLine1 ? 0 : 4)
 
                 Text("So we remove the choice entirely.")
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
+                    .opacity(showSubtextLine2 ? 1 : 0)
+                    .offset(y: showSubtextLine2 ? 0 : 8)
+                    .blur(radius: showSubtextLine2 ? 0 : 3)
             }
             .lineSpacing(4)
             .padding(.horizontal, MPSpacing.xl)
-            .opacity(showSubtextLine1 ? 1 : 0)
-            .offset(y: showSubtextLine1 ? 0 : 12)
-            .blur(radius: showSubtextLine1 ? 0 : 4)
 
             Spacer()
 
@@ -135,13 +139,18 @@ struct GuardrailStep: View {
             }
         }
 
-        // Phase 3: Subtext fades in after cards
+        // Phase 3: Subtext fades in after cards (staggered)
         withAnimation(.easeOut(duration: 0.8).delay(2.4)) {
             showSubtextLine1 = true
         }
 
+        // Second line comes in after a beat
+        withAnimation(.easeOut(duration: 0.6).delay(3.2)) {
+            showSubtextLine2 = true
+        }
+
         // Phase 4: Button appears
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.4)) {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.8)) {
             showButton = true
         }
 

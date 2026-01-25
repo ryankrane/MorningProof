@@ -4,6 +4,7 @@ struct MPButton: View {
     let title: String
     let style: MPButtonStyle
     var icon: String?
+    var iconPosition: MPIconPosition
     var isLoading: Bool
     var isDisabled: Bool
     var size: MPButtonSize
@@ -13,6 +14,7 @@ struct MPButton: View {
         title: String,
         style: MPButtonStyle,
         icon: String? = nil,
+        iconPosition: MPIconPosition = .leading,
         isLoading: Bool = false,
         isDisabled: Bool = false,
         size: MPButtonSize = .large,
@@ -21,10 +23,16 @@ struct MPButton: View {
         self.title = title
         self.style = style
         self.icon = icon
+        self.iconPosition = iconPosition
         self.isLoading = isLoading
         self.isDisabled = isDisabled
         self.size = size
         self.action = action
+    }
+
+    enum MPIconPosition {
+        case leading
+        case trailing
     }
 
     enum MPButtonStyle {
@@ -64,7 +72,7 @@ struct MPButton: View {
                     ProgressView()
                         .tint(foregroundColor)
                 } else {
-                    if let icon = icon {
+                    if let icon = icon, iconPosition == .leading {
                         Image(systemName: icon)
                             .font(.system(size: iconSize))
                     }
@@ -72,6 +80,10 @@ struct MPButton: View {
                         .font(size.font)
                         .contentTransition(.opacity)
                         .animation(.easeInOut(duration: 0.2), value: title)
+                    if let icon = icon, iconPosition == .trailing {
+                        Image(systemName: icon)
+                            .font(.system(size: iconSize))
+                    }
                 }
             }
             .foregroundColor(foregroundColor)

@@ -209,7 +209,7 @@ struct SuccessStoriesStep: View {
 
             Spacer()
 
-            MPButton(title: "I Want This", style: .primary, icon: "arrow.right") {
+            MPButton(title: "I Want This", style: .primary, icon: "arrow.right", iconPosition: .trailing) {
                 onContinue()
             }
             .padding(.horizontal, MPSpacing.xxxl)
@@ -331,11 +331,11 @@ private struct JourneyMilestone: View {
                     RoundedRectangle(cornerRadius: MPRadius.lg)
                         .stroke(
                             LinearGradient(
-                                colors: [gradient[0].opacity(0.3), Color.clear],
+                                colors: [gradient[0].opacity(0.6), gradient[1].opacity(0.3)],
                                 startPoint: .topLeading,
                                 endPoint: .bottomTrailing
                             ),
-                            lineWidth: 1
+                            lineWidth: 1.5
                         )
                 )
         )
@@ -374,19 +374,22 @@ struct TrackingComparisonStep: View {
                         .foregroundColor(MPColors.textTertiary)
                 }
 
-                // Supporting pills - animate in one by one
+                // Supporting pills - animate in scattered
                 HStack(spacing: MPSpacing.sm) {
                     StatPillView(value: "10 days", label: "to transform", icon: "bolt.fill")
                         .opacity(showPills[0] ? 1 : 0)
-                        .offset(y: showPills[0] ? 0 : 15)
+                        .offset(y: showPills[0] ? 0 : 20)
+                        .rotationEffect(.degrees(showPills[0] ? 0 : -5))
 
                     StatPillView(value: "35 days", label: "avg streak", icon: "flame.fill")
                         .opacity(showPills[1] ? 1 : 0)
-                        .offset(y: showPills[1] ? 0 : 15)
+                        .offset(y: showPills[1] ? 0 : -15)
+                        .rotationEffect(.degrees(showPills[1] ? 0 : 3))
 
                     StatPillView(value: "96%", label: "recommend it", icon: "hand.thumbsup.fill")
                         .opacity(showPills[2] ? 1 : 0)
-                        .offset(y: showPills[2] ? 0 : 15)
+                        .offset(y: showPills[2] ? 0 : 25)
+                        .rotationEffect(.degrees(showPills[2] ? 0 : -4))
                 }
                 .padding(.horizontal, MPSpacing.lg)
             }
@@ -400,11 +403,15 @@ struct TrackingComparisonStep: View {
             .padding(.bottom, 50)
         }
         .onAppear {
-            // Stagger the pill animations
-            for i in 0..<3 {
-                withAnimation(.spring(response: 0.5, dampingFraction: 0.7).delay(1.5 + Double(i) * 0.15)) {
-                    showPills[i] = true
-                }
+            // Stagger the pill animations with scattered timing
+            withAnimation(.spring(response: 0.55, dampingFraction: 0.7).delay(1.4)) {
+                showPills[1] = true  // Middle first
+            }
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.65).delay(1.7)) {
+                showPills[0] = true  // Left second
+            }
+            withAnimation(.spring(response: 0.6, dampingFraction: 0.7).delay(2.0)) {
+                showPills[2] = true  // Right last
             }
         }
     }
