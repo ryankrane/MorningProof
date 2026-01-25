@@ -50,17 +50,20 @@ firebase deploy --only functions
 Uses `claude-haiku-4-5` for fast, cheap image verification. Update in `functions/index.js` (CLAUDE_MODEL constant). The legacy direct API fallback in ClaudeAPIService.swift is not used.
 
 ## Project Structure
+- `/MorningProof/App/` - App entry point
 - `/MorningProof/Views/` - UI screens
 - `/MorningProof/ViewModels/` - Business logic
 - `/MorningProof/Models/` - Data models (SwiftData in `/Models/SwiftData/`)
+- `/MorningProof/Services/` - All managers and services (NOT `/Managers/`)
 - `/MorningProof/Theme/` - ThemeManager for appearance
 - `/MorningProof/Resources/` - Info.plist, assets
 
-## Key Managers
+## Key Services (in `/Services/`)
 - `MorningProofManager` - Main app state
 - `NotificationManager` - Push notifications
-- `AuthenticationManager` - Sign in with Apple
-- `ThemeManager` - Light/dark mode
+- `AuthenticationManager` - Sign in with Apple/Google
+- `SubscriptionManager` - StoreKit purchases, premium status
+- `ThemeManager` - Light/dark mode (also in Theme/)
 - `ScreenTimeManager` - App blocking via Family Controls API
 - `HealthKitBackgroundDeliveryService` - Background health goal notifications
 

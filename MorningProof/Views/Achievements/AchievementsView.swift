@@ -337,15 +337,9 @@ struct AchievementsHeader: View {
 
             Spacer()
 
-            VStack(spacing: 2) {
-                Text("Achievements")
-                    .font(.system(size: 18, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white)
-
-                Text("\(unlockedCount) of \(totalCount) Unlocked")
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white.opacity(0.5))
-            }
+            Text("Achievements")
+                .font(.system(size: 18, weight: .semibold, design: .rounded))
+                .foregroundColor(.white)
 
             Spacer()
 
@@ -363,12 +357,23 @@ struct AchievementsHeader: View {
 struct CategoryDivider: View {
     let category: AchievementItemCategory
 
+    private var categoryColor: Color {
+        switch category {
+        case .streaks:
+            return Color(hex: "FF6B35") // Fire orange
+        case .lifetime:
+            return Color(hex: "06B6D4") // Teal/cyan
+        case .secret:
+            return Color(hex: "8B5CF6") // Purple
+        }
+    }
+
     var body: some View {
         HStack(spacing: MPSpacing.md) {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [.clear, .white.opacity(0.15)],
+                        colors: [.clear, categoryColor.opacity(0.3)],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -378,17 +383,17 @@ struct CategoryDivider: View {
             HStack(spacing: 6) {
                 Image(systemName: category.icon)
                     .font(.system(size: 10, weight: .semibold))
-                    .foregroundColor(category == .secret ? Color(hex: "8B5CF6") : .white.opacity(0.4))
+                    .foregroundColor(categoryColor)
                 Text(category.rawValue.uppercased())
                     .font(.system(size: 11, weight: .semibold, design: .rounded))
-                    .foregroundColor(.white.opacity(0.4))
+                    .foregroundColor(categoryColor)
                     .tracking(1.5)
             }
 
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [.white.opacity(0.15), .clear],
+                        colors: [categoryColor.opacity(0.3), .clear],
                         startPoint: .leading,
                         endPoint: .trailing
                     )

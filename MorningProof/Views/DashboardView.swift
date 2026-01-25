@@ -1048,25 +1048,21 @@ struct DashboardView: View {
                 }
 
             case .sleepDuration:
+                // Sleep is retrospective (last night's data) - no "Late" concept applies
                 if let hours = completion.verificationData?.sleepHours {
                     HStack(spacing: MPSpacing.xs) {
                         HealthBadge(isCompleted: completion.isCompleted)
                         Text("\(formatHours(hours))/\(config.goal)h sleep")
                             .font(MPFont.bodySmall())
                             .foregroundColor(completion.isCompleted ? .white.opacity(0.8) : MPColors.textTertiary)
-                        if completion.isCompleted && wasCompletedLate(completion) {
-                            LateBadge()
-                        }
                     }
                 } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
+                    // Show "Not met" instead of "LATE" for sleep - you can't be late on last night's sleep
                     HStack(spacing: MPSpacing.xs) {
                         HealthBadge(isCompleted: false)
-                        HStack(spacing: 4) {
-                            Image(systemName: "exclamationmark.circle.fill")
-                            Text("LATE")
-                        }
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(MPColors.error)
+                        Text("Not met")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 } else {
                     HStack(spacing: MPSpacing.xs) {

@@ -9,6 +9,10 @@ struct AddHabitView: View {
     @State private var showCreateCustomHabit = false
     @State private var preselectedVerificationType: CustomVerificationType? = nil
 
+    // Info popups
+    @State private var showingHabitInfo: HabitType? = nil
+    @State private var showingCustomHabitInfo: CustomHabit? = nil
+
     // Group predefined habits by tier
     private var aiVerifiedHabits: [HabitType] {
         HabitType.allCases.filter { $0.tier == .aiVerified }
@@ -89,6 +93,102 @@ struct AddHabitView: View {
                 preselectedVerificationType = nil
             }
         }
+        .overlay {
+            // Predefined habit info popup
+            if let habitInfo = showingHabitInfo {
+                ZStack {
+                    // Dimmed background - tap to dismiss
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showingHabitInfo = nil
+                        }
+
+                    // Popup card
+                    VStack(spacing: MPSpacing.md) {
+                        // Header with icon and title
+                        HStack(spacing: MPSpacing.sm) {
+                            Image(systemName: habitInfo.icon)
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(MPColors.primary)
+
+                            Text(habitInfo.displayName)
+                                .font(MPFont.labelLarge())
+                                .foregroundColor(MPColors.textPrimary)
+                        }
+
+                        // Description
+                        Text(habitInfo.howItWorksDetailed)
+                            .font(MPFont.bodyMedium())
+                            .foregroundColor(MPColors.textSecondary)
+                            .multilineTextAlignment(.center)
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                    .padding(MPSpacing.xl)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .mpShadow(.medium)
+                    .padding(.horizontal, MPSpacing.xxl)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingHabitInfo)
+        .overlay {
+            // Custom habit info popup
+            if let customHabit = showingCustomHabitInfo {
+                ZStack {
+                    // Dimmed background - tap to dismiss
+                    Color.black.opacity(0.4)
+                        .ignoresSafeArea()
+                        .onTapGesture {
+                            showingCustomHabitInfo = nil
+                        }
+
+                    // Popup card
+                    VStack(spacing: MPSpacing.md) {
+                        // Header with icon and title
+                        HStack(spacing: MPSpacing.sm) {
+                            Image(systemName: customHabit.icon)
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(MPColors.primary)
+
+                            Text(customHabit.name)
+                                .font(MPFont.labelLarge())
+                                .foregroundColor(MPColors.textPrimary)
+                        }
+
+                        // Verification type
+                        Text(customHabit.verificationType.displayName)
+                            .font(MPFont.labelSmall())
+                            .foregroundColor(MPColors.textTertiary)
+
+                        // AI Prompt if present
+                        if let prompt = customHabit.aiPrompt, !prompt.isEmpty {
+                            VStack(spacing: MPSpacing.xs) {
+                                Text("Verification Instructions:")
+                                    .font(MPFont.labelSmall())
+                                    .foregroundColor(MPColors.textSecondary)
+
+                                Text("\"\(prompt)\"")
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.textPrimary)
+                                    .italic()
+                                    .multilineTextAlignment(.center)
+                            }
+                            .padding(.top, MPSpacing.sm)
+                        }
+                    }
+                    .padding(MPSpacing.xl)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+                    .mpShadow(.medium)
+                    .padding(.horizontal, MPSpacing.xxl)
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
+            }
+        }
+        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: showingCustomHabitInfo != nil)
     }
 
     // MARK: - Habit Section
@@ -163,10 +263,20 @@ struct AddHabitView: View {
                     .foregroundColor(isEnabled ? MPColors.success : MPColors.primary)
             }
 
-            // Name
-            Text(habitType.displayName)
-                .font(MPFont.labelMedium())
-                .foregroundColor(MPColors.textPrimary)
+            // Name with info button
+            HStack(spacing: 6) {
+                Text(habitType.displayName)
+                    .font(MPFont.labelMedium())
+                    .foregroundColor(MPColors.textPrimary)
+
+                Button {
+                    showingHabitInfo = habitType
+                } label: {
+                    Image(systemName: "info.circle")
+                        .font(.system(size: 14))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
 
             Spacer()
 
@@ -202,11 +312,21 @@ struct AddHabitView: View {
                     .foregroundColor(isEnabled ? MPColors.success : MPColors.primary)
             }
 
-            // Name with "Custom" label
+            // Name with info button and "Custom" label
             VStack(alignment: .leading, spacing: 2) {
-                Text(customHabit.name)
-                    .font(MPFont.labelMedium())
-                    .foregroundColor(MPColors.textPrimary)
+                HStack(spacing: 6) {
+                    Text(customHabit.name)
+                        .font(MPFont.labelMedium())
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Button {
+                        showingCustomHabitInfo = customHabit
+                    } label: {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 14))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
                 Text("Custom")
                     .font(MPFont.labelTiny())
                     .foregroundColor(MPColors.textTertiary)

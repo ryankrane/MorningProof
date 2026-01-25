@@ -147,14 +147,21 @@ struct WeekDayDot: View {
                     .frame(width: 40, height: 40)
             }
 
-            // Checkmark for complete days, fraction for partial/today progress
+            // Star for perfect days, checkmark for complete past days, fraction for partial progress
             if case .complete = status {
                 Image(systemName: "checkmark")
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(.white)
             } else if case .today(let count) = status, count > 0 && totalForDay > 0 {
-                FractionView(numerator: count, denominator: totalForDay)
-                    .foregroundColor(MPColors.primary)
+                if count >= totalForDay {
+                    // Perfect day - show star!
+                    Image(systemName: "star.fill")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(MPColors.accentGold)
+                } else {
+                    FractionView(numerator: count, denominator: totalForDay)
+                        .foregroundColor(MPColors.primary)
+                }
             } else if case .partial(let count) = status, totalForDay > 0 {
                 FractionView(numerator: count, denominator: totalForDay)
                     .foregroundColor(MPColors.primary)

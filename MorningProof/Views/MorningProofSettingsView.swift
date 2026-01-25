@@ -27,9 +27,6 @@ struct MorningProofSettingsView: View {
     // Support features
     @State private var showMailComposer = false
     @State private var showShareSheet = false
-    @State private var isRestoringPurchases = false
-    @State private var showRestoreAlert = false
-    @State private var restoreAlertMessage = ""
 
     var body: some View {
         ZStack {
@@ -43,25 +40,17 @@ struct MorningProofSettingsView: View {
 
                     // Account Section
                     SettingsSection(title: "Account") {
-                        SettingsRow(
-                            icon: "arrow.clockwise",
-                            iconColor: MPColors.primary,
-                            title: "Restore Purchases",
-                            trailing: isRestoringPurchases ? .loading : .chevron
-                        ) {
-                            Task {
-                                isRestoringPurchases = true
-                                await subscriptionManager.restorePurchases()
-                                isRestoringPurchases = false
-                                if subscriptionManager.isPremium {
-                                    restoreAlertMessage = "Your premium subscription has been restored."
-                                } else {
-                                    restoreAlertMessage = "No previous purchases found."
-                                }
-                                showRestoreAlert = true
-                            }
+                        NavigationLink {
+                            ManageSubscriptionView()
+                        } label: {
+                            SettingsRowContent(
+                                icon: "creditcard.fill",
+                                iconColor: MPColors.primary,
+                                title: "Manage Subscription",
+                                trailing: .value(subscriptionManager.isPremium ? "Premium" : "Free")
+                            )
                         }
-                        .disabled(isRestoringPurchases)
+                        .buttonStyle(.plain)
                     }
 
                     // Notifications Section
@@ -232,11 +221,6 @@ struct MorningProofSettingsView: View {
             }
         } message: {
             Text("This will permanently delete your account and all data including habits, streaks, and settings. This cannot be undone.")
-        }
-        .alert("Restore Purchases", isPresented: $showRestoreAlert) {
-            Button("OK", role: .cancel) { }
-        } message: {
-            Text(restoreAlertMessage)
         }
         .sheet(isPresented: $showMailComposer) {
             MailComposeView(
@@ -819,6 +803,163 @@ struct HealthDataSettingsView: View {
         }
         .padding(.horizontal, MPSpacing.lg)
         .padding(.vertical, MPSpacing.md)
+    }
+}
+
+// MARK: - Manage Subscription View
+
+struct ManageSubscriptionView: View {
+    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @State private var isRestoringPurchases = false
+    @State private var showRestoreAlert = false
+    @State private var restoreAlertMessage = ""
+    @State private var showPaywall = false
+
+    var body: some View {
+        ZStack {
+            MPColors.background
+                .ignoresSafeArea()
+
+            ScrollView {
+                VStack(spacing: MPSpacing.xl) {
+                    // Current Plan Card
+                    VStack(spacing: MPSpacing.lg) {
+                        HStack {
+                            VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                                Text("Current Plan")
+                                    .font(MPFont.bodySmall())
+                                    .foregroundColor(MPColors.textTertiary)
+
+                                Text(subscriptionManager.isPremium ? "Premium" : "Free")
+                                    .font(MPFont.headingMedium())
+                                    .foregroundColor(MPColors.textPrimary)
+                            }
+
+                            Spacer()
+
+                            // Status badge
+                            Text(subscriptionManager.isPremium ? "Active" : "Basic")
+                                .font(MPFont.labelSmall())
+                                .foregroundColor(.white)
+                                .padding(.horizontal, MPSpacing.md)
+                                .padding(.vertical, MPSpacing.sm)
+                                .background(subscriptionManager.isPremium ? MPColors.success : MPColors.textTertiary)
+                                .cornerRadius(MPRadius.md)
+                        }
+
+                        if !subscriptionManager.isPremium {
+                            // Upgrade button for free users
+                            Button {
+                                showPaywall = true
+                            } label: {
+                                Text("Upgrade to Premium")
+                                    .font(MPFont.labelMedium())
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding(.vertical, MPSpacing.md)
+                                    .background(MPColors.primary)
+                                    .cornerRadius(MPRadius.md)
+                            }
+                        }
+                    }
+                    .padding(MPSpacing.lg)
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+
+                    // Actions
+                    VStack(spacing: 0) {
+                        if subscriptionManager.isPremium {
+                            // Manage in Settings (opens iOS subscription settings)
+                            Button {
+                                if let url = URL(string: "itms-apps://apps.apple.com/account/subscriptions") {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Manage in Settings")
+                                        .font(MPFont.bodyMedium())
+                                        .foregroundColor(MPColors.textPrimary)
+
+                                    Spacer()
+
+                                    Image(systemName: "arrow.up.right")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(MPColors.textTertiary)
+                                }
+                                .padding(.horizontal, MPSpacing.lg)
+                                .padding(.vertical, MPSpacing.lg)
+                            }
+                            .buttonStyle(.plain)
+
+                            Divider()
+                                .padding(.leading, MPSpacing.lg)
+                        }
+
+                        // Restore Purchases
+                        Button {
+                            Task {
+                                isRestoringPurchases = true
+                                await subscriptionManager.restorePurchases()
+                                isRestoringPurchases = false
+                                if subscriptionManager.isPremium {
+                                    restoreAlertMessage = "Your premium subscription has been restored."
+                                } else {
+                                    restoreAlertMessage = "No previous purchases found."
+                                }
+                                showRestoreAlert = true
+                            }
+                        } label: {
+                            HStack {
+                                Text("Restore Purchases")
+                                    .font(MPFont.bodyMedium())
+                                    .foregroundColor(MPColors.primary)
+
+                                Spacer()
+
+                                if isRestoringPurchases {
+                                    ProgressView()
+                                        .progressViewStyle(CircularProgressViewStyle(tint: MPColors.textTertiary))
+                                        .scaleEffect(0.8)
+                                }
+                            }
+                            .padding(.horizontal, MPSpacing.lg)
+                            .padding(.vertical, MPSpacing.lg)
+                        }
+                        .buttonStyle(.plain)
+                        .disabled(isRestoringPurchases)
+                    }
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
+
+                    // Legal text
+                    VStack(alignment: .leading, spacing: MPSpacing.sm) {
+                        Text("Your subscription will automatically renew unless cancelled at least 24 hours before the end of the current period.")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+
+                        Text("Subscriptions are managed through your Apple ID. You can change or cancel your subscription at any time in your device's Settings.")
+                            .font(MPFont.bodySmall())
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                    .padding(MPSpacing.lg)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(MPColors.surface.opacity(0.5))
+                    .cornerRadius(MPRadius.lg)
+                }
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, MPSpacing.lg)
+            }
+        }
+        .navigationTitle("Manage Subscription")
+        .navigationBarTitleDisplayMode(.inline)
+        .alert("Restore Purchases", isPresented: $showRestoreAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text(restoreAlertMessage)
+        }
+        .sheet(isPresented: $showPaywall) {
+            PaywallView(subscriptionManager: subscriptionManager)
+        }
     }
 }
 
