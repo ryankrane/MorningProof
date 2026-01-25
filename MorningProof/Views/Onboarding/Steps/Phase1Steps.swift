@@ -484,6 +484,11 @@ struct MorningStruggleStep: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
+                // Hero icon - colorful alarm clock
+                AlarmClockIcon(size: 60)
+                    .opacity(appeared ? 1 : 0)
+                    .scaleEffect(appeared ? 1 : 0.5)
+
                 Text("What's your biggest\nmorning struggle?")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
@@ -521,12 +526,128 @@ struct MorningStruggleStep: View {
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
         }
-        .opacity(appeared ? 1 : 0)
-        .offset(y: appeared ? 0 : 20)
-        .animation(.easeOut(duration: 0.4), value: appeared)
         .onAppear {
-            appeared = true
+            withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                appeared = true
+            }
         }
+    }
+}
+
+// MARK: - Alarm Clock Icon
+
+private struct AlarmClockIcon: View {
+    let size: CGFloat
+
+    // Colorful, friendly alarm clock colors
+    private let clockBodyRed = Color(red: 0.9, green: 0.25, blue: 0.3)
+    private let clockBodyDarkRed = Color(red: 0.75, green: 0.15, blue: 0.2)
+    private let bellYellow = Color(red: 1.0, green: 0.85, blue: 0.3)
+    private let clockFaceWhite = Color.white
+    private let handsColor = Color(red: 0.2, green: 0.2, blue: 0.25)
+
+    var body: some View {
+        ZStack {
+            // Legs (two small feet at bottom)
+            HStack(spacing: size * 0.35) {
+                ClockLeg(size: size)
+                ClockLeg(size: size)
+                    .scaleEffect(x: -1, y: 1)
+            }
+            .offset(y: size * 0.35)
+
+            // Bells on top
+            HStack(spacing: size * 0.28) {
+                ClockBell(size: size, color: bellYellow)
+                    .rotationEffect(.degrees(-20))
+                ClockBell(size: size, color: bellYellow)
+                    .rotationEffect(.degrees(20))
+            }
+            .offset(y: -size * 0.32)
+
+            // Hammer between bells
+            RoundedRectangle(cornerRadius: size * 0.03)
+                .fill(handsColor)
+                .frame(width: size * 0.06, height: size * 0.22)
+                .offset(y: -size * 0.38)
+
+            // Main clock body (circle)
+            Circle()
+                .fill(
+                    LinearGradient(
+                        colors: [clockBodyRed, clockBodyDarkRed],
+                        startPoint: .top,
+                        endPoint: .bottom
+                    )
+                )
+                .frame(width: size * 0.75, height: size * 0.75)
+
+            // Clock face (white circle)
+            Circle()
+                .fill(clockFaceWhite)
+                .frame(width: size * 0.58, height: size * 0.58)
+
+            // Hour markers (small dots at 12, 3, 6, 9)
+            ForEach([0, 90, 180, 270], id: \.self) { angle in
+                Circle()
+                    .fill(handsColor)
+                    .frame(width: size * 0.04, height: size * 0.04)
+                    .offset(y: -size * 0.22)
+                    .rotationEffect(.degrees(Double(angle)))
+            }
+
+            // Hour hand (short, pointing to ~7)
+            RoundedRectangle(cornerRadius: size * 0.02)
+                .fill(handsColor)
+                .frame(width: size * 0.04, height: size * 0.14)
+                .offset(y: -size * 0.05)
+                .rotationEffect(.degrees(210))
+
+            // Minute hand (long, pointing to ~12)
+            RoundedRectangle(cornerRadius: size * 0.015)
+                .fill(handsColor)
+                .frame(width: size * 0.025, height: size * 0.20)
+                .offset(y: -size * 0.08)
+                .rotationEffect(.degrees(0))
+
+            // Center dot
+            Circle()
+                .fill(clockBodyRed)
+                .frame(width: size * 0.06, height: size * 0.06)
+        }
+        .frame(width: size, height: size)
+    }
+}
+
+// MARK: - Clock Bell Component
+
+private struct ClockBell: View {
+    let size: CGFloat
+    let color: Color
+
+    var body: some View {
+        Ellipse()
+            .fill(color)
+            .frame(width: size * 0.22, height: size * 0.18)
+    }
+}
+
+// MARK: - Clock Leg Component
+
+private struct ClockLeg: View {
+    let size: CGFloat
+
+    var body: some View {
+        Path { path in
+            let scale = size / 60.0
+            // Small angled leg
+            path.move(to: CGPoint(x: 0, y: 0))
+            path.addLine(to: CGPoint(x: 5 * scale, y: 8 * scale))
+            path.addLine(to: CGPoint(x: 8 * scale, y: 8 * scale))
+            path.addLine(to: CGPoint(x: 3 * scale, y: 0))
+            path.closeSubpath()
+        }
+        .fill(Color(red: 0.3, green: 0.3, blue: 0.35))
     }
 }
 
