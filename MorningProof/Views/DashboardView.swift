@@ -11,6 +11,11 @@ struct DashboardView: View {
     @State private var showHabitEditor = false
     @State private var holdProgress: [HabitType: CGFloat] = [:]
 
+    // New AI-verified habits (using generic camera view)
+    @State private var genericCameraHabitType: HabitType? = nil
+    // Text entry habits
+    @State private var textEntryHabitType: HabitType? = nil
+
     // Custom habit states
     @State private var customHabitCameraTarget: CustomHabit? = nil
     @State private var customHoldProgress: [UUID: CGFloat] = [:]
@@ -170,6 +175,12 @@ struct DashboardView: View {
             } else {
                 CustomHabitCameraView(manager: manager, customHabit: habit)
             }
+        }
+        .sheet(item: $genericCameraHabitType) { habitType in
+            GenericAICameraView(manager: manager, habitType: habitType)
+        }
+        .sheet(item: $textEntryHabitType) { habitType in
+            TextEntryHabitSheet(manager: manager, habitType: habitType)
         }
         .task {
             // Track which habits were completed before sync
@@ -409,6 +420,11 @@ struct DashboardView: View {
                 habitRow(for: config, layout: layout)
             }
 
+            // Journaling habits (text entry)
+            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .journaling }) { config in
+                habitRow(for: config, layout: layout)
+            }
+
             // Honor System predefined habits
             ForEach(manager.enabledHabits.filter { $0.habitType.tier == .honorSystem }) { config in
                 habitRow(for: config, layout: layout)
@@ -448,14 +464,20 @@ struct DashboardView: View {
     }
 
     /// Determines if a habit is a "hold to complete" type (not a special input type)
-    /// Only habits with special input UIs (camera, sheets, auto-progress) are excluded
+    /// Only habits with special input UIs (camera, sheets, auto-progress, text entry) are excluded
     private func isHoldToCompleteHabit(_ habitType: HabitType) -> Bool {
         // These habits have special input types and don't use hold-to-complete:
-        // - madeBed, sunlightExposure, hydration: camera verification
+        // - madeBed, sunlightExposure, hydration: original camera verification
+        // - healthyBreakfast, morningJournal, vitamins, skincare, mealPrep: new AI camera verification
+        // - gratitude, dailyPlanning: text entry
         // - sleepDuration: sleep input sheet
         // - morningSteps: auto-tracked with circular progress
         // Everything else uses hold-to-complete for manual confirmation
-        let specialInputHabits: Set<HabitType> = [.madeBed, .sleepDuration, .morningSteps, .sunlightExposure, .hydration]
+        let specialInputHabits: Set<HabitType> = [
+            .madeBed, .sleepDuration, .morningSteps, .sunlightExposure, .hydration,
+            .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep,
+            .gratitude, .dailyPlanning
+        ]
         return !specialInputHabits.contains(habitType)
     }
 
@@ -627,6 +649,30 @@ struct DashboardView: View {
                 } else if !isCompleted && config.habitType == .morningSteps {
                     let score = completion?.score ?? 0
                     PillProgressView(progress: CGFloat(score) / 100)
+                } else if !isCompleted && [.healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep].contains(config.habitType) {
+                    // New AI-verified habits
+                    Button {
+                        genericCameraHabitType = config.habitType
+                    } label: {
+                        Image(systemName: "camera.fill")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.sm)
+                    }
+                } else if !isCompleted && [.gratitude, .dailyPlanning].contains(config.habitType) {
+                    // Text entry habits
+                    Button {
+                        textEntryHabitType = config.habitType
+                    } label: {
+                        Image(systemName: "square.and.pencil")
+                            .font(.body)
+                            .foregroundColor(.white)
+                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
+                            .background(MPColors.primary)
+                            .cornerRadius(MPRadius.sm)
+                    }
                 }
 
                 // Checkmark indicator for completed habits
@@ -1050,6 +1096,43 @@ struct DashboardView: View {
 
             case .hydration:
                 Text(completion.isCompleted ? "Verified" : "Take a photo of your water")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            // New AI-verified habits
+            case .healthyBreakfast:
+                Text(completion.isCompleted ? "Verified" : "Take a photo of your breakfast")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            case .morningJournal:
+                Text(completion.isCompleted ? "Verified" : "Show your journal entry")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            case .vitamins:
+                Text(completion.isCompleted ? "Verified" : "Snap your vitamins")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            case .skincare:
+                Text(completion.isCompleted ? "Verified" : "Show your skincare routine")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            case .mealPrep:
+                Text(completion.isCompleted ? "Verified" : "Show your prepped meals")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            // Text entry habits
+            case .gratitude:
+                Text(completion.isCompleted ? "Logged" : "Write what you're grateful for")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+
+            case .dailyPlanning:
+                Text(completion.isCompleted ? "Planned" : "Write your priorities")
                     .font(MPFont.bodySmall())
                     .foregroundColor(MPColors.textTertiary)
 
