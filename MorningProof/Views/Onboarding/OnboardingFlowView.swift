@@ -229,6 +229,19 @@ struct OnboardingFlowView: View {
                 .id(currentStep)
             }
         }
+        .overlay(alignment: .topLeading) {
+            if currentStep > 0 && currentStep < 15 {
+                Button(action: previousStep) {
+                    Image(systemName: "chevron.left")
+                        .font(.system(size: 18, weight: .semibold))
+                        .foregroundColor(MPColors.textSecondary)
+                        .frame(width: 44, height: 44)
+                        .contentShape(Rectangle())
+                }
+                .padding(.leading, MPSpacing.md)
+                .padding(.top, MPSpacing.sm)
+            }
+        }
         .preferredColorScheme(.dark)
     }
 
