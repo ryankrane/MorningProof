@@ -38,8 +38,8 @@ struct MorningProofSettingsView: View {
                     // Profile Section
                     profileSection
 
-                    // Account Section
-                    SettingsSection(title: "Account") {
+                    // All Settings - Single Card
+                    VStack(spacing: 0) {
                         NavigationLink {
                             ManageSubscriptionView()
                         } label: {
@@ -51,10 +51,9 @@ struct MorningProofSettingsView: View {
                             )
                         }
                         .buttonStyle(.plain)
-                    }
 
-                    // Notifications Section
-                    SettingsSection(title: "Notifications") {
+                        Divider().padding(.leading, 60)
+
                         NavigationLink {
                             NotificationSettingsView(
                                 notificationsEnabled: $notificationsEnabled,
@@ -69,10 +68,9 @@ struct MorningProofSettingsView: View {
                             )
                         }
                         .buttonStyle(.plain)
-                    }
 
-                    // App Settings Section
-                    SettingsSection(title: "App Settings") {
+                        Divider().padding(.leading, 60)
+
                         NavigationLink {
                             AppearanceSettingsView()
                                 .environmentObject(themeManager)
@@ -86,6 +84,8 @@ struct MorningProofSettingsView: View {
                         }
                         .buttonStyle(.plain)
 
+                        Divider().padding(.leading, 60)
+
                         NavigationLink {
                             HealthDataSettingsView()
                         } label: {
@@ -97,10 +97,9 @@ struct MorningProofSettingsView: View {
                             )
                         }
                         .buttonStyle(.plain)
-                    }
 
-                    // Support Section
-                    SettingsSection(title: "Support") {
+                        Divider().padding(.leading, 60)
+
                         SettingsRow(
                             icon: "envelope.fill",
                             iconColor: MPColors.primary,
@@ -116,6 +115,8 @@ struct MorningProofSettingsView: View {
                             }
                         }
 
+                        Divider().padding(.leading, 60)
+
                         SettingsRow(
                             icon: "star.fill",
                             iconColor: .yellow,
@@ -127,6 +128,8 @@ struct MorningProofSettingsView: View {
                             }
                         }
 
+                        Divider().padding(.leading, 60)
+
                         SettingsRow(
                             icon: "square.and.arrow.up.fill",
                             iconColor: MPColors.primary,
@@ -135,10 +138,9 @@ struct MorningProofSettingsView: View {
                         ) {
                             showShareSheet = true
                         }
-                    }
 
-                    // Legal Section
-                    SettingsSection(title: "Legal") {
+                        Divider().padding(.leading, 60)
+
                         SettingsRow(
                             icon: "hand.raised.fill",
                             iconColor: .gray,
@@ -149,6 +151,8 @@ struct MorningProofSettingsView: View {
                                 UIApplication.shared.open(url)
                             }
                         }
+
+                        Divider().padding(.leading, 60)
 
                         SettingsRow(
                             icon: "doc.text.fill",
@@ -161,9 +165,11 @@ struct MorningProofSettingsView: View {
                             }
                         }
                     }
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
 
-                    // Data Section
-                    SettingsSection(title: "Data") {
+                    // Danger Zone - Separate Card
+                    VStack(spacing: 0) {
                         SettingsRow(
                             icon: "arrow.counterclockwise",
                             iconColor: MPColors.warning,
@@ -173,6 +179,8 @@ struct MorningProofSettingsView: View {
                         ) {
                             showResetTodayConfirmation = true
                         }
+
+                        Divider().padding(.leading, 60)
 
                         SettingsRow(
                             icon: "trash.fill",
@@ -184,6 +192,8 @@ struct MorningProofSettingsView: View {
                             showResetConfirmation = true
                         }
                     }
+                    .background(MPColors.surface)
+                    .cornerRadius(MPRadius.lg)
 
                     // Version Footer
                     Text("Version \(appVersion)")
