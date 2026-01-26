@@ -22,6 +22,10 @@ struct AddHabitView: View {
         HabitType.allCases.filter { $0.tier == .autoTracked }
     }
 
+    private var journalingHabits: [HabitType] {
+        HabitType.allCases.filter { $0.tier == .journaling }
+    }
+
     private var selfReportedHabits: [HabitType] {
         HabitType.allCases.filter { $0.tier == .honorSystem }
     }
@@ -52,6 +56,16 @@ struct AddHabitView: View {
                         subtitle: "Auto-synced from Health",
                         icon: "heart.fill",
                         habits: healthHabits,
+                        customHabits: [],
+                        customType: nil
+                    )
+
+                    // Journaling section
+                    habitSection(
+                        title: "JOURNALING",
+                        subtitle: "Write to complete",
+                        icon: "square.and.pencil",
+                        habits: journalingHabits,
                         customHabits: [],
                         customType: nil
                     )

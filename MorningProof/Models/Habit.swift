@@ -20,12 +20,14 @@ enum HabitCategory: String, CaseIterable {
 enum HabitVerificationTier: Int, Codable, CaseIterable {
     case aiVerified = 1      // Requires AI analysis (e.g., bed photo)
     case autoTracked = 2     // Auto-tracked via Apple Health
-    case honorSystem = 3     // Manual confirmation with friction
+    case journaling = 3      // Text entry habits (gratitude, planning)
+    case honorSystem = 4     // Manual confirmation with friction
 
     var description: String {
         switch self {
         case .aiVerified: return "AI Verified"
         case .autoTracked: return "Apple Health"
+        case .journaling: return "Journaling"
         case .honorSystem: return "Honor System"
         }
     }
@@ -34,6 +36,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
         switch self {
         case .aiVerified: return "AI Verified"
         case .autoTracked: return "Apple Health"
+        case .journaling: return "Journaling"
         case .honorSystem: return "Self-Reported"
         }
     }
@@ -42,6 +45,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
         switch self {
         case .aiVerified: return "camera.fill"
         case .autoTracked: return "heart.fill"
+        case .journaling: return "square.and.pencil"
         case .honorSystem: return "hand.tap.fill"
         }
     }
@@ -62,6 +66,18 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     case prayer = "prayer"
     case reading = "reading"
     case walkDog = "walk_dog"
+    // New AI-verified habits
+    case healthyBreakfast = "healthy_breakfast"
+    case morningJournal = "morning_journal"
+    case vitamins = "vitamins"
+    case skincare = "skincare"
+    case mealPrep = "meal_prep"
+    // New honor system habits
+    case gratitude = "gratitude"
+    case noPhoneFirst30 = "no_phone_first_30"
+    case dailyPlanning = "daily_planning"
+    case breathingExercises = "breathing_exercises"
+    case floss = "floss"
 
     var id: String { rawValue }
 
@@ -80,6 +96,16 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .prayer: return "Prayer"
         case .reading: return "Reading"
         case .walkDog: return "Walk the Dog"
+        case .healthyBreakfast: return "Healthy Breakfast"
+        case .morningJournal: return "Morning Journal"
+        case .vitamins: return "Vitamins"
+        case .skincare: return "Skincare"
+        case .mealPrep: return "Meal Prep"
+        case .gratitude: return "Gratitude"
+        case .noPhoneFirst30: return "No Phone (30 min)"
+        case .dailyPlanning: return "Daily Planning"
+        case .breathingExercises: return "Breathing"
+        case .floss: return "Floss"
         }
     }
 
@@ -98,22 +124,33 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .prayer: return "hands.sparkles.fill"
         case .reading: return "book.fill"
         case .walkDog: return "dog.fill"
+        case .healthyBreakfast: return "fork.knife"
+        case .morningJournal: return "book.closed.fill"
+        case .vitamins: return "pills.fill"
+        case .skincare: return "face.smiling.fill"
+        case .mealPrep: return "takeoutbag.and.cup.and.straw.fill"
+        case .gratitude: return "heart.text.square.fill"
+        case .noPhoneFirst30: return "iphone.slash"
+        case .dailyPlanning: return "list.clipboard.fill"
+        case .breathingExercises: return "wind"
+        case .floss: return "mouth.fill"
         }
     }
 
     var tier: HabitVerificationTier {
         switch self {
-        case .madeBed, .sunlightExposure, .hydration: return .aiVerified
+        case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep: return .aiVerified
         case .morningSteps, .sleepDuration, .morningWorkout: return .autoTracked
-        case .coldShower, .noSnooze, .morningStretch, .meditation, .prayer, .reading, .walkDog: return .honorSystem
+        case .gratitude, .dailyPlanning: return .journaling
+        case .coldShower, .noSnooze, .morningStretch, .meditation, .prayer, .reading, .walkDog, .noPhoneFirst30, .breathingExercises, .floss: return .honorSystem
         }
     }
 
     var category: HabitCategory {
         switch self {
-        case .noSnooze, .madeBed, .sleepDuration: return .wakeUp
+        case .noSnooze, .madeBed, .sleepDuration, .noPhoneFirst30: return .wakeUp
         case .morningStretch, .morningWorkout, .morningSteps, .walkDog: return .movement
-        case .meditation, .coldShower, .sunlightExposure, .hydration, .prayer, .reading: return .wellness
+        case .meditation, .coldShower, .sunlightExposure, .hydration, .prayer, .reading, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep, .gratitude, .dailyPlanning, .breathingExercises, .floss: return .wellness
         }
     }
 
@@ -126,6 +163,8 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .morningWorkout: return 20 // Minutes
         case .coldShower, .noSnooze, .morningStretch, .meditation, .prayer, .reading, .walkDog: return 1 // Binary
         case .hydration: return 1 // Binary - just verify water
+        case .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep: return 1 // Binary AI verification
+        case .gratitude, .noPhoneFirst30, .dailyPlanning, .breathingExercises, .floss: return 1 // Binary honor system
         }
     }
 
@@ -145,15 +184,25 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
     }
 
     var requiresTextEntry: Bool {
-        return false // None of the core habits require text entry
+        switch self {
+        case .gratitude, .dailyPlanning: return true
+        default: return false
+        }
     }
 
     var minimumTextLength: Int {
-        return 0
+        switch self {
+        case .gratitude, .dailyPlanning: return 10
+        default: return 0
+        }
     }
 
     var textEntryPrompt: String {
-        return ""
+        switch self {
+        case .gratitude: return "What are you grateful for today?"
+        case .dailyPlanning: return "What are your top priorities today?"
+        default: return ""
+        }
     }
 
     var description: String {
@@ -171,6 +220,16 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .prayer: return "Begin your day with spiritual connection"
         case .reading: return "Feed your mind with morning reading"
         case .walkDog: return "Get outside and give your dog some exercise"
+        case .healthyBreakfast: return "Fuel your morning with nutritious food"
+        case .morningJournal: return "Clear your mind by putting thoughts on paper"
+        case .vitamins: return "Support your health with daily supplements"
+        case .skincare: return "Take care of your skin with a morning routine"
+        case .mealPrep: return "Set yourself up for healthy eating all day"
+        case .gratitude: return "Start your day with a grateful mindset"
+        case .noPhoneFirst30: return "Protect your focus by avoiding screens"
+        case .dailyPlanning: return "Set clear intentions for your day"
+        case .breathingExercises: return "Center yourself with intentional breathing"
+        case .floss: return "Keep your teeth and gums healthy"
         }
     }
 
@@ -190,6 +249,16 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .prayer: return "Hold to confirm you prayed"
         case .reading: return "Hold to confirm you read"
         case .walkDog: return "Hold to confirm you walked your dog"
+        case .healthyBreakfast: return "Snap your breakfast — AI checks if it's healthy"
+        case .morningJournal: return "Show your journal — AI verifies you wrote"
+        case .vitamins: return "Snap your vitamins — AI confirms your supplements"
+        case .skincare: return "Snap your skincare — AI verifies your routine"
+        case .mealPrep: return "Show your prep — AI confirms you're ready"
+        case .gratitude: return "Write what you're grateful for"
+        case .noPhoneFirst30: return "Hold to confirm you stayed phone-free"
+        case .dailyPlanning: return "Write your top priorities for the day"
+        case .breathingExercises: return "Hold to confirm you did your breathing"
+        case .floss: return "Hold to confirm you flossed"
         }
     }
 
@@ -209,6 +278,16 @@ enum HabitType: String, Codable, CaseIterable, Identifiable {
         case .prayer: return "Hold to confirm you completed your morning prayer."
         case .reading: return "Hold to confirm you did your morning reading."
         case .walkDog: return "Hold to confirm you took your dog for a walk."
+        case .healthyBreakfast: return "Take a photo of your breakfast. We'll verify it's healthy."
+        case .morningJournal: return "Show your journal with today's writing. We'll verify you reflected."
+        case .vitamins: return "Snap your vitamins or supplements. We'll confirm you're taking care of yourself."
+        case .skincare: return "Show your skincare products or routine. We'll verify you're caring for your skin."
+        case .mealPrep: return "Take a photo of your prepped meals. We'll confirm you're set for success."
+        case .gratitude: return "Write at least 10 characters about what you're grateful for today."
+        case .noPhoneFirst30: return "Hold to confirm you avoided your phone for 30 minutes after waking."
+        case .dailyPlanning: return "Write at least 10 characters about your priorities for the day."
+        case .breathingExercises: return "Hold to confirm you completed your breathing exercises."
+        case .floss: return "Hold to confirm you flossed your teeth."
         }
     }
 }

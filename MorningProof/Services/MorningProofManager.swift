@@ -51,6 +51,9 @@ final class MorningProofManager: ObservableObject, Sendable {
             habitConfigs = savedConfigs
         }
 
+        // Ensure all predefined habits have configs (handles app updates with new habits)
+        reconcileHabitConfigs()
+
         // Load or create today's log
         if let savedLog = storageService.loadDailyLog(for: Date()) {
             todayLog = savedLog
@@ -319,6 +322,29 @@ final class MorningProofManager: ObservableObject, Sendable {
         return result
     }
 
+    /// Generic AI verification for predefined habits (healthyBreakfast, morningJournal, vitamins, skincare, mealPrep)
+    func completePredefinedHabitVerification(habitType: HabitType, image: UIImage) async throws -> CustomVerificationResult {
+        guard let index = todayLog.completions.firstIndex(where: { $0.habitType == habitType }) else {
+            throw VerificationError.habitNotEnabled
+        }
+
+        let result = try await apiService.verifyPredefinedHabit(image: image, habitType: habitType)
+
+        if result.isVerified {
+            todayLog.completions[index].isCompleted = true
+            todayLog.completions[index].completedAt = Date()
+            todayLog.completions[index].score = 100 // Binary pass/fail
+            todayLog.completions[index].verificationData = HabitCompletion.VerificationData(
+                aiFeedback: result.feedback
+            )
+
+            recalculateScore()
+            saveCurrentState()
+        }
+
+        return result
+    }
+
     func completeTextEntry(habitType: HabitType, text: String) {
         guard text.count >= habitType.minimumTextLength else { return }
         guard let index = todayLog.completions.firstIndex(where: { $0.habitType == habitType }) else { return }
@@ -388,6 +414,31 @@ final class MorningProofManager: ObservableObject, Sendable {
         todayCustomCompletions.removeAll { $0.customHabitId == id }
         recalculateScore()
         saveCurrentState()
+    }
+
+    /// Ensures every predefined habit type has a corresponding config.
+    /// This handles app updates where new habits are added - existing users
+    /// would otherwise not have configs for the new habits.
+    private func reconcileHabitConfigs() {
+        let existingTypes = Set(habitConfigs.map { $0.habitType })
+        var needsSave = false
+
+        for habitType in HabitType.allCases {
+            if !existingTypes.contains(habitType) {
+                // Create missing config (disabled by default so users must opt-in)
+                let config = HabitConfig(
+                    habitType: habitType,
+                    isEnabled: false,
+                    displayOrder: habitConfigs.count
+                )
+                habitConfigs.append(config)
+                needsSave = true
+            }
+        }
+
+        if needsSave {
+            saveCurrentState()
+        }
     }
 
     /// Ensures every custom habit has a corresponding config.
