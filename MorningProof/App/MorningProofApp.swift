@@ -125,6 +125,20 @@ struct RootView: View {
             if newPhase == .active {
                 // Reset notification state if new day when app becomes active
                 HealthKitBackgroundDeliveryService.shared.resetDailyNotificationStateIfNeeded()
+
+                // Sync notification authorization status in case user changed it in iOS Settings
+                Task {
+                    let notificationManager = NotificationManager.shared
+                    await notificationManager.checkAuthorizationStatus()
+
+                    let manager = MorningProofManager.shared
+                    if manager.settings.notificationsEnabled && !notificationManager.isAuthorized {
+                        await MainActor.run {
+                            manager.settings.notificationsEnabled = false
+                            manager.saveCurrentState()
+                        }
+                    }
+                }
             }
         }
     }

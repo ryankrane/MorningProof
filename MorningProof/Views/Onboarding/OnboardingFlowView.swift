@@ -168,6 +168,7 @@ struct OnboardingFlowView: View {
     @StateObject private var onboardingData = OnboardingData()
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
+    private var notificationManager: NotificationManager { NotificationManager.shared }
     @State private var currentStep = 0
 
     private let totalSteps = 18
@@ -271,6 +272,7 @@ struct OnboardingFlowView: View {
 
     private func completeOnboarding() {
         manager.settings.userName = onboardingData.userName
+        manager.settings.notificationsEnabled = onboardingData.notificationsEnabled
 
         for habitType in HabitType.allCases {
             let isEnabled = onboardingData.selectedHabits.contains(habitType)
@@ -278,6 +280,11 @@ struct OnboardingFlowView: View {
         }
 
         manager.completeOnboarding()
+
+        // Schedule notifications if enabled during onboarding
+        Task {
+            await notificationManager.updateNotificationSchedule(settings: manager.settings)
+        }
     }
 }
 

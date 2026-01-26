@@ -81,39 +81,6 @@ struct StreakRecoveryView: View {
                                 .cornerRadius(16)
                                 .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 3)
                             }
-                        } else {
-                            // Non-premium user
-                            VStack(spacing: 12) {
-                                Text("Premium members can recover their streaks")
-                                    .font(.subheadline)
-                                    .foregroundColor(Color(red: 0.6, green: 0.5, blue: 0.4))
-                                    .multilineTextAlignment(.center)
-
-                                Button {
-                                    // Show paywall
-                                } label: {
-                                    Text("Upgrade to Premium")
-                                        .font(.headline)
-                                        .foregroundColor(.white)
-                                        .frame(maxWidth: .infinity)
-                                        .padding(.vertical, 16)
-                                        .background(
-                                            LinearGradient(
-                                                colors: [
-                                                    Color(red: 0.9, green: 0.6, blue: 0.35),
-                                                    Color(red: 0.85, green: 0.55, blue: 0.3)
-                                                ],
-                                                startPoint: .leading,
-                                                endPoint: .trailing
-                                            )
-                                        )
-                                        .cornerRadius(14)
-                                }
-                            }
-                            .padding(20)
-                            .background(Color.white)
-                            .cornerRadius(16)
-                            .shadow(color: Color.black.opacity(0.05), radius: 10, x: 0, y: 3)
                         }
                     }
                     .padding(.horizontal, 24)

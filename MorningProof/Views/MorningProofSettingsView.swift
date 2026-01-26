@@ -513,6 +513,7 @@ struct NotificationSettingsView: View {
     @StateObject private var notificationManager = NotificationManager.shared
 
     @State private var showTimePicker = false
+    @State private var showPermissionDeniedAlert = false
 
     var body: some View {
         ZStack {
@@ -547,7 +548,14 @@ struct NotificationSettingsView: View {
                                 .onChange(of: notificationsEnabled) { _, newValue in
                                     if newValue {
                                         Task {
-                                            _ = await notificationManager.requestPermission()
+                                            let granted = await notificationManager.requestPermission()
+                                            if !granted {
+                                                await notificationManager.checkAuthorizationStatus()
+                                                await MainActor.run {
+                                                    notificationsEnabled = false
+                                                    showPermissionDeniedAlert = true
+                                                }
+                                            }
                                         }
                                     }
                                 }
@@ -620,6 +628,16 @@ struct NotificationSettingsView: View {
                 timeOptions: TimeOptions.reminderTime
             )
             .presentationDetents([.medium])
+        }
+        .alert("Notifications Disabled", isPresented: $showPermissionDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: UIApplication.openSettingsURLString) {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("To receive reminders, please enable notifications for Morning Proof in your device's Settings.")
         }
     }
 }
