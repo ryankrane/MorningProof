@@ -155,7 +155,186 @@ Keep feedback to 2 sentences max.
 - Empty vessel: "Already finished? That's the spirit!"
 
 JSON format:
-{"is_water": boolean, "detected_subject": "category", "feedback": "specific message"}`
+{"is_water": boolean, "detected_subject": "category", "feedback": "specific message"}`,
+
+  healthyBreakfast: `TASK: Verify this photo shows a HEALTHY BREAKFAST.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+═══════════════════════════════════════════════════════════════
+Set detected_subject to one of:
+- "healthy_meal" - fruits, vegetables, eggs, oatmeal, yogurt, whole grains, smoothie, avocado toast
+- "unhealthy_meal" - donuts, sugary cereal, pastries, candy, chips
+- "beverage_only" - just coffee/tea with no food
+- "screenshot" - photo of a screen
+- "other" - unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 2: DETERMINE PASS/FAIL
+═══════════════════════════════════════════════════════════════
+PASS (is_verified: true) if:
+- Nutritious food visible: eggs, avocado, oatmeal, yogurt, fruit, vegetables, whole grain toast, smoothie
+- Mixed meals count if they include healthy components
+
+FAIL (is_verified: false) if:
+- Only sugary/processed foods (donuts, pastries, sugary cereal)
+- No food visible (beverage only)
+- Unrelated content
+
+Be encouraging about healthy eating choices!
+
+═══════════════════════════════════════════════════════════════
+STEP 3: SPECIFIC FEEDBACK
+═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
+- If passed: Celebrate the healthy choice! ("Great choice! Protein and fiber to fuel your morning.")
+- If failed (unhealthy): Gentle nudge ("That looks tasty, but try adding some fruit or eggs!")
+- If unrelated: "I see [what's there], but where's your breakfast?"
+
+JSON format:
+{"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`,
+
+  morningJournal: `TASK: Verify this photo shows a JOURNAL with writing.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+═══════════════════════════════════════════════════════════════
+Set detected_subject to one of:
+- "journal_writing" - open notebook/journal with visible handwriting
+- "journal_closed" - closed notebook or journal
+- "journal_blank" - open but blank pages
+- "digital_journal" - tablet or phone showing notes app with writing
+- "screenshot" - photo of a screen showing something else
+- "other" - unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 2: DETERMINE PASS/FAIL
+═══════════════════════════════════════════════════════════════
+PASS (is_verified: true) if:
+- Open journal/notebook with visible handwriting (doesn't need to be readable)
+- Digital notes app showing today's writing
+
+FAIL (is_verified: false) if:
+- Closed journal (no proof of writing)
+- Blank pages
+- Unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 3: SPECIFIC FEEDBACK
+═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
+- If passed: Acknowledge the effort ("Love to see those morning thoughts on paper!")
+- If closed: "Open it up and show me today's entry!"
+- If blank: "Those pages look empty - time to write!"
+
+JSON format:
+{"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`,
+
+  vitamins: `TASK: Verify this photo shows VITAMINS or SUPPLEMENTS being taken.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+═══════════════════════════════════════════════════════════════
+Set detected_subject to one of:
+- "vitamins_visible" - vitamin bottles, pill organizers, loose vitamins/supplements
+- "person_taking" - someone holding or taking vitamins
+- "pill_organizer" - weekly pill organizer with compartments
+- "screenshot" - photo of a screen
+- "other" - unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 2: DETERMINE PASS/FAIL
+═══════════════════════════════════════════════════════════════
+PASS (is_verified: true) if:
+- Vitamins, supplements, or pill organizer visible
+- Person actively taking vitamins
+
+FAIL (is_verified: false) if:
+- No vitamins or supplements visible
+- Unrelated content
+
+Be encouraging - taking vitamins is a great habit!
+
+═══════════════════════════════════════════════════════════════
+STEP 3: SPECIFIC FEEDBACK
+═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
+- If passed: "Nice! Keeping up with your supplements."
+- If wrong subject: "I see [what's there], but where are your vitamins?"
+
+JSON format:
+{"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`,
+
+  skincare: `TASK: Verify this photo shows SKINCARE products or routine.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+═══════════════════════════════════════════════════════════════
+Set detected_subject to one of:
+- "skincare_products" - moisturizer, serum, sunscreen, cleanser, toner
+- "person_applying" - someone applying skincare products
+- "makeup_only" - only makeup products (not skincare)
+- "screenshot" - photo of a screen
+- "other" - unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 2: DETERMINE PASS/FAIL
+═══════════════════════════════════════════════════════════════
+PASS (is_verified: true) if:
+- Skincare products visible (moisturizer, sunscreen, serum, cleanser, etc.)
+- Person applying skincare
+
+FAIL (is_verified: false) if:
+- Only makeup products (no skincare)
+- Unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 3: SPECIFIC FEEDBACK
+═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
+- If passed: "Your skin will thank you! Great routine."
+- If makeup only: "I see makeup, but show me your skincare products!"
+- If unrelated: "I see [what's there], but where's your skincare?"
+
+JSON format:
+{"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`,
+
+  mealPrep: `TASK: Verify this photo shows MEAL PREP.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+═══════════════════════════════════════════════════════════════
+Set detected_subject to one of:
+- "meal_containers" - food storage containers with prepared meals
+- "packed_lunch" - lunch box or bag with food
+- "prep_in_progress" - actively cooking or chopping ingredients
+- "groceries" - raw ingredients not being prepped
+- "screenshot" - photo of a screen
+- "other" - unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 2: DETERMINE PASS/FAIL
+═══════════════════════════════════════════════════════════════
+PASS (is_verified: true) if:
+- Meal prep containers with food inside
+- Packed lunch/lunchbox ready to go
+- Active food preparation (cooking, chopping, assembling)
+
+FAIL (is_verified: false) if:
+- Empty containers
+- Just raw groceries sitting there
+- Unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 3: SPECIFIC FEEDBACK
+═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
+- If passed: "Prepped and ready! That's setting yourself up for success."
+- If groceries: "Great ingredients! Now let's see them prepped."
+- If unrelated: "I see [what's there], but where's your meal prep?"
+
+JSON format:
+{"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`
 };
 
 // Helper to call Claude API
@@ -609,6 +788,51 @@ JSON format (all fields required):
       res.json(JSON.parse(responseText));
     } catch (error) {
       console.error("verifyVideo error:", error);
+      res.status(500).json({ error: "Verification failed" });
+    }
+  });
+
+// Verify Predefined Habit endpoint (generic for new AI-verified habits)
+exports.verifyPredefinedHabit = functions
+  .runWith({ secrets: ["CLAUDE_API_KEY"] })
+  .https.onRequest(async (req, res) => {
+    setCorsHeaders(res);
+
+    if (req.method === "OPTIONS") {
+      res.status(204).send("");
+      return;
+    }
+
+    if (req.method !== "POST") {
+      res.status(405).json({ error: "Method not allowed" });
+      return;
+    }
+
+    try {
+      const { imageBase64, habitType } = req.body;
+
+      if (!imageBase64 || !habitType) {
+        res.status(400).json({ error: "Missing imageBase64 or habitType" });
+        return;
+      }
+
+      // Look up prompt by habit type
+      const prompt = PROMPTS[habitType];
+      if (!prompt) {
+        res.status(400).json({ error: `Unknown habit type: ${habitType}` });
+        return;
+      }
+
+      const result = await callClaudeAPI(
+        getApiKey(),
+        imageBase64,
+        prompt,
+        256
+      );
+
+      res.json(result);
+    } catch (error) {
+      console.error("verifyPredefinedHabit error:", error);
       res.status(500).json({ error: "Verification failed" });
     }
   });

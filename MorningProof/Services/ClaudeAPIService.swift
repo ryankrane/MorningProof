@@ -644,6 +644,52 @@ actor ClaudeAPIService {
         return try await decodeVerificationResult(HydrationVerificationResult.self, from: responseText, endpoint: "claude/verify-hydration")
     }
 
+    /// Verifies a predefined AI habit using the generic Firebase endpoint
+    /// Used for: healthyBreakfast, morningJournal, vitamins, skincare, mealPrep
+    func verifyPredefinedHabit(image: UIImage, habitType: HabitType) async throws -> CustomVerificationResult {
+        let endpoint = "claude/verify-predefined-\(habitType.rawValue)"
+        await MainActor.run {
+            CrashReportingService.shared.logAPICall(endpoint)
+        }
+
+        let imageData: Data
+        do {
+            imageData = try prepareImageData(image)
+        } catch {
+            await MainActor.run {
+                CrashReportingService.shared.recordAPIError(APIError.imageConversionFailed, endpoint: endpoint)
+            }
+            throw APIError.imageConversionFailed
+        }
+
+        let base64Image = imageData.base64EncodedString()
+
+        // Map HabitType to Firebase prompt key
+        let habitKey: String
+        switch habitType {
+        case .healthyBreakfast: habitKey = "healthyBreakfast"
+        case .morningJournal: habitKey = "morningJournal"
+        case .vitamins: habitKey = "vitamins"
+        case .skincare: habitKey = "skincare"
+        case .mealPrep: habitKey = "mealPrep"
+        default:
+            throw APIError.serverError(statusCode: 400, message: "Unsupported habit type for predefined verification")
+        }
+
+        // Use Firebase Cloud Functions if configured
+        if isUsingFirebase {
+            return try await callFirebaseHTTP(
+                "verifyPredefinedHabit",
+                body: ["imageBase64": base64Image, "habitType": habitKey],
+                responseType: CustomVerificationResult.self,
+                endpoint: "firebase/verify-predefined-\(habitKey)"
+            )
+        }
+
+        // Fallback: Call Firebase HTTP directly (shouldn't happen since we always have Firebase configured)
+        throw APIError.serverError(statusCode: 500, message: "Firebase not configured for predefined habit verification")
+    }
+
     func verifyCustomHabit(image: UIImage, customHabit: CustomHabit) async throws -> CustomVerificationResult {
         await MainActor.run {
             CrashReportingService.shared.logAPICall("claude/verify-custom-habit")

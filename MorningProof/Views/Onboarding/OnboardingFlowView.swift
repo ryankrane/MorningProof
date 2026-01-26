@@ -181,12 +181,8 @@ struct OnboardingFlowView: View {
             VStack(spacing: 0) {
                 // Header with progress bar (centered) and back button (overlaid)
                 if currentStep > 0 && currentStep < totalSteps - 1 {
-                    ZStack(alignment: .leading) {
-                        // Progress bar - always centered with symmetric padding
-                        OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
-                            .padding(.horizontal, MPSpacing.xl)
-
-                        // Back button - overlaid at leading edge
+                    HStack(spacing: 0) {
+                        // Leading spacer/button area - fixed width for balance
                         Button(action: previousStep) {
                             Image(systemName: "chevron.left")
                                 .font(.system(size: 18, weight: .semibold))
@@ -194,10 +190,17 @@ struct OnboardingFlowView: View {
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
-                        .padding(.leading, MPSpacing.md)
                         .opacity(currentStep > 1 && currentStep < 15 ? 1 : 0)
                         .disabled(currentStep <= 1 || currentStep >= 15)
+
+                        // Progress bar - centered, takes remaining space
+                        OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
+
+                        // Trailing spacer - same width as leading for balance
+                        Spacer()
+                            .frame(width: 44)
                     }
+                    .padding(.horizontal, MPSpacing.md)
                     .padding(.top, MPSpacing.md)
                     .animation(.easeInOut(duration: 0.25), value: currentStep)
                 }
