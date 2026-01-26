@@ -179,11 +179,26 @@ struct OnboardingFlowView: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 0) {
-                // Progress bar (show for steps 2-17, not welcome or paywall)
+                // Header row with back button and progress bar
                 if currentStep > 0 && currentStep < totalSteps - 1 {
-                    OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
-                        .padding(.horizontal, MPSpacing.xl)
-                        .padding(.top, MPSpacing.md)
+                    HStack(alignment: .center, spacing: MPSpacing.sm) {
+                        // Back button (always rendered for stable layout, opacity controls visibility)
+                        Button(action: previousStep) {
+                            Image(systemName: "chevron.left")
+                                .font(.system(size: 18, weight: .semibold))
+                                .foregroundColor(MPColors.textSecondary)
+                                .frame(width: 44, height: 44)
+                                .contentShape(Rectangle())
+                        }
+                        .opacity(currentStep > 1 && currentStep < 15 ? 1 : 0)
+                        .disabled(currentStep <= 1 || currentStep >= 15)
+
+                        OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
+                    }
+                    .padding(.leading, MPSpacing.md)
+                    .padding(.trailing, MPSpacing.xl)
+                    .padding(.top, MPSpacing.md)
+                    .animation(.easeInOut(duration: 0.25), value: currentStep)
                 }
 
                 // Content
@@ -227,19 +242,6 @@ struct OnboardingFlowView: View {
                     }
                 }
                 .id(currentStep)
-            }
-        }
-        .overlay(alignment: .topLeading) {
-            if currentStep > 0 && currentStep < 15 {
-                Button(action: previousStep) {
-                    Image(systemName: "chevron.left")
-                        .font(.system(size: 18, weight: .semibold))
-                        .foregroundColor(MPColors.textSecondary)
-                        .frame(width: 44, height: 44)
-                        .contentShape(Rectangle())
-                }
-                .padding(.leading, MPSpacing.md)
-                .padding(.top, MPSpacing.sm)
             }
         }
         .preferredColorScheme(.dark)
