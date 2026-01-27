@@ -1,4 +1,5 @@
 import SwiftUI
+import UserNotifications
 
 struct DashboardView: View {
     @ObservedObject var manager: MorningProofManager
@@ -149,6 +150,9 @@ struct DashboardView: View {
 
             // Sync after data loaded
             visualStreak = manager.currentStreak
+
+            // Request permissions on first dashboard load (iOS only shows each dialog once for .notDetermined)
+            await requestPermissionsIfNeeded()
         }
         .onAppear {
             // Initialize visual states with current values
@@ -197,6 +201,29 @@ struct DashboardView: View {
                 // Update perfect morning state (triggers poof animation)
                 visualPerfectMorning = manager.isPerfectMorning
             }
+        }
+    }
+
+    /// Requests notification and HealthKit permissions if not yet determined.
+    /// iOS only shows each system dialog once, so this is safe to call every launch.
+    private func requestPermissionsIfNeeded() async {
+        // Notifications
+        let notificationCenter = UNUserNotificationCenter.current()
+        let notifSettings = await notificationCenter.notificationSettings()
+        if notifSettings.authorizationStatus == .notDetermined {
+            let granted = await NotificationManager.shared.requestPermission()
+            if granted {
+                await MainActor.run {
+                    manager.settings.notificationsEnabled = true
+                }
+                await NotificationManager.shared.updateNotificationSchedule(settings: manager.settings)
+            }
+        }
+
+        // HealthKit
+        let healthKit = HealthKitManager.shared
+        if !healthKit.isAuthorized {
+            let _ = await healthKit.requestAuthorization()
         }
     }
 
@@ -511,7 +538,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(config.habitType.displayName)
                         .font(.system(size: 17, weight: .regular))
-                        .foregroundColor(isCompleted ? MPColors.textSecondary : MPColors.textPrimary)
+                        .foregroundColor(MPColors.textPrimary)
 
                     appleStyleSubtitle(for: config, completion: completion, isCompleted: isCompleted)
                         .frame(height: 16, alignment: .leading) // Fixed height for consistent row sizing
@@ -556,7 +583,7 @@ struct DashboardView: View {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(customHabit.name)
                         .font(.system(size: 17, weight: .regular))
-                        .foregroundColor(isCompleted ? MPColors.textSecondary : MPColors.textPrimary)
+                        .foregroundColor(MPColors.textPrimary)
 
                     appleStyleCustomSubtitle(for: customHabit, completion: completion, isCompleted: isCompleted)
                         .frame(height: 16, alignment: .leading) // Fixed height for consistent row sizing
@@ -1147,7 +1174,6 @@ struct DashboardView: View {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 28))
                 .foregroundColor(MPColors.success)
-                .symbolRenderingMode(.hierarchical)
         } else {
             // Neutral gray circle with icon for incomplete
             ZStack {
@@ -1193,38 +1219,34 @@ struct DashboardView: View {
             case .morningWorkout:
                 HealthBadge()
 
-            // MARK: AI Verified Habits - Only show badge when incomplete
+            // MARK: AI Verified Habits
             case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
-                if !isCompleted {
-                    AIVerifiedBadge()
-                }
+                AIVerifiedBadge()
 
-            // MARK: Journal Habits - Only show when incomplete (no badge needed, text is fine)
+            // MARK: Journal Habits
             case .gratitude, .dailyPlanning:
                 if !isCompleted {
                     Text("Tap to write")
                         .font(.system(size: 12))
                         .foregroundColor(MPColors.textTertiary)
+                } else {
+                    JournalBadge()
                 }
 
-            // MARK: Honor System Habits - Only show badge when incomplete
+            // MARK: Honor System Habits
             default:
-                if !isCompleted {
-                    HoldToCompleteBadge()
-                }
+                HoldToCompleteBadge()
             }
         }
     }
 
     @ViewBuilder
     private func appleStyleCustomSubtitle(for habit: CustomHabit, completion: CustomHabitCompletion?, isCompleted: Bool) -> some View {
-        if !isCompleted {
-            switch habit.verificationType {
-            case .aiVerified:
-                AIVerifiedBadge()
-            case .honorSystem:
-                HoldToCompleteBadge()
-            }
+        switch habit.verificationType {
+        case .aiVerified:
+            AIVerifiedBadge()
+        case .honorSystem:
+            HoldToCompleteBadge()
         }
     }
 
@@ -1406,6 +1428,30 @@ struct PillProgressView: View {
 }
 
 // MARK: - Status Badge Components
+
+/// Journal badge with pencil icon
+private struct JournalBadge: View {
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "pencil.line")
+                .font(.system(size: 7, weight: .semibold))
+                .foregroundColor(.yellow)
+            Text("Journal")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(MPColors.textSecondary)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            colorScheme == .light
+                ? Color.black.opacity(0.08)
+                : Color.white.opacity(0.12)
+        )
+        .cornerRadius(6)
+    }
+}
 
 /// Apple Health badge with heart icon
 private struct HealthBadge: View {

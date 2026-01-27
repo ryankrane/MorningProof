@@ -14,7 +14,7 @@ struct YouAreNotAloneStep: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
-                .frame(minHeight: 80)
+                .frame(minHeight: 40)
 
             VStack(spacing: MPSpacing.xxl) {
                 VStack(spacing: MPSpacing.md) {
@@ -30,7 +30,7 @@ struct YouAreNotAloneStep: View {
 
                 // Continuously scrolling testimonial carousel
                 GeometryReader { geometry in
-                    let cardWidth: CGFloat = geometry.size.width - 60
+                    let cardWidth: CGFloat = geometry.size.width * 0.75
 
                     HStack(spacing: MPSpacing.md) {
                         // Duplicate testimonials for seamless loop
@@ -47,9 +47,9 @@ struct YouAreNotAloneStep: View {
                             .frame(width: cardWidth)
                         }
                     }
-                    .offset(x: scrollOffset)
+                    .offset(x: scrollOffset + (geometry.size.width - cardWidth) / 2)
                     .onAppear {
-                        let singleSetWidth = cardWidth * CGFloat(testimonials.count) + CGFloat(testimonials.count) * MPSpacing.md
+                        let singleSetWidth = (cardWidth + MPSpacing.md) * CGFloat(testimonials.count)
                         withAnimation(.linear(duration: 30).repeatForever(autoreverses: false)) {
                             scrollOffset = -singleSetWidth
                         }

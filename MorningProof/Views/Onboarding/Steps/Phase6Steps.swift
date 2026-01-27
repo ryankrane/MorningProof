@@ -381,10 +381,10 @@ struct YourHabitsStep: View {
                         .foregroundColor(MPColors.textSecondary)
                 }
                 .opacity(showContent ? 1 : 0)
-                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
+                .padding(.top, max(60, geometry.safeAreaInsets.top + 40))
 
                 Spacer()
-                    .frame(minHeight: 20)
+                    .frame(minHeight: 24)
 
                 // Habit cards
                 VStack(spacing: MPSpacing.md) {
@@ -407,7 +407,6 @@ struct YourHabitsStep: View {
                 .padding(.horizontal, MPSpacing.xl)
 
                 Spacer()
-                    .frame(minHeight: 20)
 
                 Text("Add more later")
                     .font(.system(size: 13))
@@ -415,13 +414,13 @@ struct YourHabitsStep: View {
                     .opacity(showContent ? 1 : 0)
 
                 Spacer()
-                    .frame(minHeight: 20)
+                    .frame(minHeight: 16, maxHeight: 24)
 
                 MPButton(title: "Activate My Routine", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
                     onContinue()
                 }
                 .padding(.horizontal, MPSpacing.xxxl)
-                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
+                .padding(.bottom, max(50, geometry.safeAreaInsets.bottom + 30))
             }
         }
         .onAppear {
@@ -452,7 +451,7 @@ struct RecommendedHabitRow: View {
                 ZStack {
                     Circle()
                         .fill(isSelected ? MPColors.primary : MPColors.surfaceSecondary)
-                        .frame(width: 50, height: 50)
+                        .frame(width: 44, height: 44)
 
                     Image(systemName: habitType.icon)
                         .font(.system(size: 22))
@@ -467,7 +466,7 @@ struct RecommendedHabitRow: View {
                     Text(habitType.howItWorksShort)
                         .font(.system(size: 13))
                         .foregroundColor(MPColors.textSecondary)
-                        .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.leading)
                 }
 
@@ -477,7 +476,7 @@ struct RecommendedHabitRow: View {
                     .font(.system(size: 24))
                     .foregroundColor(isSelected ? MPColors.success : MPColors.border)
             }
-            .padding(MPSpacing.lg)
+            .padding(MPSpacing.md)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
             .overlay(

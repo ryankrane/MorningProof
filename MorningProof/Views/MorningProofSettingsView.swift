@@ -726,6 +726,9 @@ struct AppearanceSettingsView: View {
 // MARK: - Health Data Settings View
 
 struct HealthDataSettingsView: View {
+    @ObservedObject private var healthKit = HealthKitManager.shared
+    @State private var showHealthDeniedAlert = false
+
     var body: some View {
         ZStack {
             MPColors.background
@@ -789,7 +792,38 @@ struct HealthDataSettingsView: View {
                         )
                     }
 
-                    // Manage button
+                    // Connect / Manage buttons
+                    if !healthKit.isAuthorized {
+                        Button {
+                            Task {
+                                let authorized = await healthKit.requestAuthorization()
+                                if !authorized {
+                                    showHealthDeniedAlert = true
+                                }
+                            }
+                        } label: {
+                            HStack {
+                                Image(systemName: "heart.circle.fill")
+                                    .font(.system(size: 18))
+                                    .foregroundColor(.pink)
+
+                                Text("Connect Apple Health")
+                                    .font(MPFont.labelMedium())
+                                    .foregroundColor(MPColors.primary)
+
+                                Spacer()
+
+                                Image(systemName: "plus.circle.fill")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(MPColors.primary)
+                            }
+                            .padding(MPSpacing.lg)
+                            .background(MPColors.surface)
+                            .cornerRadius(MPRadius.lg)
+                        }
+                        .buttonStyle(.plain)
+                    }
+
                     Button {
                         if let url = URL(string: "x-apple-health://") {
                             UIApplication.shared.open(url)
@@ -822,6 +856,16 @@ struct HealthDataSettingsView: View {
         }
         .navigationTitle("Health Data")
         .navigationBarTitleDisplayMode(.inline)
+        .alert("Health Access", isPresented: $showHealthDeniedAlert) {
+            Button("Open Settings") {
+                if let url = URL(string: "x-apple-health://") {
+                    UIApplication.shared.open(url)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("To connect Apple Health, open the Health app → Sharing → Apps → Morning Proof and enable the data types.")
+        }
     }
 
     func healthDataRow(icon: String, iconColor: Color, title: String, description: String) -> some View {

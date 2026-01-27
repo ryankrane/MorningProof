@@ -100,7 +100,7 @@ struct GuardrailStep: View {
                 Spacer()
                     .frame(minHeight: 20)
 
-                MPButton(title: "Show Me How", style: .primary, icon: "arrow.right") {
+                MPButton(title: "Show Me How", style: .primary, icon: "arrow.right", iconPosition: .trailing) {
                     onContinue()
                 }
                 .opacity(showButton ? 1 : 0)
@@ -131,9 +131,9 @@ struct GuardrailStep: View {
             }
         }
 
-        // Phase 2: Cards drop in one at a time
+        // Phase 2: Cards drop in one at a time (more staggered)
         for i in 0..<3 {
-            let delay = 0.8 + Double(i) * 0.5
+            let delay = 0.8 + Double(i) * 0.7
             withAnimation(.spring(response: 0.55, dampingFraction: 0.65).delay(delay)) {
                 showCards[i] = true
                 cardRotations[i] = 0
@@ -141,22 +141,22 @@ struct GuardrailStep: View {
         }
 
         // Phase 3: Subtext fades in after cards (staggered)
-        withAnimation(.easeOut(duration: 0.8).delay(2.4)) {
+        withAnimation(.easeOut(duration: 0.8).delay(3.0)) {
             showSubtextLine1 = true
         }
 
         // Second line comes in after a beat
-        withAnimation(.easeOut(duration: 0.6).delay(3.2)) {
+        withAnimation(.easeOut(duration: 0.6).delay(3.8)) {
             showSubtextLine2 = true
         }
 
         // Phase 4: Button appears
-        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(3.8)) {
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.8).delay(4.4)) {
             showButton = true
         }
 
         // Phase 5: Start icon pulse
-        DispatchQueue.main.asyncAfter(deadline: .now() + 3.6) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 4.2) {
             pulseIcons = true
         }
     }

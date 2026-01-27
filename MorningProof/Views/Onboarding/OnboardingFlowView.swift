@@ -14,8 +14,6 @@ class OnboardingData: ObservableObject {
     @Published var primaryGoal: PrimaryGoal? = nil
     @Published var obstacles: Set<Obstacle> = []
     @Published var desiredOutcomes: Set<DesiredOutcome> = []
-    @Published var healthConnected: Bool = false
-    @Published var notificationsEnabled: Bool = false
     @Published var selectedHabits: Set<HabitType> = []
     // Note: With Family Controls enabled, app selection is stored via ScreenTimeManager
     // This property is only used as a fallback when Family Controls is disabled
@@ -151,18 +149,17 @@ class OnboardingData: ObservableObject {
     }
 }
 
-// MARK: - Onboarding Flow View (18 Steps - App blocking consolidated)
+// MARK: - Onboarding Flow View (17 Steps - Permissions step removed)
 
 struct OnboardingFlowView: View {
     @ObservedObject var manager: MorningProofManager
     @StateObject private var onboardingData = OnboardingData()
     private var authManager: AuthenticationManager { AuthenticationManager.shared }
     private var subscriptionManager: SubscriptionManager { SubscriptionManager.shared }
-    private var notificationManager: NotificationManager { NotificationManager.shared }
     @State private var currentStep = 0
 
-    private let totalSteps = 18
-    private let paywallStep = 17
+    private let totalSteps = 17
+    private let paywallStep = 16
 
     var body: some View {
         ZStack {
@@ -181,8 +178,8 @@ struct OnboardingFlowView: View {
                                 .frame(width: 44, height: 44)
                                 .contentShape(Rectangle())
                         }
-                        .opacity(currentStep > 1 && currentStep < 15 ? 1 : 0)
-                        .disabled(currentStep <= 1 || currentStep >= 15)
+                        .opacity(currentStep > 1 && currentStep < 14 ? 1 : 0)
+                        .disabled(currentStep <= 1 || currentStep >= 14)
 
                         // Progress bar - centered, takes remaining space
                         OnboardingProgressBar(currentStep: currentStep, totalSteps: totalSteps - 2)
@@ -220,14 +217,11 @@ struct OnboardingFlowView: View {
                     case 11: SuccessStoriesStep(onContinue: nextStep)
                     case 12: TrackingComparisonStep(onContinue: nextStep)
 
-                    // Phase 5: Personalization (Step 13) — Phase5Steps.swift
-                    case 13: PermissionsStep(data: onboardingData, onContinue: nextStep)
-
-                    // Phase 6: Conversion (Steps 14-17) — Phase6Steps.swift
-                    case 14: OptionalRatingStep(onContinue: nextStep)
-                    case 15: AnalyzingStep(data: onboardingData, onComplete: nextStep)
-                    case 16: YourHabitsStep(data: onboardingData, onContinue: nextStep)
-                    case 17: HardPaywallStep(
+                    // Phase 6: Conversion (Steps 13-16) — Phase6Steps.swift
+                    case 13: OptionalRatingStep(onContinue: nextStep)
+                    case 14: AnalyzingStep(data: onboardingData, onComplete: nextStep)
+                    case 15: YourHabitsStep(data: onboardingData, onContinue: nextStep)
+                    case 16: HardPaywallStep(
                         subscriptionManager: subscriptionManager,
                         onSubscribe: completeOnboarding,
                         onBack: previousStep
@@ -262,7 +256,6 @@ struct OnboardingFlowView: View {
 
     private func completeOnboarding() {
         manager.settings.userName = onboardingData.userName
-        manager.settings.notificationsEnabled = onboardingData.notificationsEnabled
 
         for habitType in HabitType.allCases {
             let isEnabled = onboardingData.selectedHabits.contains(habitType)
@@ -270,11 +263,6 @@ struct OnboardingFlowView: View {
         }
 
         manager.completeOnboarding()
-
-        // Schedule notifications if enabled during onboarding
-        Task {
-            await notificationManager.updateNotificationSchedule(settings: manager.settings)
-        }
     }
 }
 

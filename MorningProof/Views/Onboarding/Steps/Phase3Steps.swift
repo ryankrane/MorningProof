@@ -12,17 +12,20 @@ struct HowItWorksStep: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.md) {
+                    Text("Morning Proof is different")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+
+                    Text("Real accountability that works")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
+
+                Spacer(minLength: 12)
+
                 VStack(spacing: MPSpacing.xl) {
-                    VStack(spacing: MPSpacing.md) {
-                        Text("Morning Proof is different")
-                            .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Text("Real accountability that works")
-                            .font(.system(size: 16))
-                            .foregroundColor(MPColors.textSecondary)
-                    }
-
                     VStack(spacing: MPSpacing.md) {
                         HowItWorksRow(
                             number: "1",
@@ -63,7 +66,6 @@ struct HowItWorksStep: View {
                         .foregroundColor(MPColors.accent)
                         .opacity(showSteps[3] ? 1 : 0)
                 }
-                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
                 Spacer(minLength: 12)
 
