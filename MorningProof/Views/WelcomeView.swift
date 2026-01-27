@@ -98,7 +98,9 @@ struct WelcomeView: View {
                         showGoogleSetupAlert = true
                     } label: {
                         HStack(spacing: MPSpacing.md) {
-                            GoogleLogo()
+                            Image("GoogleLogo")
+                                .resizable()
+                                .renderingMode(.original)
                                 .frame(width: 20, height: 20)
 
                             Text("Continue with Google")
@@ -167,49 +169,6 @@ struct WelcomeView: View {
 
     private func proceedWithoutAuth() {
         showOnboarding = true
-    }
-}
-
-// MARK: - Google Logo
-
-struct GoogleLogo: View {
-    var body: some View {
-        GeometryReader { geo in
-            let size = min(geo.size.width, geo.size.height)
-
-            ZStack {
-                // Blue arc (top-right)
-                Circle()
-                    .trim(from: 0.625, to: 0.875)
-                    .stroke(Color(red: 0.259, green: 0.522, blue: 0.957), lineWidth: size * 0.2)
-
-                // Green arc (bottom-right)
-                Circle()
-                    .trim(from: 0.875, to: 1.0)
-                    .stroke(Color(red: 0.204, green: 0.659, blue: 0.325), lineWidth: size * 0.2)
-
-                Circle()
-                    .trim(from: 0.0, to: 0.125)
-                    .stroke(Color(red: 0.204, green: 0.659, blue: 0.325), lineWidth: size * 0.2)
-
-                // Yellow arc (bottom-left)
-                Circle()
-                    .trim(from: 0.125, to: 0.375)
-                    .stroke(Color(red: 0.984, green: 0.737, blue: 0.02), lineWidth: size * 0.2)
-
-                // Red arc (top-left)
-                Circle()
-                    .trim(from: 0.375, to: 0.625)
-                    .stroke(Color(red: 0.918, green: 0.263, blue: 0.208), lineWidth: size * 0.2)
-
-                // The horizontal bar for the G
-                Rectangle()
-                    .fill(Color(red: 0.259, green: 0.522, blue: 0.957))
-                    .frame(width: size * 0.5, height: size * 0.18)
-                    .offset(x: size * 0.15)
-            }
-            .frame(width: size, height: size)
-        }
     }
 }
 

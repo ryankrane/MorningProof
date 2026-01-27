@@ -514,6 +514,7 @@ struct DashboardView: View {
                         .foregroundColor(isCompleted ? MPColors.textSecondary : MPColors.textPrimary)
 
                     appleStyleSubtitle(for: config, completion: completion, isCompleted: isCompleted)
+                        .frame(height: 16, alignment: .leading) // Fixed height for consistent row sizing
                 }
 
                 Spacer()
@@ -558,6 +559,7 @@ struct DashboardView: View {
                         .foregroundColor(isCompleted ? MPColors.textSecondary : MPColors.textPrimary)
 
                     appleStyleCustomSubtitle(for: customHabit, completion: completion, isCompleted: isCompleted)
+                        .frame(height: 16, alignment: .leading) // Fixed height for consistent row sizing
                 }
 
                 Spacer()
@@ -1159,181 +1161,56 @@ struct DashboardView: View {
         }
     }
 
-    // MARK: - Status Badge Helper
-
-    /// Wraps habit status content in a badge-style capsule
-    @ViewBuilder
-    private func habitStatusBadge<Content: View>(
-        style: BadgeStyle,
-        @ViewBuilder content: () -> Content
-    ) -> some View {
-        content()
-            .padding(.horizontal, 7)
-            .padding(.vertical, 3)
-            .background(
-                Capsule()
-                    .fill(style.backgroundColor)
-            )
-            .overlay(
-                Capsule()
-                    .strokeBorder(style.borderColor, lineWidth: 0.5)
-            )
-    }
-
-    private enum BadgeStyle {
-        case verified      // Green tint - for completed/verified habits
-        case health        // Red tint - for health/Apple Health habits
-        case pending       // Neutral gray - for incomplete habits
-        case journal       // Purple tint - for journal habits
-
-        var backgroundColor: Color {
-            switch self {
-            case .verified: return MPColors.success.opacity(0.25)
-            case .health: return Color.red.opacity(0.25)
-            case .pending: return Color(.systemGray6).opacity(0.6)
-            case .journal: return Color.purple.opacity(0.25)
-            }
-        }
-
-        var borderColor: Color {
-            switch self {
-            case .verified: return MPColors.success.opacity(0.4)
-            case .health: return Color.red.opacity(0.4)
-            case .pending: return Color(.systemGray4).opacity(0.5)
-            case .journal: return Color.purple.opacity(0.4)
-            }
-        }
-    }
 
     @ViewBuilder
     private func appleStyleSubtitle(for config: HabitConfig, completion: HabitCompletion?, isCompleted: Bool) -> some View {
         if let completion = completion {
             switch config.habitType {
-            // MARK: Health Habits - Always use system red
+            // MARK: Health Habits - Apple Health badge with optional progress text
             case .morningSteps:
                 let steps = completion.verificationData?.stepCount ?? 0
-                habitStatusBadge(style: .health) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.red.opacity(0.9))
-                        Text("\(steps.formatted())/\(config.goal) steps")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textPrimary)
+                HStack(spacing: 6) {
+                    HealthBadge()
+                    if steps > 0 {
+                        Text("\(steps.formatted())/\(config.goal)")
+                            .font(.system(size: 12))
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 }
 
             case .sleepDuration:
                 if let hours = completion.verificationData?.sleepHours {
-                    habitStatusBadge(style: .health) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "heart.fill")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.red.opacity(0.9))
-                            Text("\(formatHours(hours))/\(config.goal)h sleep")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
+                    HStack(spacing: 6) {
+                        HealthBadge()
+                        Text("\(formatHours(hours))/\(config.goal)h")
+                            .font(.system(size: 12))
+                            .foregroundColor(MPColors.textTertiary)
                     }
                 } else {
-                    habitStatusBadge(style: .health) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "heart.fill")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.red.opacity(0.9))
-                            Text("Apple Health")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
+                    HealthBadge()
                 }
 
             case .morningWorkout:
-                habitStatusBadge(style: .health) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "heart.fill")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.red.opacity(0.9))
-                        if isCompleted {
-                            Text("Workout detected")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        } else {
-                            Text("Apple Health")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
-                }
+                HealthBadge()
 
-            // MARK: AI Verified Habits
+            // MARK: AI Verified Habits - Only show badge when incomplete
             case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
-                if isCompleted {
-                    habitStatusBadge(style: .verified) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.yellow.opacity(0.85))
-                            Text("AI verified")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
-                } else {
-                    habitStatusBadge(style: .pending) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "sparkles")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.orange.opacity(0.65))
-                            Text("AI Verified")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
+                if !isCompleted {
+                    AIVerifiedBadge()
                 }
 
-            // MARK: Journal Habits
+            // MARK: Journal Habits - Only show when incomplete (no badge needed, text is fine)
             case .gratitude, .dailyPlanning:
-                if isCompleted {
-                    habitStatusBadge(style: .journal) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.purple.opacity(0.9))
-                            Text("Entry saved")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
-                } else {
-                    habitStatusBadge(style: .pending) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "book.closed")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.purple.opacity(0.65))
-                            Text("Journal")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
+                if !isCompleted {
+                    Text("Tap to write")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
                 }
 
-            // MARK: Honor System Habits
+            // MARK: Honor System Habits - Only show badge when incomplete
             default:
-                if isCompleted {
-                    // For honor system habits, checkmark is enough - no text needed
-                    EmptyView()
-                } else {
-                    habitStatusBadge(style: .pending) {
-                        HStack(spacing: 3) {
-                            Image(systemName: "scalemass")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.blue.opacity(0.65))
-                            Text("Hold to complete")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(MPColors.textPrimary)
-                        }
-                    }
+                if !isCompleted {
+                    HoldToCompleteBadge()
                 }
             }
         }
@@ -1341,43 +1218,12 @@ struct DashboardView: View {
 
     @ViewBuilder
     private func appleStyleCustomSubtitle(for habit: CustomHabit, completion: CustomHabitCompletion?, isCompleted: Bool) -> some View {
-        if isCompleted {
-            if habit.verificationType == .aiVerified {
-                habitStatusBadge(style: .verified) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.yellow.opacity(0.85))
-                        Text("AI verified")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textPrimary)
-                    }
-                }
-            }
-        } else {
+        if !isCompleted {
             switch habit.verificationType {
             case .aiVerified:
-                habitStatusBadge(style: .pending) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.orange.opacity(0.65))
-                        Text("AI Verified")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textPrimary)
-                    }
-                }
+                AIVerifiedBadge()
             case .honorSystem:
-                habitStatusBadge(style: .pending) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "scalemass")
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundColor(.blue.opacity(0.65))
-                        Text("Hold to complete")
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundColor(MPColors.textPrimary)
-                    }
-                }
+                HoldToCompleteBadge()
             }
         }
     }
@@ -1385,23 +1231,17 @@ struct DashboardView: View {
     @ViewBuilder
     private func appleStyleTrailingContent(for config: HabitConfig, isCompleted: Bool, progress: CGFloat, completion: HabitCompletion?) -> some View {
         if isCompleted {
+            // Nothing needed - the left checkmark shows completion
             EmptyView()
         } else if config.habitType == .morningSteps {
+            // Show progress ring for steps (useful data visualization)
             let score = completion?.score ?? 0
             appleStyleProgressRing(progress: CGFloat(score) / 100.0)
-        } else if config.habitType.tier == .aiVerified {
-            Image(systemName: "camera.fill")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Color(.systemGray3))
-        } else if config.habitType.tier == .journaling {
-            Image(systemName: "square.and.pencil")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Color(.systemGray3))
-        } else if config.habitType.tier == .autoTracked {
-            EmptyView()
         } else if progress > 0 {
+            // Show progress ring for hold-to-complete actions in progress
             appleStyleProgressRing(progress: progress)
         } else {
+            // Nothing else needed - row tap handles all actions
             EmptyView()
         }
     }
@@ -1409,14 +1249,13 @@ struct DashboardView: View {
     @ViewBuilder
     private func appleStyleCustomTrailingContent(for habit: CustomHabit, isCompleted: Bool, progress: CGFloat) -> some View {
         if isCompleted {
+            // Nothing needed - the left checkmark shows completion
             EmptyView()
-        } else if habit.verificationType == .aiVerified {
-            Image(systemName: "camera.fill")
-                .font(.system(size: 15, weight: .medium))
-                .foregroundColor(Color(.systemGray3))
         } else if progress > 0 {
+            // Show progress ring for hold-to-complete actions in progress
             appleStyleProgressRing(progress: progress)
         } else {
+            // Nothing else needed - row tap handles all actions
             EmptyView()
         }
     }
@@ -1566,42 +1405,83 @@ struct PillProgressView: View {
     }
 }
 
-/// Apple Health badge with heart icon (always visible on auto-tracked habits)
-/// Adapts colors based on completion state and color scheme for readability
+// MARK: - Status Badge Components
+
+/// Apple Health badge with heart icon
 private struct HealthBadge: View {
-    var isCompleted: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
     var body: some View {
         HStack(spacing: 3) {
             Image(systemName: "heart.fill")
-                .font(.system(size: 8))
-            Text("Health")
-                .font(.system(size: 10, weight: .medium))
+                .font(.system(size: 7, weight: .semibold))
+                .foregroundColor(.red)
+            Text("Apple Health")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(MPColors.textSecondary)
         }
-        .foregroundColor(badgeForegroundColor)
-        .padding(.horizontal, 5)
-        .padding(.vertical, 2)
-        .background(badgeBackgroundColor)
-        .cornerRadius(4)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            colorScheme == .light
+                ? Color.black.opacity(0.08)
+                : Color.white.opacity(0.12)
+        )
+        .cornerRadius(6)
+    }
+}
+
+/// AI Verified badge with Apple Intelligence-style sparkle icon
+private struct AIVerifiedBadge: View {
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 7, weight: .semibold))
+                .foregroundColor(iconColor)
+            Text("AI Verified")
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(MPColors.textSecondary)
+        }
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            colorScheme == .light
+                ? Color.black.opacity(0.08)
+                : Color.white.opacity(0.12)
+        )
+        .cornerRadius(6)
     }
 
-    /// In light mode, keep red even when completed (green bg is light enough for contrast)
-    /// In dark mode, switch to white when completed for readability
-    private var badgeForegroundColor: Color {
-        if isCompleted {
-            return colorScheme == .light ? MPColors.healthRed : .white.opacity(0.9)
+    private var iconColor: Color {
+        // Apple Intelligence-style gradient colors
+        if colorScheme == .light {
+            return Color(red: 0.45, green: 0.35, blue: 0.95) // Rich purple-blue
         } else {
-            return MPColors.healthRed
+            return Color(red: 0.75, green: 0.65, blue: 1.0) // Lighter lavender
         }
     }
+}
 
-    private var badgeBackgroundColor: Color {
-        if isCompleted {
-            return colorScheme == .light ? MPColors.healthRed.opacity(0.15) : Color.white.opacity(0.2)
-        } else {
-            return MPColors.healthRed.opacity(0.15)
+/// Hold to Complete badge with lock icon
+private struct HoldToCompleteBadge: View {
+    @Environment(\.colorScheme) var colorScheme
+
+    var body: some View {
+        HStack(spacing: 3) {
+            Image(systemName: "hand.tap.fill")
+                .font(.system(size: 7, weight: .semibold))
+            Text("Hold to complete")
+                .font(.system(size: 10, weight: .semibold))
         }
+        .foregroundColor(MPColors.textSecondary)
+        .padding(.horizontal, 6)
+        .padding(.vertical, 3)
+        .background(
+            colorScheme == .light ? Color.black.opacity(0.08) : Color.white.opacity(0.12)
+        )
+        .cornerRadius(6)
     }
 }
 

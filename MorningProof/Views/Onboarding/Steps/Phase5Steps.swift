@@ -28,7 +28,7 @@ struct PermissionsStep: View {
                         .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)

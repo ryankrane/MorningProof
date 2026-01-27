@@ -10,76 +10,77 @@ struct AttributionStep: View {
     @State private var selectedAnimating: OnboardingData.AttributionSource? = nil
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.md) {
+                    // Hero icon - colorful megaphone
+                    MegaphoneIcon(size: 56)
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.5)
 
-            VStack(spacing: MPSpacing.md) {
-                // Hero icon - colorful megaphone
-                MegaphoneIcon(size: 60)
-                    .opacity(appeared ? 1 : 0)
-                    .scaleEffect(appeared ? 1 : 0.5)
+                    Text("Where did you hear\nabout us?")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
-                Text("Where did you hear\nabout us?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .fixedSize(horizontal: false, vertical: true)
-            }
+                Spacer(minLength: 16)
 
-            Spacer().frame(height: MPSpacing.xxl)
+                // 2-column grid of attribution options
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
+                    ForEach(Array(OnboardingData.AttributionSource.allCases.enumerated()), id: \.element.rawValue) { index, source in
+                        AttributionOptionButton(
+                            source: source,
+                            isSelected: data.attributionSource == source
+                        ) {
+                            // Single selection with bounce animation
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                data.attributionSource = source
+                                selectedAnimating = source
+                            }
 
-            // 2-column grid of attribution options
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                ForEach(Array(OnboardingData.AttributionSource.allCases.enumerated()), id: \.element.rawValue) { index, source in
-                    AttributionOptionButton(
-                        source: source,
-                        isSelected: data.attributionSource == source
-                    ) {
-                        // Single selection with bounce animation
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            data.attributionSource = source
-                            selectedAnimating = source
+                            // Remove from animating after animation completes
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                selectedAnimating = nil
+                            }
                         }
-
-                        // Remove from animating after animation completes
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            selectedAnimating = nil
-                        }
+                        .scaleEffect(selectedAnimating == source ? 1.05 : 1.0)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(
+                            .spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.08),
+                            value: appeared
+                        )
                     }
-                    .scaleEffect(selectedAnimating == source ? 1.05 : 1.0)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(
-                        .spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.08),
-                        value: appeared
-                    )
                 }
+                .padding(.horizontal, MPSpacing.xl)
+
+                Spacer(minLength: 16)
+
+                // Continue button and Skip option
+                VStack(spacing: MPSpacing.md) {
+                    MPButton(
+                        title: "Continue",
+                        style: .primary,
+                        isDisabled: data.attributionSource == nil
+                    ) {
+                        onContinue()
+                    }
+
+                    Button {
+                        // Skip without selecting
+                        onContinue()
+                    } label: {
+                        Text("Skip")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            // Continue button and Skip option
-            VStack(spacing: MPSpacing.md) {
-                MPButton(
-                    title: "Continue",
-                    style: .primary,
-                    isDisabled: data.attributionSource == nil
-                ) {
-                    onContinue()
-                }
-
-                Button {
-                    // Skip without selecting
-                    onContinue()
-                } label: {
-                    Text("Skip")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
-                }
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -102,19 +103,12 @@ private struct AttributionOptionButton: View {
             action()
         }) {
             VStack(spacing: MPSpacing.sm) {
-                ZStack {
-                    Circle()
-                        .fill(MPColors.surfaceSecondary)
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Circle()
-                                .stroke(isSelected ? MPColors.primary : Color.clear, lineWidth: 2)
-                        )
-
-                    Image(systemName: source.icon)
-                        .font(.system(size: 18))
-                        .foregroundColor(isSelected ? MPColors.primary : MPColors.textTertiary)
-                }
+                // Platform logo
+                Image(source.logo)
+                    .resizable()
+                    .renderingMode(.original)
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 44, height: 44)
 
                 Text(source.rawValue)
                     .font(.system(size: 14, weight: .medium))

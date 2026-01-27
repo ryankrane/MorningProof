@@ -101,7 +101,7 @@ struct WelcomeHeroStep: View {
                     }
                 }
                 .padding(.horizontal, MPSpacing.xl)
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
                 .opacity(contentVisible ? 1 : 0)
                 .offset(y: contentVisible ? 0 : 12)
 
@@ -212,7 +212,7 @@ struct WelcomeHeroStep: View {
         let wordEndIndices = [4, 9, 14, 22]
 
         for i in 1...text.count {
-            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.05) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + Double(i) * 0.048) {
                 revealedCharacterCount = i
 
                 // Haptic at word boundaries
@@ -308,7 +308,7 @@ struct NameStep: View {
                     }
                     .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showGreeting)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)
@@ -499,7 +499,7 @@ struct MorningStruggleStep: View {
             VStack(spacing: 0) {
                 VStack(spacing: MPSpacing.md) {
                     // Hero icon - colorful alarm clock
-                    AlarmClockIcon(size: 60)
+                    AlarmClockIcon(size: 56)
                         .opacity(appeared ? 1 : 0)
                         .scaleEffect(appeared ? 1 : 0.5)
 
@@ -507,11 +507,11 @@ struct MorningStruggleStep: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 16)
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
                     ForEach(OnboardingData.MorningStruggle.allCases, id: \.rawValue) { struggle in
@@ -530,8 +530,7 @@ struct MorningStruggleStep: View {
                 }
                 .padding(.horizontal, MPSpacing.xl)
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 16)
 
                 MPButton(title: "That's me", style: .primary, isDisabled: data.morningStruggles.isEmpty) {
                     onContinue()
@@ -678,7 +677,7 @@ struct DesiredOutcomeStep: View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
                 VStack(spacing: MPSpacing.md) {
-                    TargetWithArrowIcon(size: 60)
+                    TargetWithArrowIcon(size: 56)
                         .opacity(appeared ? 1 : 0)
                         .scaleEffect(appeared ? 1 : 0.5)
 
@@ -686,11 +685,11 @@ struct DesiredOutcomeStep: View {
                         .font(.system(size: 28, weight: .bold, design: .rounded))
                         .foregroundColor(MPColors.textPrimary)
                         .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 16)
 
                 LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
                     ForEach(Array(OnboardingData.DesiredOutcome.allCases.enumerated()), id: \.element.rawValue) { index, outcome in
@@ -729,8 +728,7 @@ struct DesiredOutcomeStep: View {
                 }
                 .padding(.horizontal, MPSpacing.xl)
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 16)
 
                 MPButton(title: "That's my goal", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
                     onContinue()

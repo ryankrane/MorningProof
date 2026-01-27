@@ -45,7 +45,7 @@ struct GuardrailStep: View {
                     .scaleEffect(showHeadline ? 1 : 0.8)
                     .scaleEffect(headlinePunch ? 1.08 : 1.0)
                     .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                    .padding(.top, max(70, geometry.safeAreaInsets.top + 50))
 
                 Spacer()
                     .frame(minHeight: 20)
@@ -169,28 +169,28 @@ private struct ChalkText: View {
 
     var body: some View {
         ZStack {
-            // Subtle chalk dust glow behind
+            // Subtle glow behind
             Text(text)
                 .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundColor(.white)
+                .foregroundColor(MPColors.primary)
                 .blur(radius: 12)
-                .opacity(0.3)
+                .opacity(0.4)
 
-            // Main chalk text with texture overlay
+            // Main text with purple gradient
             Text(text)
                 .font(.system(size: 36, weight: .bold, design: .rounded))
                 .foregroundStyle(
                     LinearGradient(
                         colors: [
-                            Color.white,
-                            Color.white.opacity(0.92),
-                            Color.white.opacity(0.98)
+                            MPColors.primary,
+                            MPColors.primary.opacity(0.92),
+                            Color(red: 0.75, green: 0.55, blue: 1.0)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
-                .shadow(color: .white.opacity(0.4), radius: 1, x: 0, y: 0)
+                .shadow(color: MPColors.primary.opacity(0.5), radius: 2, x: 0, y: 0)
         }
     }
 }
@@ -326,7 +326,7 @@ struct DoomScrollingSimulatorStep: View {
                         .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)

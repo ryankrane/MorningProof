@@ -45,14 +45,14 @@ struct MorningProofSettingsView: View {
                         } label: {
                             SettingsRowContent(
                                 icon: "creditcard.fill",
-                                iconColor: MPColors.primary,
+                                iconColor: MPColors.textTertiary,
                                 title: "Manage Subscription",
                                 trailing: .value(subscriptionManager.isPremium ? "Premium" : "Free")
                             )
                         }
                         .buttonStyle(.plain)
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         NavigationLink {
                             NotificationSettingsView(
@@ -62,14 +62,14 @@ struct MorningProofSettingsView: View {
                         } label: {
                             SettingsRowContent(
                                 icon: "bell.fill",
-                                iconColor: .red,
+                                iconColor: MPColors.textTertiary,
                                 title: "Notifications",
                                 trailing: .value(notificationsEnabled ? "On" : "Off")
                             )
                         }
                         .buttonStyle(.plain)
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         NavigationLink {
                             AppearanceSettingsView()
@@ -77,32 +77,32 @@ struct MorningProofSettingsView: View {
                         } label: {
                             SettingsRowContent(
                                 icon: "paintbrush.fill",
-                                iconColor: .orange,
+                                iconColor: MPColors.textTertiary,
                                 title: "Appearance",
                                 trailing: .value(themeManager.themeMode.displayName)
                             )
                         }
                         .buttonStyle(.plain)
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         NavigationLink {
                             HealthDataSettingsView()
                         } label: {
                             SettingsRowContent(
                                 icon: "heart.fill",
-                                iconColor: MPColors.healthRed,
+                                iconColor: MPColors.textTertiary,
                                 title: "Health Data",
                                 trailing: .chevron
                             )
                         }
                         .buttonStyle(.plain)
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         SettingsRow(
                             icon: "envelope.fill",
-                            iconColor: MPColors.primary,
+                            iconColor: MPColors.textTertiary,
                             title: "Send Feedback",
                             trailing: .chevron
                         ) {
@@ -115,11 +115,11 @@ struct MorningProofSettingsView: View {
                             }
                         }
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         SettingsRow(
                             icon: "star.fill",
-                            iconColor: .yellow,
+                            iconColor: MPColors.textTertiary,
                             title: "Leave a Review",
                             trailing: .external
                         ) {
@@ -128,22 +128,22 @@ struct MorningProofSettingsView: View {
                             }
                         }
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         SettingsRow(
                             icon: "square.and.arrow.up.fill",
-                            iconColor: MPColors.primary,
+                            iconColor: MPColors.textTertiary,
                             title: "Share with Friends",
                             trailing: .chevron
                         ) {
                             showShareSheet = true
                         }
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         SettingsRow(
                             icon: "hand.raised.fill",
-                            iconColor: .gray,
+                            iconColor: MPColors.textTertiary,
                             title: "Privacy Policy",
                             trailing: .external
                         ) {
@@ -152,11 +152,11 @@ struct MorningProofSettingsView: View {
                             }
                         }
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         SettingsRow(
                             icon: "doc.text.fill",
-                            iconColor: .gray,
+                            iconColor: MPColors.textTertiary,
                             title: "Terms of Service",
                             trailing: .external
                         ) {
@@ -172,21 +172,21 @@ struct MorningProofSettingsView: View {
                     VStack(spacing: 0) {
                         SettingsRow(
                             icon: "arrow.counterclockwise",
-                            iconColor: MPColors.warning,
+                            iconColor: Color(red: 0.95, green: 0.50, blue: 0.10),
                             title: "Clear Today's Progress",
-                            titleColor: MPColors.warning,
+                            titleColor: Color(red: 0.95, green: 0.50, blue: 0.10),
                             trailing: .none
                         ) {
                             showResetTodayConfirmation = true
                         }
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         SettingsRow(
                             icon: "trash.fill",
-                            iconColor: MPColors.error,
+                            iconColor: Color(red: 1.0, green: 0.23, blue: 0.19),
                             title: "Delete Account & Data",
-                            titleColor: MPColors.error,
+                            titleColor: Color(red: 1.0, green: 0.23, blue: 0.19),
                             trailing: .none
                         ) {
                             showResetConfirmation = true
@@ -256,12 +256,12 @@ struct MorningProofSettingsView: View {
                 // Avatar circle
                 ZStack {
                     Circle()
-                        .fill(MPColors.primary.opacity(0.15))
+                        .fill(MPColors.primary)
                         .frame(width: 56, height: 56)
 
                     Text(userInitials)
                         .font(.system(size: 20, weight: .semibold, design: .rounded))
-                        .foregroundColor(MPColors.primary)
+                        .foregroundColor(contrastColor(for: MPColors.primary))
                 }
 
                 if isEditingName {
@@ -301,29 +301,42 @@ struct MorningProofSettingsView: View {
                     }
 
                     Spacer()
-
-                    Button {
-                        isEditingName = true
-                        nameFieldFocused = true
-                    } label: {
-                        Image(systemName: "pencil")
-                            .font(.system(size: 14, weight: .medium))
-                            .foregroundColor(MPColors.textTertiary)
-                            .frame(width: 32, height: 32)
-                            .background(MPColors.surfaceSecondary)
-                            .cornerRadius(MPRadius.sm)
-                    }
                 }
             }
             .padding(MPSpacing.lg)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
+            .contentShape(Rectangle())
+            .onTapGesture {
+                if !isEditingName {
+                    isEditingName = true
+                    nameFieldFocused = true
+                }
+            }
         }
     }
 
     var userInitials: String {
         let name = userName.isEmpty ? "?" : userName
         return String(name.prefix(1)).uppercased()
+    }
+
+    // Calculate contrast color (white or black) for text on colored background
+    func contrastColor(for backgroundColor: Color) -> Color {
+        // Convert Color to UIColor to access RGB components
+        let uiColor = UIColor(backgroundColor)
+        var red: CGFloat = 0
+        var green: CGFloat = 0
+        var blue: CGFloat = 0
+        var alpha: CGFloat = 0
+
+        uiColor.getRed(&red, green: &green, blue: &blue, alpha: &alpha)
+
+        // Calculate relative luminance (WCAG formula)
+        let luminance = 0.299 * red + 0.587 * green + 0.114 * blue
+
+        // Return white for dark backgrounds, black for light backgrounds
+        return luminance > 0.5 ? .black : .white
     }
 
     // MARK: - Computed Properties
@@ -447,16 +460,11 @@ struct SettingsRowContent: View {
 
     var body: some View {
         HStack(spacing: MPSpacing.lg) {
-            // Icon with dark circular background
-            ZStack {
-                Circle()
-                    .fill(iconColor.opacity(0.15))
-                    .frame(width: 32, height: 32)
-                Image(systemName: icon)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundColor(iconColor)
-            }
-            .frame(width: 32, height: 32)
+            // Icon
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .medium))
+                .foregroundColor(iconColor)
+                .frame(width: 28, height: 28)
 
             Text(title)
                 .font(MPFont.bodyMedium())
@@ -571,7 +579,7 @@ struct NotificationSettingsView: View {
 
                         if notificationsEnabled {
                             Divider()
-                                .padding(.leading, 60)
+                                .padding(.leading, 56)
 
                             // Reminder time
                             Button {
@@ -693,7 +701,7 @@ struct AppearanceSettingsView: View {
 
                             if mode != AppThemeMode.allCases.last {
                                 Divider()
-                                    .padding(.leading, 60)
+                                    .padding(.leading, 56)
                             }
                         }
                     }
@@ -753,7 +761,7 @@ struct HealthDataSettingsView: View {
                             description: "Last night's sleep duration"
                         )
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         healthDataRow(
                             icon: "figure.walk",
@@ -762,7 +770,7 @@ struct HealthDataSettingsView: View {
                             description: "Morning steps before deadline"
                         )
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         healthDataRow(
                             icon: "flame.fill",
@@ -771,7 +779,7 @@ struct HealthDataSettingsView: View {
                             description: "Morning workout detection"
                         )
 
-                        Divider().padding(.leading, 60)
+                        Divider().padding(.leading, 56)
 
                         healthDataRow(
                             icon: "bolt.fill",

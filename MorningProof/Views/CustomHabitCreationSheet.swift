@@ -51,11 +51,6 @@ struct CustomHabitCreationSheet: View {
                         if verificationType == .aiVerified {
                             mediaTypeSection
 
-                            // Screenshot Option Section (only for photo media type)
-                            if mediaType == .photo {
-                                screenshotOptionSection
-                            }
-
                             // AI Prompt Section
                             aiPromptSection
                         }
@@ -296,7 +291,7 @@ struct CustomHabitCreationSheet: View {
 
     var mediaTypeSection: some View {
         sectionContainer(title: "Capture Method", icon: "camera.metering.multispot") {
-            VStack(spacing: MPSpacing.md) {
+            VStack(spacing: MPSpacing.lg) {
                 // Segmented picker
                 HStack(spacing: 0) {
                     ForEach(VerificationMediaType.allCases, id: \.self) { type in
@@ -325,38 +320,20 @@ struct CustomHabitCreationSheet: View {
                 .background(MPColors.surfaceSecondary)
                 .cornerRadius(MPRadius.md)
 
-                // Help text
-                Text(mediaType.description)
-                    .font(MPFont.labelTiny())
-                    .foregroundColor(MPColors.textTertiary)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-            }
-        }
-    }
+                // Screenshot option (only for photo media type)
+                if mediaType == .photo {
+                    Toggle(isOn: $allowsScreenshots) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Allow screenshots")
+                                .font(MPFont.labelMedium())
+                                .foregroundColor(MPColors.textPrimary)
 
-    // MARK: - Screenshot Option Section
-
-    var screenshotOptionSection: some View {
-        sectionContainer(title: "Screenshot Verification", icon: "photo.on.rectangle") {
-            VStack(alignment: .leading, spacing: MPSpacing.sm) {
-                Toggle(isOn: $allowsScreenshots) {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text("Allow screenshots")
-                            .font(MPFont.labelMedium())
-                            .foregroundColor(MPColors.textPrimary)
-
-                        Text("Choose photos from library instead of camera")
-                            .font(MPFont.labelTiny())
-                            .foregroundColor(MPColors.textTertiary)
+                            Text("Choose photos from library instead of camera")
+                                .font(MPFont.labelTiny())
+                                .foregroundColor(MPColors.textTertiary)
+                        }
                     }
-                }
-                .tint(MPColors.primary)
-
-                if allowsScreenshots {
-                    Text("Best for habits verified via screenshots (phone calls, app activity, etc.)")
-                        .font(MPFont.labelTiny())
-                        .foregroundColor(MPColors.textTertiary)
-                        .padding(.top, MPSpacing.xs)
+                    .tint(MPColors.primary)
                 }
             }
         }
@@ -366,35 +343,25 @@ struct CustomHabitCreationSheet: View {
 
     var aiPromptSection: some View {
         sectionContainer(title: "Verification Instructions", icon: "brain.head.profile") {
-            VStack(alignment: .leading, spacing: MPSpacing.sm) {
-                Text("How should AI verify this habit?")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textSecondary)
+            ZStack(alignment: .topLeading) {
+                TextEditor(text: $aiPrompt)
+                    .font(MPFont.bodyMedium())
+                    .foregroundColor(MPColors.textPrimary)
+                    .scrollContentBackground(.hidden)
+                    .frame(minHeight: 100, maxHeight: 150)
+                    .padding(MPSpacing.md)
+                    .background(MPColors.surfaceSecondary)
+                    .cornerRadius(MPRadius.md)
+                    .focused($isPromptFocused)
 
-                ZStack(alignment: .topLeading) {
-                    TextEditor(text: $aiPrompt)
+                if aiPrompt.isEmpty {
+                    Text("e.g., Make me show my orange pill")
                         .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textPrimary)
-                        .scrollContentBackground(.hidden)
-                        .frame(minHeight: 100, maxHeight: 150)
+                        .foregroundColor(MPColors.textTertiary)
                         .padding(MPSpacing.md)
-                        .background(MPColors.surfaceSecondary)
-                        .cornerRadius(MPRadius.md)
-                        .focused($isPromptFocused)
-
-                    if aiPrompt.isEmpty {
-                        Text("e.g., Make me show my orange pill")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textTertiary)
-                            .padding(MPSpacing.md)
-                            .padding(.top, 8)
-                            .allowsHitTesting(false)
-                    }
+                        .padding(.top, 8)
+                        .allowsHitTesting(false)
                 }
-
-                Text("Be specific about what the AI should look for in your photo.")
-                    .font(MPFont.labelTiny())
-                    .foregroundColor(MPColors.textTertiary)
             }
         }
     }

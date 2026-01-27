@@ -63,7 +63,7 @@ struct HowItWorksStep: View {
                         .foregroundColor(MPColors.accent)
                         .opacity(showSteps[3] ? 1 : 0)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)
@@ -269,7 +269,7 @@ struct AIVerificationShowcaseStep: View {
                     }
                     .opacity(showScore ? 1 : 0)
                 }
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)

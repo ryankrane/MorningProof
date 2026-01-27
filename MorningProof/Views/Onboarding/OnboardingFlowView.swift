@@ -23,32 +23,22 @@ class OnboardingData: ObservableObject {
     @Published var attributionSource: AttributionSource? = nil
 
     enum AttributionSource: String, CaseIterable {
-        case appStore = "App Store"
-        case instagram = "Instagram"
-        case reddit = "Reddit"
         case tiktok = "TikTok"
-        case friend = "Friend"
-        case other = "Other"
+        case instagram = "Instagram"
+        case youtube = "YouTube"
+        case appStore = "App Store"
+        case google = "Google"
+        case x = "X"
 
-        var icon: String {
+        // Returns the asset name for the platform logo
+        var logo: String {
             switch self {
-            case .tiktok: return "music.note"
-            case .instagram: return "camera.fill"
-            case .friend: return "person.2.fill"
-            case .appStore: return "square.stack.3d.up.fill"
-            case .reddit: return "bubble.left.and.bubble.right.fill"
-            case .other: return "ellipsis.circle.fill"
-            }
-        }
-
-        var iconColor: Color {
-            switch self {
-            case .tiktok: return Color(red: 0.0, green: 0.9, blue: 0.9)
-            case .instagram: return Color(red: 0.91, green: 0.27, blue: 0.53)
-            case .friend: return Color(red: 0.4, green: 0.6, blue: 1.0)
-            case .appStore: return Color(red: 0.0, green: 0.48, blue: 1.0)
-            case .reddit: return Color(red: 1.0, green: 0.35, blue: 0.14)
-            case .other: return MPColors.textSecondary
+            case .tiktok: return "TikTokLogo"
+            case .instagram: return "InstagramLogo"
+            case .youtube: return "YouTubeLogo"
+            case .appStore: return "AppStoreLogo"
+            case .google: return "GoogleLogo"
+            case .x: return "XLogo"
             }
         }
     }

@@ -118,18 +118,18 @@ struct LockInDayButton: View {
 
     var body: some View {
         ZStack {
-            // Outer glow (enabled state or locked state)
+            // Outer glow (enabled state or locked state) - subtle Apple-style
             if isEnabled && !isLockedIn {
                 Capsule()
-                    .fill(MPColors.accentGold.opacity(glowOpacity * 0.5))
-                    .frame(width: buttonWidth + 20, height: buttonHeight + 16)
-                    .blur(radius: 20)
+                    .fill(MPColors.accentGold.opacity(glowOpacity * 0.25))
+                    .frame(width: buttonWidth + 12, height: buttonHeight + 8)
+                    .blur(radius: 12)
             } else if isLockedIn {
-                // Golden glow for locked state - pulsing celebration effect
+                // Golden glow for locked state - subtle celebration effect
                 Capsule()
-                    .fill(Color(red: 1.0, green: 0.84, blue: 0.0).opacity(lockedGlowPulse))
-                    .frame(width: buttonWidth + 24, height: buttonHeight + 20)
-                    .blur(radius: 25)
+                    .fill(Color(red: 1.0, green: 0.84, blue: 0.0).opacity(lockedGlowPulse * 0.6))
+                    .frame(width: buttonWidth + 16, height: buttonHeight + 12)
+                    .blur(radius: 16)
             }
 
             // Background capsule

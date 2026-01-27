@@ -59,6 +59,9 @@ struct RoutineTabView: View {
                         // Habits section
                         habitsSection
 
+                        // Customize Habits button
+                        customizeHabitsButton
+
                         Spacer(minLength: MPSpacing.xxxl)
                     }
                     .padding(.horizontal, MPSpacing.xl)
@@ -152,6 +155,34 @@ struct RoutineTabView: View {
         .padding(.vertical, 14)
         .padding(.horizontal, MPSpacing.lg)
         .contentShape(Rectangle())
+    }
+
+    // MARK: - Customize Habits Button
+
+    private var customizeHabitsButton: some View {
+        NavigationLink {
+            AddHabitView(manager: manager)
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "slider.horizontal.3")
+                    .font(.system(size: 13, weight: .medium))
+                Text("Customize Habits")
+                    .font(.system(size: 15, weight: .regular))
+            }
+            .foregroundColor(MPColors.textSecondary)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(MPColors.surface)
+            )
+            .overlay(
+                Capsule()
+                    .strokeBorder(MPColors.divider, lineWidth: 0.5)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .frame(maxWidth: .infinity)
     }
 
     // MARK: - Empty State

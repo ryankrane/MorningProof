@@ -14,6 +14,7 @@ struct YouAreNotAloneStep: View {
     var body: some View {
         VStack(spacing: 0) {
             Spacer()
+                .frame(minHeight: 80)
 
             VStack(spacing: MPSpacing.xxl) {
                 VStack(spacing: MPSpacing.md) {
@@ -152,7 +153,7 @@ struct SuccessStoriesStep: View {
                 .opacity(showHeadline ? 1 : 0)
                 .offset(y: showHeadline ? 0 : 15)
                 .padding(.horizontal, MPSpacing.xl)
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(height: 30)

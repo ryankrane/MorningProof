@@ -23,7 +23,7 @@ struct OptionalRatingStep: View {
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                    .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)
@@ -148,7 +148,7 @@ struct AnalyzingStep: View {
                 .frame(width: 220, height: 220)
                 .opacity(showContent ? 1 : 0)
                 .scaleEffect(showContent ? 1 : 0.8)
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)
@@ -313,8 +313,8 @@ struct AnalyzingStep: View {
             }
         }
 
-        // Transition to next screen
-        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + 3.4) {
+        // Transition to next screen (pause at 100% for satisfaction)
+        DispatchQueue.main.asyncAfter(deadline: .now() + phase3Start + 3.8) {
             onComplete()
         }
     }
@@ -381,7 +381,7 @@ struct YourHabitsStep: View {
                         .foregroundColor(MPColors.textSecondary)
                 }
                 .opacity(showContent ? 1 : 0)
-                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
+                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
 
                 Spacer()
                     .frame(minHeight: 20)
