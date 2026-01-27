@@ -54,16 +54,16 @@ struct TextEntryHabitSheet: View {
     }
 
     var entryView: some View {
-        VStack(spacing: MPSpacing.xl) {
+        VStack(spacing: MPSpacing.lg) {
             // Header with icon
-            VStack(spacing: MPSpacing.lg) {
+            VStack(spacing: MPSpacing.md) {
                 ZStack {
                     Circle()
                         .fill(MPColors.primaryLight)
-                        .frame(width: 80, height: 80)
+                        .frame(width: 72, height: 72)
 
                     Image(systemName: habitType.icon)
-                        .font(.system(size: 36))
+                        .font(.system(size: 32))
                         .foregroundColor(MPColors.primary)
                 }
 
@@ -72,7 +72,7 @@ struct TextEntryHabitSheet: View {
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
             }
-            .padding(.top, MPSpacing.xxl)
+            .padding(.top, MPSpacing.lg)
 
             // Text entry area with placeholder
             ZStack(alignment: .topLeading) {
@@ -82,7 +82,7 @@ struct TextEntryHabitSheet: View {
                         .font(MPFont.bodyMedium())
                         .foregroundColor(MPColors.textTertiary.opacity(0.6))
                         .padding(MPSpacing.md)
-                        .padding(.top, 8) // Align with TextEditor text
+                        .padding(.top, 8)
                         .padding(.leading, 5)
                 }
 
@@ -93,7 +93,7 @@ struct TextEntryHabitSheet: View {
                     .padding(MPSpacing.md)
                     .focused($isTextFieldFocused)
             }
-            .frame(height: 200)
+            .frame(minHeight: 140, maxHeight: 200)
             .background(MPColors.surface)
             .cornerRadius(MPRadius.lg)
             .overlay(
@@ -102,9 +102,18 @@ struct TextEntryHabitSheet: View {
             )
             .padding(.horizontal, MPSpacing.xl)
 
-            Spacer()
+            // Character hint
+            if !text.isEmpty && !isValidEntry {
+                let remaining = minimumLength - text.trimmingCharacters(in: .whitespacesAndNewlines).count
+                Text("\(remaining) more character\(remaining == 1 ? "" : "s")")
+                    .font(MPFont.bodySmall())
+                    .foregroundColor(MPColors.textTertiary)
+            }
 
-            // Submit button
+            Spacer()
+        }
+        .safeAreaInset(edge: .bottom) {
+            // Submit button pinned above keyboard
             MPButton(
                 title: "Complete",
                 style: isValidEntry ? .primary : .secondary,
@@ -114,10 +123,11 @@ struct TextEntryHabitSheet: View {
             }
             .disabled(!isValidEntry)
             .padding(.horizontal, MPSpacing.xl)
-            .padding(.bottom, MPSpacing.xxxl)
+            .padding(.bottom, MPSpacing.md)
+            .padding(.top, MPSpacing.sm)
+            .background(MPColors.background)
         }
         .onAppear {
-            // Auto-focus the text field after a brief delay
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
                 isTextFieldFocused = true
             }

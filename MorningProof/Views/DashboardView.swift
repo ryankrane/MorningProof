@@ -324,11 +324,11 @@ struct DashboardView: View {
         HStack {
             VStack(alignment: .leading, spacing: MPSpacing.xs) {
                 Text(greeting)
-                    .font(MPFont.headingMedium())
+                    .font(MPFont.headingLarge())
                     .foregroundColor(MPColors.textPrimary)
 
                 Text(dateString)
-                    .font(MPFont.bodyMedium())
+                    .font(MPFont.bodyLarge())
                     .foregroundColor(MPColors.textTertiary)
             }
 
@@ -372,25 +372,13 @@ struct DashboardView: View {
 
                 Spacer()
 
-                // Completion indicator (minimal, Apple-style)
-                if manager.completedCount == manager.totalEnabled {
-                    HStack(spacing: 6) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(MPColors.success)
-                        Text("Complete")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(MPColors.success)
-                    }
-                    .transition(.scale.combined(with: .opacity))
-                } else {
+                if manager.completedCount < manager.totalEnabled {
                     Text("\(manager.completedCount)/\(manager.totalEnabled)")
                         .font(.system(size: 15, weight: .medium))
                         .foregroundColor(MPColors.textSecondary)
                 }
             }
             .padding(.horizontal, 4)
-            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: manager.completedCount == manager.totalEnabled)
 
             // Apple-style list container (single rounded rectangle with all habits inside)
             VStack(spacing: 0) {

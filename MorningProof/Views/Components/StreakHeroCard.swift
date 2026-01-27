@@ -108,28 +108,7 @@ struct StreakHeroCard: View {
         return CGFloat(progress) / CGFloat(range)
     }
 
-    /// Color for habit completion progress indicator
-    /// Purple (0) → Yellow (1-2) → Lime (3) → Green (all complete)
-    var habitProgressColor: Color {
-        guard totalHabits > 0 else { return MPColors.accent }
-
-        if completedToday == totalHabits {
-            return MPColors.success  // Green - all done
-        } else if completedToday == 0 {
-            return MPColors.textTertiary  // Grey - not started
-        } else {
-            let progress = Double(completedToday) / Double(totalHabits)
-            if progress >= 0.75 {
-                // Lime green for 75%+
-                return Color(red: 0.6, green: 0.85, blue: 0.3)
-            } else {
-                // Neon yellow for partial progress (brighter than warning)
-                return Color(red: 1.0, green: 0.85, blue: 0.1)
-            }
-        }
-    }
-
-    /// Formats the countdown interval into a compact string
+/// Formats the countdown interval into a compact string
     /// - >= 1 hour: "3h 45m"
     /// - < 1 hour: "45 min"
     /// - < 1 minute: "45 sec" or "1 second"
@@ -215,7 +194,7 @@ struct StreakHeroCard: View {
                 VStack(alignment: .leading, spacing: 2) {
                     HStack(alignment: .firstTextBaseline, spacing: MPSpacing.xs) {
                         Text("\(Int(displayedStreak))")
-                            .font(MPFont.displayMedium())
+                            .font(MPFont.displayLarge())
                             .foregroundColor(MPColors.textPrimary)
                             .scaleEffect(streakNumberScale)
                             .contentTransition(.numericText())
@@ -224,40 +203,26 @@ struct StreakHeroCard: View {
                             .font(MPFont.bodyMedium())
                             .foregroundColor(MPColors.textTertiary)
                     }
-
-                    // Progress to next milestone
-                    if currentStreak > 0 {
-                        HStack(spacing: MPSpacing.sm) {
-                            ProgressView(value: progressToNextMilestone)
-                                .tint(MPColors.accent)
-                                .frame(width: 100)
-
-                            Text("\(nextMilestone) days")
-                                .font(MPFont.labelTiny())
-                                .foregroundColor(MPColors.textTertiary)
-                        }
-                    }
                 }
 
                 Spacer()
             }
 
-            // Perfect Morning status or progress
+            // Progress to next milestone - own row for cleaner layout
+            if currentStreak > 0 {
+                HStack(spacing: MPSpacing.sm) {
+                    ProgressView(value: progressToNextMilestone)
+                        .tint(MPColors.accent)
+
+                    Text("\(nextMilestone) days")
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+
+            // Perfect Morning status or countdown
             HStack {
-                PoofTransitionView(
-                    showSecond: isPerfectMorning,
-                    trigger: triggerPulse
-                ) {
-                    // First content: habit counter
-                    HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(habitProgressColor)
-                        Text("\(completedToday)/\(totalHabits) habits completed")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textSecondary)
-                    }
-                } secondContent: {
-                    // Second content: Perfect Morning
+                if isPerfectMorning {
                     HStack(spacing: MPSpacing.sm) {
                         Image(systemName: "sparkles")
                             .foregroundColor(MPColors.success)
@@ -265,8 +230,8 @@ struct StreakHeroCard: View {
                             .font(MPFont.labelMedium())
                             .foregroundColor(MPColors.success)
                     }
+                    .frame(height: 24)
                 }
-                .frame(height: 24)
 
                 Spacer()
 

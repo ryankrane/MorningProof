@@ -258,19 +258,30 @@ struct BedCameraView: View {
 
                     // Inline "Apps Unlocked" indicator
                     if wasLastHabitToComplete {
-                        HStack(spacing: 6) {
+                        HStack(spacing: 10) {
                             Image(systemName: lockIconUnlocked ? "lock.open.fill" : "lock.fill")
-                                .font(.system(size: 22))
-                                .foregroundColor(.white)
+                                .font(.system(size: 26, weight: .semibold))
+                                .foregroundColor(lockIconUnlocked ? MPColors.success : .white)
                                 .contentTransition(.symbolEffect(.replace.downUp))
                                 .scaleEffect(lockIconUnlocked ? 1.15 : 1.0)
                             Text("Apps Unlocked")
-                                .font(.system(size: 15, weight: .semibold))
+                                .font(.system(size: 20, weight: .bold))
                                 .foregroundColor(.white)
                                 .opacity(lockIconUnlocked ? 1.0 : 0)
                         }
+                        .padding(.horizontal, 24)
+                        .padding(.vertical, 14)
+                        .background(
+                            Capsule()
+                                .fill(.white.opacity(0.12))
+                                .overlay(
+                                    Capsule()
+                                        .strokeBorder(.white.opacity(0.2), lineWidth: 1)
+                                )
+                        )
                         .scaleEffect(showAppsUnlocked ? 1.0 : 0.5)
                         .opacity(showAppsUnlocked ? 1.0 : 0)
+                        .padding(.top, 16)
                     }
                 } else {
                     // Failure
@@ -456,7 +467,7 @@ struct BedCameraView: View {
 
         // Check if completing this habit will finish all habits (for celebration)
         let willCompleteAllHabits = (manager.completedCount == manager.totalEnabled - 1)
-        let appLockingEnabled = manager.settings.appLockingEnabled
+
 
         do {
             result = try await manager.completeBedVerification(image: image)
