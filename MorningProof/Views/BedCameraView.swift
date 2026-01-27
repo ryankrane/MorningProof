@@ -25,6 +25,7 @@ struct BedCameraView: View {
     // Apps unlocked inline
     @State private var showAppsUnlocked = false
     @State private var wasLastHabitToComplete = false
+    @State private var lockIconUnlocked = false
 
     var body: some View {
         ZStack {
@@ -258,12 +259,15 @@ struct BedCameraView: View {
                     // Inline "Apps Unlocked" indicator
                     if wasLastHabitToComplete {
                         HStack(spacing: 6) {
-                            Image(systemName: "lock.open.fill")
+                            Image(systemName: lockIconUnlocked ? "lock.open.fill" : "lock.fill")
                                 .font(.system(size: 22))
-                                .foregroundColor(MPColors.success)
+                                .foregroundColor(.white)
+                                .contentTransition(.symbolEffect(.replace.downUp))
+                                .scaleEffect(lockIconUnlocked ? 1.15 : 1.0)
                             Text("Apps Unlocked")
                                 .font(.system(size: 15, weight: .semibold))
-                                .foregroundColor(MPColors.textSecondary)
+                                .foregroundColor(.white)
+                                .opacity(lockIconUnlocked ? 1.0 : 0)
                         }
                         .scaleEffect(showAppsUnlocked ? 1.0 : 0.5)
                         .opacity(showAppsUnlocked ? 1.0 : 0)
@@ -364,6 +368,10 @@ struct BedCameraView: View {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.55)) {
                 showAppsUnlocked = true
             }
+            // Lock opens after a beat
+            withAnimation(.spring(response: 0.35, dampingFraction: 0.6).delay(0.85)) {
+                lockIconUnlocked = true
+            }
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
                 HapticManager.shared.light()
             }
@@ -455,7 +463,7 @@ struct BedCameraView: View {
             isAnalyzing = false
 
             // If verification succeeded AND this was the last habit AND app locking is enabled, trigger celebration
-            if result?.isMade == true && willCompleteAllHabits && appLockingEnabled {
+            if result?.isMade == true && willCompleteAllHabits {
                 wasLastHabitToComplete = true
             }
         } catch let apiError as APIError {
