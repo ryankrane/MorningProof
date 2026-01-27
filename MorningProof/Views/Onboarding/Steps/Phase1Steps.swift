@@ -506,10 +506,6 @@ struct MorningStruggleStep: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
-
-                Text("Select all that apply")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
             }
 
             Spacer().frame(height: MPSpacing.xxl)
@@ -686,10 +682,6 @@ struct DesiredOutcomeStep: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
-
-                Text("Select all that apply")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
             }
 
             Spacer().frame(height: MPSpacing.xxl)

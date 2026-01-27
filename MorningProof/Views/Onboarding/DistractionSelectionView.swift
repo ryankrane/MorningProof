@@ -41,7 +41,7 @@ struct AppBlockingExplainerStep: View {
             // Bottom buttons
             bottomButtons
         }
-        .background(Color.black.ignoresSafeArea())
+        .background(MPColors.background.ignoresSafeArea())
         .onAppear {
             startAnimationSequence()
         }
@@ -145,16 +145,12 @@ struct AppBlockingExplainerStep: View {
         HStack(spacing: MPSpacing.sm) {
             Image(systemName: "apple.logo")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(MPColors.textSecondary)
+                .foregroundColor(MPColors.textTertiary)
 
             Text("Powered by Apple Screen Time")
                 .font(.system(size: 14, weight: .medium))
-                .foregroundColor(MPColors.textSecondary)
+                .foregroundColor(MPColors.textTertiary)
         }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, MPSpacing.md)
-        .background(MPColors.surface.opacity(0.5))
-        .cornerRadius(MPRadius.lg)
         .opacity(showPrivacy ? 1 : 0)
     }
 

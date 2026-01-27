@@ -23,10 +23,7 @@ struct AttributionStep: View {
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
-
-                Text("This helps us reach more people like you")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer().frame(height: MPSpacing.xxl)
