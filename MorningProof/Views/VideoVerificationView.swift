@@ -84,8 +84,9 @@ struct VideoVerificationView: View {
                 }
             }
         }
-        .sheet(isPresented: $showingVideoPicker) {
-            VideoPicker(videoURL: $capturedVideoURL, maxDuration: 60.0)
+        .fullScreenCover(isPresented: $showingVideoPicker) {
+            VideoRecorder(videoURL: $capturedVideoURL, maxDuration: 60.0, minDuration: 2.0)
+                .ignoresSafeArea()
         }
         .onChange(of: capturedVideoURL) { _, newURL in
             if let url = newURL {

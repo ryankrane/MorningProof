@@ -279,10 +279,9 @@ struct DashboardView: View {
             // Habits List
             habitsSection(layout: layout)
 
-            // Add spacer at the bottom if scrolling
-            if layout.needsScrolling {
-                Spacer(minLength: MPSpacing.xxxl)
-            }
+            // Always add spacer to push content to top
+            // Use minLength when scrolling to add extra padding at bottom
+            Spacer(minLength: layout.needsScrolling ? MPSpacing.xxxl : 0)
         }
         .padding(.horizontal, MPSpacing.xl)
         .padding(.top, MPSpacing.sm)
