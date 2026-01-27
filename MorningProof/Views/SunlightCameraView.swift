@@ -11,34 +11,40 @@ struct SunlightCameraView: View {
     @State private var errorMessage: String?
     @State private var errorIcon: String = "exclamationmark.triangle"
 
+    // Animation states for initial capture view
+    @State private var showIcon = false
+    @State private var showText = false
+    @State private var showCameraButton = false
+
     // Animation states for result view
     @State private var showCheckmark = false
     @State private var showTitle = false
     @State private var showFeedback = false
     @State private var showButton = false
 
-    // Apps unlocked celebration
-    @State private var showAppsUnlockedCelebration = false
+    // Apps unlocked inline
+    @State private var showAppsUnlocked = false
     @State private var wasLastHabitToComplete = false
 
     var body: some View {
         ZStack {
             NavigationStack {
-                ZStack {
-                    MPColors.background
-                        .ignoresSafeArea()
+                GeometryReader { geometry in
+                    ZStack {
+                        MPColors.background
+                            .ignoresSafeArea()
 
-                    if isAnalyzing {
-                        analyzingView
-                    } else if let error = errorMessage {
-                        errorView(error)
-                    } else if let result = result {
-                        resultView(result)
-                    } else {
-                        captureView
+                        if isAnalyzing {
+                            analyzingView
+                        } else if let error = errorMessage {
+                            errorView(error)
+                        } else if let result = result {
+                            resultView(result)
+                        } else {
+                            captureView(geometry: geometry)
+                        }
                     }
                 }
-                .navigationTitle("Verify Sunlight")
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
@@ -47,78 +53,149 @@ struct SunlightCameraView: View {
                         }
                         .foregroundColor(MPColors.textTertiary)
                     }
+
+                    ToolbarItem(placement: .principal) {
+                        HStack(spacing: MPSpacing.sm) {
+                            Image("AppLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                            Text("Morning Proof")
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundColor(MPColors.textPrimary)
+                        }
+                    }
                 }
             }
             .sheet(isPresented: $showingCamera) {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
             }
 
-            if showAppsUnlockedCelebration {
-                AppsUnlockedCelebrationView(isShowing: $showAppsUnlockedCelebration) {
-                    dismiss()
-                }
+        }
+    }
+
+    // MARK: - Capture View
+
+    func captureView(geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            if let image = selectedImage {
+                photoSelectedView(image: image, geometry: geometry)
+            } else {
+                initialCaptureView
             }
         }
     }
 
-    var captureView: some View {
-        VStack(spacing: MPSpacing.xxl) {
+    // MARK: - Initial Capture View (No Image)
+
+    var initialCaptureView: some View {
+        VStack(spacing: 0) {
             Spacer()
 
-            if let image = selectedImage {
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 350)
-                    .cornerRadius(MPRadius.xl)
-                    .mpShadow(.medium)
-                    .padding(.horizontal, MPSpacing.xxl)
+            // Sun icon - clean, no rings
+            Image(systemName: "sun.max.fill")
+                .font(.system(size: 80))
+                .foregroundColor(MPColors.accentGold)
+                .scaleEffect(showIcon ? 1.0 : 0.5)
+                .opacity(showIcon ? 1.0 : 0)
+                .frame(height: 120)
 
-                HStack(spacing: MPSpacing.md) {
-                    MPButton(title: "Retake", style: .secondary) {
-                        selectedImage = nil
-                    }
+            Spacer()
+                .frame(height: MPSpacing.xxxl)
 
-                    MPButton(title: "Verify", style: .primary) {
-                        Task {
-                            await verifySunlight(image: image)
-                        }
+            // Text content
+            VStack(spacing: MPSpacing.sm) {
+                Text("Take a photo outside")
+                    .font(.system(size: 22, weight: .semibold))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Show us you're getting some natural light!")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textTertiary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, MPSpacing.lg)
+            }
+            .offset(y: showText ? 0 : 15)
+            .opacity(showText ? 1.0 : 0)
+
+            Spacer()
+
+            // Camera shutter button (iOS Camera style)
+            CameraShutterButton {
+                showingCamera = true
+            }
+            .scaleEffect(showCameraButton ? 1.0 : 0.7)
+            .opacity(showCameraButton ? 1.0 : 0)
+
+            Spacer()
+                .frame(height: MPSpacing.xxxl + MPSpacing.lg)
+        }
+        .onAppear {
+            startEntranceAnimations()
+        }
+    }
+
+    private func startEntranceAnimations() {
+        showIcon = false
+        showText = false
+        showCameraButton = false
+
+        withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+            showIcon = true
+        }
+
+        withAnimation(.easeOut(duration: 0.4).delay(0.15)) {
+            showText = true
+        }
+
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.3)) {
+            showCameraButton = true
+        }
+    }
+
+    // MARK: - Photo Selected View
+
+    func photoSelectedView(image: UIImage, geometry: GeometryProxy) -> some View {
+        VStack(spacing: 0) {
+            Spacer()
+
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
+                .frame(maxHeight: geometry.size.height * 0.55)
+                .cornerRadius(MPRadius.xl)
+                .shadow(color: Color.black.opacity(0.15), radius: 20, x: 0, y: 10)
+                .padding(.horizontal, MPSpacing.xxl)
+
+            Spacer()
+
+            VStack(spacing: MPSpacing.md) {
+                MPButton(title: "Verify Photo", style: .primary, icon: "checkmark") {
+                    Task {
+                        await verifySunlight(image: image)
                     }
                 }
                 .padding(.horizontal, MPSpacing.xxl)
-            } else {
-                VStack(spacing: MPSpacing.xl) {
-                    VStack(spacing: MPSpacing.xl) {
-                        Image(systemName: "sun.max.fill")
-                            .font(.system(size: 80))
-                            .foregroundColor(MPColors.textTertiary)
 
-                        Text("Take a photo outside")
-                            .font(MPFont.bodyMedium())
-                            .foregroundColor(MPColors.textTertiary)
-
-                        Text("Show us you're getting some natural light!")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(MPColors.textTertiary.opacity(0.7))
-                            .multilineTextAlignment(.center)
+                Button {
+                    selectedImage = nil
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        startEntranceAnimations()
                     }
-                    .frame(maxWidth: .infinity)
-                    .frame(height: 260)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.xl)
-                    .mpShadow(.medium)
-                    .padding(.horizontal, MPSpacing.xxl)
-
-                    MPButton(title: "Open Camera", style: .primary, icon: "camera.fill") {
-                        showingCamera = true
-                    }
-                    .padding(.horizontal, MPSpacing.xxl)
+                } label: {
+                    Text("Retake Photo")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
                 }
+                .padding(.vertical, MPSpacing.sm)
             }
-
-            Spacer()
+            .padding(.bottom, MPSpacing.xxxl)
         }
     }
+
+    // MARK: - Analyzing View
 
     @ViewBuilder
     var analyzingView: some View {
@@ -129,11 +206,12 @@ struct SunlightCameraView: View {
                 statusText: "Verifying..."
             )
         } else {
-            // Fallback if no image (shouldn't happen)
             ProgressView()
                 .scaleEffect(1.5)
         }
     }
+
+    // MARK: - Result View
 
     func resultView(_ result: SunlightVerificationResult) -> some View {
         ZStack {
@@ -141,14 +219,13 @@ struct SunlightCameraView: View {
                 Spacer()
 
                 if result.isOutside {
-                    // Success - with sequenced animations
                     ZStack {
                         Circle()
                             .fill(MPColors.successLight)
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: 80))
                             .foregroundColor(MPColors.success)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
@@ -167,15 +244,28 @@ struct SunlightCameraView: View {
                         .padding(.horizontal, MPSpacing.xxxl)
                         .offset(y: showFeedback ? 0 : 15)
                         .opacity(showFeedback ? 1.0 : 0)
+
+                    // Inline "Apps Unlocked" indicator
+                    if wasLastHabitToComplete {
+                        HStack(spacing: 6) {
+                            Image(systemName: "lock.open.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(MPColors.success)
+                            Text("Apps Unlocked")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(MPColors.textSecondary)
+                        }
+                        .scaleEffect(showAppsUnlocked ? 1.0 : 0.5)
+                        .opacity(showAppsUnlocked ? 1.0 : 0)
+                    }
                 } else {
-                    // Failure
                     ZStack {
                         Circle()
                             .fill(MPColors.errorLight)
                             .frame(width: 120, height: 120)
 
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 70))
+                            .font(.system(size: 80))
                             .foregroundColor(MPColors.error)
                     }
                     .scaleEffect(showCheckmark ? 1.0 : 0.3)
@@ -204,17 +294,16 @@ struct SunlightCameraView: View {
                             resetResultAnimations()
                             self.result = nil
                             selectedImage = nil
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                                startEntranceAnimations()
+                            }
                         }
                         .offset(y: showButton ? 0 : 30)
                         .opacity(showButton ? 1.0 : 0)
                     }
 
                     MPButton(title: result.isOutside ? "Done" : "Cancel", style: .secondary) {
-                        if wasLastHabitToComplete && result.isOutside {
-                            showAppsUnlockedCelebration = true
-                        } else {
-                            dismiss()
-                        }
+                        dismiss()
                     }
                     .offset(y: showButton ? 0 : 30)
                     .opacity(showButton ? 1.0 : 0)
@@ -222,7 +311,6 @@ struct SunlightCameraView: View {
                 .padding(.horizontal, MPSpacing.xxl)
                 .padding(.bottom, MPSpacing.xxxl)
             }
-
         }
         .onAppear {
             startResultAnimations(isOutside: result.isOutside)
@@ -230,37 +318,41 @@ struct SunlightCameraView: View {
     }
 
     private func startResultAnimations(isOutside: Bool) {
-        // Haptic feedback
         if isOutside {
             HapticManager.shared.success()
         } else {
             HapticManager.shared.warning()
         }
 
-        // Step 1: Checkmark/X scales in (0.0s)
         withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
             showCheckmark = true
         }
 
-        // Step 2: Title fades up (0.15s)
         withAnimation(.easeOut(duration: 0.3).delay(0.15)) {
             showTitle = true
         }
 
-        // Step 3: Feedback text (0.3s)
         withAnimation(.easeOut(duration: 0.3).delay(0.3)) {
             showFeedback = true
         }
 
-        // Step 4: Haptic feedback - only for success
         if isOutside {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
                 HapticManager.shared.habitCompleted()
             }
         }
 
-        // Step 5: Button slides up (0.5s)
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.5)) {
+        // Apps Unlocked inline (0.55s) - only when last habit
+        if isOutside && wasLastHabitToComplete {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.55)) {
+                showAppsUnlocked = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                HapticManager.shared.light()
+            }
+        }
+
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.7)) {
             showButton = true
         }
     }
@@ -269,8 +361,11 @@ struct SunlightCameraView: View {
         showCheckmark = false
         showTitle = false
         showFeedback = false
+        showAppsUnlocked = false
         showButton = false
     }
+
+    // MARK: - Error View
 
     func errorView(_ message: String) -> some View {
         VStack(spacing: MPSpacing.xxl) {
@@ -299,20 +394,16 @@ struct SunlightCameraView: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                if let image = selectedImage {
-                    MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
-                        errorMessage = nil
-                        errorIcon = "exclamationmark.triangle"
+                MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
+                    errorMessage = nil
+                    errorIcon = "exclamationmark.triangle"
+                    if let image = selectedImage {
                         Task {
                             await verifySunlight(image: image)
                         }
+                    } else {
+                        showingCamera = true
                     }
-                }
-
-                MPButton(title: "Retake Photo", style: .secondary, icon: "camera.fill") {
-                    errorMessage = nil
-                    errorIcon = "exclamationmark.triangle"
-                    selectedImage = nil
                 }
 
                 MPButton(title: "Cancel", style: .secondary) {
@@ -326,6 +417,8 @@ struct SunlightCameraView: View {
             HapticManager.shared.error()
         }
     }
+
+    // MARK: - Verification
 
     func verifySunlight(image: UIImage) async {
         isAnalyzing = true

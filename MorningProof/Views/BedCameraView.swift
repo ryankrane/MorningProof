@@ -22,8 +22,8 @@ struct BedCameraView: View {
     @State private var showFeedback = false
     @State private var showButton = false
 
-    // Apps unlocked celebration
-    @State private var showAppsUnlockedCelebration = false
+    // Apps unlocked inline
+    @State private var showAppsUnlocked = false
     @State private var wasLastHabitToComplete = false
 
     var body: some View {
@@ -73,13 +73,6 @@ struct BedCameraView: View {
                 ImagePicker(image: $selectedImage, sourceType: .camera)
             }
 
-            // Apps Unlocked celebration (shown after successful verification that completes routine)
-            if showAppsUnlockedCelebration {
-                AppsUnlockedCelebrationView(isShowing: $showAppsUnlockedCelebration) {
-                    // Celebration complete - dismiss the camera view
-                    dismiss()
-                }
-            }
         }
     }
 
@@ -235,14 +228,8 @@ struct BedCameraView: View {
                 Spacer()
 
                 if result.isMade {
-                    // Success - with sequenced animations
+                    // Success
                     ZStack {
-                        // Subtle glow behind checkmark
-                        Circle()
-                            .fill(MPColors.success.opacity(0.2))
-                            .frame(width: 140, height: 140)
-                            .blur(radius: 20)
-
                         Circle()
                             .fill(MPColors.successLight)
                             .frame(width: 120, height: 120)
@@ -267,15 +254,23 @@ struct BedCameraView: View {
                         .padding(.horizontal, MPSpacing.xxxl)
                         .offset(y: showFeedback ? 0 : 15)
                         .opacity(showFeedback ? 1.0 : 0)
+
+                    // Inline "Apps Unlocked" indicator
+                    if wasLastHabitToComplete {
+                        HStack(spacing: 6) {
+                            Image(systemName: "lock.open.fill")
+                                .font(.system(size: 22))
+                                .foregroundColor(MPColors.success)
+                            Text("Apps Unlocked")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(MPColors.textSecondary)
+                        }
+                        .scaleEffect(showAppsUnlocked ? 1.0 : 0.5)
+                        .opacity(showAppsUnlocked ? 1.0 : 0)
+                    }
                 } else {
                     // Failure
                     ZStack {
-                        // Subtle glow behind X (matches success state)
-                        Circle()
-                            .fill(MPColors.error.opacity(0.2))
-                            .frame(width: 140, height: 140)
-                            .blur(radius: 20)
-
                         Circle()
                             .fill(MPColors.errorLight)
                             .frame(width: 120, height: 120)
@@ -319,12 +314,7 @@ struct BedCameraView: View {
                     }
 
                     MPButton(title: result.isMade ? "Done" : "Cancel", style: .secondary) {
-                        // If this was the last habit to complete, show celebration first
-                        if wasLastHabitToComplete && result.isMade {
-                            showAppsUnlockedCelebration = true
-                        } else {
-                            dismiss()
-                        }
+                        dismiss()
                     }
                     .offset(y: showButton ? 0 : 30)
                     .opacity(showButton ? 1.0 : 0)
@@ -369,8 +359,18 @@ struct BedCameraView: View {
             }
         }
 
-        // Step 5: Button slides up (0.5s)
-        withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.5)) {
+        // Step 5: Apps Unlocked inline (0.55s) - only when last habit
+        if isMade && wasLastHabitToComplete {
+            withAnimation(.spring(response: 0.4, dampingFraction: 0.7).delay(0.55)) {
+                showAppsUnlocked = true
+            }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.55) {
+                HapticManager.shared.light()
+            }
+        }
+
+        // Step 6: Button slides up (0.7s)
+        withAnimation(.spring(response: 0.4, dampingFraction: 0.8).delay(0.7)) {
             showButton = true
         }
     }
@@ -379,6 +379,7 @@ struct BedCameraView: View {
         showCheckmark = false
         showTitle = false
         showFeedback = false
+        showAppsUnlocked = false
         showButton = false
     }
 
