@@ -948,14 +948,14 @@ struct DashboardView: View {
                         .foregroundColor(MPColors.healthRed)
                     Text("Health")
                         .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(completion.isCompleted ? MPColors.textSecondary : MPColors.textTertiary)
                     if completion.isCompleted {
                         Text("·")
                             .font(.system(size: 13))
-                            .foregroundColor(MPColors.textTertiary.opacity(0.5))
+                            .foregroundColor(MPColors.textSecondary.opacity(0.5))
                         Text("Verified")
                             .font(.system(size: 13))
-                            .foregroundColor(MPColors.textTertiary)
+                            .foregroundColor(MPColors.textSecondary)
                     }
                 }
 
@@ -963,7 +963,7 @@ struct DashboardView: View {
                 if completion.isCompleted {
                     Text("Verified")
                         .font(.system(size: 13))
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.textSecondary)
                 } else {
                     Text("AI verified")
                         .font(.system(size: 13))
@@ -974,14 +974,14 @@ struct DashboardView: View {
                 if completion.isCompleted {
                     Text("Logged")
                         .font(.system(size: 13))
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.textSecondary)
                 }
 
             default:
                 if completion.isCompleted {
                     Text("Verified")
                         .font(.system(size: 13))
-                        .foregroundColor(MPColors.textTertiary)
+                        .foregroundColor(MPColors.textSecondary)
                 }
             }
         }
