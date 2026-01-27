@@ -951,9 +951,6 @@ struct DashboardView: View {
         // Check if this is the final habit BEFORE completing
         let isFinalHabit = isCompletingFinalHabit()
 
-        // Check if this is an honor system habit (only honor system custom habits use this function)
-        let isHonorSystem = manager.getCustomHabit(id: habitId)?.verificationType == .honorSystem
-
         recentlyCompletedCustomHabits.insert(habitId)
 
         customHabitRowFlash[habitId] = true
@@ -1286,8 +1283,6 @@ struct DashboardView: View {
                 Text("Hold to complete")
                     .font(.system(size: 15))
                     .foregroundColor(MPColors.textTertiary)
-            default:
-                EmptyView()
             }
         }
     }
