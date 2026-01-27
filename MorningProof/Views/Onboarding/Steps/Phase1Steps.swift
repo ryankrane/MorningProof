@@ -49,11 +49,8 @@ struct WelcomeHeroStep: View {
     @State private var revealedCharacterCount = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Top half - branding content
+        GeometryReader { geometry in
             VStack(spacing: 0) {
-                Spacer()
-
                 // App branding
                 VStack(spacing: MPSpacing.xl) {
                     // Orb with gentle ambient animation
@@ -104,77 +101,79 @@ struct WelcomeHeroStep: View {
                     }
                 }
                 .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
                 .opacity(contentVisible ? 1 : 0)
                 .offset(y: contentVisible ? 0 : 12)
 
                 Spacer()
-            }
+                    .frame(minHeight: 20)
 
-            // Sign-in options
-            VStack(spacing: MPSpacing.md) {
-                SignInWithAppleButton(.signIn) { request in
-                    authManager.handleAppleSignInRequest(request)
-                } onCompletion: { result in
-                    authManager.handleAppleSignInCompletion(result) { success in
-                        if success { onContinue() }
+                // Sign-in options
+                VStack(spacing: MPSpacing.md) {
+                    SignInWithAppleButton(.signIn) { request in
+                        authManager.handleAppleSignInRequest(request)
+                    } onCompletion: { result in
+                        authManager.handleAppleSignInCompletion(result) { success in
+                            if success { onContinue() }
+                        }
                     }
-                }
-                .signInWithAppleButtonStyle(.black)
-                .frame(height: 52)
-                .cornerRadius(MPRadius.lg)
-
-                Button {
-                    authManager.signInWithGoogle { success in
-                        if success { onContinue() }
-                    }
-                } label: {
-                    HStack(spacing: MPSpacing.md) {
-                        Image(systemName: "g.circle.fill")
-                            .font(.system(size: 20))
-                        Text("Sign in with Google")
-                            .font(.system(size: 17, weight: .medium))
-                    }
-                    .foregroundColor(MPColors.textPrimary)
-                    .frame(maxWidth: .infinity)
+                    .signInWithAppleButtonStyle(.black)
                     .frame(height: 52)
-                    .background(MPColors.surface)
                     .cornerRadius(MPRadius.lg)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: MPRadius.lg)
-                            .stroke(MPColors.border, lineWidth: 1)
-                    )
-                }
 
-                HStack {
-                    Rectangle().fill(MPColors.divider).frame(height: 1)
-                    Text("or")
+                    Button {
+                        authManager.signInWithGoogle { success in
+                            if success { onContinue() }
+                        }
+                    } label: {
+                        HStack(spacing: MPSpacing.md) {
+                            Image(systemName: "g.circle.fill")
+                                .font(.system(size: 20))
+                            Text("Sign in with Google")
+                                .font(.system(size: 17, weight: .medium))
+                        }
+                        .foregroundColor(MPColors.textPrimary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 52)
+                        .background(MPColors.surface)
+                        .cornerRadius(MPRadius.lg)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: MPRadius.lg)
+                                .stroke(MPColors.border, lineWidth: 1)
+                        )
+                    }
+
+                    HStack {
+                        Rectangle().fill(MPColors.divider).frame(height: 1)
+                        Text("or")
+                            .font(.system(size: 13))
+                            .foregroundColor(MPColors.textTertiary)
+                            .padding(.horizontal, MPSpacing.md)
+                        Rectangle().fill(MPColors.divider).frame(height: 1)
+                    }
+                    .padding(.vertical, MPSpacing.xs)
+
+                    Button {
+                        authManager.continueAnonymously()
+                        onContinue()
+                    } label: {
+                        Text("Skip for now")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(MPColors.primary)
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
+                .opacity(buttonsVisible ? 1 : 0)
+
+                if let error = authManager.errorMessage {
+                    Text(error)
                         .font(.system(size: 13))
-                        .foregroundColor(MPColors.textTertiary)
-                        .padding(.horizontal, MPSpacing.md)
-                    Rectangle().fill(MPColors.divider).frame(height: 1)
+                        .foregroundColor(MPColors.error)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, MPSpacing.xl)
+                        .padding(.bottom, MPSpacing.md)
                 }
-                .padding(.vertical, MPSpacing.xs)
-
-                Button {
-                    authManager.continueAnonymously()
-                    onContinue()
-                } label: {
-                    Text("Skip for now")
-                        .font(.system(size: 15, weight: .medium))
-                        .foregroundColor(MPColors.primary)
-                }
-            }
-            .padding(.horizontal, MPSpacing.xl)
-            .padding(.bottom, 50)
-            .opacity(buttonsVisible ? 1 : 0)
-
-            if let error = authManager.errorMessage {
-                Text(error)
-                    .font(.system(size: 13))
-                    .foregroundColor(MPColors.error)
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, MPSpacing.xl)
-                    .padding(.bottom, MPSpacing.md)
             }
         }
         .onAppear {
@@ -249,136 +248,140 @@ struct NameStep: View {
     }
 
     var body: some View {
-        ZStack {
-            // Sparkle particles layer
-            ForEach(sparkles) { sparkle in
-                Image(systemName: "sparkle")
-                    .font(.system(size: 12))
-                    .foregroundColor(MPColors.primary)
-                    .scaleEffect(sparkle.scale)
-                    .opacity(sparkle.opacity)
-                    .rotationEffect(.degrees(sparkle.rotation))
-                    .position(x: sparkle.x, y: sparkle.y)
-            }
+        GeometryReader { geometry in
+            ZStack {
+                // Sparkle particles layer
+                ForEach(sparkles) { sparkle in
+                    Image(systemName: "sparkle")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.primary)
+                        .scaleEffect(sparkle.scale)
+                        .opacity(sparkle.opacity)
+                        .rotationEffect(.degrees(sparkle.rotation))
+                        .position(x: sparkle.x, y: sparkle.y)
+                }
 
-            VStack(spacing: 0) {
-                Spacer()
-
-                VStack(spacing: MPSpacing.lg) {
-                    // Animated waving hand that floats away
-                    GeometryReader { geo in
-                        WavingHandIcon(size: 56, waveRotation: waveRotation)
-                            .frame(maxWidth: .infinity)
-                            .scaleEffect(iconDeparting ? 0.3 : 1.0)
-                            .opacity(iconDeparting ? 0 : 1)
-                            .offset(y: iconDeparting ? -150 : 0)
-                            .blur(radius: iconDeparting ? 2 : 0)
-                            .onChange(of: iconDeparting) { _, departing in
-                                if departing {
-                                    // Create sparkles at icon position
-                                    let centerX = geo.frame(in: .global).midX
-                                    let centerY = geo.frame(in: .global).midY
-                                    createSparkles(at: centerX, y: centerY)
+                VStack(spacing: 0) {
+                    VStack(spacing: MPSpacing.lg) {
+                        // Animated waving hand that floats away
+                        GeometryReader { geo in
+                            WavingHandIcon(size: 56, waveRotation: waveRotation)
+                                .frame(maxWidth: .infinity)
+                                .scaleEffect(iconDeparting ? 0.3 : 1.0)
+                                .opacity(iconDeparting ? 0 : 1)
+                                .offset(y: iconDeparting ? -150 : 0)
+                                .blur(radius: iconDeparting ? 2 : 0)
+                                .onChange(of: iconDeparting) { _, departing in
+                                    if departing {
+                                        // Create sparkles at icon position
+                                        let centerX = geo.frame(in: .global).midX
+                                        let centerY = geo.frame(in: .global).midY
+                                        createSparkles(at: centerX, y: centerY)
+                                    }
                                 }
-                            }
-                    }
-                    .frame(height: 60)
+                        }
+                        .frame(height: 60)
 
-                    // Morphing text - switches between prompt and greeting
-                    ZStack {
-                    // Initial prompt
-                    VStack(spacing: MPSpacing.sm) {
-                        Text("Let's make this personal")
+                        // Morphing text - switches between prompt and greeting
+                        ZStack {
+                        // Initial prompt
+                        VStack(spacing: MPSpacing.sm) {
+                            Text("Let's make this personal")
+                                .font(.system(size: 28, weight: .bold, design: .rounded))
+                                .foregroundColor(MPColors.textPrimary)
+
+                            Text("What should we call you?")
+                                .font(.system(size: 16))
+                                .foregroundColor(MPColors.textSecondary)
+                        }
+                        .opacity(showGreeting ? 0 : 1)
+                        .scaleEffect(showGreeting ? 0.8 : 1)
+                        .offset(y: showGreeting ? -20 : 0)
+
+                        // Greeting after name confirmed
+                        Text("Great to meet you, \(data.userName)!")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
                             .foregroundColor(MPColors.textPrimary)
-
-                        Text("What should we call you?")
-                            .font(.system(size: 16))
-                            .foregroundColor(MPColors.textSecondary)
+                            .opacity(showGreeting ? 1 : 0)
+                            .scaleEffect(showGreeting ? 1 : 0.8)
+                            .offset(y: showGreeting ? 0 : 20)
                     }
-                    .opacity(showGreeting ? 0 : 1)
-                    .scaleEffect(showGreeting ? 0.8 : 1)
-                    .offset(y: showGreeting ? -20 : 0)
-
-                    // Greeting after name confirmed
-                    Text("Great to meet you, \(data.userName)!")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-                        .opacity(showGreeting ? 1 : 0)
-                        .scaleEffect(showGreeting ? 1 : 0.8)
-                        .offset(y: showGreeting ? 0 : 20)
+                    .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showGreeting)
                 }
-                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: showGreeting)
-            }
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-            Spacer().frame(height: MPSpacing.xxxl)
+                Spacer()
+                    .frame(minHeight: 20)
 
-            // Input section - fades out when name confirmed
-            VStack(spacing: MPSpacing.sm) {
-                TextField("", text: $data.userName, prompt: Text("First name").foregroundColor(MPColors.textTertiary))
-                    .font(.system(size: 24, weight: .medium))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .textContentType(.givenName)
-                    .padding(MPSpacing.xl)
-                    .background(MPColors.surface)
-                    .cornerRadius(MPRadius.lg)
-                    .mpShadow(.small)
-                    .focused($isNameFocused)
-                    .submitLabel(.done)
-                    .onSubmit {
-                        if !data.userName.isEmpty {
+                // Input section - fades out when name confirmed
+                VStack(spacing: MPSpacing.sm) {
+                    TextField("", text: $data.userName, prompt: Text("First name").foregroundColor(MPColors.textTertiary))
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(MPColors.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .textContentType(.givenName)
+                        .padding(MPSpacing.xl)
+                        .background(MPColors.surface)
+                        .cornerRadius(MPRadius.lg)
+                        .mpShadow(.small)
+                        .focused($isNameFocused)
+                        .submitLabel(.done)
+                        .onSubmit {
+                            if !data.userName.isEmpty {
+                                confirmName()
+                            }
+                        }
+                        .onChange(of: data.userName) { oldValue, newValue in
+                            // Detect autofill: name length increases by more than 1 character at once
+                            let lengthDifference = newValue.count - previousNameLength
+                            if lengthDifference > 1 && !newValue.isEmpty && !hasConfirmedName {
+                                // Autofill detected - auto-proceed after a brief delay
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                    if !hasConfirmedName {
+                                        confirmName()
+                                    }
+                                }
+                            }
+                            previousNameLength = newValue.count
+                        }
+
+                    HStack(spacing: MPSpacing.xs) {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 10))
+                        Text("Stored locally. Never shared.")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .foregroundColor(MPColors.textMuted)
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .opacity(hasConfirmedName ? 0 : 1)
+                .scaleEffect(hasConfirmedName ? 0.9 : 1)
+                .animation(.easeInOut(duration: 0.4), value: hasConfirmedName)
+
+                Spacer()
+                    .frame(minHeight: 20)
+
+                // Button section - fades out when name confirmed
+                VStack(spacing: MPSpacing.md) {
+                    MPButton(
+                        title: data.userName.isEmpty ? "Skip for now" : "Let's go!",
+                        style: .primary
+                    ) {
+                        if data.userName.isEmpty {
+                            // Skip without animation
+                            isNameFocused = false
+                            onContinue()
+                        } else {
                             confirmName()
                         }
                     }
-                    .onChange(of: data.userName) { oldValue, newValue in
-                        // Detect autofill: name length increases by more than 1 character at once
-                        let lengthDifference = newValue.count - previousNameLength
-                        if lengthDifference > 1 && !newValue.isEmpty && !hasConfirmedName {
-                            // Autofill detected - auto-proceed after a brief delay
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                                if !hasConfirmedName {
-                                    confirmName()
-                                }
-                            }
-                        }
-                        previousNameLength = newValue.count
-                    }
-
-                HStack(spacing: MPSpacing.xs) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 10))
-                    Text("Stored locally. Never shared.")
-                        .font(.system(size: 11, weight: .medium))
                 }
-                .foregroundColor(MPColors.textMuted)
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
+                .opacity(hasConfirmedName ? 0 : 1)
+                .animation(.easeInOut(duration: 0.3), value: hasConfirmedName)
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .opacity(hasConfirmedName ? 0 : 1)
-            .scaleEffect(hasConfirmedName ? 0.9 : 1)
-            .animation(.easeInOut(duration: 0.4), value: hasConfirmedName)
-
-            Spacer()
-
-            // Button section - fades out when name confirmed
-            VStack(spacing: MPSpacing.md) {
-                MPButton(
-                    title: data.userName.isEmpty ? "Skip for now" : "Let's go!",
-                    style: .primary
-                ) {
-                    if data.userName.isEmpty {
-                        // Skip without animation
-                        isNameFocused = false
-                        onContinue()
-                    } else {
-                        confirmName()
-                    }
-                }
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-            .opacity(hasConfirmedName ? 0 : 1)
-            .animation(.easeInOut(duration: 0.3), value: hasConfirmedName)
+        }
         }
         .onAppear {
             // Continuous wave animation - symmetric swing like a real wave
@@ -402,7 +405,6 @@ struct NameStep: View {
                 }
             }
         }
-        } // Close VStack
         .opacity(fadeOut ? 0 : 1)
         .scaleEffect(fadeOut ? 0.95 : 1)
         .animation(.easeOut(duration: 0.4), value: fadeOut)
@@ -493,47 +495,50 @@ struct MorningStruggleStep: View {
     @State private var appeared = false
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.md) {
+                    // Hero icon - colorful alarm clock
+                    AlarmClockIcon(size: 60)
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.5)
 
-            VStack(spacing: MPSpacing.md) {
-                // Hero icon - colorful alarm clock
-                AlarmClockIcon(size: 60)
-                    .opacity(appeared ? 1 : 0)
-                    .scaleEffect(appeared ? 1 : 0.5)
+                    Text("What's your biggest\nmorning struggle?")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .multilineTextAlignment(.center)
+                }
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                Text("What's your biggest\nmorning struggle?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-            }
+                Spacer()
+                    .frame(minHeight: 20)
 
-            Spacer().frame(height: MPSpacing.xxl)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                ForEach(OnboardingData.MorningStruggle.allCases, id: \.rawValue) { struggle in
-                    OnboardingGridButton(
-                        title: struggle.rawValue,
-                        icon: struggle.icon,
-                        isSelected: data.morningStruggles.contains(struggle)
-                    ) {
-                        if data.morningStruggles.contains(struggle) {
-                            data.morningStruggles.remove(struggle)
-                        } else {
-                            data.morningStruggles.insert(struggle)
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
+                    ForEach(OnboardingData.MorningStruggle.allCases, id: \.rawValue) { struggle in
+                        OnboardingGridButton(
+                            title: struggle.rawValue,
+                            icon: struggle.icon,
+                            isSelected: data.morningStruggles.contains(struggle)
+                        ) {
+                            if data.morningStruggles.contains(struggle) {
+                                data.morningStruggles.remove(struggle)
+                            } else {
+                                data.morningStruggles.insert(struggle)
+                            }
                         }
                     }
                 }
-            }
-            .padding(.horizontal, MPSpacing.xl)
+                .padding(.horizontal, MPSpacing.xl)
 
-            Spacer()
+                Spacer()
+                    .frame(minHeight: 20)
 
-            MPButton(title: "That's me", style: .primary, isDisabled: data.morningStruggles.isEmpty) {
-                onContinue()
+                MPButton(title: "That's me", style: .primary, isDisabled: data.morningStruggles.isEmpty) {
+                    onContinue()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
@@ -670,66 +675,69 @@ struct DesiredOutcomeStep: View {
     @State private var selectedAnimating: Set<OnboardingData.DesiredOutcome> = []
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.md) {
+                    TargetWithArrowIcon(size: 60)
+                        .opacity(appeared ? 1 : 0)
+                        .scaleEffect(appeared ? 1 : 0.5)
 
-            VStack(spacing: MPSpacing.md) {
-                TargetWithArrowIcon(size: 60)
-                    .opacity(appeared ? 1 : 0)
-                    .scaleEffect(appeared ? 1 : 0.5)
-
-                Text("What would you like\nto accomplish?")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-            }
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
-                ForEach(Array(OnboardingData.DesiredOutcome.allCases.enumerated()), id: \.element.rawValue) { index, outcome in
-                    OnboardingGridButtonWithBadge(
-                        title: outcome.rawValue,
-                        icon: outcome.icon,
-                        isSelected: data.desiredOutcomes.contains(outcome),
-                        badge: nil
-                    ) {
-                        // Haptic feedback
-                        HapticManager.shared.light()
-
-                        // Toggle selection with bounce animation
-                        withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
-                            if data.desiredOutcomes.contains(outcome) {
-                                data.desiredOutcomes.remove(outcome)
-                            } else {
-                                data.desiredOutcomes.insert(outcome)
-                            }
-                            selectedAnimating.insert(outcome)
-                        }
-
-                        // Remove from animating set after animation completes
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                            selectedAnimating.remove(outcome)
-                        }
-                    }
-                    .scaleEffect(selectedAnimating.contains(outcome) ? 1.05 : 1.0)
-                    .opacity(appeared ? 1 : 0)
-                    .offset(y: appeared ? 0 : 20)
-                    .animation(
-                        .spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.08),
-                        value: appeared
-                    )
+                    Text("What would you like\nto accomplish?")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .multilineTextAlignment(.center)
                 }
-            }
-            .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-            Spacer()
+                Spacer()
+                    .frame(minHeight: 20)
 
-            MPButton(title: "That's my goal", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
-                onContinue()
+                LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: MPSpacing.md) {
+                    ForEach(Array(OnboardingData.DesiredOutcome.allCases.enumerated()), id: \.element.rawValue) { index, outcome in
+                        OnboardingGridButtonWithBadge(
+                            title: outcome.rawValue,
+                            icon: outcome.icon,
+                            isSelected: data.desiredOutcomes.contains(outcome),
+                            badge: nil
+                        ) {
+                            // Haptic feedback
+                            HapticManager.shared.light()
+
+                            // Toggle selection with bounce animation
+                            withAnimation(.spring(response: 0.3, dampingFraction: 0.6)) {
+                                if data.desiredOutcomes.contains(outcome) {
+                                    data.desiredOutcomes.remove(outcome)
+                                } else {
+                                    data.desiredOutcomes.insert(outcome)
+                                }
+                                selectedAnimating.insert(outcome)
+                            }
+
+                            // Remove from animating set after animation completes
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                                selectedAnimating.remove(outcome)
+                            }
+                        }
+                        .scaleEffect(selectedAnimating.contains(outcome) ? 1.05 : 1.0)
+                        .opacity(appeared ? 1 : 0)
+                        .offset(y: appeared ? 0 : 20)
+                        .animation(
+                            .spring(response: 0.5, dampingFraction: 0.8).delay(Double(index) * 0.08),
+                            value: appeared
+                        )
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xl)
+
+                Spacer()
+                    .frame(minHeight: 20)
+
+                MPButton(title: "That's my goal", style: .primary, isDisabled: data.desiredOutcomes.isEmpty) {
+                    onContinue()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {

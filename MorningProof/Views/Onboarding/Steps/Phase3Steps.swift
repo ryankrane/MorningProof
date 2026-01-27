@@ -10,68 +10,70 @@ struct HowItWorksStep: View {
     @State private var showSteps = [false, false, false, false]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.xl) {
+                    VStack(spacing: MPSpacing.md) {
+                        Text("Morning Proof is different")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
 
-            VStack(spacing: MPSpacing.xl) {
-                VStack(spacing: MPSpacing.md) {
-                    Text("Morning Proof is different")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
+                        Text("Real accountability that works")
+                            .font(.system(size: 16))
+                            .foregroundColor(MPColors.textSecondary)
+                    }
 
-                    Text("Real accountability that works")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
+                    VStack(spacing: MPSpacing.md) {
+                        HowItWorksRow(
+                            number: "1",
+                            title: "Make your routine",
+                            description: "Choose habits to complete each morning",
+                            icon: "list.bullet.clipboard.fill",
+                            isVisible: showSteps[0]
+                        )
+
+                        HowItWorksRow(
+                            number: "2",
+                            title: "Lock distractions",
+                            description: "Apps blocked until you're done",
+                            icon: "lock.shield.fill",
+                            isVisible: showSteps[1]
+                        )
+
+                        HowItWorksRow(
+                            number: "3",
+                            title: "Prove it & unlock",
+                            description: "AI verifies, then apps unlock",
+                            icon: "lock.open.fill",
+                            isVisible: showSteps[2]
+                        )
+
+                        HowItWorksRow(
+                            number: "4",
+                            title: "Build your streak",
+                            description: "Stay consistent, see progress",
+                            icon: "flame.fill",
+                            isVisible: showSteps[3]
+                        )
+                    }
+                    .padding(.horizontal, MPSpacing.lg)
+
+                    Text("No more lying to yourself")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(MPColors.accent)
+                        .opacity(showSteps[3] ? 1 : 0)
                 }
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                VStack(spacing: MPSpacing.md) {
-                    HowItWorksRow(
-                        number: "1",
-                        title: "Make your routine",
-                        description: "Choose habits to complete each morning",
-                        icon: "list.bullet.clipboard.fill",
-                        isVisible: showSteps[0]
-                    )
+                Spacer()
+                    .frame(minHeight: 20)
 
-                    HowItWorksRow(
-                        number: "2",
-                        title: "Lock distractions",
-                        description: "Apps blocked until you're done",
-                        icon: "lock.shield.fill",
-                        isVisible: showSteps[1]
-                    )
-
-                    HowItWorksRow(
-                        number: "3",
-                        title: "Prove it & unlock",
-                        description: "AI verifies, then apps unlock",
-                        icon: "lock.open.fill",
-                        isVisible: showSteps[2]
-                    )
-
-                    HowItWorksRow(
-                        number: "4",
-                        title: "Build your streak",
-                        description: "Stay consistent, see progress",
-                        icon: "flame.fill",
-                        isVisible: showSteps[3]
-                    )
+                MPButton(title: "See it in action", style: .primary) {
+                    onContinue()
                 }
-                .padding(.horizontal, MPSpacing.lg)
-
-                Text("No more lying to yourself")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(MPColors.accent)
-                    .opacity(showSteps[3] ? 1 : 0)
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-
-            Spacer()
-
-            MPButton(title: "See it in action", style: .primary) {
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             for i in 0..<4 {
@@ -138,145 +140,147 @@ struct AIVerificationShowcaseStep: View {
     @State private var hapticTimer: Timer?
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            VStack(spacing: MPSpacing.xl) {
-                VStack(spacing: MPSpacing.md) {
-                    Text("AI-Powered Verification")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("No excuses. Photo proof holds you accountable.")
-                        .font(.system(size: 15))
-                        .foregroundColor(MPColors.textSecondary)
-                        .multilineTextAlignment(.center)
-                }
-
-                // Phone mockup with high-tech scan
-                ZStack {
-                    // Phone frame with subtle glow during scan
-                    RoundedRectangle(cornerRadius: 30)
-                        .fill(MPColors.surface)
-                        .frame(width: 240, height: 320)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 30)
-                                .stroke(
-                                    showScan && !showScore ? MPColors.accent.opacity(0.5) : Color.clear,
-                                    lineWidth: 2
-                                )
-                        )
-                        .mpShadow(.large)
-
-                    // Screen content
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.xl) {
                     VStack(spacing: MPSpacing.md) {
-                        // Bed illustration with laser scanning
-                        ZStack {
-                            // Background
-                            RoundedRectangle(cornerRadius: MPRadius.md)
-                                .fill(
-                                    LinearGradient(
-                                        colors: [MPColors.primaryLight, MPColors.primary.opacity(0.3)],
-                                        startPoint: .top,
-                                        endPoint: .bottom
+                        Text("AI-Powered Verification")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
+
+                        Text("No excuses. Photo proof holds you accountable.")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textSecondary)
+                            .multilineTextAlignment(.center)
+                    }
+
+                    // Phone mockup with high-tech scan
+                    ZStack {
+                        // Phone frame with subtle glow during scan
+                        RoundedRectangle(cornerRadius: 30)
+                            .fill(MPColors.surface)
+                            .frame(width: 240, height: 320)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 30)
+                                    .stroke(
+                                        showScan && !showScore ? MPColors.accent.opacity(0.5) : Color.clear,
+                                        lineWidth: 2
                                     )
-                                )
-                                .frame(width: 200, height: 150)
+                            )
+                            .mpShadow(.large)
 
-                            // Cartoon bed illustration
-                            CartoonBedIllustration()
-                                .frame(width: 180, height: 120)
+                        // Screen content
+                        VStack(spacing: MPSpacing.md) {
+                            // Bed illustration with laser scanning
+                            ZStack {
+                                // Background
+                                RoundedRectangle(cornerRadius: MPRadius.md)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [MPColors.primaryLight, MPColors.primary.opacity(0.3)],
+                                            startPoint: .top,
+                                            endPoint: .bottom
+                                        )
+                                    )
+                                    .frame(width: 200, height: 150)
 
-                            // High-tech laser scanning overlay
-                            if showScan || showScore {
-                                HighTechScanOverlay(
-                                    isScanning: showScan && !showScore,
-                                    isComplete: showScore,
-                                    scanProgress: scanProgress
-                                )
-                                .frame(width: 200, height: 150)
-                                .clipped()
+                                // Cartoon bed illustration
+                                CartoonBedIllustration()
+                                    .frame(width: 180, height: 120)
+
+                                // High-tech laser scanning overlay
+                                if showScan || showScore {
+                                    HighTechScanOverlay(
+                                        isScanning: showScan && !showScore,
+                                        isComplete: showScore,
+                                        scanProgress: scanProgress
+                                    )
+                                    .frame(width: 200, height: 150)
+                                    .clipped()
+                                }
+                            }
+
+                            // Result display
+                            if showScore {
+                                VStack(spacing: MPSpacing.sm) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .font(.system(size: 48))
+                                        .foregroundColor(MPColors.success)
+                                        .shadow(color: MPColors.success.opacity(0.5), radius: 10)
+
+                                    Text("Bed Made!")
+                                        .font(.system(size: 20, weight: .bold))
+                                        .foregroundColor(MPColors.textPrimary)
+                                }
+                                .transition(.scale.combined(with: .opacity))
+                            } else if showScan {
+                                VStack(spacing: MPSpacing.sm) {
+                                    // Scanning percentage
+                                    Text("\(Int(scanProgress * 100))%")
+                                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                                        .foregroundColor(MPColors.accent)
+                                        .contentTransition(.numericText())
+
+                                    Text("Analyzing...")
+                                        .font(.system(size: 14, weight: .medium))
+                                        .foregroundColor(MPColors.textSecondary)
+                                }
                             }
                         }
-
-                        // Result display
-                        if showScore {
-                            VStack(spacing: MPSpacing.sm) {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.system(size: 48))
-                                    .foregroundColor(MPColors.success)
-                                    .shadow(color: MPColors.success.opacity(0.5), radius: 10)
-
-                                Text("Bed Made!")
-                                    .font(.system(size: 20, weight: .bold))
-                                    .foregroundColor(MPColors.textPrimary)
-                            }
-                            .transition(.scale.combined(with: .opacity))
-                        } else if showScan {
-                            VStack(spacing: MPSpacing.sm) {
-                                // Scanning percentage
-                                Text("\(Int(scanProgress * 100))%")
-                                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                                    .foregroundColor(MPColors.accent)
-                                    .contentTransition(.numericText())
-
-                                Text("Analyzing...")
-                                    .font(.system(size: 14, weight: .medium))
-                                    .foregroundColor(MPColors.textSecondary)
-                            }
-                        }
+                        .frame(width: 220, height: 280)
                     }
-                    .frame(width: 220, height: 280)
-                }
-                .scaleEffect(showPhone ? 1 : 0.8)
-                .opacity(showPhone ? 1 : 0)
+                    .scaleEffect(showPhone ? 1 : 0.8)
+                    .opacity(showPhone ? 1 : 0)
 
-                // Unlock message - appears after verification
-                if showUnlockMessage {
+                    // Unlock message - appears after verification
+                    if showUnlockMessage {
+                        HStack(spacing: MPSpacing.sm) {
+                            Image(systemName: "lock.open.fill")
+                                .font(.system(size: 16))
+                                .foregroundColor(MPColors.success)
+
+                            Text("Once verified, your apps unlock instantly")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(MPColors.success)
+                        }
+                        .padding(.horizontal, MPSpacing.lg)
+                        .padding(.vertical, MPSpacing.md)
+                        .background(MPColors.success.opacity(0.1))
+                        .cornerRadius(MPRadius.full)
+                        .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    }
+
+                    // Features row
+                    HStack(spacing: MPSpacing.xl) {
+                        FeaturePill(icon: "bolt.fill", text: "Instant")
+                        FeaturePill(icon: "eye.fill", text: "No cheating")
+                        FeaturePill(icon: "lock.shield.fill", text: "Private")
+                    }
+                    .opacity(showScore ? 1 : 0)
+
+                    // AI disclosure note (required for App Store)
                     HStack(spacing: MPSpacing.sm) {
-                        Image(systemName: "lock.open.fill")
-                            .font(.system(size: 16))
-                            .foregroundColor(MPColors.success)
-
-                        Text("Once verified, your apps unlock instantly")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(MPColors.success)
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 12))
+                            .foregroundColor(MPColors.textMuted)
+                        Text("Photos are analyzed by AI to verify habits")
+                            .font(.system(size: 12))
+                            .foregroundColor(MPColors.textMuted)
                     }
-                    .padding(.horizontal, MPSpacing.lg)
-                    .padding(.vertical, MPSpacing.md)
-                    .background(MPColors.success.opacity(0.1))
-                    .cornerRadius(MPRadius.full)
-                    .transition(.opacity.combined(with: .move(edge: .bottom)))
+                    .opacity(showScore ? 1 : 0)
                 }
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                // Features row
-                HStack(spacing: MPSpacing.xl) {
-                    FeaturePill(icon: "bolt.fill", text: "Instant")
-                    FeaturePill(icon: "eye.fill", text: "No cheating")
-                    FeaturePill(icon: "lock.shield.fill", text: "Private")
-                }
-                .opacity(showScore ? 1 : 0)
+                Spacer()
+                    .frame(minHeight: 20)
 
-                // AI disclosure note (required for App Store)
-                HStack(spacing: MPSpacing.sm) {
-                    Image(systemName: "info.circle")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.textMuted)
-                    Text("Photos are analyzed by AI to verify habits")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.textMuted)
+                MPButton(title: "Continue", style: .primary) {
+                    stopHaptics()
+                    onContinue()
                 }
-                .opacity(showScore ? 1 : 0)
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-
-            Spacer()
-
-            MPButton(title: "Continue", style: .primary) {
-                stopHaptics()
-                onContinue()
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             startVerificationSequence()

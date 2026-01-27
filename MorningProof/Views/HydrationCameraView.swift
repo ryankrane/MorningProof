@@ -18,35 +18,47 @@ struct HydrationCameraView: View {
     @State private var showConfetti = false
     @State private var showButton = false
 
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                MPColors.background
-                    .ignoresSafeArea()
+    // Apps unlocked celebration
+    @State private var showAppsUnlockedCelebration = false
+    @State private var wasLastHabitToComplete = false
 
-                if isAnalyzing {
-                    analyzingView
-                } else if let error = errorMessage {
-                    errorView(error)
-                } else if let result = result {
-                    resultView(result)
-                } else {
-                    captureView
-                }
-            }
-            .navigationTitle("Verify Hydration")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+    var body: some View {
+        ZStack {
+            NavigationStack {
+                ZStack {
+                    MPColors.background
+                        .ignoresSafeArea()
+
+                    if isAnalyzing {
+                        analyzingView
+                    } else if let error = errorMessage {
+                        errorView(error)
+                    } else if let result = result {
+                        resultView(result)
+                    } else {
+                        captureView
                     }
-                    .foregroundColor(MPColors.textTertiary)
+                }
+                .navigationTitle("Verify Hydration")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .foregroundColor(MPColors.textTertiary)
+                    }
                 }
             }
-        }
-        .sheet(isPresented: $showingCamera) {
-            ImagePicker(image: $selectedImage, sourceType: .camera)
+            .sheet(isPresented: $showingCamera) {
+                ImagePicker(image: $selectedImage, sourceType: .camera)
+            }
+
+            if showAppsUnlockedCelebration {
+                AppsUnlockedCelebrationView(isShowing: $showAppsUnlockedCelebration) {
+                    dismiss()
+                }
+            }
         }
     }
 
@@ -199,7 +211,11 @@ struct HydrationCameraView: View {
                     }
 
                     MPButton(title: result.isWater ? "Done" : "Cancel", style: .secondary) {
-                        dismiss()
+                        if wasLastHabitToComplete && result.isWater {
+                            showAppsUnlockedCelebration = true
+                        } else {
+                            dismiss()
+                        }
                     }
                     .offset(y: showButton ? 0 : 30)
                     .opacity(showButton ? 1.0 : 0)
@@ -324,8 +340,16 @@ struct HydrationCameraView: View {
         errorMessage = nil
         errorIcon = "exclamationmark.triangle"
 
+        let willCompleteAllHabits = (manager.completedCount == manager.totalEnabled - 1)
+        let appLockingEnabled = manager.settings.appLockingEnabled
+
         do {
             result = try await manager.completeHydrationVerification(image: image)
+
+            if result?.isWater == true && willCompleteAllHabits && appLockingEnabled {
+                wasLastHabitToComplete = true
+            }
+
             isAnalyzing = false
         } catch let apiError as APIError {
             errorMessage = apiError.localizedDescription

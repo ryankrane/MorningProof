@@ -21,35 +21,49 @@ struct GenericAICameraView: View {
     @State private var showConfetti = false
     @State private var showButton = false
 
-    var body: some View {
-        NavigationStack {
-            ZStack {
-                MPColors.background
-                    .ignoresSafeArea()
+    // Apps unlocked celebration
+    @State private var showAppsUnlockedCelebration = false
+    @State private var wasLastHabitToComplete = false
 
-                if isAnalyzing {
-                    analyzingView
-                } else if let error = errorMessage {
-                    errorView(error)
-                } else if let result = result {
-                    resultView(result)
-                } else {
-                    captureView
-                }
-            }
-            .navigationTitle("Verify \(habitType.displayName)")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
+    var body: some View {
+        ZStack {
+            NavigationStack {
+                ZStack {
+                    MPColors.background
+                        .ignoresSafeArea()
+
+                    if isAnalyzing {
+                        analyzingView
+                    } else if let error = errorMessage {
+                        errorView(error)
+                    } else if let result = result {
+                        resultView(result)
+                    } else {
+                        captureView
                     }
-                    .foregroundColor(MPColors.textTertiary)
+                }
+                .navigationTitle("Verify \(habitType.displayName)")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .foregroundColor(MPColors.textTertiary)
+                    }
                 }
             }
-        }
-        .sheet(isPresented: $showingCamera) {
-            ImagePicker(image: $selectedImage, sourceType: .camera)
+            .sheet(isPresented: $showingCamera) {
+                ImagePicker(image: $selectedImage, sourceType: .camera)
+            }
+
+            // Apps Unlocked celebration (shown after successful verification that completes routine)
+            if showAppsUnlockedCelebration {
+                AppsUnlockedCelebrationView(isShowing: $showAppsUnlockedCelebration) {
+                    // Celebration complete - dismiss the camera view
+                    dismiss()
+                }
+            }
         }
     }
 
@@ -256,7 +270,12 @@ struct GenericAICameraView: View {
                     }
 
                     MPButton(title: result.isVerified ? "Done" : "Cancel", style: .secondary) {
-                        dismiss()
+                        // If this was the last habit to complete, show celebration first
+                        if wasLastHabitToComplete && result.isVerified {
+                            showAppsUnlockedCelebration = true
+                        } else {
+                            dismiss()
+                        }
                     }
                     .offset(y: showButton ? 0 : 30)
                     .opacity(showButton ? 1.0 : 0)
@@ -381,9 +400,18 @@ struct GenericAICameraView: View {
         errorMessage = nil
         errorIcon = "exclamationmark.triangle"
 
+        // Check if completing this habit will finish all habits (for celebration)
+        let willCompleteAllHabits = (manager.completedCount == manager.totalEnabled - 1)
+        let appLockingEnabled = manager.settings.appLockingEnabled
+
         do {
             result = try await manager.completePredefinedHabitVerification(habitType: habitType, image: image)
             isAnalyzing = false
+
+            // If verification succeeded AND this was the last habit AND app locking is enabled, trigger celebration
+            if result?.isVerified == true && willCompleteAllHabits && appLockingEnabled {
+                wasLastHabitToComplete = true
+            }
         } catch let apiError as APIError {
             errorMessage = apiError.localizedDescription
             errorIcon = apiError.iconName

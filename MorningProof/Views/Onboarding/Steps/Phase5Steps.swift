@@ -17,73 +17,76 @@ struct PermissionsStep: View {
     @StateObject private var screenTimeManager = ScreenTimeManager.shared
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.md) {
+                    Text("Complete Your Setup")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-            VStack(spacing: MPSpacing.md) {
-                Text("Complete Your Setup")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
+                    Text("These unlock the full experience")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                Text("These unlock the full experience")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
+                Spacer()
+                    .frame(minHeight: 20)
+
+                VStack(spacing: MPSpacing.lg) {
+                    // Health permission card
+                    PermissionCard(
+                        icon: "heart.fill",
+                        iconColor: MPColors.error,
+                        title: "Apple Health",
+                        description: "Skip manual check-ins - we pull your data automatically",
+                        isEnabled: data.healthConnected,
+                        isLoading: isRequestingHealth
+                    ) {
+                        requestHealthAccess()
+                    }
+
+                    // Notification permission card
+                    PermissionCard(
+                        icon: "bell.badge.fill",
+                        iconColor: MPColors.primary,
+                        title: "Notifications",
+                        description: "Never forget your routine or break your streak",
+                        isEnabled: data.notificationsEnabled,
+                        isLoading: isRequestingNotifications
+                    ) {
+                        requestNotifications()
+                    }
+
+                    // App Locking permission card
+                    PermissionCard(
+                        icon: "lock.shield.fill",
+                        iconColor: MPColors.accentGold,
+                        title: "App Locking",
+                        description: "Lock distractions until your habits are done",
+                        isEnabled: screenTimeEnabled,
+                        isLoading: isRequestingScreenTime
+                    ) {
+                        requestScreenTimeAccess()
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xl)
+
+                Spacer()
+                    .frame(minHeight: 20)
+
+                VStack(spacing: MPSpacing.md) {
+                    MPButton(title: "All Set", style: .primary) {
+                        onContinue()
+                    }
+
+                    Text("You can change these anytime in Settings")
+                        .font(.system(size: 12))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-
-            Spacer().frame(height: MPSpacing.xxxl)
-
-            VStack(spacing: MPSpacing.lg) {
-                // Health permission card
-                PermissionCard(
-                    icon: "heart.fill",
-                    iconColor: MPColors.error,
-                    title: "Apple Health",
-                    description: "Skip manual check-ins - we pull your data automatically",
-                    isEnabled: data.healthConnected,
-                    isLoading: isRequestingHealth
-                ) {
-                    requestHealthAccess()
-                }
-
-                // Notification permission card
-                PermissionCard(
-                    icon: "bell.badge.fill",
-                    iconColor: MPColors.primary,
-                    title: "Notifications",
-                    description: "Never forget your routine or break your streak",
-                    isEnabled: data.notificationsEnabled,
-                    isLoading: isRequestingNotifications
-                ) {
-                    requestNotifications()
-                }
-
-                // App Locking permission card
-                PermissionCard(
-                    icon: "lock.shield.fill",
-                    iconColor: MPColors.accentGold,
-                    title: "App Locking",
-                    description: "Lock distractions until your habits are done",
-                    isEnabled: screenTimeEnabled,
-                    isLoading: isRequestingScreenTime
-                ) {
-                    requestScreenTimeAccess()
-                }
-            }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            VStack(spacing: MPSpacing.md) {
-                MPButton(title: "All Set", style: .primary) {
-                    onContinue()
-                }
-
-                Text("You can change these anytime in Settings")
-                    .font(.system(size: 12))
-                    .foregroundColor(MPColors.textTertiary)
-            }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             // Check if Screen Time was already authorized in earlier step

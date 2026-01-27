@@ -32,7 +32,7 @@ struct AppLockingCardView: View {
                         .frame(width: 24)
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("Focus Mode")
+                        Text("App Blocker")
                             .font(.system(size: 17))
                             .foregroundColor(MPColors.textPrimary)
 

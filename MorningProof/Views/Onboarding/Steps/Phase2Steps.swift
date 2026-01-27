@@ -37,76 +37,77 @@ struct GuardrailStep: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-                .frame(minHeight: 40, maxHeight: 80)
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Hero headline - "Systems Work." in chalk style
+                ChalkText(text: "Systems Work.")
+                    .opacity(showHeadline ? 1 : 0)
+                    .scaleEffect(showHeadline ? 1 : 0.8)
+                    .scaleEffect(headlinePunch ? 1.08 : 1.0)
+                    .padding(.horizontal, MPSpacing.xl)
+                    .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-            // Hero headline - "Systems Work." in chalk style
-            ChalkText(text: "Systems Work.")
-                .opacity(showHeadline ? 1 : 0)
-                .scaleEffect(showHeadline ? 1 : 0.8)
-                .scaleEffect(headlinePunch ? 1.08 : 1.0)
+                Spacer()
+                    .frame(minHeight: 20)
+
+                // Guardrail cards - drop in from top with spring bounce
+                VStack(spacing: MPSpacing.md) {
+                    ForEach(0..<3, id: \.self) { index in
+                        let item = guardrails[index]
+                        GuardrailCard(
+                            title: item.title,
+                            description: item.description,
+                            icon: item.icon,
+                            gradient: item.gradient,
+                            isPulsing: pulseIcons
+                        )
+                        .opacity(showCards[index] ? 1 : 0)
+                        .offset(y: showCards[index] ? 0 : -80)
+                        .scaleEffect(showCards[index] ? 1 : 0.85)
+                        .rotation3DEffect(
+                            .degrees(showCards[index] ? 0 : cardRotations[index]),
+                            axis: (x: 1, y: 0, z: 0),
+                            perspective: 0.5
+                        )
+                    }
+                }
                 .padding(.horizontal, MPSpacing.xl)
 
-            Spacer()
-                .frame(height: 80)
+                Spacer()
+                    .frame(minHeight: 20)
 
-            // Guardrail cards - drop in from top with spring bounce
-            VStack(spacing: MPSpacing.md) {
-                ForEach(0..<3, id: \.self) { index in
-                    let item = guardrails[index]
-                    GuardrailCard(
-                        title: item.title,
-                        description: item.description,
-                        icon: item.icon,
-                        gradient: item.gradient,
-                        isPulsing: pulseIcons
-                    )
-                    .opacity(showCards[index] ? 1 : 0)
-                    .offset(y: showCards[index] ? 0 : -80)
-                    .scaleEffect(showCards[index] ? 1 : 0.85)
-                    .rotation3DEffect(
-                        .degrees(showCards[index] ? 0 : cardRotations[index]),
-                        axis: (x: 1, y: 0, z: 0),
-                        perspective: 0.5
-                    )
+                // Explanatory text below the cards - lines animate in sequence
+                VStack(spacing: 6) {
+                    Text("Your brain will always choose easy over hard —")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .opacity(showSubtextLine1 ? 1 : 0)
+                        .offset(y: showSubtextLine1 ? 0 : 12)
+                        .blur(radius: showSubtextLine1 ? 0 : 4)
+
+                    Text("So we remove the choice entirely.")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(MPColors.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .opacity(showSubtextLine2 ? 1 : 0)
+                        .offset(y: showSubtextLine2 ? 0 : 8)
+                        .blur(radius: showSubtextLine2 ? 0 : 3)
                 }
+                .lineSpacing(4)
+                .padding(.horizontal, MPSpacing.xl)
+
+                Spacer()
+                    .frame(minHeight: 20)
+
+                MPButton(title: "Show Me How", style: .primary, icon: "arrow.right") {
+                    onContinue()
+                }
+                .opacity(showButton ? 1 : 0)
+                .offset(y: showButton ? 0 : 20)
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-                .frame(height: 60)
-
-            // Explanatory text below the cards - lines animate in sequence
-            VStack(spacing: 6) {
-                Text("Your brain will always choose easy over hard —")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
-                    .multilineTextAlignment(.center)
-                    .opacity(showSubtextLine1 ? 1 : 0)
-                    .offset(y: showSubtextLine1 ? 0 : 12)
-                    .blur(radius: showSubtextLine1 ? 0 : 4)
-
-                Text("So we remove the choice entirely.")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .opacity(showSubtextLine2 ? 1 : 0)
-                    .offset(y: showSubtextLine2 ? 0 : 8)
-                    .blur(radius: showSubtextLine2 ? 0 : 3)
-            }
-            .lineSpacing(4)
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer()
-
-            MPButton(title: "Show Me How", style: .primary, icon: "arrow.right") {
-                onContinue()
-            }
-            .opacity(showButton ? 1 : 0)
-            .offset(y: showButton ? 0 : 20)
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             startAnimationSequence()
@@ -311,23 +312,24 @@ struct DoomScrollingSimulatorStep: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.sm) {
+                    Text("Your Mornings, Protected")
+                        .font(.system(size: 24, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.85)
 
-            VStack(spacing: MPSpacing.sm) {
-                Text("Your Mornings, Protected")
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.85)
+                    Text("Finish your routine to unlock your apps")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                Text("Finish your routine to unlock your apps")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-
-            Spacer().frame(height: MPSpacing.xxl)
+                Spacer()
+                    .frame(minHeight: 20)
 
             // Phone mockup with doom scrolling → lockdown sequence
             ZStack {
@@ -410,6 +412,7 @@ struct DoomScrollingSimulatorStep: View {
             .opacity(showPhone ? 1 : 0)
 
             Spacer()
+                .frame(minHeight: 20)
 
             MPButton(title: "Protect My Mornings", style: .primary, icon: "shield.lefthalf.filled") {
                 HapticManager.shared.medium()
@@ -419,7 +422,8 @@ struct DoomScrollingSimulatorStep: View {
             .opacity(hasShownOnce ? 1 : 0.4)
             .animation(.easeInOut(duration: 0.3), value: hasShownOnce)
             .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
+            .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
+        }
         }
         .onAppear {
             startSequence()

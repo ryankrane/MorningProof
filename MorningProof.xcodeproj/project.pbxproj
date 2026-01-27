@@ -127,6 +127,7 @@
 		F1A014006242E57067BF5AB3 /* CustomHabit.swift in Sources */ = {isa = PBXBuildFile; fileRef = F90F005F187ED89A58BD5A38 /* CustomHabit.swift */; };
 		F69774C99B74F6A32D563AE4 /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5E13CCA5BD11D73F26A5DCFD /* ImagePicker.swift */; };
 		F6A197766AAA760204D9C44C /* MorningProofShieldConfig.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 4EC324536D58E368FC0F82D6 /* MorningProofShieldConfig.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F7387B412D4D895F7AD52613 /* AppsUnlockedCelebrationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6798C252A662718FDD3074 /* AppsUnlockedCelebrationView.swift */; };
 		F9057F0A326F15BFE632754F /* Achievement.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01A28620D171F48C0B935B7C /* Achievement.swift */; };
 		FA2C519CC620F84AC08994B3 /* DaySchedulePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E605E7D6702194942BB3ED3 /* DaySchedulePicker.swift */; };
 		FCB05BEBDBA8C8AF5CC8A788 /* UserSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CD129FC6CB536710C7F464C /* UserSettings.swift */; };
@@ -226,6 +227,7 @@
 		45F3AE1D2EBFCBF12262D0C3 /* DaySchedule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DaySchedule.swift; sourceTree = "<group>"; };
 		4721A0F6D815690A22663A52 /* MiniConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MiniConfettiView.swift; sourceTree = "<group>"; };
 		4797CBFCF503EAAE33686D29 /* MorningProof.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = MorningProof.entitlements; sourceTree = "<group>"; };
+		4A6798C252A662718FDD3074 /* AppsUnlockedCelebrationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppsUnlockedCelebrationView.swift; sourceTree = "<group>"; };
 		4D352692F1916B22E74902AD /* GrandFinaleConfettiView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GrandFinaleConfettiView.swift; sourceTree = "<group>"; };
 		4D8BC1F47E46EADCD321340C /* SwipeBackModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeBackModifier.swift; sourceTree = "<group>"; };
 		4E77FA331CFD0EB9F23473E2 /* AddHabitView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddHabitView.swift; sourceTree = "<group>"; };
@@ -442,6 +444,7 @@
 				C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */,
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
 				2AE5E02957DAA6C89DAB4817 /* AppLockingCardView.swift */,
+				4A6798C252A662718FDD3074 /* AppsUnlockedCelebrationView.swift */,
 				02498F9BF6D9929C8CFDA9C8 /* BezierPathAnimation.swift */,
 				7E605E7D6702194942BB3ED3 /* DaySchedulePicker.swift */,
 				97B06AF8B70B720728356674 /* DeadlineCardView.swift */,
@@ -856,6 +859,7 @@
 				30E647CB58C2225AB62B3D95 /* AppLockingDataStore.swift in Sources */,
 				8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */,
 				2B7E8106E35DF7FB2406B52B /* AppScreen.swift in Sources */,
+				F7387B412D4D895F7AD52613 /* AppsUnlockedCelebrationView.swift in Sources */,
 				CA7A2901F11A8D91BA998D8E /* AttributionStep.swift in Sources */,
 				A9F2EDAB691DC8E3E3CD7562 /* AuthenticationManager.swift in Sources */,
 				EF2D7DA739854F610782EAEE /* BedCameraView.swift in Sources */,
@@ -1071,7 +1075,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.1;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1172,7 +1176,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				MARKETING_VERSION = 1.0.5;
+				MARKETING_VERSION = 1.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";

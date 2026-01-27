@@ -15,48 +15,52 @@ struct OptionalRatingStep: View {
     @State private var glowIntensity: CGFloat = 0
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Title
+                Text("Help Us Grow")
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, MPSpacing.xl)
+                    .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-            // Title
-            Text("Help Us Grow")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundColor(MPColors.textPrimary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, MPSpacing.xl)
+                Spacer()
+                    .frame(minHeight: 20)
 
-            Spacer().frame(height: 12)
+                // Subtitle
+                Text("Your rating helps others find better mornings")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, MPSpacing.xl)
 
-            // Subtitle
-            Text("Your rating helps others find better mornings")
-                .font(.system(size: 16))
-                .foregroundColor(MPColors.textSecondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, MPSpacing.xl)
+                Spacer()
+                    .frame(minHeight: 20)
 
-            Spacer().frame(height: 48)
-
-            // Stars with glow and gentle hover animation
-            HStack(spacing: 16) {
-                ForEach(0..<5, id: \.self) { index in
-                    Image(systemName: "star.fill")
-                        .font(.system(size: 48))
-                        .foregroundColor(MPColors.accentGold)
-                        .shadow(color: MPColors.accentGold.opacity(0.4 + glowIntensity * 0.3), radius: 8 + glowIntensity * 6)
-                        .shadow(color: MPColors.accentGold.opacity(0.2 + glowIntensity * 0.15), radius: 16 + glowIntensity * 8)
-                        .opacity(starsVisible[index] ? 1 : 0)
-                        .scaleEffect(starsVisible[index] ? 1 : 0.3)
-                        .offset(y: starsVisible[index] ? hoverOffset : 30)
+                // Stars with glow and gentle hover animation
+                HStack(spacing: 16) {
+                    ForEach(0..<5, id: \.self) { index in
+                        Image(systemName: "star.fill")
+                            .font(.system(size: 48))
+                            .foregroundColor(MPColors.accentGold)
+                            .shadow(color: MPColors.accentGold.opacity(0.4 + glowIntensity * 0.3), radius: 8 + glowIntensity * 6)
+                            .shadow(color: MPColors.accentGold.opacity(0.2 + glowIntensity * 0.15), radius: 16 + glowIntensity * 8)
+                            .opacity(starsVisible[index] ? 1 : 0)
+                            .scaleEffect(starsVisible[index] ? 1 : 0.3)
+                            .offset(y: starsVisible[index] ? hoverOffset : 30)
+                    }
                 }
-            }
 
-            Spacer()
+                Spacer()
+                    .frame(minHeight: 20)
 
-            MPButton(title: "Done", style: .primary, isDisabled: !buttonEnabled) {
-                onContinue()
+                MPButton(title: "Done", style: .primary, isDisabled: !buttonEnabled) {
+                    onContinue()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             // Animate stars in one by one with stagger
@@ -119,8 +123,6 @@ struct AnalyzingStep: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
-                Spacer()
-
                 // Neural Network Particle Cloud or Checkmark when complete
                 ZStack {
                     if isComplete {
@@ -146,8 +148,10 @@ struct AnalyzingStep: View {
                 .frame(width: 220, height: 220)
                 .opacity(showContent ? 1 : 0)
                 .scaleEffect(showContent ? 1 : 0.8)
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                Spacer().frame(height: MPSpacing.xxl)
+                Spacer()
+                    .frame(minHeight: 20)
 
                 // Title
                 VStack(spacing: MPSpacing.xs) {
@@ -164,7 +168,8 @@ struct AnalyzingStep: View {
                 .opacity(showContent ? 1 : 0)
                 .offset(y: showContent ? 0 : 10)
 
-                Spacer().frame(height: MPSpacing.xxl)
+                Spacer()
+                    .frame(minHeight: 20)
 
                 // Phase checklist
                 VStack(spacing: MPSpacing.sm) {
@@ -196,6 +201,8 @@ struct AnalyzingStep: View {
                 .padding(.horizontal, MPSpacing.xxl)
 
                 Spacer()
+                    .frame(minHeight: 20)
+                    .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
             .coordinateSpace(name: "analyzingStep")
         }
@@ -359,59 +366,63 @@ struct YourHabitsStep: View {
     let onContinue: () -> Void
     @State private var showContent = false
 
-    private let recommendedHabits: [HabitType] = [.madeBed, .morningWorkout, .sleepDuration, .walkDog]
+    private let recommendedHabits: [HabitType] = [.madeBed, .sunlightExposure, .morningWorkout, .gratitude]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                VStack(spacing: MPSpacing.md) {
+                    Text("Build Your Morning Routine")
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundColor(MPColors.textPrimary)
 
-            VStack(spacing: MPSpacing.md) {
-                Text("Build Your Morning Routine")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundColor(MPColors.textPrimary)
-
-                Text("Here's your personalized routine")
-                    .font(.system(size: 16))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .opacity(showContent ? 1 : 0)
-
-            Spacer().frame(height: MPSpacing.xxl)
-
-            // Habit cards
-            VStack(spacing: MPSpacing.md) {
-                ForEach(Array(recommendedHabits.enumerated()), id: \.element) { index, habit in
-                    RecommendedHabitRow(
-                        habitType: habit,
-                        isSelected: data.selectedHabits.contains(habit)
-                    ) {
-                        if data.selectedHabits.contains(habit) {
-                            data.selectedHabits.remove(habit)
-                        } else {
-                            data.selectedHabits.insert(habit)
-                        }
-                    }
-                    .opacity(showContent ? 1 : 0)
-                    .offset(y: showContent ? 0 : 20)
-                    .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.1), value: showContent)
+                    Text("Here's your personalized routine")
+                        .font(.system(size: 16))
+                        .foregroundColor(MPColors.textSecondary)
                 }
-            }
-            .padding(.horizontal, MPSpacing.xl)
-
-            Spacer().frame(height: MPSpacing.lg)
-
-            Text("Add more later")
-                .font(.system(size: 13))
-                .foregroundColor(MPColors.textTertiary)
                 .opacity(showContent ? 1 : 0)
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-            Spacer()
+                Spacer()
+                    .frame(minHeight: 20)
 
-            MPButton(title: "Activate My Routine", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
-                onContinue()
+                // Habit cards
+                VStack(spacing: MPSpacing.md) {
+                    ForEach(Array(recommendedHabits.enumerated()), id: \.element) { index, habit in
+                        RecommendedHabitRow(
+                            habitType: habit,
+                            isSelected: data.selectedHabits.contains(habit)
+                        ) {
+                            if data.selectedHabits.contains(habit) {
+                                data.selectedHabits.remove(habit)
+                            } else {
+                                data.selectedHabits.insert(habit)
+                            }
+                        }
+                        .opacity(showContent ? 1 : 0)
+                        .offset(y: showContent ? 0 : 20)
+                        .animation(.easeOut(duration: 0.4).delay(Double(index) * 0.1), value: showContent)
+                    }
+                }
+                .padding(.horizontal, MPSpacing.xl)
+
+                Spacer()
+                    .frame(minHeight: 20)
+
+                Text("Add more later")
+                    .font(.system(size: 13))
+                    .foregroundColor(MPColors.textTertiary)
+                    .opacity(showContent ? 1 : 0)
+
+                Spacer()
+                    .frame(minHeight: 20)
+
+                MPButton(title: "Activate My Routine", style: .primary, isDisabled: data.selectedHabits.isEmpty) {
+                    onContinue()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
         }
         .onAppear {
             // Pre-select recommended habits

@@ -23,50 +23,64 @@ struct BedCameraView: View {
     @State private var showConfetti = false
     @State private var showButton = false
 
+    // Apps unlocked celebration
+    @State private var showAppsUnlockedCelebration = false
+    @State private var wasLastHabitToComplete = false
+
     var body: some View {
-        NavigationStack {
-            GeometryReader { geometry in
-                ZStack {
-                    MPColors.background
-                        .ignoresSafeArea()
+        ZStack {
+            NavigationStack {
+                GeometryReader { geometry in
+                    ZStack {
+                        MPColors.background
+                            .ignoresSafeArea()
 
-                    if isAnalyzing {
-                        analyzingView
-                    } else if let error = errorMessage {
-                        errorView(error)
-                    } else if let result = result {
-                        resultView(result)
-                    } else {
-                        captureView(geometry: geometry)
+                        if isAnalyzing {
+                            analyzingView
+                        } else if let error = errorMessage {
+                            errorView(error)
+                        } else if let result = result {
+                            resultView(result)
+                        } else {
+                            captureView(geometry: geometry)
+                        }
+                    }
+                }
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .navigationBarLeading) {
+                        Button("Cancel") {
+                            dismiss()
+                        }
+                        .foregroundColor(MPColors.textTertiary)
+                    }
+
+                    ToolbarItem(placement: .principal) {
+                        HStack(spacing: MPSpacing.sm) {
+                            Image("AppLogo")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 24, height: 24)
+                                .clipShape(RoundedRectangle(cornerRadius: 6))
+
+                            Text("Morning Proof")
+                                .font(.system(size: 16, weight: .semibold, design: .rounded))
+                                .foregroundColor(MPColors.textPrimary)
+                        }
                     }
                 }
             }
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .navigationBarLeading) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                    .foregroundColor(MPColors.textTertiary)
-                }
+            .sheet(isPresented: $showingCamera) {
+                ImagePicker(image: $selectedImage, sourceType: .camera)
+            }
 
-                ToolbarItem(placement: .principal) {
-                    HStack(spacing: MPSpacing.sm) {
-                        Image("AppLogo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 24, height: 24)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-
-                        Text("Morning Proof")
-                            .font(.system(size: 16, weight: .semibold, design: .rounded))
-                            .foregroundColor(MPColors.textPrimary)
-                    }
+            // Apps Unlocked celebration (shown after successful verification that completes routine)
+            if showAppsUnlockedCelebration {
+                AppsUnlockedCelebrationView(isShowing: $showAppsUnlockedCelebration) {
+                    // Celebration complete - dismiss the camera view
+                    dismiss()
                 }
             }
-        }
-        .sheet(isPresented: $showingCamera) {
-            ImagePicker(image: $selectedImage, sourceType: .camera)
         }
     }
 
@@ -306,7 +320,12 @@ struct BedCameraView: View {
                     }
 
                     MPButton(title: result.isMade ? "Done" : "Cancel", style: .secondary) {
-                        dismiss()
+                        // If this was the last habit to complete, show celebration first
+                        if wasLastHabitToComplete && result.isMade {
+                            showAppsUnlockedCelebration = true
+                        } else {
+                            dismiss()
+                        }
                     }
                     .offset(y: showButton ? 0 : 30)
                     .opacity(showButton ? 1.0 : 0)
@@ -434,9 +453,18 @@ struct BedCameraView: View {
         errorMessage = nil
         errorIcon = "exclamationmark.triangle"
 
+        // Check if completing this habit will finish all habits (for celebration)
+        let willCompleteAllHabits = (manager.completedCount == manager.totalEnabled - 1)
+        let appLockingEnabled = manager.settings.appLockingEnabled
+
         do {
             result = try await manager.completeBedVerification(image: image)
             isAnalyzing = false
+
+            // If verification succeeded AND this was the last habit AND app locking is enabled, trigger celebration
+            if result?.isMade == true && willCompleteAllHabits && appLockingEnabled {
+                wasLastHabitToComplete = true
+            }
         } catch let apiError as APIError {
             errorMessage = apiError.localizedDescription
             errorIcon = apiError.iconName

@@ -126,98 +126,99 @@ struct SuccessStoriesStep: View {
     ]
 
     var body: some View {
-        VStack(spacing: 0) {
-            Spacer()
-
-            // Hero headline
-            VStack(spacing: MPSpacing.sm) {
-                HStack(spacing: 0) {
-                    Text("10 Days")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [MPColors.primary, Color(red: 0.6, green: 0.4, blue: 1.0)],
-                                startPoint: .leading,
-                                endPoint: .trailing
+        GeometryReader { geometry in
+            VStack(spacing: 0) {
+                // Hero headline
+                VStack(spacing: MPSpacing.sm) {
+                    HStack(spacing: 0) {
+                        Text("10 Days")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [MPColors.primary, Color(red: 0.6, green: 0.4, blue: 1.0)],
+                                    startPoint: .leading,
+                                    endPoint: .trailing
+                                )
                             )
-                        )
-                    Text(" to Transform")
-                        .font(.system(size: 34, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
+                        Text(" to Transform")
+                            .font(.system(size: 34, weight: .bold, design: .rounded))
+                            .foregroundColor(MPColors.textPrimary)
+                    }
+
+                    Text("Here's what happens when you commit")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textSecondary)
                 }
+                .opacity(showHeadline ? 1 : 0)
+                .offset(y: showHeadline ? 0 : 15)
+                .padding(.horizontal, MPSpacing.xl)
+                .padding(.top, max(30, geometry.safeAreaInsets.top + 20))
 
-                Text("Here's what happens when you commit")
-                    .font(.system(size: 15))
-                    .foregroundColor(MPColors.textSecondary)
-            }
-            .opacity(showHeadline ? 1 : 0)
-            .offset(y: showHeadline ? 0 : 15)
-            .padding(.horizontal, MPSpacing.xl)
+                Spacer()
+                    .frame(height: 30)
 
-            Spacer()
-                .frame(height: MPSpacing.xxl)
+                // Timeline - flexible height based on screen
+                ZStack(alignment: .leading) {
+                    // Connecting line (behind milestones)
+                    GeometryReader { timelineGeo in
+                        let lineHeight = timelineGeo.size.height - 40
 
-            // Timeline
-            ZStack(alignment: .leading) {
-                // Connecting line (behind milestones)
-                GeometryReader { geometry in
-                    let lineHeight = geometry.size.height - 60
+                        // Background line track
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(MPColors.border.opacity(0.3))
+                            .frame(width: 4, height: lineHeight)
+                            .offset(x: 30, y: 20)
 
-                    // Background line track
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(MPColors.border.opacity(0.3))
-                        .frame(width: 4, height: lineHeight)
-                        .offset(x: 30, y: 30)
-
-                    // Animated gradient line
-                    RoundedRectangle(cornerRadius: 2)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    Color(red: 0.4, green: 0.6, blue: 1.0),
-                                    Color(red: 1.0, green: 0.6, blue: 0.3),
-                                    MPColors.primary
-                                ],
-                                startPoint: .top,
-                                endPoint: .bottom
+                        // Animated gradient line
+                        RoundedRectangle(cornerRadius: 2)
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        Color(red: 0.4, green: 0.6, blue: 1.0),
+                                        Color(red: 1.0, green: 0.6, blue: 0.3),
+                                        MPColors.primary
+                                    ],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
                             )
-                        )
-                        .frame(width: 4, height: lineHeight * lineProgress)
-                        .offset(x: 30, y: 30)
-                }
+                            .frame(width: 4, height: lineHeight * lineProgress)
+                            .offset(x: 30, y: 20)
+                    }
 
-                // Milestones
-                VStack(spacing: MPSpacing.lg) {
-                    ForEach(0..<3, id: \.self) { index in
-                        let milestone = milestones[index]
-                        JourneyMilestone(
-                            day: milestone.day,
-                            title: milestone.title,
-                            description: milestone.description,
-                            icon: milestone.icon,
-                            gradient: milestone.gradient,
-                            isLast: index == 2,
-                            isPulsing: pulseGlow && index == 2
-                        )
-                        .opacity(showMilestones[index] ? 1 : 0)
-                        .offset(x: showMilestones[index] ? 0 : -UIScreen.main.bounds.width)
-                        .scaleEffect(showMilestones[index] ? 1.0 : 0.95)
+                    // Milestones
+                    VStack(spacing: MPSpacing.md) {
+                        ForEach(0..<3, id: \.self) { index in
+                            let milestone = milestones[index]
+                            JourneyMilestone(
+                                day: milestone.day,
+                                title: milestone.title,
+                                description: milestone.description,
+                                icon: milestone.icon,
+                                gradient: milestone.gradient,
+                                isLast: index == 2,
+                                isPulsing: pulseGlow && index == 2
+                            )
+                            .opacity(showMilestones[index] ? 1 : 0)
+                            .offset(x: showMilestones[index] ? 0 : -UIScreen.main.bounds.width)
+                            .scaleEffect(showMilestones[index] ? 1.0 : 0.95)
+                        }
                     }
                 }
-            }
-            .frame(height: 320)
-            .padding(.horizontal, MPSpacing.lg)
+                .padding(.horizontal, MPSpacing.lg)
 
-            Spacer()
+                Spacer()
+                    .frame(minHeight: 20)
 
-            MPButton(title: "I Want This", style: .primary, icon: "arrow.right", iconPosition: .trailing) {
-                onContinue()
+                MPButton(title: "I Want This", style: .primary, icon: "arrow.right", iconPosition: .trailing) {
+                    onContinue()
+                }
+                .padding(.horizontal, MPSpacing.xxxl)
+                .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))
+                .opacity(showButton ? 1 : 0)
+                .offset(y: showButton ? 0 : 20)
+                .allowsHitTesting(showButton)
             }
-            .padding(.horizontal, MPSpacing.xxxl)
-            .padding(.bottom, 50)
-            .opacity(showButton ? 1 : 0)
-            .offset(y: showButton ? 0 : 20)
-            .allowsHitTesting(showButton)
         }
         .onAppear {
             // Headline fades in
@@ -330,7 +331,7 @@ private struct JourneyMilestone: View {
 
             Spacer(minLength: 0)
         }
-        .padding(MPSpacing.md)
+        .padding(MPSpacing.sm)
         .background(
             RoundedRectangle(cornerRadius: MPRadius.lg)
                 .fill(MPColors.surface)
