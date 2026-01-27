@@ -200,13 +200,17 @@ struct PaywallView: View {
                 .padding(.horizontal, MPSpacing.xl)
 
             HStack(spacing: MPSpacing.lg) {
-                Link("Privacy Policy", destination: URL(string: "https://ryankrane.github.io/morningproof-legal/privacy.html")!)
-                    .font(MPFont.labelTiny())
-                    .foregroundColor(MPColors.textTertiary)
+                if let privacyURL = URL(string: "https://ryankrane.github.io/morningproof-legal/privacy.html") {
+                    Link("Privacy Policy", destination: privacyURL)
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.textTertiary)
+                }
 
-                Link("Terms of Service", destination: URL(string: "https://ryankrane.github.io/morningproof-legal/terms.html")!)
-                    .font(MPFont.labelTiny())
-                    .foregroundColor(MPColors.textTertiary)
+                if let termsURL = URL(string: "https://ryankrane.github.io/morningproof-legal/terms.html") {
+                    Link("Terms of Service", destination: termsURL)
+                        .font(MPFont.labelTiny())
+                        .foregroundColor(MPColors.textTertiary)
+                }
             }
         }
     }

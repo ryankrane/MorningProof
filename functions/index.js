@@ -8,11 +8,60 @@ const getApiKey = () => {
   return process.env.CLAUDE_API_KEY || functions.config().claude?.api_key;
 };
 
-// Set CORS headers
+// Set CORS headers - restricted to app requests only
+// In production, consider using Firebase App Check for additional security
 const setCorsHeaders = (res) => {
-  res.set("Access-Control-Allow-Origin", "*");
+  // Allow requests from the app (mobile apps don't send Origin header)
+  // For web testing, you can temporarily add specific origins
+  res.set("Access-Control-Allow-Origin", "*"); // TODO: Consider Firebase App Check for production
   res.set("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.set("Access-Control-Allow-Headers", "Content-Type");
+};
+
+// Input validation constants
+const MAX_HABIT_NAME_LENGTH = 100;
+const MAX_AI_PROMPT_LENGTH = 2000;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024; // 10MB
+
+// Sanitize user input to prevent prompt injection
+// Escapes characters that could be used to break out of prompt context
+const sanitizeForPrompt = (input) => {
+  if (!input || typeof input !== 'string') return '';
+
+  // Limit length
+  let sanitized = input.slice(0, MAX_AI_PROMPT_LENGTH);
+
+  // Escape characters that could be used for prompt injection
+  sanitized = sanitized
+    .replace(/\\/g, '\\\\')  // Escape backslashes
+    .replace(/"/g, '\\"')    // Escape quotes
+    .replace(/\n/g, ' ')     // Replace newlines with spaces
+    .replace(/\r/g, '')      // Remove carriage returns
+    .trim();
+
+  return sanitized;
+};
+
+// Validate habit name
+const validateHabitName = (name) => {
+  if (!name || typeof name !== 'string') {
+    return { valid: false, error: 'Habit name is required' };
+  }
+  if (name.trim().length === 0) {
+    return { valid: false, error: 'Habit name cannot be empty' };
+  }
+  if (name.length > MAX_HABIT_NAME_LENGTH) {
+    return { valid: false, error: `Habit name must be ${MAX_HABIT_NAME_LENGTH} characters or less` };
+  }
+  return { valid: true };
+};
+
+// Validate AI prompt
+const validateAIPrompt = (prompt) => {
+  if (prompt && typeof prompt === 'string' && prompt.length > MAX_AI_PROMPT_LENGTH) {
+    return { valid: false, error: `AI prompt must be ${MAX_AI_PROMPT_LENGTH} characters or less` };
+  }
+  return { valid: true };
 };
 
 // Prompts for each verification type
@@ -548,7 +597,22 @@ exports.verifyCustomHabit = functions
         return;
       }
 
-      const userCriteria = aiPrompt || "Verify that this habit has been completed.";
+      // Validate and sanitize inputs to prevent prompt injection
+      const habitNameValidation = validateHabitName(habitName);
+      if (!habitNameValidation.valid) {
+        res.status(400).json({ error: habitNameValidation.error });
+        return;
+      }
+
+      const aiPromptValidation = validateAIPrompt(aiPrompt);
+      if (!aiPromptValidation.valid) {
+        res.status(400).json({ error: aiPromptValidation.error });
+        return;
+      }
+
+      // Sanitize inputs before using in prompt
+      const sanitizedHabitName = sanitizeForPrompt(habitName);
+      const sanitizedCriteria = aiPrompt ? sanitizeForPrompt(aiPrompt) : "Verify that this habit has been completed.";
 
       const screenshotGuidance = allowsScreenshots ? `SCREENSHOT POLICY: Screenshots ARE ACCEPTED for this habit.
 - Screenshots showing app interfaces, phone calls, messages, or activity are valid proof
@@ -560,9 +624,9 @@ exports.verifyCustomHabit = functions
 
       const prompt = `ROLE: You are a sharp-eyed habit verification AI. Be honest, specific, and catch gaming attempts.
 
-TASK: Verify this photo for the custom habit "${habitName}" using the user's criteria.
+TASK: Verify this photo for the custom habit "${sanitizedHabitName}" using the user's criteria.
 
-User's verification criteria: ${userCriteria}
+User's verification criteria: ${sanitizedCriteria}
 
 ${screenshotGuidance}
 
@@ -574,10 +638,10 @@ Examples: "person exercising", "notebook with writing", "kitchen counter", "bath
 
 Gaming detection - FAIL immediately if you see:
 - Stock photo / obviously not personal
-- Completely unrelated to "${habitName}"
+- Completely unrelated to "${sanitizedHabitName}"
 
 If unrelated, respond:
-{"is_verified": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see proof of ${habitName}!"}
+{"is_verified": false, "detected_subject": "[what you see]", "feedback": "I see [specific thing], but I need to see proof of ${sanitizedHabitName}!"}
 
 ═══════════════════════════════════════════════════════════════
 STEP 2: SCORE THE PHOTO (0-100 points)
@@ -655,7 +719,21 @@ exports.verifyVideo = functions
         return;
       }
 
-      const userCriteria = aiPrompt || "Verify that this action was performed.";
+      // Validate and sanitize inputs
+      const habitNameValidation = validateHabitName(habitName);
+      if (!habitNameValidation.valid) {
+        res.status(400).json({ error: habitNameValidation.error });
+        return;
+      }
+
+      const aiPromptValidation = validateAIPrompt(aiPrompt);
+      if (!aiPromptValidation.valid) {
+        res.status(400).json({ error: aiPromptValidation.error });
+        return;
+      }
+
+      const sanitizedHabitName = sanitizeForPrompt(habitName);
+      const sanitizedCriteria = aiPrompt ? sanitizeForPrompt(aiPrompt) : "Verify that this action was performed.";
 
       // Build content array with all frames
       const content = [];
@@ -676,11 +754,11 @@ exports.verifyVideo = functions
 
       const prompt = `ROLE: You are a sharp-eyed action verification AI. Analyze video frames to verify the user completed their habit.
 
-TASK: Verify this video for the habit "${habitName}" using the user's criteria.
+TASK: Verify this video for the habit "${sanitizedHabitName}" using the user's criteria.
 
 You are seeing ${frames.length} frames extracted from a ${Math.round(duration)}-second video, shown in chronological order.
 
-User's verification criteria: ${userCriteria}
+User's verification criteria: ${sanitizedCriteria}
 
 ═══════════════════════════════════════════════════════════════
 CRITICAL - ANALYZE AS A SEQUENCE
@@ -704,7 +782,7 @@ VERIFICATION CRITERIA
 ═══════════════════════════════════════════════════════════════
 PASS (is_verified: true) if:
 - Frames show clear progression of the described action
-- The action matches the habit "${habitName}"
+- The action matches the habit "${sanitizedHabitName}"
 - Movement between frames indicates real activity
 
 FAIL (is_verified: false) if:

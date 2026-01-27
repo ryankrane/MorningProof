@@ -80,7 +80,7 @@ struct OptionalRatingStep: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
                 requestReview()
             }
-            print("🌟 OptionalRatingStep appeared, will request review in 0.7s")
+            MPLogger.debug("OptionalRatingStep appeared, will request review in 0.7s", category: MPLogger.general)
 
             // Enable button after 2 seconds
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
@@ -543,7 +543,7 @@ struct HardPaywallStep: View {
 
         handler.onError { error in
             Task { @MainActor in
-                print("⚠️ Superwall error: \(error)")
+                MPLogger.error("Superwall error during onboarding", error: error, category: MPLogger.general)
                 // On error, complete onboarding anyway
                 onSubscribe()
             }

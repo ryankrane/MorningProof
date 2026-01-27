@@ -291,12 +291,12 @@ struct SunlightCameraView: View {
             Spacer()
 
             VStack(spacing: MPSpacing.md) {
-                if selectedImage != nil {
+                if let image = selectedImage {
                     MPButton(title: "Try Again", style: .primary, icon: "arrow.clockwise") {
                         errorMessage = nil
                         errorIcon = "exclamationmark.triangle"
                         Task {
-                            await verifySunlight(image: selectedImage!)
+                            await verifySunlight(image: image)
                         }
                     }
                 }

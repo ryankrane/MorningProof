@@ -393,9 +393,10 @@ actor ClaudeAPIService {
 
         guard let cleanedData = cleanedJSON.data(using: .utf8) else {
             await MainActor.run {
+                // Don't log sensitive response content - only log error type and endpoint
                 CrashReportingService.shared.recordError(
                     NSError(domain: "ClaudeAPI", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to convert response to data"]),
-                    userInfo: ["endpoint": endpoint, "response": String(text.prefix(500))]
+                    userInfo: ["endpoint": endpoint, "error_type": "utf8_conversion_failed", "response_length": text.count]
                 )
             }
             throw APIError.parsingFailed
@@ -404,11 +405,11 @@ actor ClaudeAPIService {
         do {
             return try JSONDecoder().decode(type, from: cleanedData)
         } catch {
-            // Log the actual response for debugging
+            // Log error type and metadata only - no sensitive content
             await MainActor.run {
                 CrashReportingService.shared.recordError(
                     error,
-                    userInfo: ["endpoint": endpoint, "cleanedJSON": String(cleanedJSON.prefix(500)), "originalResponse": String(text.prefix(500))]
+                    userInfo: ["endpoint": endpoint, "error_type": "json_decode_failed", "response_length": text.count, "cleaned_length": cleanedJSON.count]
                 )
             }
             throw APIError.parsingFailed

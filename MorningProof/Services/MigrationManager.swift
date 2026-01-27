@@ -39,7 +39,7 @@ class MigrationManager {
 
     /// Check if there's legacy data in UserDefaults
     private func hasLegacyData() -> Bool {
-        let storage = StorageService()
+        let storage = StorageService.shared
         return storage.loadMorningProofSettings() != nil ||
                storage.loadHabitConfigs() != nil ||
                storage.hasCompletedOnboarding()
@@ -47,7 +47,7 @@ class MigrationManager {
 
     /// Migrate all data from UserDefaults to SwiftData
     private func migrateFromUserDefaults(to context: ModelContext) async {
-        let storage = StorageService()
+        let storage = StorageService.shared
 
         MPLogger.debug("Reading legacy data from UserDefaults", category: MPLogger.migration)
 

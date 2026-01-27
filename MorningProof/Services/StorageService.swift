@@ -1,6 +1,11 @@
 import Foundation
 
-class StorageService {
+final class StorageService {
+    /// Shared singleton instance
+    static let shared = StorageService()
+
+    /// Private init to enforce singleton pattern
+    private init() {}
     // Legacy keys (deprecated - kept for backward compatibility during migration)
     private let streakKey = "morningproof_streak_data"
     private let achievementsKey = "morningproof_achievements"

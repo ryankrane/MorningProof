@@ -25,7 +25,7 @@ final class MorningProofManager: ObservableObject, Sendable {
     // Note: HealthKitManager accessed lazily to avoid @MainActor singleton deadlock
 
     private var healthKit: HealthKitManager { HealthKitManager.shared }
-    private let storageService = StorageService()
+    private let storageService = StorageService.shared
     private let apiService = ClaudeAPIService()
 
     // MARK: - Initialization

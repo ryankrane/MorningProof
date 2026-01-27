@@ -17,6 +17,11 @@ struct AchievementItem: Identifiable {
     var progressPercent: Double {
         min(Double(progress) / Double(requirement), 1.0)
     }
+
+    /// Safe access to the primary gradient color (first color or fallback)
+    var primaryColor: Color {
+        gradientColors.first ?? .gray
+    }
 }
 
 enum AchievementItemCategory: String, CaseIterable {
@@ -212,7 +217,7 @@ struct AchievementsView: View {
     @State private var showDetail = false
     @Environment(\.dismiss) private var dismiss
 
-    private let storageService = StorageService()
+    private let storageService = StorageService.shared
 
     private var achievements: [AchievementItem] {
         let streakData = storageService.loadStreakData()
@@ -427,8 +432,8 @@ struct AchievementBadge: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    achievement.gradientColors[0].opacity(0.4),
-                                    achievement.gradientColors[0].opacity(0.1),
+                                    achievement.primaryColor.opacity(0.4),
+                                    achievement.primaryColor.opacity(0.1),
                                     .clear
                                 ],
                                 center: .center,
@@ -584,7 +589,7 @@ struct AchievementDetailCard: View {
                     ForEach(0..<3, id: \.self) { index in
                         Circle()
                             .stroke(
-                                achievement.gradientColors[0].opacity(0.3 - Double(index) * 0.08),
+                                achievement.primaryColor.opacity(0.3 - Double(index) * 0.08),
                                 lineWidth: 1.5
                             )
                             .frame(width: CGFloat(100 + index * 25), height: CGFloat(100 + index * 25))
@@ -597,8 +602,8 @@ struct AchievementDetailCard: View {
                         .fill(
                             RadialGradient(
                                 colors: [
-                                    achievement.gradientColors[0].opacity(0.4),
-                                    achievement.gradientColors[0].opacity(0.1),
+                                    achievement.primaryColor.opacity(0.4),
+                                    achievement.primaryColor.opacity(0.1),
                                     .clear
                                 ],
                                 center: .center,
@@ -627,7 +632,7 @@ struct AchievementDetailCard: View {
                         )
                     )
                     .frame(width: 90, height: 90)
-                    .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.6) : .clear, radius: 15)
+                    .shadow(color: achievement.isUnlocked ? achievement.primaryColor.opacity(0.6) : .clear, radius: 15)
 
                 // Icon - show mystery for hidden locked
                 Group {
@@ -686,7 +691,7 @@ struct AchievementDetailCard: View {
                                     )
                                 )
                                 .frame(width: animateProgress ? geometry.size.width * achievement.progressPercent : 0, height: 10)
-                                .shadow(color: achievement.isUnlocked ? achievement.gradientColors[0].opacity(0.5) : .clear, radius: 4)
+                                .shadow(color: achievement.isUnlocked ? achievement.primaryColor.opacity(0.5) : .clear, radius: 4)
                         }
                     }
                     .frame(height: 10)

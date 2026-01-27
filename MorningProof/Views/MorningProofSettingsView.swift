@@ -3,8 +3,8 @@ import MessageUI
 
 struct MorningProofSettingsView: View {
     @ObservedObject var manager: MorningProofManager
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
-    @StateObject private var notificationManager = NotificationManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var notificationManager = NotificationManager.shared
     @EnvironmentObject var themeManager: ThemeManager
     @Environment(\.dismiss) var dismiss
 
@@ -510,7 +510,7 @@ struct SettingsRowContent: View {
 struct NotificationSettingsView: View {
     @Binding var notificationsEnabled: Bool
     @Binding var morningReminderTime: Int
-    @StateObject private var notificationManager = NotificationManager.shared
+    @ObservedObject private var notificationManager = NotificationManager.shared
 
     @State private var showTimePicker = false
     @State private var showPermissionDeniedAlert = false
@@ -837,7 +837,7 @@ struct HealthDataSettingsView: View {
 // MARK: - Manage Subscription View
 
 struct ManageSubscriptionView: View {
-    @StateObject private var subscriptionManager = SubscriptionManager.shared
+    @ObservedObject private var subscriptionManager = SubscriptionManager.shared
     @State private var isRestoringPurchases = false
     @State private var showRestoreAlert = false
     @State private var restoreAlertMessage = ""

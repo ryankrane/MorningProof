@@ -138,3 +138,47 @@ The app uses Superwall for the paywall. The paywall shows for all users (TestFli
 - [ ] Review if Apple requires additional HealthKit privacy disclosures in Info.plist (NSHealthShareUsageDescription, NSHealthUpdateUsageDescription)
 - [ ] Verify App Store Connect Privacy Nutrition Labels include HealthKit data types (sleep, steps, workouts)
 - [ ] Confirm privacy policy on GitHub Pages covers all HealthKit usage (already updated but double-check after approval)
+
+## TODO: Code Cleanup (from Jan 2026 audit)
+
+### Medium Priority - Code Quality
+
+- [ ] **DashboardView state grouping** - `DashboardView.swift` has 57 `@State` properties. Group related ones into structs:
+  ```swift
+  struct CelebrationState {
+      var showLockInCelebration = false
+      var showGrandFinale = false
+      var celebratingHabitType: HabitType?
+  }
+  @State private var celebration = CelebrationState()
+  ```
+  This improves readability and makes state management clearer.
+
+- [ ] **Camera view consolidation** - There are 5 similar camera views (`BedCameraView`, `SunlightCameraView`, `HydrationCameraView`, `GenericAICameraView`, `CustomHabitCameraView`). Consider consolidating into 1-2 generic views with configuration parameters.
+
+- [ ] **VideoVerificationView implementation** - Currently a placeholder showing "coming soon". Implement actual video recording and AI verification when ready.
+
+### Low Priority - Architecture (Large Refactors)
+
+- [ ] **MorningProofManager split** - This "god class" (~1400 lines) handles too many concerns. Consider splitting into focused managers:
+  - `HabitCompletionManager` - habit completion logic
+  - `StreakManager` - streak calculations
+  - `HealthSyncManager` - HealthKit syncing
+  - `StorageCoordinator` - data persistence orchestration
+
+  This is a large refactor - only do when you have time and want cleaner architecture.
+
+### Completed (Jan 2026)
+- [x] Removed hardcoded API keys from Secrets.swift
+- [x] Fixed force unwraps in camera views and PaywallView
+- [x] Replaced fatalError() with graceful error handling
+- [x] Added input sanitization to Firebase Functions (prompt injection prevention)
+- [x] Removed sensitive data from Crashlytics logs
+- [x] Added JSON caching in HealthKitBackgroundDeliveryService
+- [x] Migrated auth storage to Keychain
+- [x] Deleted dead code (HistoryView, CalendarView, JournalEntryView, HomeView, CameraView, SettingsView, BedVerificationViewModel)
+- [x] Fixed @StateObject → @ObservedObject for singleton managers
+- [x] Made StorageService a proper singleton
+- [x] Added DispatchQueue task cancellation in AchievementUnlockCelebrationView
+- [x] Added safe array access in AchievementsView
+- [x] Added deinit blocks to wrapper classes in MorningProofApp

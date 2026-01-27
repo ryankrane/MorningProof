@@ -14,6 +14,7 @@ struct AchievementUnlockCelebrationView: View {
     @State private var contentOffset: CGFloat = 30
     @State private var sparkles: [SparkleParticle] = []
     @State private var showButton: Bool = false
+    @State private var pendingWorkItems: [DispatchWorkItem] = []
 
     var body: some View {
         ZStack {
@@ -137,6 +138,11 @@ struct AchievementUnlockCelebrationView: View {
         .onAppear {
             startCelebration()
         }
+        .onDisappear {
+            // Cancel all pending work items to prevent memory leaks
+            pendingWorkItems.forEach { $0.cancel() }
+            pendingWorkItems.removeAll()
+        }
     }
 
     private var tierIcon: String {
@@ -162,7 +168,7 @@ struct AchievementUnlockCelebrationView: View {
         }
 
         // Phase 2: Glow pulses in (0.2-0.5s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        scheduleWorkItem(delay: 0.2) { [self] in
             withAnimation(.easeOut(duration: 0.3)) {
                 glowOpacity = 1.0
                 glowScale = 1.0
@@ -173,7 +179,7 @@ struct AchievementUnlockCelebrationView: View {
         }
 
         // Phase 3: Content slides up (0.3-0.6s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+        scheduleWorkItem(delay: 0.3) { [self] in
             withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
                 contentOpacity = 1.0
                 contentOffset = 0
@@ -181,7 +187,7 @@ struct AchievementUnlockCelebrationView: View {
         }
 
         // Phase 4: Button appears (0.6s)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        scheduleWorkItem(delay: 0.6) { [self] in
             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                 showButton = true
             }
@@ -189,6 +195,13 @@ struct AchievementUnlockCelebrationView: View {
 
         // Animate sparkles
         animateSparkles()
+    }
+
+    /// Schedules a cancellable work item with a delay
+    private func scheduleWorkItem(delay: Double, work: @escaping () -> Void) {
+        let workItem = DispatchWorkItem(block: work)
+        pendingWorkItems.append(workItem)
+        DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: workItem)
     }
 
     private func startGlowPulse() {
@@ -247,6 +260,10 @@ struct AchievementUnlockCelebrationView: View {
     }
 
     private func dismissWithAnimation() {
+        // Cancel any pending animations since we're dismissing
+        pendingWorkItems.forEach { $0.cancel() }
+        pendingWorkItems.removeAll()
+
         // Quick fade out
         withAnimation(.easeOut(duration: 0.2)) {
             badgeOpacity = 0
@@ -255,7 +272,7 @@ struct AchievementUnlockCelebrationView: View {
         }
 
         // Call dismiss after animation
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+        scheduleWorkItem(delay: 0.2) { [self] in
             onDismiss()
         }
     }

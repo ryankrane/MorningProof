@@ -117,7 +117,6 @@ struct StatsTabView: View {
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showAchievements) {
                 AchievementsView()
-                    .environmentObject(BedVerificationViewModel())
             }
         }
     }

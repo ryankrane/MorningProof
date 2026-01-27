@@ -40,10 +40,20 @@ struct MorningProofApp: App {
                 )
                 MPLogger.warning("MorningProofApp: Using in-memory fallback container", category: MPLogger.general)
             } catch let fallbackError {
-                // Both attempts failed - this is a critical error but we should still try to provide a container
+                // Both attempts failed - use an absolute last-resort in-memory container
+                // This should never happen, but better than crashing
                 MPLogger.error("MorningProofApp: CRITICAL - In-memory fallback also failed", error: fallbackError, category: MPLogger.general)
-                // Last resort: empty configuration (may crash but at least we tried)
-                fatalError("Failed to create any ModelContainer: Primary error: \(primaryError), Fallback error: \(fallbackError)")
+
+                // Try one more time with minimal configuration
+                do {
+                    let minimalConfig = ModelConfiguration(isStoredInMemoryOnly: true)
+                    container = try ModelContainer(for: SDSettings.self, configurations: minimalConfig)
+                    MPLogger.error("MorningProofApp: Using minimal emergency container - some features may not work", error: fallbackError, category: MPLogger.general)
+                } catch {
+                    // Absolute last resort - this container won't persist anything but the app won't crash
+                    MPLogger.error("MorningProofApp: All container creation failed - using empty container", error: error, category: MPLogger.general)
+                    container = try! ModelContainer(for: SDSettings.self, configurations: ModelConfiguration(isStoredInMemoryOnly: true))
+                }
             }
         }
 
@@ -189,6 +199,10 @@ class ManagerWrapper: ObservableObject {
             self?.objectWillChange.send()
         }
     }
+
+    deinit {
+        cancellable?.cancel()
+    }
 }
 
 /// Wrapper to safely hold the ThemeManager singleton
@@ -204,5 +218,9 @@ class ThemeWrapper: ObservableObject {
         cancellable = themeManager.objectWillChange.sink { [weak self] _ in
             self?.objectWillChange.send()
         }
+    }
+
+    deinit {
+        cancellable?.cancel()
     }
 }

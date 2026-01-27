@@ -400,6 +400,37 @@ final class HealthKitBackgroundDeliveryService: @unchecked Sendable {
 
     // MARK: - Settings Helpers
 
+    /// Cached habit configs to avoid repeated JSON decoding
+    /// Reset when checking for new data
+    private var cachedHabitConfigs: [HabitConfig]?
+    private var configsCacheDate: Date?
+
+    /// Returns cached habit configs, or decodes from UserDefaults if cache is stale
+    private func getHabitConfigs() -> [HabitConfig] {
+        // Return cached configs if available and from today
+        if let cached = cachedHabitConfigs,
+           let cacheDate = configsCacheDate,
+           Calendar.current.isDateInToday(cacheDate) {
+            return cached
+        }
+
+        // Decode and cache
+        if let data = UserDefaults.standard.data(forKey: Keys.habitConfigs),
+           let configs = try? JSONDecoder().decode([HabitConfig].self, from: data) {
+            cachedHabitConfigs = configs
+            configsCacheDate = Date()
+            return configs
+        }
+
+        return []
+    }
+
+    /// Clears the cached configs (call when settings change)
+    func invalidateConfigsCache() {
+        cachedHabitConfigs = nil
+        configsCacheDate = nil
+    }
+
     private func getCutoffTime() -> Date {
         // Use weekday/weekend aware cutoff from AppLockingDataStore
         let cutoffMinutes = AppLockingDataStore.getCutoffMinutes(for: Date())
@@ -415,46 +446,40 @@ final class HealthKitBackgroundDeliveryService: @unchecked Sendable {
     }
 
     private func getStepGoal() -> Int {
-        // Try to read from stored habit configs
-        if let data = UserDefaults.standard.data(forKey: Keys.habitConfigs),
-           let configs = try? JSONDecoder().decode([HabitConfig].self, from: data),
-           let stepConfig = configs.first(where: { $0.habitType == .morningSteps }) {
+        let configs = getHabitConfigs()
+        if let stepConfig = configs.first(where: { $0.habitType == .morningSteps }) {
             return stepConfig.goal
         }
         return 500 // Default
     }
 
     private func getSleepGoal() -> Double {
-        if let data = UserDefaults.standard.data(forKey: Keys.habitConfigs),
-           let configs = try? JSONDecoder().decode([HabitConfig].self, from: data),
-           let sleepConfig = configs.first(where: { $0.habitType == .sleepDuration }) {
+        let configs = getHabitConfigs()
+        if let sleepConfig = configs.first(where: { $0.habitType == .sleepDuration }) {
             return Double(sleepConfig.goal)
         }
         return 7.0 // Default
     }
 
     private func isStepTrackingEnabled() -> Bool {
-        if let data = UserDefaults.standard.data(forKey: Keys.habitConfigs),
-           let configs = try? JSONDecoder().decode([HabitConfig].self, from: data),
-           let stepConfig = configs.first(where: { $0.habitType == .morningSteps }) {
+        let configs = getHabitConfigs()
+        if let stepConfig = configs.first(where: { $0.habitType == .morningSteps }) {
             return stepConfig.isEnabled
         }
         return false
     }
 
     private func isSleepTrackingEnabled() -> Bool {
-        if let data = UserDefaults.standard.data(forKey: Keys.habitConfigs),
-           let configs = try? JSONDecoder().decode([HabitConfig].self, from: data),
-           let sleepConfig = configs.first(where: { $0.habitType == .sleepDuration }) {
+        let configs = getHabitConfigs()
+        if let sleepConfig = configs.first(where: { $0.habitType == .sleepDuration }) {
             return sleepConfig.isEnabled
         }
         return false
     }
 
     private func isWorkoutTrackingEnabled() -> Bool {
-        if let data = UserDefaults.standard.data(forKey: Keys.habitConfigs),
-           let configs = try? JSONDecoder().decode([HabitConfig].self, from: data),
-           let workoutConfig = configs.first(where: { $0.habitType == .morningWorkout }) {
+        let configs = getHabitConfigs()
+        if let workoutConfig = configs.first(where: { $0.habitType == .morningWorkout }) {
             return workoutConfig.isEnabled
         }
         return false

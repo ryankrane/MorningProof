@@ -2,6 +2,7 @@ import Foundation
 import AuthenticationServices
 import SwiftUI
 import GoogleSignIn
+import Security
 
 @MainActor
 final class AuthenticationManager: NSObject, ObservableObject, Sendable {
@@ -12,7 +13,9 @@ final class AuthenticationManager: NSObject, ObservableObject, Sendable {
     @Published var isLoading = false
     @Published var errorMessage: String?
 
-    private let storageKey = "morning_proof_auth_user"
+    private let keychainService = "com.rk.morningproof.auth"
+    private let keychainAccount = "auth_user"
+    private let legacyStorageKey = "morning_proof_auth_user" // For migration
     private let googleClientID = "591131827329-487r1epolmgvbq8vdf3cje54qlpmi0a3.apps.googleusercontent.com"
 
     override init() {
@@ -161,7 +164,9 @@ final class AuthenticationManager: NSObject, ObservableObject, Sendable {
         }
         currentUser = nil
         isAuthenticated = false
-        UserDefaults.standard.removeObject(forKey: storageKey)
+        deleteUserFromKeychain()
+        // Also clean up legacy storage if present
+        UserDefaults.standard.removeObject(forKey: legacyStorageKey)
     }
 
     // MARK: - Anonymous / Skip
@@ -178,20 +183,79 @@ final class AuthenticationManager: NSObject, ObservableObject, Sendable {
         currentUser = user
     }
 
-    // MARK: - Persistence
+    // MARK: - Persistence (Keychain - Secure Storage)
 
     private func saveUser(_ user: AuthUser) {
-        if let encoded = try? JSONEncoder().encode(user) {
-            UserDefaults.standard.set(encoded, forKey: storageKey)
+        guard let encoded = try? JSONEncoder().encode(user) else { return }
+
+        // Delete existing item first (Keychain requires this for updates)
+        deleteUserFromKeychain()
+
+        // Add to Keychain
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecValueData as String: encoded,
+            kSecAttrAccessible as String: kSecAttrAccessibleAfterFirstUnlock
+        ]
+
+        let status = SecItemAdd(query as CFDictionary, nil)
+        if status != errSecSuccess {
+            MPLogger.warning("Failed to save user to Keychain: \(status)", category: MPLogger.general)
         }
     }
 
     private func loadStoredUser() {
-        if let data = UserDefaults.standard.data(forKey: storageKey),
+        // First try Keychain (preferred)
+        if let user = loadUserFromKeychain() {
+            currentUser = user
+            isAuthenticated = true
+            return
+        }
+
+        // Fall back to UserDefaults for migration from old storage
+        if let data = UserDefaults.standard.data(forKey: legacyStorageKey),
            let user = try? JSONDecoder().decode(AuthUser.self, from: data) {
+            // Migrate to Keychain
+            saveUser(user)
+            // Remove from UserDefaults
+            UserDefaults.standard.removeObject(forKey: legacyStorageKey)
+
             currentUser = user
             isAuthenticated = true
         }
+    }
+
+    private func loadUserFromKeychain() -> AuthUser? {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount,
+            kSecReturnData as String: true,
+            kSecMatchLimit as String: kSecMatchLimitOne
+        ]
+
+        var result: AnyObject?
+        let status = SecItemCopyMatching(query as CFDictionary, &result)
+
+        guard status == errSecSuccess,
+              let data = result as? Data,
+              let user = try? JSONDecoder().decode(AuthUser.self, from: data) else {
+            return nil
+        }
+
+        return user
+    }
+
+    private func deleteUserFromKeychain() {
+        let query: [String: Any] = [
+            kSecClass as String: kSecClassGenericPassword,
+            kSecAttrService as String: keychainService,
+            kSecAttrAccount as String: keychainAccount
+        ]
+
+        SecItemDelete(query as CFDictionary)
     }
 
     // MARK: - Check Apple ID Credential State
