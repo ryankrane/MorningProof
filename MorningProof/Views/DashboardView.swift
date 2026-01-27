@@ -616,7 +616,7 @@ struct DashboardView: View {
                             // Show progress ring with clean edit button
                             HStack(spacing: 10) {
                                 let score = completion?.score ?? 0
-                                CircularProgressView(progress: CGFloat(score) / 100, size: 32)
+                                CircularProgressView(progress: CGFloat(score) / 100, size: 32, showPercentage: false)
 
                                 Button {
                                     showSleepInput = true
@@ -750,12 +750,12 @@ struct DashboardView: View {
 
                 Spacer()
 
-                // Camera button for AI verified habits
+                // Camera/Record button for AI verified habits
                 if !isCompleted && customHabit.verificationType == .aiVerified {
                     Button {
                         customHabitCameraTarget = customHabit
                     } label: {
-                        Image(systemName: "camera.fill")
+                        Image(systemName: customHabit.mediaType == .video ? "video.fill" : "camera.fill")
                             .font(.system(size: 22, weight: .medium))
                             .foregroundColor(MPColors.primary)
                     }
@@ -1095,6 +1095,13 @@ struct DashboardView: View {
 struct CircularProgressView: View {
     let progress: CGFloat
     let size: CGFloat
+    let showPercentage: Bool
+
+    init(progress: CGFloat, size: CGFloat, showPercentage: Bool = true) {
+        self.progress = progress
+        self.size = size
+        self.showPercentage = showPercentage
+    }
 
     var body: some View {
         ZStack {
@@ -1106,9 +1113,11 @@ struct CircularProgressView: View {
                 .stroke(MPColors.success, style: StrokeStyle(lineWidth: 3, lineCap: .round))
                 .rotationEffect(.degrees(-90))
 
-            Text("\(Int(progress * 100))%")
-                .font(.system(size: 9, weight: .medium))
-                .foregroundColor(MPColors.textSecondary)
+            if showPercentage {
+                Text("\(Int(progress * 100))%")
+                    .font(.system(size: 9, weight: .medium))
+                    .foregroundColor(MPColors.textSecondary)
+            }
         }
         .frame(width: size, height: size)
     }
