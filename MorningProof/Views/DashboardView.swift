@@ -586,7 +586,7 @@ struct DashboardView: View {
                 if !isCompleted {
                     if config.habitType == .madeBed || config.habitType == .sunlightExposure || config.habitType == .hydration ||
                        [.healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep].contains(config.habitType) {
-                        // Camera icon - more subtle
+                        // Camera icon - clean
                         Button {
                             switch config.habitType {
                             case .madeBed: showBedCamera = true
@@ -595,45 +595,35 @@ struct DashboardView: View {
                             default: genericCameraHabitType = config.habitType
                             }
                         } label: {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(MPColors.primary.opacity(0.12))
-                                    .frame(width: 38, height: 38)
-                                Image(systemName: "camera.fill")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(MPColors.primary)
-                            }
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(MPColors.primary)
                         }
                     } else if [.gratitude, .dailyPlanning].contains(config.habitType) {
-                        // Journal icon - subtle
+                        // Journal icon - clean
                         Button {
                             textEntryHabitType = config.habitType
                         } label: {
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(MPColors.primary.opacity(0.12))
-                                    .frame(width: 38, height: 38)
-                                Image(systemName: "square.and.pencil")
-                                    .font(.system(size: 16, weight: .medium))
-                                    .foregroundColor(MPColors.primary)
-                            }
+                            Image(systemName: "square.and.pencil")
+                                .font(.system(size: 22, weight: .medium))
+                                .foregroundColor(MPColors.primary)
                         }
                     } else if config.habitType == .sleepDuration {
                         if completion?.verificationData?.sleepHours == nil {
                             // No sleep data yet
                             EmptyView()
                         } else {
-                            // Show progress ring
-                            HStack(spacing: 8) {
+                            // Show progress ring with clean edit button
+                            HStack(spacing: 10) {
                                 let score = completion?.score ?? 0
                                 CircularProgressView(progress: CGFloat(score) / 100, size: 32)
 
                                 Button {
                                     showSleepInput = true
                                 } label: {
-                                    Image(systemName: "pencil.circle.fill")
-                                        .font(.system(size: 20))
-                                        .foregroundColor(MPColors.textTertiary)
+                                    Image(systemName: "pencil")
+                                        .font(.system(size: 16, weight: .medium))
+                                        .foregroundColor(MPColors.textSecondary)
                                 }
                             }
                         }
@@ -765,14 +755,9 @@ struct DashboardView: View {
                     Button {
                         customHabitCameraTarget = customHabit
                     } label: {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(MPColors.primary.opacity(0.12))
-                                .frame(width: 38, height: 38)
-                            Image(systemName: "camera.fill")
-                                .font(.system(size: 16, weight: .medium))
-                                .foregroundColor(MPColors.primary)
-                        }
+                        Image(systemName: "camera.fill")
+                            .font(.system(size: 22, weight: .medium))
+                            .foregroundColor(MPColors.primary)
                     }
                 }
 
