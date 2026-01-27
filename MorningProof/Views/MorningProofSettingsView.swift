@@ -91,7 +91,7 @@ struct MorningProofSettingsView: View {
                         } label: {
                             SettingsRowContent(
                                 icon: "heart.fill",
-                                iconColor: .pink,
+                                iconColor: MPColors.healthRed,
                                 title: "Health Data",
                                 trailing: .chevron
                             )

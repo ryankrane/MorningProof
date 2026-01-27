@@ -559,135 +559,101 @@ struct DashboardView: View {
                     .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
             }
 
-            HStack(spacing: MPSpacing.lg) {
-                // Icon with circular background
+            HStack(spacing: MPSpacing.md) {
+                // Icon with more subtle background
                 ZStack {
                     Circle()
-                        .fill(isCompleted ? MPColors.success.opacity(0.15) : MPColors.surfaceSecondary)
+                        .fill(isCompleted ? MPColors.success.opacity(0.12) : MPColors.textTertiary.opacity(0.08))
                         .frame(width: iconSize, height: iconSize)
                     Image(systemName: config.habitType.icon)
-                        .font(.system(size: iconSize * 0.5))
+                        .font(.system(size: iconSize * 0.45, weight: .medium))
                         .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
                 }
-                .frame(width: iconSize)
 
                 // Info
-                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(config.habitType.displayName)
-                        .font(MPFont.labelMedium())
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(MPColors.textPrimary)
 
-                    // Status text
+                    // Only show status text if there's meaningful info
                     statusText(for: config, completion: completion)
                 }
 
                 Spacer()
 
-                // Action buttons (only for special types that need them, when not completed)
-                if !isCompleted && config.habitType == .madeBed {
-                    Button {
-                        showBedCamera = true
-                    } label: {
-                        Image(systemName: "camera.fill")
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.sm)
-                    }
-                } else if !isCompleted && config.habitType == .sunlightExposure {
-                    Button {
-                        showSunlightCamera = true
-                    } label: {
-                        Image(systemName: "camera.fill")
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.sm)
-                    }
-                } else if !isCompleted && config.habitType == .hydration {
-                    Button {
-                        showHydrationCamera = true
-                    } label: {
-                        Image(systemName: "camera.fill")
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.sm)
-                    }
-                } else if !isCompleted && config.habitType == .sleepDuration {
-                    if completion?.verificationData?.sleepHours == nil {
+                // Action indicators (subtle, Apple-style)
+                if !isCompleted {
+                    if config.habitType == .madeBed || config.habitType == .sunlightExposure || config.habitType == .hydration ||
+                       [.healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep].contains(config.habitType) {
+                        // Camera icon - more subtle
                         Button {
-                            showSleepInput = true
+                            switch config.habitType {
+                            case .madeBed: showBedCamera = true
+                            case .sunlightExposure: showSunlightCamera = true
+                            case .hydration: showHydrationCamera = true
+                            default: genericCameraHabitType = config.habitType
+                            }
                         } label: {
-                            Text("Enter")
-                                .font(MPFont.labelSmall())
-                                .foregroundColor(MPColors.primary)
-                                .padding(.horizontal, MPSpacing.md)
-                                .padding(.vertical, MPSpacing.sm)
-                                .background(MPColors.surfaceSecondary)
-                                .cornerRadius(MPRadius.sm)
-                        }
-                    } else {
-                        HStack(spacing: MPSpacing.sm) {
-                            let score = completion?.score ?? 0
-                            CircularProgressView(progress: CGFloat(score) / 100, size: MPButtonHeight.sm)
-
-                            // Edit button to allow manual override
-                            Button {
-                                showSleepInput = true
-                            } label: {
-                                Image(systemName: "pencil")
-                                    .font(.system(size: 12))
-                                    .foregroundColor(MPColors.textTertiary)
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(MPColors.primary.opacity(0.12))
+                                    .frame(width: 38, height: 38)
+                                Image(systemName: "camera.fill")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(MPColors.primary)
                             }
                         }
-                    }
-                } else if !isCompleted && config.habitType == .morningSteps {
-                    let score = completion?.score ?? 0
-                    PillProgressView(progress: CGFloat(score) / 100)
-                } else if !isCompleted && [.healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep].contains(config.habitType) {
-                    // New AI-verified habits
-                    Button {
-                        genericCameraHabitType = config.habitType
-                    } label: {
-                        Image(systemName: "camera.fill")
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.sm)
-                    }
-                } else if !isCompleted && [.gratitude, .dailyPlanning].contains(config.habitType) {
-                    // Text entry habits
-                    Button {
-                        textEntryHabitType = config.habitType
-                    } label: {
-                        Image(systemName: "square.and.pencil")
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.sm)
-                    }
-                }
+                    } else if [.gratitude, .dailyPlanning].contains(config.habitType) {
+                        // Journal icon - subtle
+                        Button {
+                            textEntryHabitType = config.habitType
+                        } label: {
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 8)
+                                    .fill(MPColors.primary.opacity(0.12))
+                                    .frame(width: 38, height: 38)
+                                Image(systemName: "square.and.pencil")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(MPColors.primary)
+                            }
+                        }
+                    } else if config.habitType == .sleepDuration {
+                        if completion?.verificationData?.sleepHours == nil {
+                            // No sleep data yet
+                            EmptyView()
+                        } else {
+                            // Show progress ring
+                            HStack(spacing: 8) {
+                                let score = completion?.score ?? 0
+                                CircularProgressView(progress: CGFloat(score) / 100, size: 32)
 
-                // Checkmark indicator for completed habits
-                if isCompleted {
-                    let checkSize = iconSize * 0.7
+                                Button {
+                                    showSleepInput = true
+                                } label: {
+                                    Image(systemName: "pencil.circle.fill")
+                                        .font(.system(size: 20))
+                                        .foregroundColor(MPColors.textTertiary)
+                                }
+                            }
+                        }
+                    } else if config.habitType == .morningSteps {
+                        let score = completion?.score ?? 0
+                        PillProgressView(progress: CGFloat(score) / 100)
+                    }
+                } else {
+                    // Checkmark for completed - more refined
                     ZStack {
                         Circle()
                             .fill(MPColors.success)
-                            .frame(width: checkSize, height: checkSize)
+                            .frame(width: 28, height: 28)
                         Image(systemName: "checkmark")
-                            .font(.system(size: checkSize * 0.5, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.white)
                     }
                 }
             }
-            .padding(padding)
+            .padding(padding + 2)
 
             // Flash overlay for completion celebration
             RoundedRectangle(cornerRadius: MPRadius.lg)
@@ -770,7 +736,7 @@ struct DashboardView: View {
                     .frame(width: geo.size.width * (isCompleted ? 1.0 : progress))
             }
 
-            HStack(spacing: MPSpacing.lg) {
+            HStack(spacing: MPSpacing.md) {
                 // Icon with circular background
                 ZStack {
                     Circle()
@@ -783,9 +749,9 @@ struct DashboardView: View {
                 .frame(width: iconSize)
 
                 // Info
-                VStack(alignment: .leading, spacing: MPSpacing.xs) {
+                VStack(alignment: .leading, spacing: 3) {
                     Text(customHabit.name)
-                        .font(MPFont.labelMedium())
+                        .font(.system(size: 16, weight: .semibold))
                         .foregroundColor(MPColors.textPrimary)
 
                     // Status text
@@ -799,12 +765,14 @@ struct DashboardView: View {
                     Button {
                         customHabitCameraTarget = customHabit
                     } label: {
-                        Image(systemName: "camera.fill")
-                            .font(.body)
-                            .foregroundColor(.white)
-                            .frame(width: MPButtonHeight.sm, height: MPButtonHeight.sm)
-                            .background(MPColors.primary)
-                            .cornerRadius(MPRadius.sm)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(MPColors.primary.opacity(0.12))
+                                .frame(width: 38, height: 38)
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 16, weight: .medium))
+                                .foregroundColor(MPColors.primary)
+                        }
                     }
                 }
 
@@ -832,19 +800,16 @@ struct DashboardView: View {
     @ViewBuilder
     func customHabitStatusText(for customHabit: CustomHabit, completion: CustomHabitCompletion?) -> some View {
         if let completion = completion, completion.isCompleted {
-            HStack(spacing: MPSpacing.xs) {
-                Text(customHabit.verificationType == .aiVerified ? "Verified" : "Completed")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-            }
-        } else if customHabit.verificationType == .aiVerified {
-            Text(formatVerificationPrompt(customHabit.aiPrompt))
-                .font(MPFont.bodySmall())
+            Text(customHabit.verificationType == .aiVerified ? "Verified" : "Completed")
+                .font(.system(size: 13))
                 .foregroundColor(MPColors.textTertiary)
-                .lineLimit(1)
+        } else if customHabit.verificationType == .aiVerified {
+            Text("AI verified")
+                .font(.system(size: 13))
+                .foregroundColor(MPColors.textTertiary)
         } else {
             Text("Hold to complete")
-                .font(MPFont.bodySmall())
+                .font(.system(size: 13))
                 .foregroundColor(MPColors.textTertiary)
         }
     }
@@ -1042,103 +1007,90 @@ struct DashboardView: View {
             switch config.habitType {
             case .morningSteps:
                 let steps = completion.verificationData?.stepCount ?? 0
-                HStack(spacing: MPSpacing.xs) {
-                    HealthBadge(isCompleted: completion.isCompleted)
+                HStack(spacing: 4) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(MPColors.healthRed)
+                    Text("Health")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                    Text("·")
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary.opacity(0.5))
                     Text("\(steps)/\(config.goal) steps")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(completion.isCompleted ? (colorScheme == .light ? MPColors.textTertiary : .white.opacity(0.8)) : MPColors.textTertiary)
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary)
                 }
 
             case .sleepDuration:
-                // Sleep is retrospective (last night's data) - no "Late" concept applies
                 if let hours = completion.verificationData?.sleepHours {
-                    HStack(spacing: MPSpacing.xs) {
-                        HealthBadge(isCompleted: completion.isCompleted)
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(MPColors.healthRed)
+                        Text("Health")
+                            .font(.system(size: 13, weight: .medium))
+                            .foregroundColor(MPColors.textTertiary)
+                        Text("·")
+                            .font(.system(size: 13))
+                            .foregroundColor(MPColors.textTertiary.opacity(0.5))
                         Text("\(formatHours(hours))/\(config.goal)h sleep")
-                            .font(MPFont.bodySmall())
-                            .foregroundColor(completion.isCompleted ? (colorScheme == .light ? MPColors.textTertiary : .white.opacity(0.8)) : MPColors.textTertiary)
-                    }
-                } else if manager.isPastCutoff && manager.hasHabitEverBeenCompleted(config.habitType) {
-                    // Show "Not met" instead of "LATE" for sleep - you can't be late on last night's sleep
-                    HStack(spacing: MPSpacing.xs) {
-                        HealthBadge(isCompleted: false)
-                        Text("Not met")
-                            .font(MPFont.bodySmall())
+                            .font(.system(size: 13))
                             .foregroundColor(MPColors.textTertiary)
                     }
                 } else {
-                    HStack(spacing: MPSpacing.xs) {
-                        HealthBadge(isCompleted: false)
-                        Text("Tap to enter sleep")
-                            .font(MPFont.bodySmall())
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(MPColors.healthRed)
+                        Text("Health")
+                            .font(.system(size: 13, weight: .medium))
                             .foregroundColor(MPColors.textTertiary)
                     }
                 }
 
             case .morningWorkout:
-                HStack(spacing: MPSpacing.xs) {
-                    HealthBadge(isCompleted: completion.isCompleted)
-                    Text(completion.isCompleted ? "Completed" : "Hold to complete")
-                        .font(MPFont.bodySmall())
-                        .foregroundColor(completion.isCompleted ? (colorScheme == .light ? MPColors.textTertiary : .white.opacity(0.8)) : MPColors.textTertiary)
+                HStack(spacing: 4) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(MPColors.healthRed)
+                    Text("Health")
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(MPColors.textTertiary)
+                    if completion.isCompleted {
+                        Text("·")
+                            .font(.system(size: 13))
+                            .foregroundColor(MPColors.textTertiary.opacity(0.5))
+                        Text("Verified")
+                            .font(.system(size: 13))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
                 }
 
-            case .madeBed:
-                Text(completion.isCompleted ? "Verified" : "Take a photo to verify")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
+            case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary)
+                } else {
+                    Text("AI verified")
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary)
+                }
 
-            case .sunlightExposure:
-                Text(completion.isCompleted ? "Verified" : "Take a photo outside")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            case .hydration:
-                Text(completion.isCompleted ? "Verified" : "Take a photo of your water")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            // New AI-verified habits
-            case .healthyBreakfast:
-                Text(completion.isCompleted ? "Verified" : "Take a photo of your breakfast")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            case .morningJournal:
-                Text(completion.isCompleted ? "Verified" : "Show your journal entry")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            case .vitamins:
-                Text(completion.isCompleted ? "Verified" : "Snap your vitamins")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            case .skincare:
-                Text(completion.isCompleted ? "Verified" : "Show your skincare routine")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            case .mealPrep:
-                Text(completion.isCompleted ? "Verified" : "Show your prepped meals")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            // Text entry habits
-            case .gratitude:
-                Text(completion.isCompleted ? "Logged" : "Write what you're grateful for")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
-
-            case .dailyPlanning:
-                Text(completion.isCompleted ? "Planned" : "Write your priorities")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
+            case .gratitude, .dailyPlanning:
+                if completion.isCompleted {
+                    Text("Logged")
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary)
+                }
 
             default:
-                Text(completion.isCompleted ? "Completed" : "Hold to complete")
-                    .font(MPFont.bodySmall())
-                    .foregroundColor(MPColors.textTertiary)
+                if completion.isCompleted {
+                    Text("Verified")
+                        .font(.system(size: 13))
+                        .foregroundColor(MPColors.textTertiary)
+                }
             }
         }
     }
@@ -1209,8 +1161,6 @@ private struct HealthBadge: View {
     var isCompleted: Bool = false
     @Environment(\.colorScheme) var colorScheme
 
-    private let healthRed = Color(red: 1.0, green: 0.23, blue: 0.35)
-
     var body: some View {
         HStack(spacing: 3) {
             Image(systemName: "heart.fill")
@@ -1229,17 +1179,17 @@ private struct HealthBadge: View {
     /// In dark mode, switch to white when completed for readability
     private var badgeForegroundColor: Color {
         if isCompleted {
-            return colorScheme == .light ? healthRed : .white.opacity(0.9)
+            return colorScheme == .light ? MPColors.healthRed : .white.opacity(0.9)
         } else {
-            return healthRed
+            return MPColors.healthRed
         }
     }
 
     private var badgeBackgroundColor: Color {
         if isCompleted {
-            return colorScheme == .light ? healthRed.opacity(0.15) : Color.white.opacity(0.2)
+            return colorScheme == .light ? MPColors.healthRed.opacity(0.15) : Color.white.opacity(0.2)
         } else {
-            return healthRed.opacity(0.15)
+            return MPColors.healthRed.opacity(0.15)
         }
     }
 }

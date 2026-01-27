@@ -50,6 +50,9 @@ enum MPColors {
     static let warning = Color("Warning")
     static let warningLight = Color("WarningLight")
 
+    // Health (Apple Health official red)
+    static let healthRed = Color(red: 1.0, green: 0.23, blue: 0.35)
+
     // UI Elements
     static let border = Color("Border")
     static let divider = Color("Divider")
