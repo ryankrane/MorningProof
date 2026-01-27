@@ -15,7 +15,6 @@ struct SunlightCameraView: View {
     @State private var showCheckmark = false
     @State private var showTitle = false
     @State private var showFeedback = false
-    @State private var showConfetti = false
     @State private var showButton = false
 
     // Apps unlocked celebration
@@ -224,11 +223,6 @@ struct SunlightCameraView: View {
                 .padding(.bottom, MPSpacing.xxxl)
             }
 
-            // Confetti overlay for success
-            if showConfetti && result.isOutside {
-                MiniConfettiView(particleCount: 30)
-                    .allowsHitTesting(false)
-            }
         }
         .onAppear {
             startResultAnimations(isOutside: result.isOutside)
@@ -258,10 +252,9 @@ struct SunlightCameraView: View {
             showFeedback = true
         }
 
-        // Step 4: Confetti burst (0.4s) - only for success
+        // Step 4: Haptic feedback - only for success
         if isOutside {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                showConfetti = true
                 HapticManager.shared.habitCompleted()
             }
         }
@@ -276,7 +269,6 @@ struct SunlightCameraView: View {
         showCheckmark = false
         showTitle = false
         showFeedback = false
-        showConfetti = false
         showButton = false
     }
 

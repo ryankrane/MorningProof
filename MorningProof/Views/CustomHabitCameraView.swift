@@ -23,7 +23,6 @@ struct CustomHabitCameraView: View {
     @State private var showCheckmark = false
     @State private var showTitle = false
     @State private var showFeedback = false
-    @State private var showConfetti = false
     @State private var showButton = false
 
     var body: some View {
@@ -337,11 +336,6 @@ struct CustomHabitCameraView: View {
                 .padding(.bottom, MPSpacing.xxxl)
             }
 
-            // Confetti overlay for success
-            if showConfetti && result.isVerified {
-                MiniConfettiView(particleCount: 30)
-                    .allowsHitTesting(false)
-            }
         }
         .onAppear {
             startResultAnimations(isVerified: result.isVerified)
@@ -371,10 +365,9 @@ struct CustomHabitCameraView: View {
             showFeedback = true
         }
 
-        // Step 4: Confetti burst (0.4s) - only for success
+        // Step 4: Haptic feedback - only for success
         if isVerified {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                showConfetti = true
                 HapticManager.shared.habitCompleted()
             }
         }
@@ -389,7 +382,6 @@ struct CustomHabitCameraView: View {
         showCheckmark = false
         showTitle = false
         showFeedback = false
-        showConfetti = false
         showButton = false
     }
 

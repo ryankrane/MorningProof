@@ -20,7 +20,6 @@ struct BedCameraView: View {
     @State private var showCheckmark = false
     @State private var showTitle = false
     @State private var showFeedback = false
-    @State private var showConfetti = false
     @State private var showButton = false
 
     // Apps unlocked celebration
@@ -334,11 +333,6 @@ struct BedCameraView: View {
                 .padding(.bottom, MPSpacing.xxxl)
             }
 
-            // Confetti overlay for success
-            if showConfetti && result.isMade {
-                MiniConfettiView(particleCount: 30)
-                    .allowsHitTesting(false)
-            }
         }
         .onAppear {
             startResultAnimations(isMade: result.isMade)
@@ -368,10 +362,9 @@ struct BedCameraView: View {
             showFeedback = true
         }
 
-        // Step 4: Confetti burst (0.4s) - only for success
+        // Step 4: Haptic feedback - only for success
         if isMade {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                showConfetti = true
                 HapticManager.shared.habitCompleted()
             }
         }
@@ -386,7 +379,6 @@ struct BedCameraView: View {
         showCheckmark = false
         showTitle = false
         showFeedback = false
-        showConfetti = false
         showButton = false
     }
 

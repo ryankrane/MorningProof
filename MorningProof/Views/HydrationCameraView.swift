@@ -15,7 +15,6 @@ struct HydrationCameraView: View {
     @State private var showCheckmark = false
     @State private var showTitle = false
     @State private var showFeedback = false
-    @State private var showConfetti = false
     @State private var showButton = false
 
     // Apps unlocked celebration
@@ -224,11 +223,6 @@ struct HydrationCameraView: View {
                 .padding(.bottom, MPSpacing.xxxl)
             }
 
-            // Confetti overlay for success
-            if showConfetti && result.isWater {
-                MiniConfettiView(particleCount: 30)
-                    .allowsHitTesting(false)
-            }
         }
         .onAppear {
             startResultAnimations(isWater: result.isWater)
@@ -258,10 +252,9 @@ struct HydrationCameraView: View {
             showFeedback = true
         }
 
-        // Step 4: Confetti burst (0.4s) - only for success
+        // Step 4: Haptic feedback - only for success
         if isWater {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.4) {
-                showConfetti = true
                 HapticManager.shared.habitCompleted()
             }
         }
@@ -276,7 +269,6 @@ struct HydrationCameraView: View {
         showCheckmark = false
         showTitle = false
         showFeedback = false
-        showConfetti = false
         showButton = false
     }
 
