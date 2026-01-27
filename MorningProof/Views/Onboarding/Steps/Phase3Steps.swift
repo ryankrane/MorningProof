@@ -195,7 +195,7 @@ struct AIVerificationShowcaseStep: View {
                                     scanProgress: scanProgress
                                 )
                                 .frame(width: 200, height: 150)
-                                .clipShape(RoundedRectangle(cornerRadius: MPRadius.md))
+                                .clipped()
                             }
                         }
 

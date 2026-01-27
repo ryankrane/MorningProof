@@ -161,7 +161,7 @@ struct AppBlockingExplainerStep: View {
         VStack(spacing: MPSpacing.md) {
             // Fade gradient at top
             LinearGradient(
-                colors: [Color.black.opacity(0), Color.black],
+                colors: [MPColors.background.opacity(0), MPColors.background],
                 startPoint: .top,
                 endPoint: .bottom
             )
@@ -212,8 +212,8 @@ struct AppBlockingExplainerStep: View {
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
-            .background(Color.black)
         }
+        .background(MPColors.background.ignoresSafeArea(edges: .bottom))
     }
 
     // MARK: - Animation Sequence

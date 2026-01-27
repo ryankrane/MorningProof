@@ -99,6 +99,7 @@ struct SuccessStoriesStep: View {
     @State private var showMilestones = [false, false, false]
     @State private var lineProgress: CGFloat = 0
     @State private var pulseGlow = false
+    @State private var showButton = false
 
     private let milestones: [(day: String, title: String, description: String, icon: String, gradient: [Color])] = [
         (
@@ -214,6 +215,9 @@ struct SuccessStoriesStep: View {
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
+            .opacity(showButton ? 1 : 0)
+            .offset(y: showButton ? 0 : 20)
+            .allowsHitTesting(showButton)
         }
         .onAppear {
             // Headline fades in
@@ -233,9 +237,12 @@ struct SuccessStoriesStep: View {
                 lineProgress = 1.0
             }
 
-            // Glow pulse starts after all milestones have landed
+            // Glow pulse and button appear after all milestones have landed
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.2) {
                 pulseGlow = true
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.8)) {
+                    showButton = true
+                }
             }
         }
     }

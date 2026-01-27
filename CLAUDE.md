@@ -6,6 +6,8 @@ Developer: Ryan Krane (first-time app developer, but fast learner). When explain
 ## Claude Instructions
 When you learn something important about this project (gotchas, patterns, decisions, or context that would help future sessions), add it to this file. Keep it concise.
 
+**Be genuine, not agreeable.** When asked for opinions on design/architecture decisions, give honest assessments with tradeoffs - don't just agree with whatever the user suggests. Push back when something seems like over-engineering or when a simpler approach would be better.
+
 ## Design Quality Principle
 Every feature and UI element must feel well thought out. The app should feel polished and premium, not cheaply made. This doesn't mean overcomplicating things - it means taking an extra moment to consider the best approach and cool ideas before implementing. Go above and beyond, but keep solutions simple and elegant.
 
