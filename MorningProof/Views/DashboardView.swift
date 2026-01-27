@@ -45,11 +45,6 @@ struct DashboardView: View {
     @State private var triggerIgnition: Bool = false
     @State private var streakShakeOffset: CGFloat = 0
 
-    // Undo state for honor system habits
-    @State private var undoableHabit: HabitType? = nil
-    @State private var undoableCustomHabit: UUID? = nil
-    @State private var undoWorkItem: DispatchWorkItem? = nil
-
     // Visual streak for flame timing - only updates AFTER celebration completes
     @State private var visualStreak: Int = 0
     // Visual perfect morning state - only updates AFTER celebration completes (for poof animation)
@@ -109,45 +104,6 @@ struct DashboardView: View {
                         .ignoresSafeArea()
                         .allowsHitTesting(false)
                 }
-
-                // Undo toast for honor system habits
-                VStack {
-                    Spacer()
-                    if let habitType = undoableHabit {
-                        UndoToastView(
-                            habitName: habitType.displayName,
-                            onUndo: {
-                                manager.undoHabitCompletion(habitType)
-                                undoableHabit = nil
-                                undoWorkItem?.cancel()
-                            },
-                            onDismiss: {
-                                undoableHabit = nil
-                                undoWorkItem?.cancel()
-                            }
-                        )
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, MPSpacing.xl)
-                    } else if let customId = undoableCustomHabit,
-                              let habit = manager.getCustomHabit(id: customId) {
-                        UndoToastView(
-                            habitName: habit.name,
-                            onUndo: {
-                                manager.undoCustomHabitCompletion(customId)
-                                undoableCustomHabit = nil
-                                undoWorkItem?.cancel()
-                            },
-                            onDismiss: {
-                                undoableCustomHabit = nil
-                                undoWorkItem?.cancel()
-                            }
-                        )
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .padding(.bottom, MPSpacing.xl)
-                    }
-                }
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: undoableHabit)
-                .animation(.spring(response: 0.3, dampingFraction: 0.8), value: undoableCustomHabit)
 
             }
         }
@@ -613,18 +569,13 @@ struct DashboardView: View {
                             // No sleep data yet
                             EmptyView()
                         } else {
-                            // Show progress ring with clean edit button
-                            HStack(spacing: 10) {
-                                let score = completion?.score ?? 0
-                                CircularProgressView(progress: CGFloat(score) / 100, size: 32, showPercentage: false)
-
-                                Button {
-                                    showSleepInput = true
-                                } label: {
-                                    Image(systemName: "pencil")
-                                        .font(.system(size: 16, weight: .medium))
-                                        .foregroundColor(MPColors.textSecondary)
-                                }
+                            // Show edit button
+                            Button {
+                                showSleepInput = true
+                            } label: {
+                                Image(systemName: "pencil")
+                                    .font(.system(size: 16, weight: .medium))
+                                    .foregroundColor(MPColors.textSecondary)
                             }
                         }
                     } else if config.habitType == .morningSteps {
@@ -888,28 +839,6 @@ struct DashboardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedCustomHabits.remove(habitId)
         }
-
-        // Show undo toast for honor system habits (not for final habit)
-        if isHonorSystem && !isFinalHabit {
-            showUndoToast(for: habitId)
-        }
-    }
-
-    /// Shows undo toast for custom habit and auto-dismisses after 5 seconds
-    private func showUndoToast(for customHabitId: UUID) {
-        // Cancel any existing undo work item
-        undoWorkItem?.cancel()
-        undoableHabit = nil
-
-        // Show undo toast
-        undoableCustomHabit = customHabitId
-
-        // Auto-dismiss after 5 seconds
-        let workItem = DispatchWorkItem { [self] in
-            undoableCustomHabit = nil
-        }
-        undoWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
     private func completeHabitWithCelebration(_ habitType: HabitType) {
@@ -962,28 +891,6 @@ struct DashboardView: View {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             recentlyCompletedHabits.remove(habitType)
         }
-
-        // Show undo toast for honor system habits (not for auto-tracked or final habit)
-        if habitType.tier == .honorSystem && !isFinalHabit {
-            showUndoToast(for: habitType)
-        }
-    }
-
-    /// Shows undo toast for predefined habit and auto-dismisses after 5 seconds
-    private func showUndoToast(for habitType: HabitType) {
-        // Cancel any existing undo work item
-        undoWorkItem?.cancel()
-        undoableCustomHabit = nil
-
-        // Show undo toast
-        undoableHabit = habitType
-
-        // Auto-dismiss after 5 seconds
-        let workItem = DispatchWorkItem { [self] in
-            undoableHabit = nil
-        }
-        undoWorkItem = workItem
-        DispatchQueue.main.asyncAfter(deadline: .now() + 5, execute: workItem)
     }
 
     @ViewBuilder
