@@ -68,10 +68,10 @@ class OnboardingData: ObservableObject {
     }
 
     enum MorningStruggle: String, CaseIterable {
-        case noRoutine = "I don't have a routine"
+        case knowButDont = "I know what to do but don't do it"
         case scrollInBed = "I scroll in bed for way too long"
         case feelBehind = "I feel behind before the day even starts"
-        case knowButDont = "I know what to do but don't do it"
+        case noRoutine = "I don't have a routine"
         case lackConsistency = "I lack consistency"
         case morningsBattle = "Mornings feel like a battle"
 

@@ -374,12 +374,6 @@ struct NameStep: View {
                         confirmName()
                     }
                 }
-
-                if data.userName.isEmpty {
-                    Text("You can add your name later")
-                        .font(.system(size: 12))
-                        .foregroundColor(MPColors.textTertiary)
-                }
             }
             .padding(.horizontal, MPSpacing.xxxl)
             .padding(.bottom, 50)
@@ -402,7 +396,8 @@ struct NameStep: View {
                 }
             } else {
                 // No name yet, focus the text field for manual entry
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                // Delay keyboard slightly so users can read the screen first
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
                     isNameFocused = true
                 }
             }

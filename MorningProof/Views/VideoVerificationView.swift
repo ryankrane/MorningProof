@@ -245,78 +245,43 @@ struct VideoVerificationView: View {
         .padding(.top, MPSpacing.lg)
     }
 
-    // MARK: - Extracting View
+    // MARK: - Extracting View (preparing video)
 
     var extractingView: some View {
+        verificationLoadingView(statusText: "Preparing video...")
+    }
+
+    // MARK: - Analyzing View (AI verification in progress)
+
+    var analyzingView: some View {
+        verificationLoadingView(statusText: "Analyzing...")
+    }
+
+    /// Clean loading view showing video thumbnail with spinner - matches photo verification UX
+    private func verificationLoadingView(statusText: String) -> some View {
         VStack(spacing: MPSpacing.xxl) {
             Spacer()
 
-            // Show thumbnail dimmed
+            // Show video thumbnail (clean, no technical details exposed)
             if let thumbnail = videoThumbnail {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .scaledToFit()
-                    .frame(maxHeight: 300)
+                    .frame(maxHeight: 350)
                     .cornerRadius(MPRadius.xl)
-                    .opacity(0.6)
-                    .overlay {
-                        RoundedRectangle(cornerRadius: MPRadius.xl)
-                            .fill(Color.black.opacity(0.3))
-                    }
+                    .mpShadow(.medium)
                     .padding(.horizontal, MPSpacing.xxl)
             }
 
+            // Native loading indicator
             VStack(spacing: MPSpacing.md) {
                 ProgressView()
                     .scaleEffect(1.2)
                     .tint(MPColors.accent)
 
-                Text("Preparing video...")
+                Text(statusText)
                     .font(.system(size: 15, weight: .medium))
                     .foregroundColor(MPColors.textTertiary)
-            }
-
-            Spacer()
-        }
-    }
-
-    // MARK: - Analyzing View
-
-    var analyzingView: some View {
-        VStack(spacing: MPSpacing.xxl) {
-            Spacer()
-
-            // Show extracted frames in a grid
-            if let frames = extractedFrames, !frames.isEmpty {
-                LazyVGrid(columns: [
-                    GridItem(.flexible(), spacing: MPSpacing.sm),
-                    GridItem(.flexible(), spacing: MPSpacing.sm),
-                    GridItem(.flexible(), spacing: MPSpacing.sm)
-                ], spacing: MPSpacing.sm) {
-                    ForEach(frames.indices, id: \.self) { index in
-                        Image(uiImage: frames[index])
-                            .resizable()
-                            .scaledToFill()
-                            .frame(height: 100)
-                            .clipped()
-                            .cornerRadius(MPRadius.md)
-                    }
-                }
-                .padding(.horizontal, MPSpacing.xxl)
-            }
-
-            VStack(spacing: MPSpacing.md) {
-                ProgressView()
-                    .scaleEffect(1.2)
-                    .tint(MPColors.accent)
-
-                Text("Analyzing video...")
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundColor(MPColors.textTertiary)
-
-                Text("\(extractedFrames?.count ?? 0) frames extracted")
-                    .font(.system(size: 13))
-                    .foregroundColor(MPColors.textTertiary.opacity(0.7))
             }
 
             Spacer()
