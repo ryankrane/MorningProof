@@ -25,7 +25,6 @@
 		12EEFB0D6E825B930BBB04F6 /* VideoPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = C5BA11BEACD381F92469A2BB /* VideoPicker.swift */; };
 		13E91AB3FB9C88A0819B9423 /* UndoToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4FE25B063CD6F583178BDA5A /* UndoToastView.swift */; };
 		14FC0ED912DFDF42657ACCEF /* OnboardingFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8BEB02535C2B978DE0AB307 /* OnboardingFlowView.swift */; };
-		17FDC7C2CC16FFF1764C8294 /* AppleStyleHabitRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = A89E7EB783B6122A0991F8F0 /* AppleStyleHabitRow.swift */; };
 		1B6B655E576FBB7B40C3F2FF /* ClaudeAPIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0CC971B9B3913369B47A9E13 /* ClaudeAPIService.swift */; };
 		1C52A329ACE3BA034D9B698A /* HabitDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 98D450172AC0C4240E51E204 /* HabitDetailView.swift */; };
 		1E5B867A52D8298019824D1A /* DistractionSelectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 561F3E8717661D6514235A02 /* DistractionSelectionView.swift */; };
@@ -103,7 +102,6 @@
 		B3F0CE847CD8A79271D34877 /* StreakHeroCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C15180C19687B347FEEB70A /* StreakHeroCard.swift */; };
 		B6C264A289273A3E5581A68B /* AchievementsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB6EDAF75C8614BE0D810BE6 /* AchievementsView.swift */; };
 		B8EF70701D7C141A29739E19 /* VideoRecorder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7056435CBDFC66CE16FC28F5 /* VideoRecorder.swift */; };
-		BE284B16DEBBBDE02FDDBD32 /* AppleStyleHabitsSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7226462B11478E82A7B34B79 /* AppleStyleHabitsSection.swift */; };
 		C178D040DE58282AF6F75732 /* MorningProofActivityMonitor.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 1978F38BCF48CC0BCFF76C24 /* MorningProofActivityMonitor.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		CA7A2901F11A8D91BA998D8E /* AttributionStep.swift in Sources */ = {isa = PBXBuildFile; fileRef = E38DBD4F60D73FA4776242B5 /* AttributionStep.swift */; };
 		CE1EF895259597917931AAE6 /* SleepInputSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 99C4FE9C0053F5EF06E3627E /* SleepInputSheet.swift */; };
@@ -252,7 +250,6 @@
 		7056435CBDFC66CE16FC28F5 /* VideoRecorder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoRecorder.swift; sourceTree = "<group>"; };
 		713388D948CA471942AB2676 /* OnboardingThemeComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingThemeComponents.swift; sourceTree = "<group>"; };
 		714975DBF10147533F4A921F /* VideoVerificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoVerificationView.swift; sourceTree = "<group>"; };
-		7226462B11478E82A7B34B79 /* AppleStyleHabitsSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleStyleHabitsSection.swift; sourceTree = "<group>"; };
 		7281A4F93258C56469EB73AD /* MorningProofUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofUITests.swift; sourceTree = "<group>"; };
 		72CB2983A22CF5E76AF1B5F9 /* LockInDayButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LockInDayButton.swift; sourceTree = "<group>"; };
 		73C680A037A5CED405D77782 /* TextEntryHabitSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEntryHabitSheet.swift; sourceTree = "<group>"; };
@@ -277,7 +274,6 @@
 		9BF09672A32F9537DEA126F2 /* MorningProofApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProofApp.swift; sourceTree = "<group>"; };
 		9CD02B23AC181F00CDCBDB8F /* ProgressGraphView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressGraphView.swift; sourceTree = "<group>"; };
 		A87217B546B00BE1AD54302A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
-		A89E7EB783B6122A0991F8F0 /* AppleStyleHabitRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppleStyleHabitRow.swift; sourceTree = "<group>"; };
 		A90B17F34D578F7C19EE280B /* Secrets.swift.example */ = {isa = PBXFileReference; path = Secrets.swift.example; sourceTree = "<group>"; };
 		AA3ABA042475C32843F05A07 /* LiveActivityManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveActivityManager.swift; sourceTree = "<group>"; };
 		AACBA49F70652BB275332A86 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
@@ -447,8 +443,6 @@
 			children = (
 				C2E54E976D1FF8F9EA53439A /* AchievementUnlockCelebrationView.swift */,
 				FD94B832A13E326308B8FA59 /* AnimatedCheckmark.swift */,
-				A89E7EB783B6122A0991F8F0 /* AppleStyleHabitRow.swift */,
-				7226462B11478E82A7B34B79 /* AppleStyleHabitsSection.swift */,
 				2AE5E02957DAA6C89DAB4817 /* AppLockingCardView.swift */,
 				4A6798C252A662718FDD3074 /* AppsUnlockedCelebrationView.swift */,
 				02498F9BF6D9929C8CFDA9C8 /* BezierPathAnimation.swift */,
@@ -866,8 +860,6 @@
 				30E647CB58C2225AB62B3D95 /* AppLockingDataStore.swift in Sources */,
 				8A73EDB50691D83750238933 /* AppLockingSettingsView.swift in Sources */,
 				2B7E8106E35DF7FB2406B52B /* AppScreen.swift in Sources */,
-				17FDC7C2CC16FFF1764C8294 /* AppleStyleHabitRow.swift in Sources */,
-				BE284B16DEBBBDE02FDDBD32 /* AppleStyleHabitsSection.swift in Sources */,
 				F7387B412D4D895F7AD52613 /* AppsUnlockedCelebrationView.swift in Sources */,
 				CA7A2901F11A8D91BA998D8E /* AttributionStep.swift in Sources */,
 				A9F2EDAB691DC8E3E3CD7562 /* AuthenticationManager.swift in Sources */,

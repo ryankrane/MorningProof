@@ -332,19 +332,37 @@ struct DashboardView: View {
         return formatter.string(from: Date())
     }
 
-    // MARK: - Habits Section
+    // MARK: - Habits Section (Apple-Style Redesign)
 
     @ViewBuilder
     func habitsSection(layout: DynamicHabitLayout) -> some View {
-        VStack(alignment: .leading, spacing: layout.habitRowSpacing) {
-            // Section header with edit button
+        VStack(alignment: .leading, spacing: MPSpacing.md) {
+            // Section header with completion status
             HStack {
-                Text("Today's Habits")
-                    .font(MPFont.headingSmall())
+                Text("Habits")
+                    .font(.system(size: 22, weight: .bold))
                     .foregroundColor(MPColors.textPrimary)
 
                 Spacer()
 
+                // Completion indicator (minimal, Apple-style)
+                if manager.completedCount == manager.totalEnabled {
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(MPColors.success)
+                        Text("Complete")
+                            .font(.system(size: 15, weight: .medium))
+                            .foregroundColor(MPColors.success)
+                    }
+                    .transition(.scale.combined(with: .opacity))
+                } else {
+                    Text("\(manager.completedCount)/\(manager.totalEnabled)")
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundColor(MPColors.textSecondary)
+                }
+
+                // Edit button
                 Button {
                     showHabitEditor = true
                 } label: {
@@ -353,42 +371,37 @@ struct DashboardView: View {
                         .foregroundColor(MPColors.primary)
                 }
             }
-            .padding(.leading, MPSpacing.xs)
+            .padding(.horizontal, 4)
+            .animation(.spring(response: 0.4, dampingFraction: 0.75), value: manager.completedCount == manager.totalEnabled)
 
-            // All habits sorted by verification type:
-            // 1. AI Verified (camera) - both predefined and custom
-            // 2. Auto-Tracked (Apple Health)
-            // 3. Honor System (hold to complete) - both predefined and custom
+            // Apple-style list container (single rounded rectangle with all habits inside)
+            VStack(spacing: 0) {
+                // All habits sorted by verification type with dividers between them
+                let allConfigs = sortedHabitConfigs()
 
-            // AI Verified predefined habits
-            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .aiVerified }) { config in
-                habitRow(for: config, layout: layout)
+                ForEach(Array(allConfigs.enumerated()), id: \.element.id) { index, item in
+                    switch item {
+                    case .predefined(let config):
+                        appleStyleHabitRow(for: config, layout: layout)
+
+                        if index < allConfigs.count - 1 {
+                            Divider()
+                                .padding(.leading, 52)  // Aligns with text, not icon
+                        }
+
+                    case .custom(let customHabit):
+                        appleStyleCustomHabitRow(for: customHabit, layout: layout)
+
+                        if index < allConfigs.count - 1 {
+                            Divider()
+                                .padding(.leading, 52)
+                        }
+                    }
+                }
             }
-
-            // AI Verified custom habits
-            ForEach(manager.enabledCustomHabits.filter { $0.verificationType == .aiVerified }) { customHabit in
-                customHabitRow(for: customHabit, layout: layout)
-            }
-
-            // Auto-Tracked (Apple Health) habits
-            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .autoTracked }) { config in
-                habitRow(for: config, layout: layout)
-            }
-
-            // Journaling habits (text entry)
-            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .journaling }) { config in
-                habitRow(for: config, layout: layout)
-            }
-
-            // Honor System predefined habits
-            ForEach(manager.enabledHabits.filter { $0.habitType.tier == .honorSystem }) { config in
-                habitRow(for: config, layout: layout)
-            }
-
-            // Honor System custom habits
-            ForEach(manager.enabledCustomHabits.filter { $0.verificationType == .honorSystem }) { customHabit in
-                customHabitRow(for: customHabit, layout: layout)
-            }
+            .background(MPColors.surface)
+            .cornerRadius(MPRadius.lg)
+            .mpShadow(.medium)  // One shadow for entire container
 
             // Lock In Day Button
             HStack {
@@ -418,6 +431,52 @@ struct DashboardView: View {
         }
     }
 
+    // MARK: - Apple-Style Habit Row Helpers
+
+    /// Enum to unify predefined and custom habits for sorted list
+    private enum HabitItem: Identifiable {
+        case predefined(HabitConfig)
+        case custom(CustomHabit)
+
+        var id: String {
+            switch self {
+            case .predefined(let config):
+                return config.id
+            case .custom(let habit):
+                return habit.id.uuidString
+            }
+        }
+
+        var tierRawValue: Int {
+            switch self {
+            case .predefined(let config):
+                return config.habitType.tier.rawValue
+            case .custom(let habit):
+                // Map CustomVerificationType to HabitVerificationTier equivalent
+                switch habit.verificationType {
+                case .aiVerified:
+                    return HabitVerificationTier.aiVerified.rawValue
+                case .honorSystem:
+                    return HabitVerificationTier.honorSystem.rawValue
+                }
+            }
+        }
+    }
+
+    /// Returns all enabled habits sorted by verification tier
+    private func sortedHabitConfigs() -> [HabitItem] {
+        var items: [HabitItem] = []
+
+        // Add all predefined habits
+        items.append(contentsOf: manager.enabledHabits.map { .predefined($0) })
+
+        // Add all custom habits
+        items.append(contentsOf: manager.enabledCustomHabits.map { .custom($0) })
+
+        // Sort by verification tier (AI → Auto → Journaling → Honor)
+        return items.sorted { $0.tierRawValue < $1.tierRawValue }
+    }
+
     /// Determines if a habit is a "hold to complete" type (not a special input type)
     /// Only habits with special input UIs (camera, sheets, auto-progress, text entry) are excluded
     private func isHoldToCompleteHabit(_ habitType: HabitType) -> Bool {
@@ -440,6 +499,99 @@ struct DashboardView: View {
     private func isCompletingFinalHabit() -> Bool {
         manager.completedCount == manager.totalEnabled - 1
     }
+
+    // MARK: - Apple-Style Habit Rows (Clean, No Card Effects)
+
+    func appleStyleHabitRow(for config: HabitConfig, layout: DynamicHabitLayout) -> some View {
+        let completion = manager.getCompletion(for: config.habitType)
+        let isCompleted = completion?.isCompleted ?? false
+        let progress = holdProgress[config.habitType] ?? 0
+        let isHoldType = isHoldToCompleteHabit(config.habitType)
+
+        return Button {
+            handleHabitTap(config)
+        } label: {
+            HStack(spacing: 12) {
+                // Status indicator (left)
+                appleStyleStatusIndicator(isCompleted: isCompleted, icon: config.habitType.icon)
+                    .frame(width: 28, height: 28)
+
+                // Info (middle)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(config.habitType.displayName)
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(isCompleted ? MPColors.textSecondary : MPColors.textPrimary)
+
+                    appleStyleSubtitle(for: config, completion: completion, isCompleted: isCompleted)
+                }
+
+                Spacer()
+
+                // Action indicator (right)
+                appleStyleTrailingContent(for: config, isCompleted: isCompleted, progress: progress, completion: completion)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .holdToComplete(
+            isEnabled: isHoldType && !isCompleted,
+            progress: Binding(
+                get: { holdProgress[config.habitType] ?? 0 },
+                set: { holdProgress[config.habitType] = $0 }
+            ),
+            holdDuration: 1.0,
+            onCompleted: {
+                completeHabitSimple(config.habitType)
+            }
+        )
+    }
+
+    func appleStyleCustomHabitRow(for customHabit: CustomHabit, layout: DynamicHabitLayout) -> some View {
+        let completion = manager.getCustomCompletion(for: customHabit.id)
+        let isCompleted = completion?.isCompleted ?? false
+        let progress = customHoldProgress[customHabit.id] ?? 0
+        let isHoldType = customHabit.verificationType == .honorSystem
+
+        return Button {
+            handleCustomHabitTap(customHabit)
+        } label: {
+            HStack(spacing: 12) {
+                appleStyleStatusIndicator(isCompleted: isCompleted, icon: customHabit.icon)
+                    .frame(width: 28, height: 28)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(customHabit.name)
+                        .font(.system(size: 17, weight: .regular))
+                        .foregroundColor(isCompleted ? MPColors.textSecondary : MPColors.textPrimary)
+
+                    appleStyleCustomSubtitle(for: customHabit, completion: completion, isCompleted: isCompleted)
+                }
+
+                Spacer()
+
+                appleStyleCustomTrailingContent(for: customHabit, isCompleted: isCompleted, progress: progress)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+        .holdToComplete(
+            isEnabled: isHoldType && !isCompleted,
+            progress: Binding(
+                get: { customHoldProgress[customHabit.id] ?? 0 },
+                set: { customHoldProgress[customHabit.id] = $0 }
+            ),
+            holdDuration: 1.0,
+            onCompleted: {
+                completeCustomHabitSimple(customHabit.id)
+            }
+        )
+    }
+
+    // MARK: - Old Card-Style Habit Row (Keep for reference, will remove after testing)
 
     func habitRow(for config: HabitConfig, layout: DynamicHabitLayout) -> some View {
         let completion = manager.getCompletion(for: config.habitType)
@@ -993,6 +1145,280 @@ struct DashboardView: View {
             return "\(Int(hours))h"
         } else {
             return String(format: "%.1fh", hours)
+        }
+    }
+
+    // MARK: - Apple-Style Component Builders
+
+    @ViewBuilder
+    private func appleStyleStatusIndicator(isCompleted: Bool, icon: String) -> some View {
+        if isCompleted {
+            // Green checkmark for completed
+            Image(systemName: "checkmark.circle.fill")
+                .font(.system(size: 28))
+                .foregroundColor(MPColors.success)
+                .symbolRenderingMode(.hierarchical)
+        } else {
+            // Neutral gray circle with icon for incomplete
+            ZStack {
+                Circle()
+                    .fill(Color(.systemGray6))
+                    .frame(width: 28, height: 28)
+                Image(systemName: icon)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func appleStyleSubtitle(for config: HabitConfig, completion: HabitCompletion?, isCompleted: Bool) -> some View {
+        if let completion = completion {
+            switch config.habitType {
+            case .morningSteps:
+                let steps = completion.verificationData?.stepCount ?? 0
+                HStack(spacing: 4) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.pink.opacity(0.8))
+                    Text("\(steps.formatted())/\(config.goal) steps")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .sleepDuration:
+                if let hours = completion.verificationData?.sleepHours {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.pink.opacity(0.8))
+                        Text("\(formatHours(hours))/\(config.goal)h sleep")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                } else {
+                    HStack(spacing: 4) {
+                        Image(systemName: "heart.fill")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(.pink.opacity(0.8))
+                        Text("Syncs from Health")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
+
+            case .morningWorkout:
+                HStack(spacing: 4) {
+                    Image(systemName: "heart.fill")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.pink.opacity(0.8))
+                    if isCompleted {
+                        Text("Workout detected")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textTertiary)
+                    } else {
+                        Text("Syncs from Health")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                }
+
+            case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
+                if isCompleted {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 11, weight: .semibold))
+                            .foregroundColor(MPColors.success.opacity(0.8))
+                        Text("AI verified")
+                            .font(.system(size: 15))
+                            .foregroundColor(MPColors.textTertiary)
+                    }
+                } else {
+                    Text("Take photo to verify")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            case .gratitude, .dailyPlanning:
+                if isCompleted {
+                    Text("Entry saved")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                } else {
+                    Text("Tap to add entry")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+
+            default:
+                if isCompleted {
+                    // For honor system habits, checkmark is enough - no text needed
+                    EmptyView()
+                } else {
+                    Text("Hold to complete")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func appleStyleCustomSubtitle(for habit: CustomHabit, completion: CustomHabitCompletion?, isCompleted: Bool) -> some View {
+        if isCompleted {
+            if habit.verificationType == .aiVerified {
+                HStack(spacing: 4) {
+                    Image(systemName: "sparkles")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(MPColors.success.opacity(0.8))
+                    Text("AI verified")
+                        .font(.system(size: 15))
+                        .foregroundColor(MPColors.textTertiary)
+                }
+            }
+        } else {
+            switch habit.verificationType {
+            case .aiVerified:
+                Text("Take photo to verify")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textTertiary)
+            case .honorSystem:
+                Text("Hold to complete")
+                    .font(.system(size: 15))
+                    .foregroundColor(MPColors.textTertiary)
+            default:
+                EmptyView()
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func appleStyleTrailingContent(for config: HabitConfig, isCompleted: Bool, progress: CGFloat, completion: HabitCompletion?) -> some View {
+        if isCompleted {
+            EmptyView()
+        } else if config.habitType == .morningSteps {
+            let score = completion?.score ?? 0
+            appleStyleProgressRing(progress: CGFloat(score) / 100.0)
+        } else if config.habitType.tier == .aiVerified {
+            Image(systemName: "camera.fill")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(Color(.systemGray3))
+        } else if config.habitType.tier == .journaling {
+            Image(systemName: "square.and.pencil")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(Color(.systemGray3))
+        } else if config.habitType.tier == .autoTracked {
+            Image(systemName: "heart.fill")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundColor(.pink.opacity(0.6))
+        } else if progress > 0 {
+            appleStyleProgressRing(progress: progress)
+        } else {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(.systemGray4))
+        }
+    }
+
+    @ViewBuilder
+    private func appleStyleCustomTrailingContent(for habit: CustomHabit, isCompleted: Bool, progress: CGFloat) -> some View {
+        if isCompleted {
+            EmptyView()
+        } else if habit.verificationType == .aiVerified {
+            Image(systemName: "camera.fill")
+                .font(.system(size: 15, weight: .medium))
+                .foregroundColor(Color(.systemGray3))
+        } else if progress > 0 {
+            appleStyleProgressRing(progress: progress)
+        } else {
+            Image(systemName: "chevron.right")
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundColor(Color(.systemGray4))
+        }
+    }
+
+    @ViewBuilder
+    private func appleStyleProgressRing(progress: CGFloat) -> some View {
+        ZStack {
+            Circle()
+                .stroke(Color(.systemGray5), lineWidth: 2)
+            Circle()
+                .trim(from: 0, to: progress)
+                .stroke(MPColors.accent, lineWidth: 2)
+                .rotationEffect(.degrees(-90))
+        }
+        .frame(width: 24, height: 24)
+    }
+
+    private func handleHabitTap(_ config: HabitConfig) {
+        let completion = manager.getCompletion(for: config.habitType)
+        guard !(completion?.isCompleted ?? false) else { return }
+
+        switch config.habitType {
+        case .madeBed:
+            showBedCamera = true
+        case .sunlightExposure:
+            showSunlightCamera = true
+        case .hydration:
+            showHydrationCamera = true
+        case .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
+            genericCameraHabitType = config.habitType
+        case .gratitude, .dailyPlanning:
+            textEntryHabitType = config.habitType
+        case .sleepDuration:
+            showSleepInput = true
+        default:
+            break
+        }
+    }
+
+    private func handleCustomHabitTap(_ habit: CustomHabit) {
+        let completion = manager.getCustomCompletion(for: habit.id)
+        guard !(completion?.isCompleted ?? false) else { return }
+
+        if habit.verificationType == .aiVerified {
+            customHabitCameraTarget = habit
+        }
+    }
+
+    /// Simplified completion - no per-habit effects, only global celebration when all complete
+    private func completeHabitSimple(_ habitType: HabitType) {
+        let wasLastHabit = isCompletingFinalHabit()
+
+        manager.completeHabit(habitType)
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        // If this was the final habit, trigger global celebration
+        if wasLastHabit {
+            showGrandFinaleConfetti = true
+
+            // Clear confetti after animation
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                showGrandFinaleConfetti = false
+            }
+        }
+    }
+
+    /// Simplified completion for custom habits
+    private func completeCustomHabitSimple(_ habitId: UUID) {
+        let wasLastHabit = isCompletingFinalHabit()
+
+        manager.completeCustomHabitHonorSystem(habitId)
+
+        // Haptic feedback
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+
+        // If this was the final habit, trigger global celebration
+        if wasLastHabit {
+            showGrandFinaleConfetti = true
+
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                showGrandFinaleConfetti = false
+            }
         }
     }
 }
