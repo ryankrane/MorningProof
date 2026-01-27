@@ -103,7 +103,6 @@ struct WelcomeHeroStep: View {
                 .padding(.horizontal, MPSpacing.xl)
                 .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
                 .opacity(contentVisible ? 1 : 0)
-                .offset(y: contentVisible ? 0 : 12)
 
                 Spacer()
                     .frame(minHeight: 20)
@@ -127,8 +126,10 @@ struct WelcomeHeroStep: View {
                         }
                     } label: {
                         HStack(spacing: MPSpacing.md) {
-                            Image(systemName: "g.circle.fill")
-                                .font(.system(size: 20))
+                            Image("GoogleLogo")
+                                .resizable()
+                                .renderingMode(.original)
+                                .frame(width: 20, height: 20)
                             Text("Sign in with Google")
                                 .font(.system(size: 17, weight: .medium))
                         }
