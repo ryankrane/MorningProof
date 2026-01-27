@@ -560,14 +560,14 @@ struct DashboardView: View {
             }
 
             HStack(spacing: MPSpacing.md) {
-                // Icon with more subtle background
+                // Icon with dark prominent background
                 ZStack {
                     Circle()
-                        .fill(isCompleted ? MPColors.success.opacity(0.12) : MPColors.textTertiary.opacity(0.08))
+                        .fill(isCompleted ? MPColors.success.opacity(0.2) : Color.white.opacity(0.12))
                         .frame(width: iconSize, height: iconSize)
                     Image(systemName: config.habitType.icon)
                         .font(.system(size: iconSize * 0.45, weight: .medium))
-                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
+                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textPrimary)
                 }
 
                 // Info
@@ -737,14 +737,14 @@ struct DashboardView: View {
             }
 
             HStack(spacing: MPSpacing.md) {
-                // Icon with circular background
+                // Icon with dark prominent background
                 ZStack {
                     Circle()
-                        .fill(isCompleted ? MPColors.success.opacity(0.15) : MPColors.surfaceSecondary)
+                        .fill(isCompleted ? MPColors.success.opacity(0.2) : Color.white.opacity(0.12))
                         .frame(width: iconSize, height: iconSize)
                     Image(systemName: customHabit.icon)
                         .font(.system(size: iconSize * 0.5))
-                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textSecondary)
+                        .foregroundColor(isCompleted ? MPColors.success : MPColors.textPrimary)
                 }
                 .frame(width: iconSize)
 

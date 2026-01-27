@@ -447,10 +447,16 @@ struct SettingsRowContent: View {
 
     var body: some View {
         HStack(spacing: MPSpacing.lg) {
-            Image(systemName: icon)
-                .font(.system(size: 16, weight: .medium))
-                .foregroundColor(iconColor)
-                .frame(width: 28, height: 28)
+            // Icon with dark circular background
+            ZStack {
+                Circle()
+                    .fill(iconColor.opacity(0.15))
+                    .frame(width: 32, height: 32)
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .medium))
+                    .foregroundColor(iconColor)
+            }
+            .frame(width: 32, height: 32)
 
             Text(title)
                 .font(MPFont.bodyMedium())

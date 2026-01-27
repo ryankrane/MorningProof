@@ -266,15 +266,15 @@ struct AddHabitView: View {
         let isEnabled = config?.isEnabled ?? false
 
         return HStack(spacing: MPSpacing.lg) {
-            // Icon
+            // Icon with dark prominent background
             ZStack {
                 Circle()
-                    .fill(isEnabled ? MPColors.success.opacity(0.12) : MPColors.primary.opacity(0.12))
+                    .fill(isEnabled ? MPColors.success.opacity(0.2) : Color.white.opacity(0.12))
                     .frame(width: 44, height: 44)
 
                 Image(systemName: habitType.icon)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(isEnabled ? MPColors.success : MPColors.primary)
+                    .foregroundColor(isEnabled ? MPColors.success : MPColors.textPrimary)
             }
 
             // Name with info button
@@ -315,15 +315,15 @@ struct AddHabitView: View {
         let isEnabled = config?.isEnabled ?? true
 
         return HStack(spacing: MPSpacing.lg) {
-            // Icon
+            // Icon with dark prominent background
             ZStack {
                 Circle()
-                    .fill(isEnabled ? MPColors.success.opacity(0.12) : MPColors.primary.opacity(0.12))
+                    .fill(isEnabled ? MPColors.success.opacity(0.2) : Color.white.opacity(0.12))
                     .frame(width: 44, height: 44)
 
                 Image(systemName: customHabit.icon)
                     .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(isEnabled ? MPColors.success : MPColors.primary)
+                    .foregroundColor(isEnabled ? MPColors.success : MPColors.textPrimary)
             }
 
             // Name with info button and "Custom" label
