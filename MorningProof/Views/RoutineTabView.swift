@@ -163,23 +163,14 @@ struct RoutineTabView: View {
         NavigationLink {
             AddHabitView(manager: manager)
         } label: {
-            HStack(spacing: 6) {
+            HStack(spacing: 5) {
                 Image(systemName: "slider.horizontal.3")
-                    .font(.system(size: 13, weight: .medium))
+                    .font(.system(size: 12, weight: .regular))
                 Text("Customize Habits")
-                    .font(.system(size: 15, weight: .regular))
+                    .font(.system(size: 13, weight: .regular))
             }
-            .foregroundColor(MPColors.textSecondary)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(
-                Capsule()
-                    .fill(MPColors.surface)
-            )
-            .overlay(
-                Capsule()
-                    .strokeBorder(MPColors.divider, lineWidth: 0.5)
-            )
+            .foregroundColor(Color(.tertiaryLabel))
+            .padding(.vertical, 8)
         }
         .buttonStyle(PlainButtonStyle())
         .frame(maxWidth: .infinity)

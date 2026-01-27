@@ -26,8 +26,8 @@ struct HowItWorksStep: View {
                     VStack(spacing: MPSpacing.md) {
                         HowItWorksRow(
                             number: "1",
-                            title: "Make your routine",
-                            description: "Choose habits to complete each morning",
+                            title: "Build Your Routine",
+                            description: "Pick the habits that matter to you — we'll hold you to them",
                             icon: "list.bullet.clipboard.fill",
                             isVisible: showSteps[0]
                         )
@@ -42,8 +42,8 @@ struct HowItWorksStep: View {
 
                         HowItWorksRow(
                             number: "3",
-                            title: "Prove it & unlock",
-                            description: "AI verifies, then apps unlock",
+                            title: "Prove It",
+                            description: "Snap a photo. AI verifies. Apps unlock.",
                             icon: "lock.open.fill",
                             isVisible: showSteps[2]
                         )

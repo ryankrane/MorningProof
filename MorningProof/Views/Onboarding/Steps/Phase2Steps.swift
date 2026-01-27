@@ -168,30 +168,9 @@ private struct ChalkText: View {
     let text: String
 
     var body: some View {
-        ZStack {
-            // Subtle glow behind
-            Text(text)
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundColor(MPColors.primary)
-                .blur(radius: 12)
-                .opacity(0.4)
-
-            // Main text with purple gradient
-            Text(text)
-                .font(.system(size: 36, weight: .bold, design: .rounded))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            MPColors.primary,
-                            MPColors.primary.opacity(0.92),
-                            Color(red: 0.75, green: 0.55, blue: 1.0)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: MPColors.primary.opacity(0.5), radius: 2, x: 0, y: 0)
-        }
+        Text(text)
+            .font(.system(size: 36, weight: .bold, design: .rounded))
+            .foregroundColor(.white)
     }
 }
 

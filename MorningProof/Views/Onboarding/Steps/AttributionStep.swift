@@ -59,24 +59,8 @@ struct AttributionStep: View {
 
                 Spacer(minLength: 16)
 
-                // Continue button and Skip option
-                VStack(spacing: MPSpacing.md) {
-                    MPButton(
-                        title: "Continue",
-                        style: .primary,
-                        isDisabled: data.attributionSource == nil
-                    ) {
-                        onContinue()
-                    }
-
-                    Button {
-                        // Skip without selecting
-                        onContinue()
-                    } label: {
-                        Text("Skip")
-                            .font(.system(size: 15, weight: .medium))
-                            .foregroundColor(MPColors.textTertiary)
-                    }
+                MPButton(title: "Continue", style: .primary, isDisabled: data.attributionSource == nil) {
+                    onContinue()
                 }
                 .padding(.horizontal, MPSpacing.xxxl)
                 .padding(.bottom, max(30, geometry.safeAreaInsets.bottom + 20))

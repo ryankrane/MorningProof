@@ -412,27 +412,32 @@ struct NameStep: View {
     }
 
     private func confirmName() {
+        // Dismiss keyboard first so it starts animating down immediately
         isNameFocused = false
-        hasConfirmedName = true
 
-        // Start icon departure animation
-        withAnimation(.easeOut(duration: 0.6)) {
-            iconDeparting = true
-        }
+        // Begin the rest of the transition slightly earlier than the keyboard finishes
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            hasConfirmedName = true
 
-        // Show greeting after input fades
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-            showGreeting = true
-        }
+            // Start icon departure animation
+            withAnimation(.easeOut(duration: 0.6)) {
+                iconDeparting = true
+            }
 
-        // Fade out before advancing
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.3) {
-            fadeOut = true
-        }
+            // Show greeting after input fades
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                showGreeting = true
+            }
 
-        // Auto-advance after fade out completes
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.7) {
-            onContinue()
+            // Fade out before advancing
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.15) {
+                fadeOut = true
+            }
+
+            // Auto-advance after fade out completes
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.55) {
+                onContinue()
+            }
         }
     }
 
