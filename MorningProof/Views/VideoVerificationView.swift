@@ -126,11 +126,6 @@ struct VideoVerificationView: View {
                         .multilineTextAlignment(.center)
                         .padding(.horizontal, MPSpacing.lg)
                 }
-
-                Text("2-60 seconds")
-                    .font(.system(size: 13))
-                    .foregroundColor(MPColors.textTertiary)
-                    .padding(.top, MPSpacing.xs)
             }
             .offset(y: showText ? 0 : 15)
             .opacity(showText ? 1.0 : 0)

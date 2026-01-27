@@ -542,7 +542,7 @@ struct DashboardView: View {
                 if !isCompleted {
                     if config.habitType == .madeBed || config.habitType == .sunlightExposure || config.habitType == .hydration ||
                        [.healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep].contains(config.habitType) {
-                        // Camera icon - clean
+                        // Camera shutter button - Apple style
                         Button {
                             switch config.habitType {
                             case .madeBed: showBedCamera = true
@@ -551,7 +551,7 @@ struct DashboardView: View {
                             default: genericCameraHabitType = config.habitType
                             }
                         } label: {
-                            Image(systemName: "camera.fill")
+                            Image(systemName: "circle.fill")
                                 .font(.system(size: 22, weight: .medium))
                                 .foregroundColor(MPColors.primary)
                         }
@@ -706,7 +706,7 @@ struct DashboardView: View {
                     Button {
                         customHabitCameraTarget = customHabit
                     } label: {
-                        Image(systemName: customHabit.mediaType == .video ? "video.fill" : "camera.fill")
+                        Image(systemName: customHabit.mediaType == .video ? "record.circle.fill" : "circle.fill")
                             .font(.system(size: 22, weight: .medium))
                             .foregroundColor(MPColors.primary)
                     }
