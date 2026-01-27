@@ -43,7 +43,7 @@ enum HabitVerificationTier: Int, Codable, CaseIterable {
 
     var icon: String {
         switch self {
-        case .aiVerified: return "camera.fill"
+        case .aiVerified: return "sparkles"
         case .autoTracked: return "heart.fill"
         case .journaling: return "square.and.pencil"
         case .honorSystem: return "hand.tap.fill"
