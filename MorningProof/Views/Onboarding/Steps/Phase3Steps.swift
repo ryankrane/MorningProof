@@ -63,10 +63,9 @@ struct HowItWorksStep: View {
                         .foregroundColor(MPColors.accent)
                         .opacity(showSteps[3] ? 1 : 0)
                 }
-                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 12)
 
                 MPButton(title: "See it in action", style: .primary) {
                     onContinue()

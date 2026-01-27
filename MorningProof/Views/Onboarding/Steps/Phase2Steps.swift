@@ -326,10 +326,9 @@ struct DoomScrollingSimulatorStep: View {
                         .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                 }
-                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 12)
 
             // Phone mockup with doom scrolling → lockdown sequence
             ZStack {
@@ -411,8 +410,7 @@ struct DoomScrollingSimulatorStep: View {
             .scaleEffect(showPhone ? 1 : 0.8)
             .opacity(showPhone ? 1 : 0)
 
-            Spacer()
-                .frame(minHeight: 20)
+            Spacer(minLength: 12)
 
             MPButton(title: "Protect My Mornings", style: .primary, icon: "shield.lefthalf.filled") {
                 HapticManager.shared.medium()

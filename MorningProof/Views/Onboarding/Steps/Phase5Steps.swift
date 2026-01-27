@@ -28,10 +28,9 @@ struct PermissionsStep: View {
                         .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                 }
-                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
+                .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 12)
 
                 VStack(spacing: MPSpacing.lg) {
                     // Health permission card
@@ -72,8 +71,7 @@ struct PermissionsStep: View {
                 }
                 .padding(.horizontal, MPSpacing.xl)
 
-                Spacer()
-                    .frame(minHeight: 20)
+                Spacer(minLength: 12)
 
                 VStack(spacing: MPSpacing.md) {
                     MPButton(title: "All Set", style: .primary) {
@@ -165,9 +163,11 @@ struct PermissionCard: View {
                 Text(description)
                     .font(.system(size: 13))
                     .foregroundColor(MPColors.textTertiary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer()
+            Spacer(minLength: 8)
 
             Button(action: action) {
                 Group {
