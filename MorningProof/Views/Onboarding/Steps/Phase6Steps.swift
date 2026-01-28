@@ -17,13 +17,15 @@ struct OptionalRatingStep: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                Spacer()
+                    .frame(minHeight: geometry.size.height * 0.18)
+
                 // Title
                 Text("Help Us Grow")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
                 // Subtitle
                 Text("Your rating helps others find better mornings")
@@ -31,10 +33,10 @@ struct OptionalRatingStep: View {
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, 12)
+                    .padding(.top, 4)
 
                 Spacer()
-                    .frame(minHeight: geometry.size.height * 0.25)
+                    .frame(minHeight: 24, maxHeight: 40)
 
                 // Stars with glow and gentle hover animation
                 HStack(spacing: 16) {
