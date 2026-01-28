@@ -496,7 +496,7 @@ struct DashboardView: View {
         let specialInputHabits: Set<HabitType> = [
             .madeBed, .sleepDuration, .morningSteps, .sunlightExposure, .hydration,
             .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep,
-            .gratitude, .dailyPlanning
+            .gratitude, .dailyPlanning, .touchGrass
         ]
         return !specialInputHabits.contains(habitType)
     }
