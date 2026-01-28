@@ -1294,7 +1294,7 @@ struct DashboardView: View {
             showSunlightCamera = true
         case .hydration:
             showHydrationCamera = true
-        case .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
+        case .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep, .touchGrass:
             genericCameraHabitType = config.habitType
         case .gratitude, .dailyPlanning:
             textEntryHabitType = config.habitType

@@ -383,6 +383,44 @@ Keep feedback to 2 sentences max.
 - If unrelated: "I see [what's there], but where's your meal prep?"
 
 JSON format:
+{"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`,
+
+  touchGrass: `TASK: Verify this photo shows the user is OUTDOORS IN NATURE.
+
+═══════════════════════════════════════════════════════════════
+STEP 1: IDENTIFY WHAT'S IN THE PHOTO
+═══════════════════════════════════════════════════════════════
+Set detected_subject to one of:
+- "nature_outdoor" - outside with visible nature (grass, trees, park, trail, beach, sky, garden)
+- "indoor_plant" - houseplant or indoor greenery
+- "screenshot" - photo of a screen
+- "indoor" - clearly indoors (furniture, walls, ceiling)
+- "other" - unrelated content
+
+═══════════════════════════════════════════════════════════════
+STEP 2: DETERMINE PASS/FAIL
+═══════════════════════════════════════════════════════════════
+PASS (is_verified: true) if:
+- Outdoors with visible nature elements (grass, trees, sky, park, trail, beach, garden)
+- Overcast or cloudy days count - just needs to be outside
+- Balcony/patio with outdoor view counts
+
+FAIL (is_verified: false) if:
+- Indoors (even with houseplants)
+- Indoor plant close-up (a houseplant doesn't count!)
+- Screenshot or photo of a photo
+- No nature elements visible
+
+═══════════════════════════════════════════════════════════════
+STEP 3: SPECIFIC FEEDBACK
+═══════════════════════════════════════════════════════════════
+Keep feedback to 2 sentences max.
+- If passed: Celebrate! ("Grass officially touched! Fresh air hits different.")
+- If indoor plant: "A houseplant doesn't count! Get out there for real."
+- If indoors: "I see four walls — time to step outside!"
+- If unrelated: "I see [what's there], but I need to see you outside!"
+
+JSON format:
 {"is_verified": boolean, "detected_subject": "category", "feedback": "specific message"}`
 };
 

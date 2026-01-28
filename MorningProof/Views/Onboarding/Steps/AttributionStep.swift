@@ -91,8 +91,9 @@ private struct AttributionOptionButton: View {
                 Image(source.logo)
                     .resizable()
                     .renderingMode(.original)
-                    .aspectRatio(contentMode: .fit)
+                    .aspectRatio(contentMode: .fill)
                     .frame(width: 44, height: 44)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
 
                 Text(source.rawValue)
                     .font(.system(size: 14, weight: .medium))

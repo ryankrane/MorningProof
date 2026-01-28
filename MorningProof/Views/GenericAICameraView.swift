@@ -206,6 +206,7 @@ struct GenericAICameraView: View {
         case .vitamins: return "Snap your vitamins"
         case .skincare: return "Show your skincare routine"
         case .mealPrep: return "Take a photo of your prep"
+        case .touchGrass: return "Take a photo outside"
         default: return "Take a photo"
         }
     }
@@ -217,6 +218,7 @@ struct GenericAICameraView: View {
         case .vitamins: return "Show your supplements or pill organizer."
         case .skincare: return "Let's see those skincare products!"
         case .mealPrep: return "Show your prepared meals or lunch."
+        case .touchGrass: return "Show us you're out in nature — grass, trees, sky, anything outdoors!"
         default: return "Take a photo to verify."
         }
     }
@@ -228,6 +230,7 @@ struct GenericAICameraView: View {
         case .vitamins: return "Vitamins Verified!"
         case .skincare: return "Skincare Verified!"
         case .mealPrep: return "Meal Prep Verified!"
+        case .touchGrass: return "Grass Touched! 🌿"
         default: return "Verified!"
         }
     }
@@ -239,6 +242,7 @@ struct GenericAICameraView: View {
         case .vitamins: return "No Vitamins Found..."
         case .skincare: return "No Skincare Found..."
         case .mealPrep: return "No Meal Prep Found..."
+        case .touchGrass: return "Still Indoors..."
         default: return "Not Verified..."
         }
     }
@@ -266,6 +270,7 @@ struct GenericAICameraView: View {
         case .vitamins: return MPColors.primary
         case .skincare: return MPColors.accentGold
         case .mealPrep: return MPColors.success
+        case .touchGrass: return MPColors.success
         default: return MPColors.primary
         }
     }

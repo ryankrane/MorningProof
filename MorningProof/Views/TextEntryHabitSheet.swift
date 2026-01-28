@@ -67,30 +67,7 @@ struct TextEntryHabitSheet: View {
                         .foregroundColor(MPColors.primary)
                 }
 
-                Text(habitType.textEntryPrompt)
-                    .font(MPFont.headingSmall())
-                    .foregroundColor(MPColors.textPrimary)
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.top, MPSpacing.lg)
-
-            // Text entry area with placeholder
-            ZStack(alignment: .topLeading) {
-                // Placeholder text (shown when empty)
-                if text.isEmpty {
-                    Text(placeholderText)
-                        .font(MPFont.bodyMedium())
-                        .foregroundColor(MPColors.textTertiary.opacity(0.6))
-                        .padding(MPSpacing.md)
-                        .padding(.top, 8)
-                        .padding(.leading, 5)
-                }
-
-                TextEditor(text: $text)
-                    .font(MPFont.bodyMedium())
-                    .foregroundColor(MPColors.textPrimary)
-                    .scrollContentBackground(.hidden)
-                    .padding(MPSpacing.md)
+       cacing.md)
                     .focused($isTextFieldFocused)
             }
             .frame(minHeight: 140, maxHeight: 200)

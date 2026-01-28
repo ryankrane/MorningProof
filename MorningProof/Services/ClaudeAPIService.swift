@@ -673,6 +673,7 @@ actor ClaudeAPIService {
         case .vitamins: habitKey = "vitamins"
         case .skincare: habitKey = "skincare"
         case .mealPrep: habitKey = "mealPrep"
+        case .touchGrass: habitKey = "touchGrass"
         default:
             throw APIError.serverError(statusCode: 400, message: "Unsupported habit type for predefined verification")
         }
