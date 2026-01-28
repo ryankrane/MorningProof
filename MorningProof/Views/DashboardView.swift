@@ -1116,7 +1116,7 @@ struct DashboardView: View {
                     }
                 }
 
-            case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
+            case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep, .touchGrass:
                 if completion.isCompleted {
                     Text("Verified")
                         .font(.system(size: 13))
@@ -1208,7 +1208,7 @@ struct DashboardView: View {
                 HealthBadge()
 
             // MARK: AI Verified Habits
-            case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep:
+            case .madeBed, .sunlightExposure, .hydration, .healthyBreakfast, .morningJournal, .vitamins, .skincare, .mealPrep, .touchGrass:
                 AIVerifiedBadge()
 
             // MARK: Journal Habits
