@@ -23,10 +23,7 @@ struct OptionalRatingStep: View {
                     .foregroundColor(MPColors.textPrimary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, MPSpacing.xl)
-                    .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
-
-                Spacer()
-                    .frame(minHeight: 20)
+                    .padding(.top, max(16, geometry.safeAreaInsets.top + 4))
 
                 // Subtitle
                 Text("Your rating helps others find better mornings")
@@ -34,9 +31,10 @@ struct OptionalRatingStep: View {
                     .foregroundColor(MPColors.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, MPSpacing.xl)
+                    .padding(.top, 12)
 
                 Spacer()
-                    .frame(minHeight: 20)
+                    .frame(minHeight: geometry.size.height * 0.25)
 
                 // Stars with glow and gentle hover animation
                 HStack(spacing: 16) {

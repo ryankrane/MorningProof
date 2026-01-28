@@ -143,6 +143,8 @@ struct AIVerificationShowcaseStep: View {
     var body: some View {
         GeometryReader { geometry in
             VStack(spacing: 0) {
+                Spacer()
+
                 VStack(spacing: MPSpacing.xl) {
                     VStack(spacing: MPSpacing.md) {
                         Text("AI-Powered Verification")
@@ -270,10 +272,7 @@ struct AIVerificationShowcaseStep: View {
                     }
                     .opacity(showScore ? 1 : 0)
                 }
-                .padding(.top, max(100, geometry.safeAreaInsets.top + 80))
-
                 Spacer()
-                    .frame(minHeight: 20)
 
                 MPButton(title: "Continue", style: .primary) {
                     stopHaptics()

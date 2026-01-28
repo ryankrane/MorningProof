@@ -13,21 +13,21 @@ struct YouAreNotAloneStep: View {
 
     var body: some View {
         VStack(spacing: 0) {
+            VStack(spacing: MPSpacing.md) {
+                Text("You're not alone")
+                    .padding(.top, 16)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundColor(MPColors.textPrimary)
+
+                Text("Thousands have transformed their mornings")
+                    .font(.system(size: 16))
+                    .foregroundColor(MPColors.textSecondary)
+            }
+            .opacity(showContent ? 1 : 0)
+
             Spacer()
-                .frame(minHeight: 40)
 
-            VStack(spacing: MPSpacing.xxl) {
-                VStack(spacing: MPSpacing.md) {
-                    Text("You're not alone")
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
-                        .foregroundColor(MPColors.textPrimary)
-
-                    Text("Thousands have transformed their mornings")
-                        .font(.system(size: 16))
-                        .foregroundColor(MPColors.textSecondary)
-                }
-                .opacity(showContent ? 1 : 0)
-
+            VStack(spacing: MPSpacing.xl) {
                 // Continuously scrolling testimonial carousel
                 GeometryReader { geometry in
                     let cardWidth: CGFloat = geometry.size.width * 0.75
