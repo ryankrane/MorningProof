@@ -417,7 +417,7 @@ STEP 3: SPECIFIC FEEDBACK
 Keep feedback to 2 sentences max.
 - If passed: Celebrate! ("Grass officially touched! Fresh air hits different.")
 - If indoor plant: "A houseplant doesn't count! Get out there for real."
-- If indoors: "I see four walls — time to step outside!"
+- If indoors: "I see four walls... time to step outside!"
 - If unrelated: "I see [what's there], but I need to see you outside!"
 
 JSON format:

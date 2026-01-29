@@ -78,7 +78,7 @@ struct GuardrailStep: View {
 
                 // Explanatory text below the cards - lines animate in sequence
                 VStack(spacing: 6) {
-                    Text("Your brain will always choose easy over hard —")
+                    Text("Your brain will always choose easy over hard.")
                         .font(.system(size: 15))
                         .foregroundColor(MPColors.textSecondary)
                         .multilineTextAlignment(.center)

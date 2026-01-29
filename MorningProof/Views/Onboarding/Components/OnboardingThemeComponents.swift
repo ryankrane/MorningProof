@@ -271,7 +271,7 @@ struct OnboardingInfoCard: View {
     ScrollView {
         VStack(spacing: MPSpacing.xl) {
             OnboardingHeroTitle(
-                text: "Become a morning\nperson — finally.",
+                text: "Become a morning\nperson. Finally.",
                 subtitle: "Build habits that stick"
             )
 

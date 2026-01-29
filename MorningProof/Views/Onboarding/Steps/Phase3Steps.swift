@@ -30,7 +30,7 @@ struct HowItWorksStep: View {
                         HowItWorksRow(
                             number: "1",
                             title: "Build Your Routine",
-                            description: "Pick the habits that matter to you — we'll hold you to them",
+                            description: "Pick the habits that matter to you. We'll hold you to them",
                             icon: "list.bullet.clipboard.fill",
                             isVisible: showSteps[0]
                         )

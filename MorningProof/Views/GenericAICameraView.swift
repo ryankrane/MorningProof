@@ -218,7 +218,7 @@ struct GenericAICameraView: View {
         case .vitamins: return "Show your supplements or pill organizer."
         case .skincare: return "Let's see those skincare products!"
         case .mealPrep: return "Show your prepared meals or lunch."
-        case .touchGrass: return "Show us you're out in nature — grass, trees, sky, anything outdoors!"
+        case .touchGrass: return "Show us you're out in nature! Grass, trees, sky, anything outdoors."
         default: return "Take a photo to verify."
         }
     }
